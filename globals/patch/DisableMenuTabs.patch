@@ -1,0 +1,56 @@
+% This patch disables being able to activate/deactivate any badge in Roguelike Mode
+
+
+@Hook 13C4D4 % 80249194
+{
+    % restore vanilla code
+    ADDU	S1, S1, V0
+    LH	    S1, 0180 (S1)
+    %===================
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *PitFlag
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .End
+    NOP
+    LIO     A1, *Flag_Mode_Rogue
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .End
+    NOP
+    % The player is inside the roguelike pit
+    POP     RA, A0, A1, A2, A3, V0, V1
+    J       80249604 % bypass everything and don't activate/deactivate any badge
+    NOP
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    J       8024919C
+    NOP    
+}
+
+/% Old code - The player couldn't enter to any badge list while on Roguelike
+@Hook 13C4BC % 8024917C
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+LIO     A1, *PitFlag
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .Pop
+CLEAR   GP
+LIO     A1, *Flag_Mode_Rogue
+JAL     ~Func:get_variable
+RESERVED
+COPY    GP, V0 % PUSH V0
+.Pop
+POP     RA, A0, A1, A2, A3, V0, V1
+BNEL    GP, R0, .DontEnterList
+ADDIU	A0, R0, 021D % error sfx
+SW		V0, 0 (A0) % this line let you enter a list
+% restore vanilla code
+ADDIU	A0, R0, 00C9
+.DontEnterList
+JAL		~Func:play_sound
+NOP
+J	    80249188
+NOP
+}%/

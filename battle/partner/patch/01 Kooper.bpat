@@ -1,0 +1,1754 @@
+% Script File: 01 Kooper.bscr
+% Decoded from: 6F5E80 to 6FAD10 (01 Kooper)
+
+/%
+This file have all data from the bscr file
+I Just find easier having everything in 1 single file
+%/
+
+#alias $Script_80239384 $Script_Init_ShellToss
+#alias $Script_80239E7C $Script_Init_PowerShell
+#alias $Script_8023AA38 $Script_Init_DizzyShell
+#alias $Script_8023B660 $Script_Init_FireShell
+
+@ $Function_80238000
+{
+	ADDIU     SP, SP, FFD8
+	SW        S0, 18 (SP)
+	LAW       S0, 800DC14C
+	SW        RA, 20 (SP)
+	SW        S1, 1C (SP)
+	BEQ       A1, R0, .o38
+	ADDIU     S1, S0, C
+	LWC1      F0, 144 (S0)
+	LWC1      F2, 148 (S0)
+	LWC1      F4, 14C (S0)
+	SWC1      F0, C (S0)
+	SWC1      F2, 10 (S0)
+	SWC1      F4, 14 (S0)
+	.o38
+	LW        A1, 4C (S0)
+	LW        A2, 54 (S0)
+	JAL       ~Func:add_xz_vec3f
+	COPY      A0, S1
+	LWC1      F2, 4C (S0)
+	LIF       F0, 4.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o80
+	CLEAR     A0
+	LWC1      F0, 54 (S0)
+	SWC1      F0, 10 (SP)
+	LW        A1, C (S0)
+	LW        A2, 10 (S0)
+	BEQ       R0, R0, .o98
+	LW        A3, 14 (S0)
+	.o80
+	LWC1      F0, 54 (S0)
+	SWC1      F0, 10 (SP)
+	LW        A1, C (S0)
+	LW        A2, 10 (S0)
+	LW        A3, 14 (S0)
+	ADDIU     A0, R0, 1
+	.o98
+	JAL       ~Func:play_movement_dust_effects
+	NOP
+	LWC1      F0, 40 (S1)
+	LIF       F3, 1.9375
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	DIV.D     F0, F0, F2
+	LWC1      F2, 0 (S1)
+	CVT.S.D   F0, F0
+	SWC1      F0, 40 (S1)
+	SWC1      F2, 144 (S0)
+	LWC1      F0, 4 (S1)
+	SWC1      F0, 148 (S0)
+	LWC1      F0, 8 (S1)
+	SWC1      F0, 14C (S0)
+	LWC1      F0, 40 (S1)
+	LIF       F3, 1.875
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1T      .o100
+	ADDIU     V0, R0, 2
+	CLEAR     V0
+	.o100
+	LW        RA, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+@ $Function_80238114
+{
+	ADDIU     SP, SP, FFC0
+	SW        S3, 1C (SP)
+	LAW       S3, 800DC14C
+	SW        RA, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F24, 38 (SP)
+	SDC1      F22, 30 (SP)
+	BEQ       A1, R0, .o38
+	SDC1      F20, 28 (SP)
+	SW        R0, 70 (A0)
+	SB        R0, 425 (S3)
+	.o38
+	LW        V0, 70 (A0)
+	BNE       V0, R0, .o15C
+	CLEAR     V0
+	LB        V0, 40C (S3)
+	BLEZ      V0, .o100
+	CLEAR     S2
+	LIF       F24, 33.0
+	ADDU      V0, S3, S2
+	.o5C
+	LB        V1, 40D (V0)
+	LWC1      F20, 144 (S3)
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	ADDIU     V0, V0, 22C
+	ADDU      S1, S3, V0
+	LH        V0, 4 (S1)
+	LH        A0, 0 (S1)
+	MTC1      V0, F22
+	NOP
+	JAL       ~Func:get_actor
+	CVT.S.W   F22, F22
+	COPY      S0, V0
+	BEQ       S0, R0, .oEC
+	NOP
+	LH        A1, 2 (S1)
+	JAL       ~Func:get_actor_part
+	COPY      A0, S0
+	LB        V1, 218 (S0)
+	BNE       V1, R0, .oEC
+	NOP
+	LW        V0, 7C (V0)
+	ANDI      V0, V0, 20
+	BNE       V0, R0, .oEC
+	NOP
+	C.LT.S    F22, F20
+	NOP
+	BC1FL     .oE0
+	SW        R0, 18C (S0)
+	LWC1      F0, 18C (S0)
+	ADD.S     F0, F0, F24
+	SWC1      F0, 18C (S0)
+	.oE0
+	JAL       ~Func:clamp_angle
+	LWC1      F12, 18C (S0)
+	SWC1      F0, 18C (S0)
+	.oEC
+	LB        V0, 40C (S3)
+	ADDIU     S2, S2, 1
+	SLT       V0, S2, V0
+	BNE       V0, R0, .o5C
+	ADDU      V0, S3, S2
+	.o100
+	LW        V0, 88 (S3)
+	BEQ       V0, R0, .o15C
+	CLEAR     V0
+	LB        V0, 40C (S3)
+	BLEZ      V0, .o158
+	CLEAR     S2
+	ADDU      V0, S3, S2
+	.o11C
+	LB        V1, 40D (V0)
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	ADDU      S1, V0, S3
+	JAL       ~Func:get_actor
+	LH        A0, 22C (S1)
+	COPY      S0, V0
+	BNEL      S0, R0, .o144
+	SW        R0, 18C (S0)
+	.o144
+	LB        V0, 40C (S3)
+	ADDIU     S2, S2, 1
+	SLT       V0, S2, V0
+	BNE       V0, R0, .o11C
+	ADDU      V0, S3, S2
+	.o158
+	ADDIU     V0, R0, 2
+	.o15C
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F24, 38 (SP)
+	LDC1      F22, 30 (SP)
+	LDC1      F20, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+@ $Function_80238298
+{
+	ADDIU     SP, SP, FFC8
+	SW        S6, 28 (SP)
+	LAW       S6, 800DC14C
+	SW        S8, 30 (SP)
+	COPY      S8, A0
+	SW        S4, 20 (SP)
+	CLEAR     S4
+	SW        S5, 24 (SP)
+	COPY      S5, S4
+	SW        RA, 34 (SP)
+	SW        S7, 2C (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LB        V0, 40C (S6)
+	BLEZ      V0, .oC0
+	COPY      S3, S4
+	ADDIU     S7, R0, E
+	COPY      S2, S6
+	.o54
+	JAL       ~Func:get_actor
+	LH        A0, 22C (S2)
+	COPY      S0, V0
+	LH        A1, 22E (S2)
+	JAL       ~Func:get_actor_part
+	COPY      A0, S0
+	ADDIU     A1, R0, 4
+	LW        A0, 20C (S0)
+	JAL       ~Func:lookup_status_chance
+	COPY      S1, V0
+	LB        V1, 218 (S0)
+	BNE       V1, S7, .o8C
+	COPY      A0, V0
+	CLEAR     A0
+	.o8C
+	LW        V0, 7C (S1)
+	ANDI      V0, V0, 20
+	BNEL      V0, R0, .o9C
+	CLEAR     A0
+	.o9C
+	BLEZ      A0, .oAC
+	NOP
+	ADDU      S3, S3, A0
+	ADDIU     S4, S4, 1
+	.oAC
+	LB        V0, 40C (S6)
+	ADDIU     S5, S5, 1
+	SLT       V0, S5, V0
+	BNE       V0, R0, .o54
+	ADDIU     S2, S2, 14
+	.oC0
+	BLEZL     S4, .oF4
+	SW        R0, 84 (S8)
+	BNE       S4, R0, .oD4
+	DIV       S3, S4
+	BREAK     1C00
+	.oD4
+	ADDIU     AT, R0, FFFF
+	BNE       S4, AT, .oEC
+	LUI       AT, 8000
+	BNE       S3, AT, .oEC
+	NOP
+	BREAK     1800
+	.oEC
+	MFLO      V0
+	SW        V0, 84 (S8)
+	.oF4
+	LW        RA, 34 (SP)
+	LW        S8, 30 (SP)
+	LW        S7, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+@ $Function_802383C0
+{
+	LW        V1, 84 (A0)
+	SLTI      V0, V1, 24
+	BEQ       V0, R0, .o18
+	CLEAR     V0
+	BEQ       R0, R0, .o5C
+	ADDIU     V1, R0, 1
+	.o18
+	SLTI      V0, V1, 3D
+	BEQ       V0, R0, .o2C
+	ADDIU     V0, R0, 1
+	BEQ       R0, R0, .o5C
+	ADDIU     V1, R0, 3
+	.o2C
+	SLTI      V0, V1, 51
+	BEQ       V0, R0, .o40
+	ADDIU     V0, R0, 2
+	BEQ       R0, R0, .o5C
+	ADDIU     V1, R0, 4
+	.o40
+	SLTI      V0, V1, 64
+	BEQ       V0, R0, .o54
+	ADDIU     V1, R0, 5
+	BEQ       R0, R0, .o5C
+	ADDIU     V0, R0, 3
+	.o54
+	ADDIU     V1, R0, 6
+	ADDIU     V0, R0, 4
+	.o5C
+	SW        V0, BC (A0)
+	ADDIU     V0, R0, 2
+	JR        RA
+	SW        V1, C0 (A0)
+}
+
+@ $Script_Init_80238570
+{
+    Call  BindTakeTurn  ( .Actor:Partner $Script_TakeTurn_80238974 )
+    Call  BindIdle      ( .Actor:Partner $Script_Idle_802385D0 )
+    Call  BindHandleEvent   ( .Actor:Partner $Script_HandleEvent_802385E0 )
+    Call  BindNextTurn  ( .Actor:Partner $Script_NextTurn_80238B6C )
+    Return
+    End
+}
+
+@ $Script_Idle_802385D0
+{
+    Return
+    End
+}
+
+@ $Script_HandleEvent_802385E0
+{
+    Call  UseIdleAnimation  ( .Actor:Partner .False )
+    Call  CloseActionCommandInfo ( )
+    Call  GetLastEvent      ( .Actor:Partner *Var[0] )
+    Switch  *Var[0]
+        CaseOR  ==  .Event:HitCombo % 9
+        CaseOR  ==  .Event:Hit % A
+            SetConst  *Var[1]  000A0011
+            SetConst  *Var[2]  000A0011
+            ExecWait  802977BC
+            SetConst  *Var[1]  000A0011
+            ExecWait  80296014
+        EndCaseGroup
+        CaseOR  ==  00000017 % 17
+        CaseOR  ==  .Event:Immune % 19
+            Call  PlaySoundAtActor  ( .Actor:Partner 0000208C )
+            SetConst  *Var[0]  00000001
+            SetConst  *Var[1]  000A0011
+            ExecWait  80297814
+        EndCaseGroup
+        Case  ==  .Event:SpikeContact % 2A
+            SetConst  *Var[1]  000A0011
+            Set   *Var[2]  00000010
+            ExecWait  80294FE4
+            SetConst  *Var[1]  000A0011
+            ExecWait  80296014
+        Case  ==  .Event:BurnContact % 2C
+            SetConst  *Var[1]  000A0012
+            Set   *Var[2]  00000010
+            SetConst  *Var[3]  000A0013
+            ExecWait  80294C68
+            SetConst  *Var[1]  000A0011
+            ExecWait  80296014
+        Case  ==  .Event:BurnHit % E
+            SetConst  *Var[1]  000A0012
+            SetConst  *Var[2]  000A0013
+            ExecWait  8029621C
+            SetConst  *Var[1]  000A0011
+            ExecWait  80296014
+        Case  ==  .Event:ShockHit % 2F
+            SetConst  *Var[0]  00000001
+            SetConst  *Var[1]  000A0011
+            Set   *Var[2]  00000010
+            ExecWait  80295744
+        Case  ==  00000033 % 33
+            SetConst  *Var[1]  000A0011
+            ExecWait  80296014
+        Case  ==  00000034 % 34
+            SetConst  *Var[0]  00000001
+            SetConst  *Var[1]  000A0004
+            SetConst  *Var[2]  000A0006
+            Set   *Var[3]  00000000
+            ExecWait  80295EC4
+        CaseOR  ==  00000018 % 18
+        CaseOR  ==  .Event:Block % 1A
+            Call  PlaySoundAtActor  ( .Actor:Partner 0000208C )
+            SetConst  *Var[0]  00000001
+            SetConst  *Var[1]  000A0010
+            ExecWait  80297814
+            Wait  10`
+            Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000F )
+        EndCaseGroup
+        Default
+    EndSwitch
+    Call  UseIdleAnimation  ( .Actor:Partner .True )
+    Return
+    End
+}
+
+@ $Script_TakeTurn_80238974
+{
+    Call  GetBattlePhase    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  00000001
+            ExecWait  $Script_80238D84
+        Case  ==  00000000
+            ExecWait  $Script_80238B7C
+        Case  ==  00000005
+            ExecWait  $Script_80238A20
+        Case  ==  00000003
+            ExecWait  $Script_80238A7C
+        Case  ==  00000007
+            ExecWait  $Script_80238AB8
+    EndSwitch
+    Return
+    End
+}
+
+@ $Script_80238A20
+{
+    SetConst  *Var[0]  00000001
+    SetConst  *Var[1]  000A0016
+    SetConst  *Var[2]  000A0005
+    SetConst  *Var[3]  000A0004
+    ExecWait  80294720
+    Return
+    End
+}
+
+@ $Script_80238A7C
+{
+    SetConst  *Var[0]  00000001
+    SetConst  *Var[1]  000A0006
+    ExecWait  80294AFC
+    Return
+    End
+}
+
+@ $Script_80238AB8
+{
+    Call  UseIdleAnimation  ( .Actor:Partner .False )
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[6.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  SetActorYaw   ( .Actor:Partner 00000000 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  UseIdleAnimation  ( .Actor:Partner .True )
+    Return
+    End
+}
+
+@ $Script_NextTurn_80238B6C
+{
+    Return
+    End
+}
+
+@ $Script_80238B7C
+{
+    Call  802694A4  ( 00000001 )
+    Call  SetBattleFlagBits ( 00004000 .False )
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[0]
+        Case  ==  00000008
+            Call  LoadStarPowerScript ( )
+            ExecWait  *Var[0]
+            Return
+    EndSwitch
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[2]
+        Case  ==  00000089 % Shell Toss
+            Call  80269EAC  ( 00000006 )
+            Set   *Var[F]  00000002
+            Set   *Var[E]  00000001
+            ExecWait  $Script_Init_ShellToss
+        Case  ==  0000008A % Shell Toss - Super Rank
+            Call  80269EAC  ( 00000006 )
+            Set   *Var[F]  00000003
+            Set   *Var[E]  00000002
+            ExecWait  $Script_Init_ShellToss
+        Case  ==  0000008B % Shell Toss - Ultra Rank
+            Call  80269EAC  ( 00000006 )
+            Set   *Var[F]  00000005
+            Set   *Var[E]  00000003
+            ExecWait  $Script_Init_ShellToss
+        Case  ==  0000008C % Power Shell
+            Call  80269EAC  ( 00000007 )
+            ExecWait  $Script_Init_PowerShell
+        Case  ==  0000008D % Dizzy Shell
+            Call  80269EAC  ( 00000008 )
+            ExecWait  $Script_Init_DizzyShell
+        Case  ==  0000008E % Fire Shell
+            Call  80269EAC  ( 00000009 )
+            ExecWait  $Script_Init_FireShell
+    EndSwitch
+    Return
+    End
+}
+
+@ $Script_80238D84
+{
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[2]
+        Case  ==  00000089
+            Call  80269EAC  ( 00000006 )
+            ExecWait  $Script_8023C754
+        Case  ==  0000008A
+            Call  80269EAC  ( 00000006 )
+            ExecWait  $Script_8023C754
+        Case  ==  0000008B
+            Call  80269EAC  ( 00000006 )
+            ExecWait  $Script_8023C754
+    EndSwitch
+    Return
+    End
+}
+
+@ $Script_80238E38
+{
+    Call  ResetActorSounds  ( .Actor:Partner .ActorSound:Walk )
+    Thread
+        Call  UseCamPreset  ( 00000004 )
+        Wait  30`
+        Call  UseCamPreset  ( 00000002 )
+    EndThread
+    Call  80280818 ( )
+    Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Sub   *Var[0]  0000003C
+    Set   *Var[1]  00000000
+    Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.4] )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+    Sub   *Var[0]  0000001E
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000008 .False .False .True )
+    Sub   *Var[0]  00000014
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000006 .False .False .True )
+    Sub   *Var[0]  0000000A
+    Call  JumpToGoal    ( .Actor:Partner 00000004 .False .False .True )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  4`
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Return
+    End
+}
+
+@ $Script_80239084
+{
+    Call  ResetActorSounds      ( .Actor:Partner .ActorSound:Walk )
+    Call  UseCamPreset  ( 00000033 )
+    Call  80280818 ( )
+    Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Sub   *Var[0]  0000001E
+    Set   *Var[1]  00000000
+    Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.1] )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 0000000A .False .True .False )
+    Sub   *Var[0]  00000014
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000008 .False .False .True )
+    Sub   *Var[0]  0000000A
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000006 .False .False .True )
+    Sub   *Var[0]  0000000A
+    Call  JumpToGoal    ( .Actor:Partner 00000004 .False .False .True )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  4`
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Return
+    End
+}
+
+@ $Script_802392A4
+{
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  GetGoalPos        ( .Actor:Partner *Var[B] *Var[C] *Var[D] )
+    Call  GetActorPos       ( .Actor:Partner *Var[C] *Var[D] *Var[0] )
+    If  *Var[B]  >  *Var[C]
+        Sub   *Var[B]  *Var[C]
+    Else
+        Sub   *Var[C]  *Var[B]
+        Set   *Var[B]  *Var[C]
+    EndIf
+    DivF  *Var[B]  *Var[A]
+    If  *Var[B]  <  00000000
+        Set   *Var[B]  00000000
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_RestartTrackerData
+{
+Call  802A9000 % restore vanilla code
+Exec $Script_NukeTracker
+Return
+End
+}
+
+@ $Script_Init_ShellToss
+{
+    Call  LoadActionCommand ( 00000002 )
+    Exec  $Script_RestartTrackerData
+    Call  InitTargetIterator ( )
+    Call  GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  0000001E
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[4.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal     ( .Actor:Partner 00000000 .False )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Loop  0000001E
+        Wait  1`
+        Call  CheckButtonDown   ( 00040000 *Var[0] )
+        If  *Var[0]  !=  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  802A9258      ( 00000000 0000002F 00000003 )
+    Call  802695D4      ( 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+    Call  UseCamPreset  ( 0000003B )
+    Set   *Var[9]  00000000
+    Set   *Var[1]  00000000
+    Loop  00000032
+        Wait  1`
+        Switch  *Var[9]
+            Case  <  00000014
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+            Case  ==  00000014
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  0000001E
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+            Case  ==  0000001E
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  00000028
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+            Case  ==  00000028
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  00000032
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+            Case  ==  00000032
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        EndSwitch
+        Add   *Var[9]  00000001
+        Call  802695A8  ( *Var[0] )
+        If  *Var[0]  !=  00000000
+            If  *Var[1]  !=  00000001
+                Set   *Var[1]  00000001
+            EndIf
+        EndIf
+        Call  CheckButtonDown   ( 00040000 *Var[0] )
+        If  *Var[0]  ==  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Label  0
+    Wait  1`
+    SetF  *Var[A]  *Fixed[8.0]
+    Switch  *Var[9]
+        Case  <  00000014
+            SetF  *Var[A]  *Fixed[10.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+        Case  <  0000001E
+            SetF  *Var[A]  *Fixed[12.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+        Case  <  00000028
+            SetF  *Var[A]  *Fixed[14.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+        Case  <  00000032
+            SetF  *Var[A]  *Fixed[16.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+    EndSwitch
+    Add   *Var[9]  00000001
+    Call  GetActionSuccess  ( *Var[0] )
+    If  *Var[0]  ==  .False
+        Goto  0
+    EndIf
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200A )
+    Call  UseCamPreset      ( 00000003 )
+    Call  MoveBattleCamOver ( 0000000F )
+    ExecWait  $Script_802392A4
+    Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:GreySmokeTrail )
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  SetActorSpeed     ( .Actor:Partner *Var[A] )
+    Call  SetActorSounds    ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+    Call  RunToGoal ( .Actor:Partner 00000000 )
+    Call  PartnerTestEnemy  ( *Var[0] ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+    If  *Var[0]  ==  .HitResult:Miss % 6
+        Thread
+            Call  $Function_80238000 ( )
+            Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+        EndThread
+        Wait  4`
+        Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0009 )
+        Call  SetActorRotationOffset    ( .Actor:Partner 00000008 00000000 00000000 )
+        Set   *Var[0]  00000000
+        Loop  00000002
+            Add   *Var[0]  FFFFFFE2
+            Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var[0] )
+            Wait  1`
+        EndLoop
+        Wait  5`
+        Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+        Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000010 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        Loop  00000005
+            Add   *Var[0]  0000000C
+            Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var[0] )
+            Wait  1`
+        EndLoop
+        Call  SetActorRotationOffset    ( .Actor:Partner 00000000 00000000 00000000 )
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000002 )
+        Wait  2`
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 FFFFFFFE )
+        Wait  2`
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000000 )
+        Wait  10`
+        Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000F )
+        Wait  10`
+        Call  SetGoalToHome     ( .Actor:Partner )
+        Call  SetActorSpeed     ( .Actor:Partner *Fixed[7.0] )
+        Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A0006 )
+        Call  RunToGoal ( .Actor:Partner 00000000 )
+        Return
+    EndIf
+    Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+    Call  802807D0  ( *Var[0] )
+    Switch  *Var[0]
+        Case  >  00000000
+            Call  PartnerDamageEnemy    ( *Var[0] ~Flags:DamageType:0 0000009F 00000000 *Var[F] 00000070 )
+        Default
+            Call  PartnerDamageEnemy    ( *Var[0] ~Flags:DamageType:0 0000009F 00000000 *Var[E] 00000030 )
+    EndSwitch
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Switch  *Var[0]
+        CaseOR  ==  .HitResult:Hit % 0
+        CaseOR  ==  00000002 % 2
+            ExecWait  $Script_80239084 % GoBackToHome_ActionFailed
+        EndCaseGroup
+        CaseOR  ==  00000001 % 1
+        CaseOR  ==  00000003 % 3
+            ExecWait  $Script_ShellToss_GoBackToHome_Succeed
+        EndCaseGroup
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_ShellToss_GoBackToHome_Succeed
+{
+    Call  ResetActorSounds  ( .Actor:Partner .ActorSound:Walk )
+    Thread
+        Call  UseCamPreset  ( 00000004 )
+        Wait  30`
+        Call  UseCamPreset  ( 00000002 )
+    EndThread
+    Call  80280818
+    % Back Jump 1
+    Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Sub   *Var[0]  0000003C
+    Set   *Var[1]  00000000
+    Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.4] )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Thread % Stylish Move 1
+        Exec $Script_InitTracker
+        % if the player press A in the next frames the stylish will be locked
+        Wait 5
+        % Check if the A button was pressed too soon
+        Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+        If *Var[0] == .True
+            Set *TrackInput .False
+            Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+            Wait 1
+            Goto EndThread2
+        EndIf
+        % TRACK A - RIGHT TIME TO PRESS THE BUTTON
+        Loop 4 % 4 frames
+            % Timing Tutor Badge
+            ExecWait $Script_TimingTutor % writes in var0,1,2
+            Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+            If *Var[0] == .True
+                % Disable Tracker
+                Set *TrackInput .False
+                Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+                % Add 1 to the stylish counter (last move only)
+                Call $ReadAddress  ( $Data_Inputs 0 *Var[0] 2 .False )
+                Add *Var[0] 1
+                Call $WriteAddress ( $Data_Inputs 0 *Var[0] 2 .False )
+                Call $WriteAddress ( 8029FC40 0 0 .False .False ) % restard current action command bool, so the game ignores you pressed A when doing the stylish
+                Set *Var[A] .False % this move doesn't have an SP cap
+                ExecWait $Script_DoStylishFX
+                % Spin Kooper
+                SetTimescale *Fixed[1.5]
+                Call  SetActorRotationOffset    ( .Actor:Self 0 15` 0 )
+                Loop 3
+                    % 1
+                    Call    MakeLerp    	( 0 -180` 3 .Easing:Linear )
+                    Loop     
+                        Call     UpdateLerp
+                        Call     SetActorRotation  ( .Actor:Self *Var[0] 0 -90` )
+                        Wait     1
+                        If  *Var[1]  ==  .False
+                            BreakLoop
+                        EndIf
+                    EndLoop
+                    % 2
+                    Call    MakeLerp    	( -180` 0 3 0 )
+                    Loop     
+                        Call     UpdateLerp
+                        Call     SetActorRotation  ( .Actor:Self *Var[0] 0 -90` )
+                        Wait     1
+                        If  *Var[1]  ==  .False
+                            BreakLoop
+                        EndIf
+                    EndLoop
+                EndLoop
+                SetTimescale *Fixed[1.0]
+                Call    SetActorRotationOffset    ( .Actor:Self 0 0 0 )
+                Call    SetActorRotation    ( .Actor:Self 0 0 0 )
+                Wait    1
+                Goto    EndThread2 % end without turning off the tracker again (to not having problems with the 2nd stylish move)
+            EndIf
+            Wait 1
+        EndLoop
+        Label EndThread
+        Set   *TrackInput .False
+        Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+        Label EndThread2
+    EndThread
+    Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+    % Back Jump 2
+    Sub   *Var[0]  0000001E
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000008 .False .False .True )
+    % Back Jump 3
+    Exec $Script_InitTracker % start tracking if A was pressed too soon for the 2nd stylish move
+    Sub   *Var[0]  00000014
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000006 .False .False .True )
+    % Back Jump 4
+    Sub   *Var[0]  0000000A
+    Call  JumpToGoal    ( .Actor:Partner 00000004 .False .False .True )
+    Call  SetGoalToHome ( .Actor:Partner )
+    % ===== Stylish Move 2 =====
+    Wait 2
+    % Check if the A button was pressed too soon
+    Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Set *TrackInput .False
+        Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+        Wait 1
+        Goto EndStylish2
+    EndIf
+    % TRACK A - RIGHT TIME TO PRESS THE BUTTON
+    Loop 2 % 2 frames
+        % Timing Tutor Badge
+        ExecWait $Script_TimingTutor % writes in var0,1,2
+        Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+        If *Var[0] == .True
+            % Disable Tracker
+            Set *TrackInput .False
+            Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+            % Add 1 to the stylish counter (last move only)
+            Call $ReadAddress  ( $Data_Inputs 0 *Var[0] 2 .False )
+            Add *Var[0] 1
+            Call $WriteAddress ( $Data_Inputs 0 *Var[0] 2 .False )
+            % Set global stylish flag for current move
+            If *Var[0] > 1
+                Set *Flag_Stylish_Partner_Kooper_ShellToss .True
+            EndIf
+            Call $WriteAddress ( 8029FC40 0 0 .False .False ) % restard current action command bool, so the game ignores you pressed A when doing the stylish
+            Set *Var[A] .False % this move doesn't have an SP cap
+            ExecWait $Script_DoStylishFX
+            %=====================
+            % Backflip Kooper
+            % Rotate - Z Axis
+            Call  SetActorRotationOffset    ( .Actor:Self 0 15` 0 )
+            Thread
+                SetTimescale *Fixed[3.0]
+                Loop 3
+                    % 1
+                    Call    MakeLerp    	( 0 180` 5 .Easing:Linear )
+                    Loop     
+                        Call     UpdateLerp
+                        Call     SetActorRotation  ( .Actor:Self 0 0 *Var[0] )
+                        Wait     1
+                        If  *Var[1]  ==  .False
+                            BreakLoop
+                        EndIf
+                    EndLoop
+                    % 2
+                    Call    MakeLerp    	( -180` 0 5 .Easing:Linear )
+                    Loop     
+                        Call     UpdateLerp
+                        Call     SetActorRotation  ( .Actor:Self 0 0 *Var[0] )
+                        Wait     1
+                        If  *Var[1]  ==  .False
+                            BreakLoop
+                        EndIf
+                    EndLoop
+                EndLoop
+                SetTimescale *Fixed[1.0]
+                Call    SetActorRotationOffset    ( .Actor:Self 0 0 0 )
+                Call    SetActorRotation    ( .Actor:Self 0 0 0 )
+            EndThread
+            % Jump
+            Call  SetActorJumpGravity       ( .Actor:Self *Fixed[0.8] )
+            Call  SetActorDispOffset    ( .Actor:Self 0 -4 0 )
+            Call  JumpToGoal            ( .Actor:Self 19` .False .False .True )
+            Call  SetActorDispOffset    ( .Actor:Self 0 0 0 )
+            Wait  5
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Label EndStylish2
+    Set   *TrackInput .False
+    Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  4
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Return
+    End
+}
+
+@ $Script_Init_PowerShell
+{
+    Call  LoadActionCommand ( 00000002 )
+    Exec  $Script_Stylish_PowerShell
+    Call  GetActorLevel     ( .Actor:Partner *Var[0] )
+    Switch  *Var[0]
+        Case  ==  00000000
+            Set   *Var[E]  00000001
+            Set   *Var[F]  00000002
+        Case  ==  00000001
+            Set   *Var[E]  00000001
+            Set   *Var[F]  00000003
+        Case  ==  00000002
+            Set   *Var[E]  00000001
+            Set   *Var[F]  00000004
+    EndSwitch
+    Call  InitTargetIterator ( )
+    Call  GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  0000001E
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[4.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal     ( .Actor:Partner 00000000 .False )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Loop  0000001E
+        Wait  1`
+        Call  CheckButtonDown   ( 00040000 *Var[0] )
+        If  *Var[0]  !=  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  UseCamPreset  ( 0000003B )
+    Call  802A9258      ( 00000000 0000002F 00000003 )
+    Call  802695D4      ( 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+    Set   *Var[9]  00000000
+    Set   *Var[1]  00000000
+    Loop  00000032
+        Wait  1`
+        Switch  *Var[9]
+            Case  <  00000014
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+            Case  ==  00000014
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  0000001E
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+            Case  ==  0000001E
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  00000028
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+            Case  ==  00000028
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  <  00000032
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+            Case  ==  00000032
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        EndSwitch
+        Add   *Var[9]  00000001
+        Call  802695A8  ( *Var[0] )
+        If  *Var[0]  !=  00000000
+            If  *Var[1]  !=  00000001
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+                Set   *Var[1]  00000001
+            EndIf
+        EndIf
+        Call  CheckButtonDown   ( 00040000 *Var[0] )
+        If  *Var[0]  ==  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Label  0
+    Wait  1`
+    Set   *Var[A]  *Fixed[8.0]
+    Switch  *Var[9]
+        Case  <  00000014
+            Set   *Var[A]  *Fixed[10.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+        Case  <  0000001E
+            Set   *Var[A]  *Fixed[12.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+        Case  <  00000028
+            Set   *Var[A]  *Fixed[14.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+        Case  <  00000032
+            Set   *Var[A]  *Fixed[16.0]
+            Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+    EndSwitch
+    Add   *Var[9]  00000001
+    Call  GetActionSuccess  ( *Var[0] )
+    If  *Var[0]  ==  .False
+        Goto  0
+    EndIf
+    Call  SetActorVar       ( .Actor:Self 00000000 00000000 )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200B )
+    Call  UseCamPreset      ( 00000003 )
+    Call  MoveBattleCamOver ( 0000000F )
+    Set   *Var[B]  00000104
+    DivF  *Var[B]  *Var[A]
+    Thread
+        Call  AddActorDecoration    ( .Actor:Self 00000000 00000001 .Decoration:GreySmokeTrail )
+        Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Add   *Var[0]  00000104
+        Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Call  SetActorSpeed ( .Actor:Partner *Var[A] )
+        Call  SetActorSounds        ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+        Call  RunToGoal     ( .Actor:Partner 00000000 )
+        Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+        Call  RemoveActorDecoration ( .Actor:Self 00000000 00000001 )
+    EndThread
+    Set   *Flag[00]  .False
+    Label  A
+    Wait  1`
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  GetGoalPos        ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  GetActorPos       ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+    If  *Var[0]  >  *Var[3]
+        Goto  A
+    EndIf
+    Call  PartnerTestEnemy  ( *Var[0] ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+    If  *Var[0]  ==  .HitResult:Miss % 6
+        Goto  C
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000000
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Set   *Flag[00]  .True
+    Call  802807D0  ( *Var[0] )
+    Switch  *Var[0]
+        Case  >  00000000
+            Call  PartnerDamageEnemy    ( *Var[0] ~Flags:DamageType:Unblockable 0000009F 00000000 *Var[F] 00000070 )
+        Default
+            Call  PartnerDamageEnemy    ( *Var[0] ~Flags:DamageType:Unblockable 0000009F 00000000 *Var[E] 00000030 )
+    EndSwitch
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Label  C
+    Call  ChooseNextTarget  ( .Iter:Next *Var[2] )
+    If  *Var[2]  !=  FFFFFFFF
+        Goto  A
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000000
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Label  B
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+    If  *Var[0]  ==  00000000
+        Wait  1`
+        Goto  B
+    EndIf
+    Call  802807D0  ( *Var[0] )
+    Switch  *Var[0]
+        Case  >  00000000
+            ExecWait  $Script_80239084 % GoBackToHome_ActionSucceed
+        Default
+            ExecWait  $Script_80238E38 % GoBackToHome_ActionFailed
+    EndSwitch
+    Return
+    End
+}
+
+/% Powershell use only a single script for his stylish move
+I just didn't wanted to bother with finding a good place to place
+the tracker then the stylish script, was a freaking nightmare when
+I was making Goombario's stylish moves, i just think this method is
+easier
+
+I don't think I will do this for all remaining moves
+I mean placing multiple script it still has some perks
+like for example it makes everything safer agaisnt bugs %/
+#new:Script $Script_Stylish_PowerShell
+{
+    % Nuke Tracker
+    Call  802A9000 % restore vanilla code
+    Exec $Script_NukeTracker
+    % Init A Tracker
+    Wait  48` % start tracking around when the last circle from the action command is about to turn on
+    % The Stick got already released?
+    Call  CheckButtonDown   ( 00040000 *Var[0] )
+    If  *Var[0]  ==  .False
+        Return
+    EndIf
+    Exec  $Script_InitTracker
+    % Wait until the player releases the stick
+    Loop
+        Call  CheckButtonDown   ( 00040000 *Var[0] )
+        If  *Var[0]  ==  .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    % Check if the A button was pressed too soon
+    Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Set *TrackInput .False
+        Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+        Return
+    EndIf
+    % Do Stylish Move
+    % Check if the Action Command was done succesfully
+    Call  802807D0  ( *Var[0] )
+    If *Var[0] != .False
+        Wait 1
+        % TRACK A - RIGHT TIME TO PRESS THE BUTTON
+        Loop 2 % 2 frames
+            % Timing Tutor Badge
+            ExecWait $Script_TimingTutor % writes in var0,1,2
+            Call $ReadAddress ( $Data_Inputs 0 *Var[0] .False .False )
+            If *Var[0] == .True
+                % Disable Tracker
+                Set *TrackInput .False
+                Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+                % Add 1 to the stylish counter (last move only)
+                Call $ReadAddress  ( $Data_Inputs 0 *Var[0] 2 .False )
+                Add *Var[0] 1
+                Call $WriteAddress ( $Data_Inputs 0 *Var[0] 2 .False )
+                Set *Flag_Stylish_Partner_Kooper_PowerShell .True
+                Call $WriteAddress ( 8029FC40 0 0 .False .False ) % restard current action command bool, so the game ignores you pressed A when doing the stylish
+                Set *Var[A] .False % this move doesn't have an SP cap
+                ExecWait $Script_DoStylishFX
+                %=====================
+                Call  PlaySoundAtActor ( .Actor:Self 200D ) % jump
+                % Rotate - X Axis
+                Call  SetActorRotationOffset    ( .Actor:Self 0 12` 0 )
+                Thread
+                    Wait 3
+                    SetTimescale *Fixed[3.0]
+                    Loop 8
+                        % 1
+                        Call    MakeLerp    	( 0 180` 5 .Easing:Linear )
+                        Loop     
+                            Call     UpdateLerp
+                            Call     SetActorRotation  ( .Actor:Self *Var[0] 0 0 )
+                            Wait     1
+                            If  *Var[1]  ==  .False
+                                BreakLoop
+                            EndIf
+                        EndLoop
+                        % 2
+                        Call    MakeLerp    	( -180` 0 5 .Easing:Linear )
+                        Loop     
+                            Call     UpdateLerp
+                            Call     SetActorRotation  ( .Actor:Self *Var[0] 0 0 )
+                            Wait     1
+                            If  *Var[1]  ==  .False
+                                BreakLoop
+                            EndIf
+                        EndLoop
+                    EndLoop
+                    SetTimescale *Fixed[1.0]
+                    Call  SetActorRotationOffset    ( .Actor:Self 0 0 0 )
+                    Call    SetActorRotation  ( .Actor:Self 0 0 0 )
+                EndThread
+                % Jump
+                Loop 6 % go up
+                    Call GetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Add *Var[1] 5
+                    Call SetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Wait 1
+                EndLoop
+                Loop 6 % go down
+                    Call GetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Sub *Var[1] 5
+                    Call SetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Wait 1
+                EndLoop
+                Call GetActorPos ( .Actor:Self *Var[0] 0 *Var[2] )
+                Call GetGoalPos  ( .Actor:Self 0 *Var[1] 0 )
+                Call SetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndIf
+    Set   *TrackInput .False
+    Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+    Return
+    End
+}
+
+@ $Script_Init_DizzyShell
+{
+    Call  LoadActionCommand ( 00000008 )
+    Exec  $Script_RestartTrackerData
+    Call  802691C8      ( 00000001 00000064 00000000 00000000 00000000 00000000 )
+    Call  InitTargetIterator ( )
+    Call  GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  0000001E
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[4.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal     ( .Actor:Partner 00000000 .False )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  UseCamPreset  ( 0000003B )
+    Call  MoveBattleCamOver ( 0000004B )
+    Set   *Var[D]  0000004B
+    Set   *Var[A]  *Var[D]
+    Add   *Var[A]  FFFFFFFD
+    Call  $Function_80238298 ( )
+    Call  802A9170      ( 00000000 *Var[A] 00000003 *Var[0] )
+    Call  802695D4      ( 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+    Set   *Var[9]  00000000
+    Set   *Var[A]  *Fixed[8.0]
+    Call  PlaySoundAtActor  ( .Actor:Partner 00002026 )
+    Call  AddActorDecoration    ( .Actor:Self 00000000 00000001 .Decoration:Whirlwind )
+    Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
+    Set   *Var[9]  00000001
+    Loop  *Var[D]
+        Wait  1`
+        Call  802695A8  ( *Var[0] )
+        Switch  *Var[0]
+            Case  <  00000014
+                Set   *Var[A]  *Fixed[10.0]
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+            Case  <  00000028
+                Set   *Var[A]  *Fixed[12.0]
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+            Case  <  0000003C
+                Set   *Var[A]  *Fixed[14.0]
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+            Default
+                Set   *Var[A]  *Fixed[16.0]
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+        EndSwitch
+        Switch  *Var[D]
+            Case  ==  0000000A
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  00000014
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  00000028
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  0000003C
+                Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        EndSwitch
+    EndLoop
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000290 )
+    Call  UseCamPreset      ( 00000003 )
+    Call  MoveBattleCamOver ( 0000000F )
+    Set   *Var[B]  0000012C
+    DivF  *Var[B]  *Var[A]
+    Thread
+        Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:GreySmokeTrail )
+        Call  EnableActorBlur       ( .Actor:Partner 00000001 )
+        Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Add   *Var[0]  0000015E
+        Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Call  SetActorSpeed ( .Actor:Partner *Var[A] )
+        Call  SetActorSounds        ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+        Call  RunToGoal     ( .Actor:Partner 00000000 )
+        Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+        Call  RemoveActorDecoration ( .Actor:Self 00000000 00000001 )
+        Wait  20`
+        Call  SetActorPos   ( .Actor:Partner FFFFFF38 00000000 00000000 )
+        Call  SetGoalToHome ( .Actor:Partner )
+        Call  AddGoalPos    ( .Actor:Partner 00000028 00000000 00000000 )
+        Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+        Call  FlyToGoal     ( .Actor:Partner 00000000 00000000 .Easing:QuarticOut )
+        Call  EnableActorBlur       ( .Actor:Partner 00000000 )
+        Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+    EndThread
+    Thread
+        Call  $Function_80238114 ( )
+    EndThread
+    Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+    Set   *Flag[00]  .False
+    Label  A
+    Wait  1`
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  GetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+    If  *Var[0]  >  *Var[3]
+        Goto  A
+    EndIf
+    Call  PartnerTestEnemy  ( *Var[0] ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+    If  *Var[0]  ==  .HitResult:Miss % 6
+        Goto  C
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000063
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Set   *Flag[00]  .True
+    Call  802695A8  ( *Var[F] )
+    Call  802807D0  ( *Var[0] )
+    Switch  *Var[0]
+        Case  >  00000000
+            If  *Var[9]  ==  00000001
+                If  *Var[F]  ==  00000064
+                    Call  PartnerAfflictEnemy   ( *Var[0] 60000000 0000009F C0040300 000000FE 00000000 00000070 )
+                Else
+                    Call  PartnerAfflictEnemy   ( *Var[0] 60000000 0000009F C0040300 *Var[F] 00000000 00000070 )
+                EndIf
+            Else
+                Call  PartnerAfflictEnemy   ( *Var[0] 60000000 0000009F C0040300 *Var[F] 00000000 00000070 )
+            EndIf
+        Default
+            If  *Var[9]  ==  00000001
+                Call  PartnerAfflictEnemy   ( *Var[0] 60000000 0000009F C0040300 000000FF 00000000 00000030 )
+            Else
+                Call  PartnerAfflictEnemy   ( *Var[0] 60000000 0000009F C0040300 000000FF 00000000 00000030 )
+            EndIf
+    EndSwitch
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Label  C
+    Call  ChooseNextTarget  ( .Iter:Next *Var[2] )
+    If  *Var[2]  !=  FFFFFFFF
+        Goto  A
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000063
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Label  B
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+    If  *Var[0]  ==  00000000
+        Wait  1`
+        Goto  B
+    EndIf
+    Jump  $Script_DoStylish_DizzyShell % /globals/patch/Stylish_GlobalScripts.patch
+    Call  80280818 ( )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Return
+    End
+}
+
+@ $Script_Init_FireShell
+{
+    Call  LoadActionCommand ( 00000009 )
+    Exec  $Script_RestartTrackerData
+    Call  802691C8      ( 00000005 00000023 0000003C 00000050 00000063 00000064 )
+    Call  InitTargetIterator ( )
+    Call  GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  0000001E
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[4.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal     ( .Actor:Partner 00000000 .False )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  UseCamPreset  ( 0000003B )
+    Call  MoveBattleCamOver ( 0000004B )
+    Set   *Var[D]  0000004B
+    Set   *Var[C]  *Var[D]
+    Add   *Var[C]  FFFFFFFD
+    Call  802A9178      ( 00000000 *Var[C] 00000003 )
+    Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+    Set   *Var[A]  *Fixed[8.0]
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000028E )
+    Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:RedFlames )
+    Wait  1`
+    Call  ModifyActorDecoration ( .Actor:Partner FFFFFFFF 00000000 0000000A 0000000A 000000FF 00000000 )
+    Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
+    Call  8026EA7C      ( 00000100 FFFFFFFF 0000000F )
+    Call  8026EBF8      ( 00000100 FFFFFFFF 00000000 00000000 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+    Call  8026ED20      ( 00000100 00000000 00000001 )
+    Set   *Var[6]  00000000
+    Set   *Var[7]  00000000
+    Set   *Var[8]  0000001E
+    Set   *Var[9]  0000001E
+    Loop  *Var[D]
+        Wait  1`
+        Call  802695A8  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >=  00000050
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+                Set   *Var[9]  00000050
+                Set   *Var[7]  00000008
+                If  *Var[6]  !=  *Var[7]
+                    Call  8026EA7C  ( 00000100 FFFFFFFF 0000000F )
+                    Call  8026EBF8  ( 00000100 FFFFFFFF *Var[6] *Var[7] 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+                    Set   *Var[6]  *Var[7]
+                EndIf
+            Case  >=  0000003C
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+                Set   *Var[9]  0000003C
+                Set   *Var[7]  00000007
+                If  *Var[6]  !=  *Var[7]
+                    Call  8026EA7C  ( 00000100 FFFFFFFF 0000000F )
+                    Call  8026EBF8  ( 00000100 FFFFFFFF *Var[6] *Var[7] 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+                    Set   *Var[6]  *Var[7]
+                EndIf
+            Case  >=  00000028
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+                Set   *Var[9]  00000028
+                Set   *Var[7]  00000006
+                If  *Var[6]  !=  *Var[7]
+                    Call  8026EA7C  ( 00000100 FFFFFFFF 0000000F )
+                    Call  8026EBF8  ( 00000100 FFFFFFFF *Var[6] *Var[7] 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+                    Set   *Var[6]  *Var[7]
+                EndIf
+            Case  >=  00000014
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+                Set   *Var[9]  00000023
+                Set   *Var[7]  00000005
+                If  *Var[6]  !=  *Var[7]
+                    Call  8026EA7C  ( 00000100 FFFFFFFF 0000000F )
+                    Call  8026EBF8  ( 00000100 FFFFFFFF *Var[6] *Var[7] 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+                    Set   *Var[6]  *Var[7]
+                EndIf
+            Default
+                Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+                Set   *Var[9]  0000001E
+                Set   *Var[7]  00000000
+                If  *Var[6]  !=  *Var[7]
+                    Call  8026EA7C  ( 00000100 FFFFFFFF 0000000F )
+                    Call  8026EBF8  ( 00000100 FFFFFFFF *Var[6] *Var[7] 00000001 0000000A 000003E8 0000000A 00000000 00000000 )
+                    Set   *Var[6]  *Var[7]
+                EndIf
+        EndSwitch
+        If  *Var[8]  <  *Var[9]
+            Add   *Var[8]  00000001
+        EndIf
+        If  *Var[8]  >  *Var[9]
+            Sub   *Var[8]  00000001
+        EndIf
+        Call  ModifyActorDecoration ( .Actor:Partner FFFFFFFF 00000000 *Var[8] *Var[8] 000000FF 00000000 )
+        Switch  *Var[D]
+            Case  ==  0000000A
+                Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[3] *Var[4] *Var[5] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  00000014
+                Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[3] *Var[4] *Var[5] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  00000028
+                Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[3] *Var[4] *Var[5] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+            Case  ==  0000003C
+                Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+                Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[3] *Var[4] *Var[5] 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        EndSwitch
+    EndLoop
+    Call  PlaySoundAtActor  ( .Actor:Partner 0000028F )
+    Call  $Function_802383C0 ( )
+    Switch  *Var[E]
+        CaseOR  ==  00000000
+        CaseOR  ==  00000001
+            Call  UseCamPreset      ( 00000003 )
+            Call  MoveBattleCamOver ( 00000032 )
+            SetF  *Var[A]  *Fixed[10.0]
+        EndCaseGroup
+        CaseOR  ==  00000002
+        CaseOR  ==  00000003
+            Call  UseCamPreset      ( 00000003 )
+            Call  MoveBattleCamOver ( 0000001E )
+            SetF  *Var[A]  *Fixed[10.0]
+        EndCaseGroup
+        Case  ==  00000004
+            Call  UseCamPreset      ( 00000003 )
+            Call  MoveBattleCamOver ( 0000000F )
+            SetF  *Var[A]  *Fixed[16.0]
+    EndSwitch
+    Set   *Var[B]  0000015E
+    DivF  *Var[B]  *Var[A]
+    Thread
+        Call  AddActorDecoration    ( .Actor:Partner FFFFFFFF 00000001 .Decoration:FireSmokeTrail )
+        Wait  1`
+        Switch  *Var[E]
+            CaseOR  ==  00000000
+            CaseOR  ==  00000001
+                Call  ModifyActorDecoration ( .Actor:Partner FFFFFFFF 00000001 00000032 00000000 00000000 00000000 )
+            EndCaseGroup
+            CaseOR  ==  00000002
+            CaseOR  ==  00000003
+                Call  ModifyActorDecoration ( .Actor:Partner FFFFFFFF 00000001 00000064 00000000 00000000 00000000 )
+            EndCaseGroup
+            Case  ==  00000004
+                Call  ModifyActorDecoration ( .Actor:Partner FFFFFFFF 00000001 0000012C 00000000 00000000 00000000 )
+        EndSwitch
+        Call  EnableActorBlur       ( .Actor:Partner 00000001 )
+        Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Add   *Var[0]  0000015E
+        Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+        Call  SetActorSpeed ( .Actor:Partner *Var[A] )
+        Call  SetActorSounds        ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+        Call  RunToGoal     ( .Actor:Partner 00000000 )
+        Call  RemoveActorDecoration ( .Actor:Self 00000000 00000001 )
+        Wait  20`
+        Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+        Call  8026ED20      ( 00000100 00000000 00000000 )
+        Call  SetActorPos   ( .Actor:Partner FFFFFF38 00000000 00000000 )
+        Call  SetGoalToHome ( .Actor:Partner )
+        Call  AddGoalPos    ( .Actor:Partner 00000028 00000000 00000000 )
+        Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+        Call  FlyToGoal     ( .Actor:Partner 00000000 00000000 .Easing:QuarticOut )
+        Call  EnableActorBlur       ( .Actor:Partner 00000000 )
+        Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+    EndThread
+    Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+    Set   *Flag[00]  .False
+    Label  A
+    Wait  1`
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  GetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  GetActorPos   ( .Actor:Partner *Var[3] *Var[4] *Var[5] )
+    If  *Var[0]  >  *Var[3]
+        Goto  A
+    EndIf
+    Call  PartnerTestEnemy  ( *Var[0] ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+    If  *Var[0]  ==  .HitResult:Miss % 6
+        Goto  C
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000063
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Set   *Flag[00]  .True
+    Call  802695A8  ( *Var[0] )
+    Call  802807D0  ( *Var[0] )
+    Switch  *Var[0]
+        Case  >  00000063
+            Call  PartnerDamageEnemy    ( *Var[0] 20000002 0000009F 00000000 *Var[F] 00000070 )
+        Default
+            Call  PartnerDamageEnemy    ( *Var[0] 20000002 0000009F 00000000 *Var[F] 00000030 )
+    EndSwitch
+    Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    Label  C
+    Call  ChooseNextTarget  ( .Iter:Next *Var[0] )
+    If  *Var[0]  !=  FFFFFFFF % FFFFFFFF
+        Goto  A
+    EndIf
+    If  *Flag[00]  ==  .False
+        Call  802807D0  ( *Var[0] )
+        Switch  *Var[0]
+            Case  >  00000063
+                Call  UseCamPreset  ( 00000004 )
+            Default
+                Call  UseCamPreset  ( 00000033 )
+        EndSwitch
+    EndIf
+    Label  B
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+    If  *Var[0]  ==  00000000
+        Wait  1`
+        Goto  B
+    EndIf
+    Jump  $Script_DoStylish_DizzyShell % /globals/patch/Stylish_GlobalScripts.patch
+    Call  80280818 ( )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Return
+    End
+}
+
+@ $Script_8023C754
+{
+    Call  GetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  0000003C
+    Call  SetActorPos   ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  InitTargetIterator ( )
+    Call  UseCamPreset  ( 00000003 )
+    Call  MoveBattleCamOver ( 0000000F )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+    Call  SetGoalToTarget   ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
+    Call  SetActorSounds    ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  PartnerTestEnemy  ( *Var[0] ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+    If  *Var[0]  ==  .HitResult:Miss % 6
+        Thread
+            Call  $Function_80238000 ( )
+            Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+        EndThread
+        Wait  4`
+        Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0009 )
+        Call  SetActorRotationOffset    ( .Actor:Partner 00000008 00000000 00000000 )
+        Set   *Var[0]  00000000
+        Loop  00000002
+            Add   *Var[0]  FFFFFFE2
+            Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var[0] )
+            Wait  1`
+        EndLoop
+        Wait  5`
+        Call  GetActorPos   ( .Actor:Partner *Var[4] *Var[5] *Var[6] )
+        Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var[4] *Var[5] *Var[6] 00000010 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+        Loop  00000005
+            Add   *Var[0]  0000000C
+            Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var[0] )
+            Wait  1`
+        EndLoop
+        Call  SetActorRotationOffset    ( .Actor:Partner 00000000 00000000 00000000 )
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000002 )
+        Wait  2`
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 FFFFFFFE )
+        Wait  2`
+        Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000000 )
+        Wait  10`
+        Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000F )
+        Wait  10`
+        Call  SetGoalToHome     ( .Actor:Partner )
+        Call  SetActorSpeed     ( .Actor:Partner *Fixed[7.0] )
+        Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A0006 )
+        Call  RunToGoal ( .Actor:Partner 00000000 )
+        Return
+    EndIf
+    Set   *Var[F]  00000001
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[2]
+        Case  ==  00000089
+            Set   *Var[F]  00000001
+        Case  ==  0000008A
+            Set   *Var[F]  00000002
+        Case  ==  0000008B
+            Set   *Var[F]  00000003
+    EndSwitch
+    Call  PartnerDamageEnemy    ( *Var[0] ~Flags:DamageType:0 0000009F 00000000 *Var[F] 00000030 )
+    Call  GetMenuSelection      ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[2]
+        Case  ==  00000089
+            Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+        Case  ==  0000008A
+            Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+        Case  ==  0000008B
+            Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+    EndSwitch
+    Call  UseCamPreset  ( 00000003 )
+    Call  GetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Sub   *Var[0]  00000028
+    Set   *Var[1]  00000000
+    Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.1] )
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 0000000A .False .True .False )
+    Sub   *Var[0]  0000001E
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000008 .False .False .True )
+    Sub   *Var[0]  00000014
+    Call  SetGoalPos    ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+    Call  JumpToGoal    ( .Actor:Partner 00000006 .False .False .True )
+    Sub   *Var[0]  0000000A
+    Call  JumpToGoal    ( .Actor:Partner 00000004 .False .False .True )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+    Wait  15`
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  SetGoalToHome ( .Actor:Partner )
+    Call  SetActorSpeed ( .Actor:Partner *Fixed[7.0] )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+    Call  RunToGoal     ( .Actor:Partner 00000000 )
+    Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+    Call  EnableIdleScript      ( .Actor:Self 00000001 )
+    Call  UseIdleAnimation      ( .Actor:Self .True )
+    Return
+    End
+}
+

@@ -1,0 +1,768 @@
+% Script File: sbk_36.mscr
+% Decoded from: 0 to 1540 (sbk_36)
+
+#new:Function $Function_80240000
+{
+	MTC1      R0, F0
+	ADDIU     SP, SP, FFE0
+	MFC1      A1, F0
+	CLEAR     A0
+	SW        RA, 18 (SP)
+	SW        R0, 14 (SP)
+	SWC1      F0, 10 (SP)
+	COPY      A2, A1
+	JAL       80072950
+	COPY      A3, A1
+	LW        RA, 18 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+PADDING: 80240038 to 80240040 (00000038 to 00000040)
+00000000 00000000
+
+#new:Function $Function_80240040
+{
+	ADDIU     SP, SP, FFD0
+	SDC1      F20, 18 (SP)
+	MTC1      A1, F20
+	SDC1      F22, 20 (SP)
+	MTC1      A2, F22
+	SW        S0, 10 (SP)
+	SDC1      F24, 28 (SP)
+	MTC1      A3, F24
+	SW        RA, 14 (SP)
+	JAL       ~Func:guMtxIdentF
+	COPY      S0, A0
+	MUL.S     F22, F20, F22
+	NOP
+	MUL.S     F20, F20, F24
+	NOP
+	LIF       F0, 1.0
+	NOP
+	SWC1      F0, 14 (S0)
+	SWC1      F22, 10 (S0)
+	SWC1      F20, 18 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F24, 28 (SP)
+	LDC1      F22, 20 (SP)
+	LDC1      F20, 18 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_802400B0
+{
+	ADDIU     SP, SP, FF78
+	SW        S1, 54 (SP)
+	COPY      S1, A0
+	SW        RA, 5C (SP)
+	SW        S2, 58 (SP)
+	SW        S0, 50 (SP)
+	SDC1      F28, 80 (SP)
+	SDC1      F26, 78 (SP)
+	SDC1      F24, 70 (SP)
+	SDC1      F22, 68 (SP)
+	SDC1      F20, 60 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_model_list_index_from_tree_index
+	COPY      A0, V0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	COPY      S2, V0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	MOV.S     F28, F0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	MOV.S     F26, F0
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_float_variable
+	MOV.S     F22, F0
+	COPY      A0, S2
+	JAL       ~Func:get_model_from_list_index
+	MOV.S     F24, F0
+	COPY      S1, V0
+	LHU       V0, 0 (S1)
+	ANDI      V0, V0, 400
+	BNE       V0, R0, .o124
+	ADDIU     S0, S1, 58
+	MTC1      R0, F20
+	MFC1      A2, F22
+	MFC1      A1, F20
+	MFC1      A3, F20
+	JAL       ~Func:guTranslateF
+	COPY      A0, S0
+	MFC1      A1, F28
+	MFC1      A2, F26
+	MFC1      A3, F24
+	JAL       $Function_80240040
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	ADDIU     A0, SP, 10
+	NEG.S     F22, F22
+	MFC1      A1, F20
+	MFC1      A2, F22
+	JAL       ~Func:guTranslateF
+	COPY      A3, A1
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, A1
+	LHU       V0, 0 (S1)
+	ORI       V0, V0, 1400
+	BEQ       R0, R0, .o19C
+	SH        V0, 0 (S1)
+	.o124
+	MTC1      R0, F20
+	MFC1      A2, F22
+	MFC1      A1, F20
+	MFC1      A3, F20
+	JAL       ~Func:guTranslateF
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	ADDIU     S0, S1, 58
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	MFC1      A1, F28
+	MFC1      A2, F26
+	MFC1      A3, F24
+	JAL       $Function_80240040
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	ADDIU     A0, SP, 10
+	NEG.S     F22, F22
+	MFC1      A1, F20
+	MFC1      A2, F22
+	JAL       ~Func:guTranslateF
+	COPY      A3, A1
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, A1
+	.o19C
+	LW        RA, 5C (SP)
+	LW        S2, 58 (SP)
+	LW        S1, 54 (SP)
+	LW        S0, 50 (SP)
+	LDC1      F28, 80 (SP)
+	LDC1      F26, 78 (SP)
+	LDC1      F24, 70 (SP)
+	LDC1      F22, 68 (SP)
+	LDC1      F20, 60 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 88
+}
+
+PADDING: 8024027C to 80240280 (0000027C to 00000280)
+00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -475.0    0.0    0.0   90.0
+    ~Vec4f:Entry1 %  475.0    0.0    0.0  270.0
+    ~Vec4f:Entry2 %    0.0    0.0 -475.0  180.0
+    ~Vec4f:Entry3 %    0.0    0.0  475.0    0.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000004
+    [Background]  80200000
+    [MapTattle]   0019007D
+}
+
+#new:Script $Script_ExitWalk_80240300
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241520 00000001 ) % sbk_35
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_8024035C
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241528 00000000 ) % dro_01
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802403B8
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241530 00000003 ) % sbk_26
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_80240414
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry3 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241538 00000002 ) % sbk_46
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240470
+{
+    Bind  $Script_ExitWalk_80240300 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Bind  $Script_ExitWalk_8024035C .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Bind  $Script_ExitWalk_802403B8 .Trigger:FloorAbove ~Collider:deilin 00000001 00000000
+    Bind  $Script_ExitWalk_80240414 .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:DryDryDesert
+    Call  SetSpriteShading  ( FFFFFFFF )
+    If  *StoryProgress  ==  FFFFFFC1
+        Call  DisablePulseStone ( .False )
+    EndIf
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    ExecWait  $Script_MakeEntities
+    Call  $Function_80240000 ( )
+    Call  SetMusicTrack     ( 00000000 .Song:DryDryDesert 00000000 00000008 )
+    Set   *Var[0]  $Script_80240470
+    Exec  EnterWalk
+    Exec  $Script_802411C8
+    Return
+    End
+}
+
+PADDING: 80240608 to 80240610 (00000608 to 00000610)
+00000000 00000000
+
+% Origin: HEURISTIC
+#new:Script $Script_SearchBush_80240610
+{
+    UseIntBuffer  *Var[0]
+    Get4Int  *Var[1] *Var[2] *Var[3] *Var[4]
+    Call  GetPlayerPos  ( *Var[5] *Var[F] *Var[7] )
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[1]  !=  00000000
+            Loop  00000005
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_802400B0    ( *Var[3] *Fixed[0.1] 00000001 *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[3] .Sound:SearchBush 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_802400B0    ( *Var[3] *Fixed[0.1] FFFFFFFF *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[1]
+            Get1Int  *Var[2]
+            Loop  *Var[2]
+                Get1Int  *Var[3]
+                Call  TranslateModel    ( *Var[3] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        If  *Var[2]  !=  00000000
+            UseIntBuffer  *Var[2]
+            Get1Int  *Var[3]
+            Loop  *Var[3]
+                Get1Int  *Var[4]
+                Get3Int  *Var[5] *Var[6] *Var[7]
+                Get3Int  *Var[8] *Var[9] *Var[A]
+                If  *Var[A]  ==  00000000
+                    Call  DropItemEntity    ( *Var[4] *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] )
+                Else
+                    Call  GetValueByRef ( *Var[A] *Var[B] )
+                    If  *Var[B]  ==  00000000
+                        Call  SetValueByRef     ( *Var[A] 00000001 )
+                        Call  DropItemEntity    ( *Var[4] *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] )
+                    EndIf
+                EndIf
+            EndLoop
+        EndIf
+    EndThread
+    Wait  15`
+    If  *Var[4]  !=  00000000
+        ExecWait  *Var[4]
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_ShakeTree_80240970
+{
+    SetTimescale  *Fixed[2.0]
+    UseIntBuffer  *Var[0]
+    Get4Int  *Var[1] *Var[2] *Var[3] *Var[4]
+    Get1Int  *Var[5]
+    Call  GetPlayerPos  ( *Var[6] *Var[F] *Var[8] )
+    Call  PlaySound     ( 00000165 )
+    Call  PlaySound     ( 00000166 )
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[1]  !=  00000000
+            Wait  1`
+            Loop  00000005
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_802400B0    ( *Var[3] *Fixed[0.1] *Fixed[0.2] *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[3] 00000166 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_802400B0    ( *Var[3] *Fixed[0.1] *Fixed[-0.2] *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[1]
+            Get1Int  *Var[2]
+            Loop  *Var[2]
+                Get1Int  *Var[3]
+                Call  TranslateModel    ( *Var[3] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[2]  !=  00000000
+            Loop  00000005
+                UseIntBuffer  *Var[2]
+                Get1Int  *Var[3]
+                Loop  *Var[3]
+                    Get1Int  *Var[4]
+                    Call  $Function_802400B0    ( *Var[4] *Fixed[0.1] *Fixed[0.2] *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[4] 00000165 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[2]
+                Get1Int  *Var[3]
+                Loop  *Var[3]
+                    Get1Int  *Var[4]
+                    Call  $Function_802400B0    ( *Var[4] *Fixed[0.1] *Fixed[-0.2] *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[2]
+            Get1Int  *Var[3]
+            Loop  *Var[3]
+                Get1Int  *Var[4]
+                Call  TranslateModel    ( *Var[4] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        If  *Var[3]  !=  00000000
+            UseIntBuffer  *Var[3]
+            Get1Int  *Var[4]
+            Loop  *Var[4]
+                Get1Int  *Var[5]
+                Get3Int  *Var[6] *Var[7] *Var[8]
+                Get3Int  *Var[9] *Var[A] *Var[B]
+                If  *Var[B]  ==  00000000
+                    Call  DropItemEntity    ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+                Else
+                    Call  GetValueByRef ( *Var[B] *Var[C] )
+                    If  *Var[C]  ==  00000000
+                        Call  SetValueByRef     ( *Var[B] 00000001 )
+                        Call  DropItemEntity    ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+                    EndIf
+                EndIf
+            EndLoop
+        EndIf
+    EndThread
+    Thread
+        If  *Var[4]  !=  00000000
+            UseIntBuffer  *Var[4]
+            Get1Int  *Var[5]
+            Loop  *Var[5]
+                Get3Int  *Var[6] *Var[7] *Var[8]
+                Call  PlayEffect    ( ~FX:DropLeaves:Random *Var[6] *Var[7] *Var[8] 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            EndLoop
+        EndIf
+    EndThread
+    If  *Var[5]  !=  00000000
+        ExecWait  *Var[5]
+    EndIf
+    Wait  15`
+    Return
+    End
+}
+
+#new:TreeModelList $TreeModelList_Tree1_Leaves
+{
+    00000001 ~Model:o73
+}
+
+#new:TreeModelList $TreeModelList_Tree1_Trunk
+{
+    00000001 ~Model:o72
+}
+
+#new:TreeDropList $TreeDropList_Tree1
+{
+    00000001
+    .Item:Coin ~Vec3d:Tree1_Drop1 0000000F *Flag_SBK_3B 00000000
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree1
+{
+    $TreeModelList_Tree1_Leaves
+    $TreeModelList_Tree1_Trunk
+    $TreeDropList_Tree1
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80240FB8
+{
+    ~BombPos:Bomb_80240FB8 % -422.000000 0.000000 91.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree2_Leaves
+{
+    00000001 ~Model:o71
+}
+
+#new:TreeModelList $TreeModelList_Tree2_Trunk
+{
+    00000001 ~Model:o70
+}
+
+#new:TreeDropList $TreeDropList_Tree2
+{
+    00000001
+    .Item:Coin ~Vec3d:Tree2_Drop1 0000000F *Flag_SBK_3C 00000000
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree2
+{
+    $TreeModelList_Tree2_Leaves
+    $TreeModelList_Tree2_Trunk
+    $TreeDropList_Tree2
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_8024100C
+{
+    ~BombPos:Bomb_8024100C % -322.000000 0.000000 -111.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree3_Leaves
+{
+    00000001 ~Model:o75
+}
+
+#new:TreeModelList $TreeModelList_Tree3_Trunk
+{
+    00000001 ~Model:o74
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree3
+{
+    $TreeModelList_Tree3_Leaves
+    $TreeModelList_Tree3_Trunk
+    00000000
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80241040
+{
+    ~BombPos:Bomb_80241040 % -244.000000 0.000000 77.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree4_Leaves
+{
+    00000001 ~Model:o69
+}
+
+#new:TreeModelList $TreeModelList_Tree4_Trunk
+{
+    00000001 ~Model:o68
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree4
+{
+    $TreeModelList_Tree4_Leaves
+    $TreeModelList_Tree4_Trunk
+    00000000
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80241074
+{
+    ~BombPos:Bomb_80241074 % -128.000000 0.000000 -111.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree5_Leaves
+{
+    00000001 ~Model:o57
+}
+
+#new:TreeModelList $TreeModelList_Tree5_Trunk
+{
+    00000001 ~Model:o56
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree5
+{
+    $TreeModelList_Tree5_Leaves
+    $TreeModelList_Tree5_Trunk
+    00000000
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_802410A8
+{
+    ~BombPos:Bomb_802410A8 % 58.000000 0.000000 101.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree6_Leaves
+{
+    00000001 ~Model:o59
+}
+
+#new:TreeModelList $TreeModelList_Tree6_Trunk
+{
+    00000001 ~Model:o58
+}
+
+#new:TreeDropList $TreeDropList_Tree6
+{
+    00000001
+    .Item:Coin ~Vec3d:Tree6_Drop1 0000000F *Flag_SBK_3D 00000000
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree6
+{
+    $TreeModelList_Tree6_Leaves
+    $TreeModelList_Tree6_Trunk
+    $TreeDropList_Tree6
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_802410FC
+{
+    ~BombPos:Bomb_802410FC % 158.000000 0.000000 -101.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree7_Leaves
+{
+    00000001 ~Model:o67
+}
+
+#new:TreeModelList $TreeModelList_Tree7_Trunk
+{
+    00000001 ~Model:o66
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree7
+{
+    $TreeModelList_Tree7_Leaves
+    $TreeModelList_Tree7_Trunk
+    00000000
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80241130
+{
+    ~BombPos:Bomb_80241130 % 236.000000 0.000000 87.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree8_Leaves
+{
+    00000001 ~Model:o63
+}
+
+#new:TreeModelList $TreeModelList_Tree8_Trunk
+{
+    00000001 ~Model:o62
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree8
+{
+    $TreeModelList_Tree8_Leaves
+    $TreeModelList_Tree8_Trunk
+    00000000
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80241164
+{
+    ~BombPos:Bomb_80241164 % 351.000000 0.000000 -101.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree9_Leaves
+{
+    00000001 ~Model:o65
+}
+
+#new:TreeModelList $TreeModelList_Tree9_Trunk
+{
+    00000001 ~Model:o64
+}
+
+#new:TreeDropList $TreeDropList_Tree9
+{
+    00000001
+    .Item:Letter03 ~Vec3d:Tree9_Drop1 0000000D *Flag_SBK_33 *MapFlag[0A]
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree9
+{
+    $TreeModelList_Tree9_Leaves
+    $TreeModelList_Tree9_Trunk
+    $TreeDropList_Tree9
+    00000000
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_802411B8
+{
+    ~BombPos:Bomb_802411B8 % 438.000000 0.000000 101.000000 0.000000
+}
+
+#new:Script $Script_802411C8
+{
+    Set   *Var[0]  $ShakeTreeEvent_Tree1
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o205 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_80240FB8 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree2
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o203 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_8024100C 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree3
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o207 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_80241040 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree4
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o201 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_80241074 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree5
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o199 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_802410A8 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree6
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o197 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_802410FC 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree7
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o191 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_80241130 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree8
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o195 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_80241164 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree9
+    Bind  $Script_ShakeTree_80240970 .Trigger:WallHammer ~Collider:o193 00000001 00000000
+    Bind  $Script_ShakeTree_80240970 .Trigger:PointBomb $TriggerCoord_802411B8 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_80241460
+{
+    SetGroup  00000000
+    Call  802D5830  ( 00000001 )
+    Call  DisablePlayerInput    ( .True )
+    Call  ShowMessageAtScreenPos    ( 001D017A 000000A0 00000028 ) % Welcome  Dry Dry Outpost
+    Call  DisablePlayerInput    ( .False )
+    Call  802D5830  ( 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:Signpost ~Vec4d:Entity802414D4 80000000 )
+    Call  AssignScript  ( $Script_80241460 )
+    Return
+    End
+}
+
+PADDING: 80241518 to 80241520 (00001518 to 00001520)
+00000000 00000000
+
+#new:ASCII $ASCII_80241520
+{
+    "sbk_35"
+}
+
+#new:ASCII $ASCII_80241528
+{
+    "dro_01"
+}
+
+#new:ASCII $ASCII_80241530
+{
+    "sbk_26"
+}
+
+#new:ASCII $ASCII_80241538
+{
+    "sbk_46"
+}
+

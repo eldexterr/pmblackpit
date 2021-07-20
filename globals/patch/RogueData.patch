@@ -1,0 +1,397 @@
+% On Roguelike Mode, activate all badges you grab
+% automatically without adding them to the badge inventory
+% Hook used when you pick badges from the overworld (not from a chest)
+@Hook CC12C % 80135A2C
+{
+PUSH	RA, V0, V1, A1, A2, S0, S1
+COPY    S0, V1 % save badge ID in s0
+LIO 	A1, *PitFlag
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .AddBadge % if the player isn't inside a pit just add the badge
+NOP
+LIO 	A1, *Flag_Mode_Rogue
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .BypassRogue % check if rogue mode is active
+NOP
+% Check if the Current Badge was a Silver Heart/HP
+ADDIU   T0, R0, 0145 % Flower
+BEQ     S0, T0 .AumentFP
+NOP
+ADDIU   T0, R0, 00F3 % Heart
+BEQ     S0, T0 .AumentHP
+NOP
+% If wasn't one of those just activate the badge
+BEQ     R0, R0, .ActivateBadge
+NOP
+.AumentFP
+LABU    T0, 8010F293 % Max FP 1
+ADDIU   T0, T0, 5
+SAB     T0, 8010F293 % Max FP 1
+SAB     T0, 8010F294 % Max FP 2
+BEQ     R0, R0, .BypassRogue
+NOP
+.AumentHP
+LABU    T0, 8010F296 % Max HP 1
+ADDIU   T0, T0, 5
+SAB     T0, 8010F296 % Max HP 1
+SAB     T0, 8010F297 % Max HP 2
+BEQ     R0, R0, .BypassRogue
+NOP
+.ActivateBadge
+LIO 	A1, *BadgesEquipped_Rogue
+JAL 	~Func:get_variable 
+RESERVED
+ADDIU   A2, V0, 1
+COPY    S1, A2
+LIO 	A1, *BadgesEquipped_Rogue
+JAL 	~Func:set_variable 
+RESERVED
+% Check if a challenged got completed
+SLTIU   T0, S1, 10`
+BNE     T0, R0, .CheckChallenges2
+NOP
+ADDIU   A2, R0, 1
+LIO 	A1, *Flag_Cheev_Rogue_05 % Challenge Completed
+JAL 	~Func:set_variable 
+RESERVED
+SLTIU   T0, S1, 20`
+BNE     T0, R0, .CheckChallenges2
+NOP
+ADDIU   A2, R0, 1
+LIO 	A1, *Flag_Cheev_Rogue_06 % Challenge Completed
+JAL 	~Func:set_variable 
+RESERVED
+.CheckChallenges2
+LAHU    A1, 803560D6 % *Rogue_TotalBadges(2 Bytes) == GameByte[0D6] == 803560D6
+ADDIU   A2, A1, 1
+% check if you reached the maximum amount
+ORI		T0, R0, 270F % 9999`
+SLTU	T0, A2, T0
+BNE		T0, R0, .Save1
+NOP
+% Set to 9'999
+ORI		A2, R0, 270F % 9999`
+.Save1
+COPY    S1, A2
+SAH     A2, 803560D6 % *Rogue_TotalBadges(2 Bytes) == GameByte[0D6] == 803560D6
+% Check if a challenged got completed
+SLTIU   T0, S1, 50`
+BNE     T0, R0, .ActivateBadge2
+NOP
+ADDIU   A2, R0, 1
+LIO 	A1, *Flag_Cheev_Rogue_24 % Challenge Completed
+JAL 	~Func:set_variable 
+RESERVED
+SLTIU   T0, S1, 100`
+BNE     T0, R0, .ActivateBadge2
+NOP
+ADDIU   A2, R0, 1
+LIO 	A1, *Flag_Cheev_Rogue_25 % Challenge Completed
+JAL 	~Func:set_variable 
+RESERVED
+.ActivateBadge2
+JAL     $Function_ActivateBadge
+NOP
+.BypassRogue
+POP     RA, V0, V1, A1, A2, S0, S1
+J       80135A34
+LH	    V1, 0018 (S1)
+.AddBadge
+POP     RA, V0, V1, A1, A2, S0, S1
+SH	    V1, 00B4 (V0)
+J       80135A34
+LH	    V1, 0018 (S1)
+}
+
+% check what Slot is the next one to be
+% available to use
+#new:Function $Function_ActivateBadge
+{
+% S0 = badge ID
+LAHU	T0, 8010F498 % 1st Activated Badge Slot
+LIO     T1, 8010F498 % save address
+.Loop
+BEQ     T0, R0, .ActivateBadge
+NOP
+% If isn't available check the next slot
+ADDIU   T1, T1, 2 % get next address
+BEQ     R0, R0, .Loop
+LHU     T0, 0 (T1) % get next value
+.ActivateBadge
+SH      S0, 0 (T1)
+JR	    RA
+ADDIU   V0, R0, 2
+}
+
+%% Key Items - Picking from the overworld %%
+@Hook CB934 % 80135234
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+ADDIU	V0, R0, 8 % Key % was Map
+BEQL    V1, V0, .SaveKey
+ADDIU   S0, R0, 1
+ADDIU	V0, R0, 9 % Two keys % was Big Map
+BEQL    V1, V0, .SaveKey
+ADDIU   S0, R0, 2
+% If wasn't any key, just finish
+BEQ     R0, R0, .End
+NOP
+.SaveKey
+% Always shows stats bar
+SAB     R0, 8010EF92 % Stats Bar State, 00=Active / 01=Inactive
+% Load Keys Amount
+LIO 	A1, *Rogue_Keys
+JAL 	~Func:get_variable 
+RESERVED
+% Add new value
+ADDU    A2, V0, S0
+% Check Key's Cap
+SLTIU	A1, A2, 255	 	% Current Keys are less than 255?
+BNE		A1, R0, .StoreKeys
+NOP
+% they aren't
+ORI 	A2, R0, 255	 	% Set current Keys as 255
+.StoreKeys
+% Save new value
+LIO 	A1, *Rogue_Keys
+JAL 	~Func:set_variable 
+RESERVED
+% Play key sound
+.KeySound
+ADDIU	A0, R0, 2099 % SoundID % was 0215
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	~Func:_play_sound
+COPY 	A3, A1
+.End
+POP     RA, A0, A1, A2, A3, V0, V1, S0
+% original code
+J   801354CC
+NOP%/
+}
+
+% Dupli - Disable Partner's commands
+@Hook 16FCEC % 8024140C
+{
+    PUSH    RA, A0, A2, A3, V0, V1
+    LIO     A1, *Dupli_Floors
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQL    V0, R0, .End
+    ADDIU	A1, R0, FFFF % Enable all commands
+    ADDIU	A1, R0, FFBF % Disable Partner
+    .End
+    POP     RA, A0, A2, A3, V0, V1
+    J       80241414
+    ADDIU	V0, R0, FFFF
+}
+
+% Dupli - Overwrite the name of the command when Dupli stuff is active
+@Hook 41D35C % 802A85CC
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    LIO     A1, *Dupli_Floors
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQL    V0, R0, .End
+    LW	    V0, 0018 (S6) % load string
+    % Load New Name
+    COPY    GP, V0 % Push V0
+    COPY    A0, V0
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 2    % Var Index (00-02)
+    COPY    V0, GP % Pop V0
+    CLEAR   GP
+    % Load String 1 or 2
+    SLTI    V1, V0, 2
+    BEQ     V1, R0, .String2
+    NOP
+    LIO     V0, $String_DupliCommand_1
+    BEQ     R0, R0, .End
+    RESERVED
+    .String2
+    LIO     V0, $String_DupliCommand_2
+    .End
+    POP     RA, A0, A1, A2, A3, V1
+    J       802A85D4
+    ADDIU	A1, R0, 0006 % Set command type as "Partner's Abilities"
+}
+
+#string $String_DupliCommand_1
+{
+ [PushColor][Color:07][Var:02][PopColor] Floor Left[End]
+}
+
+#string $String_DupliCommand_2
+{
+[PushColor][Color:07][Var:02][PopColor] Floors Left[End]
+}
+
+% Increase Super Hammer Block's collision - Z size
+@Data 10BA3F % 802EA1BF
+{
+4Ab % was 32
+}
+
+% Increase Ultra Hammer Block's collision - Z size
+@Data 10BACF % 802EA24F
+{
+4Ab % was 32
+}
+
+% Extra values used for Roguelike Mode
+#new:Data $Entity_Var1
+{
+00000000
+% XXYYZZZZ
+% XX=Entity ID / YY=SpawnPoint / ZZZZ=Var Value
+}
+
+#new:Data $Entity_Var2
+{
+00000000
+}
+
+#new:Data $Entity_Var3
+{
+00000000
+}
+
+#new:Data $Entity_Var4
+{
+00000000
+}
+
+% amount to ask by a lock (can be a coin/hp/key lock), battle based locks use RewardVar
+#new:Data $LockVar
+{
+00
+}
+
+ % Is basically a rarity value from the last reward loaded
+ % is used for 1thing2traps to know for example how many keys to ask on a key lock (so it works togueter with LockVar)
+#new:Data $RewardVar
+{
+00
+}
+
+% used to know what rewards has been already
+% been spawned on the same floor, used for badges
+#new:Data $Reward_RewardID1
+{
+0000
+}
+
+#new:Data $Reward_RewardID2
+{
+0000
+}
+
+#new:Data $Reward_RewardID3
+{
+0000
+}
+
+#new:Data $Reward_RewardID4
+{
+0000
+}
+
+% Data used for the super block entities
+#new:Data $Reward_SuperBlock_Data1
+{
+00000000
+/%
+00XXYYZZ
+XX=FlagID
+YY=EntityID
+ZZ=Reward Spawn Point
+%/
+}
+
+#new:Data $Reward_SuperBlock_Data2
+{
+00000000
+}
+
+% Used for switches entities to know the ItemEntity ID to be
+% used to set the Item Position after the switch is triggered
+#new:Data $Entity_Switch_Var1
+{
+00000000
+% 00XXYYYY
+% XX=ItemPos
+% YYYY=ItemHandler
+}
+
+#new:Data $Entity_Switch_Var2
+{
+00000000
+}
+
+#new:Data $Data_Reward_Data1
+{
+00000000
+%% XXXXYYZZ
+% XXXX=Reward Spawn Point
+% YY=Trap ID
+% ZZ=Rarity Points, used to know what reward to spawn % unused
+}
+
+#new:Data $Data_Reward_Data2
+{
+00000000
+}
+
+% save the data from data1/2 depending on which one need to be used now
+#new:Data $Data_Reward_DataX
+{
+00000000
+}
+
+% Used for Battle Based Springs
+#new:Data $Data_Reward_DataExtra
+{
+00000000
+}
+
+#new:Data $Data_Reward_GiantChestID
+{
+0000
+% XXYY
+% XX = EntityID
+% YY = ItemID
+}
+
+#new:Data $Data_GiantChestYaw
+{
+00000000
+%% XXYYZZ00
+% XX = Yaw1
+% YY = Yaw2
+% ZZ = YawX
+}
+
+% Export Data
+#export $Entity_Var1
+#export $Entity_Var2
+#export $Entity_Var3
+#export $Entity_Var4
+#export $Reward_RewardID1
+#export $Reward_RewardID2
+#export $Reward_RewardID3
+#export $Reward_RewardID4
+#export $LockVar
+#export $RewardVar
+#export $Data_Reward_Data1
+#export $Data_Reward_Data2
+#export $Data_Reward_DataX
+#export $Data_Reward_DataExtra
+#export $Reward_SuperBlock_Data1
+#export $Reward_SuperBlock_Data2
+#export $Entity_Switch_Var1
+#export $Entity_Switch_Var2
+#export $Data_Reward_GiantChestID
+#export $Data_GiantChestYaw

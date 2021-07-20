@@ -1,0 +1,570 @@
+%% TO-DO:
+%% - Make appear all the 20 items when you try to sell something
+%% - The new 10 items are pleaced in memory in the Checked Items slots 1 - 10
+%%   so you need to change the available slots from 32 to 22
+%%   and also change the position of the 1st checked item in memory.
+
+%8010F2AE % Sack Flag
+% ====================================================
+% Shopping
+% ====================================================
+@Hook 80AE0 % 800E7632 %% Rowf Pit NPC
+{
+PUSH	T0, RA
+LAB		T0, 8010F2AE
+BEQ		T0, R0, .SackOff
+NOP
+ADDIU	V1, R0, 0014
+BEQ		R0, R0, .SackOn
+NOP
+.SackOff
+ADDIU	V1, R0, 000A
+.SackOn
+POP		T0, RA
+LW		RA, 0010 (SP)
+J		800E7638
+NOP
+}
+
+@Hook 80A4C % 800E759C %% Buying more than 10 items from a Shop NPC
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+BEQ		T0, R0, .SackOff
+NOP
+%%Sack On%%
+.BranchOn
+LH		V0, 01B4 (A0)
+BEQ		V0, R0, .End
+/% New Code %/
+ADDIU	V0, R0, 0014		%
+ADDIU   V1, V1, 0001
+/% New Code %/
+SLTI    V0, V1, 0014		%
+BNE     V0, R0, .BranchOn
+ADDIU   A0, A0, 0002
+/% New Code %/
+ADDIU   V0, R0, 0014		%
+BEQ		R0, R0, .End
+NOP
+%%Sack Off%%
+.SackOff
+LH		V0, 01B4 (A0)
+BEQ		V0, R0, .End
+ADDIU	V0, R0, 000A		%
+ADDIU   V1, V1, 0001
+SLTI    V0, V1, 000A		%
+BNE     V0, R0, .SackOff
+ADDIU   A0, A0, 0002
+ADDIU   V0, R0, 000A		%
+.End
+POP		T0
+J		800E75BC
+NOP
+}
+
+% ====================================================
+% Pause/<C-Button
+% ====================================================
+@Hook 80B8C % 800E76DC	%% For Showing 20 items in the Pause Menu/C-Button
+{
+.Branch1
+/% New Code %/
+LH             V0,  01DC (A3)		%
+BEQL           V0, R0,  .Branch5
+ADDIU          A2, A2,  FFFF
+ADDIU          A0, R0,  0013
+SLT            V0, A2, A0
+BEQL           V0, R0, .Branch5
+ADDIU          A2, A2,  FFFF
+DADDU          A1, A3, R0
+ADDIU          V1, T0,  0012
+.Branch2
+/% New Code %/
+LH             V0,  01DC (V1)		%
+BNEL           V0, R0,  .Branch3
+ADDIU          A0, A0,  FFFF
+/% New Code %/
+LHU            V0,  01DC (A1)		%
+SH             V0,  01DC (V1)		%
+BEQ			   R0, R0, .Branch4
+SH             R0,  01DC (A1)		%
+.Branch3
+SLT            V0, A2, A0
+BNE	           V0, R0,  .Branch2
+ADDIU          V1, V1,  FFFE
+.Branch4
+ADDIU          A2, A2,  FFFF
+.Branch5
+BGEZ           A2,  .Branch1
+ADDIU		   A3, A3, FFFE
+J			   800E7734
+NOP
+}
+
+% FindItem % Add support for the sack
+@Hook FB500 % 802D6B50
+{
+LABU    T0, 8010F2AE % Sack Flag
+BNE     T0, R0, .Loop_Sack
+NOP
+.Loop_NotSack
+LH	    V0, 01B4 (A0)
+BEQ	    V0, A2, .EndLoop
+ADDIU	V0, R0, 000A
+ADDIU	V1, V1, 0001
+SLTI	V0, V1, 000A
+BNE 	V0, R0, .Loop_NotSack
+ADDIU	A0, A0, 0002
+ADDIU	V0, R0, 000A
+BEQ     R0, R0, .EndLoop
+NOP
+.Loop_Sack
+LH	    V0, 01B4 (A0)
+BEQ	    V0, A2, .EndLoop
+ADDIU	V0, R0, 0014
+ADDIU	V1, V1, 0001
+SLTI	V0, V1, 0014
+BNE 	V0, R0, .Loop_Sack
+ADDIU	A0, A0, 0002
+ADDIU	V0, R0, 0014
+.EndLoop
+BEQ	    V1, V0, .SetVar
+ADDIU	A2, R0, FFFF
+COPY	A2, V1
+.SetVar
+JAL	    ~Func:set_variable
+COPY    A0, S1
+J       802D6B84
+NOP
+}
+
+% ====================================================
+% Battle
+% ====================================================
+@Hook 80B48 % 800E7698 %% Looking if Mario have a Life Shroom after he died
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+BEQ		T0, R0, .SackOff
+NOP
+%%%%%%%%%%%Sack On%%%%%%%%%%%%%%%
+.Branch1
+LH      	V0, 01B4 (V1)
+BEQL   		V0, A0, .Branch2
+ADDIU   	V1, R0, 0014	%
+ADDIU   	A1, A1, 0001
+SLTI    	V0, A1, 0014	%
+BNE	    	V0, R0, .Branch1
+ADDIU   	V1, V1, 0002
+ADDIU   	V1, R0, 0014	%
+.Branch2
+BEQ     	A1, V1, .End
+ADDIU   	V0, R0, FFFF
+DADDU   	V0, A1, R0
+BEQ			R0, R0, .End
+NOP
+%%%%%%%%%%%Sack Off%%%%%%%%%%%%%%%
+.SackOff
+LH      	V0, 01B4 (V1)
+BEQL   		V0, A0, .Branch2Off
+ADDIU   	V1, R0, 000A	%
+ADDIU   	A1, A1, 0001
+SLTI    	V0, A1, 000A	%
+BNE	    	V0, R0, .SackOff
+ADDIU   	V1, V1, 0002
+ADDIU   	V1, R0, 000A	%
+.Branch2Off
+BEQ     	A1, V1, .End
+ADDIU   	V0, R0, FFFF
+DADDU   	V0, A1, R0
+.End
+POP			T0
+J			800E76C4
+NOP
+}
+
+@Hook 41BE38 % 802A70A8 %% For showing the 20 items list
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+%%%%%%%%%%%Sack On%%%%%%%%%%%%%%%
+.Branch1
+LH             V0,  01B4 (S2)
+BEQL           V0, R0,  .Branch4
+ADDIU          S3, S3,  0001
+SLL            V0, V0, 5
+LUI            T6,  8008
+ADDIU          T6, T6,  78E0
+ADDU           S0, V0, T6
+LUI            T6,  8009
+ADDIU          T6, T6,  A680
+LH             V0,  0004 (S0)
+LHU            V1,  0018 (S0)
+SLL            V0, V0, 3
+ANDI           V1, V1,  0002
+BEQ            V1, R0,  .Branch3
+ADDU           S5, V0, T6
+SB             S8,  0178 (S6)
+LHU            V0,  01B4 (S2)
+SH             V0,  017A (S6)
+LW             V0,  0008 (S0)
+DADDU          A0, S7, R0
+JAL            8026302C
+SW             V0,  0184 (S6)
+LW             V0,  0000 (S5)
+SW             V0,  0000 (S1)
+LH             V1,  01B4 (S2)
+ADDIU          V0, R0,  0001
+SW             V0,  018C (S1)
+SW             V1,  0108 (S1)
+LW             V0,  0000 (S0)
+SW             V0,  0084 (S1)
+LW             V0,  0014 (S0)
+SW             V0,  0294 (S1)
+LB             V0,  040C (S7)
+BNEL           V0, R0,  .Branch2
+ADDIU          S1, S1,  0004
+LW             V0,  0004 (S5)
+SW             R0,  018C (S1)
+SW             V0,  0000 (S1)
+ADDIU          S1, S1,  0004
+.Branch2
+ADDIU          S4, S4,  0001
+.Branch3
+ADDIU          S3, S3,  0001
+.Branch4
+/% New Code %/
+BEQ			   T0, R0, .SackOff
+NOP
+SLTI           V0, S3,  0014		%
+BEQ			   R0, R0, .SackOn
+NOP
+.SackOff
+SLTI           V0, S3,  000A		%
+.SackOn
+BNE            V0, R0,  .Branch1
+ADDIU		   S2, S2, 0002
+POP			   T0
+J			   802A7158
+NOP
+}
+
+@Hook 418DB8 % 802A4028 %% For tracking the selected item in the list
+{
+PUSH	T1
+LAB		T1, 8010F2AE
+BEQ		T1, R0, .SackOff
+NOP
+%%%%%%%%%%%Sack On%%%%%%%%%%%%%%%
+BEQ            V1, R0,  .Branch1
+ADDIU          V0, R0,  0001
+BEQ            V1, V0,  .Branch2
+ADDIU          T0, R0,  0038
+BEQ            R0, R0, .Branch3
+NOP            
+.Branch1
+BEQ            R0, R0, .Branch3
+/% New Code %/
+ADDIU		   T0, R0, 0014			%
+.Branch2
+ADDIU          T0, R0,  0037
+.Branch3
+LW             V0,  0000 (S4)
+BEQ			   R0, R0, .End
+NOP
+%%%%%%%%%%%Sack Off%%%%%%%%%%%%%%%
+.SackOff
+BEQ            V1, R0,  .Branch1Off
+ADDIU          V0, R0,  0001
+BEQ            V1, V0,  .Branch2Off
+ADDIU          T0, R0,  0038
+BEQ            R0, R0, .Branch3Off
+NOP            
+.Branch1Off
+BEQ            R0, R0, .Branch3Off
+ADDIU		   T0, R0, 000A			%
+.Branch2Off
+ADDIU          T0, R0,  0037
+.Branch3Off
+LW             V0,  0000 (S4)
+.End
+POP			   T1
+J			   802A4050
+NOP
+}
+
+@Hook 191C30 % 80263350 %% For tracking if the player still have available items
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+.Branch1
+LH             V0,  01B4 (S0)
+BEQL           V0, R0,  .Branch2
+ADDIU          S2, S2,  0001
+SLL            V0, V0, 5
+ADDU           V1, V0, S6
+LHU            V0,  0018 (V1)
+ANDI           V0, V0,  0002
+BEQL           V0, R0,  .Branch2
+ADDIU          S2, S2,  0001
+SB             S5,  0178 (S1)
+LHU            V0,  01B4 (S0)
+SH             V0,  017A (S1)
+LW             V0,  0008 (V1)
+DADDU          A0, S3, R0
+JAL            8026302C
+SW             V0,  0184 (S1)
+LB             V0,  040C (S3)
+BEQ            V0, R0,  .Branch2
+ADDIU          S2, S2,  0001
+LBU            V0,  007D (S1)
+ADDIU          S4, R0,  0001
+ADDU           V0, V0, S4
+SB             V0,  007D (S1)
+.Branch2
+/% New Code %/
+BEQ			   T0, R0, .SackOff
+NOP
+SLTI		   V0, S2, 0014		%
+BEQ			   R0, R0, .SackOn
+NOP
+.SackOff
+SLTI		   V0, S2, 000A		%
+.SackOn
+BNE            V0, R0,  .Branch1
+ADDIU          S0, S0,  0002
+POP			   T0
+J			   802633B8
+NOP
+}
+
+
+@Hook 41BC0C % 802A6E7C % Add support for Double Dip and Triple Dip - 1st Time
+{
+    LABU    V0, 8010F2AE % Sack Flag
+    BEQL    V0, R0, .CheckIfAllItemsAreLoaded
+    SLTI	V0, S3, 000A
+    SLTI	V0, S3, 0014
+    .CheckIfAllItemsAreLoaded
+    BNE     V0, R0, .LoopAgain
+    ADDIU	S2, S2, 0002
+    .BreakLoop
+    J       802A6E88
+    NOP
+    .LoopAgain
+    J       802A6DD8
+    NOP
+}
+
+@Hook 41C4BC % 802A772C % Add support for Double Dip and Triple Dip - 2nd Time
+{
+    LABU    V0, 8010F2AE % Sack Flag
+    BEQL    V0, R0, .CheckIfAllItemsAreLoaded
+    SLTI	V0, S3, 000A
+    SLTI	V0, S3, 0014
+    .CheckIfAllItemsAreLoaded
+    BNE     V0, R0, .LoopAgain
+    ADDIU	S2, S2, 0002
+    .BreakLoop
+    J       802A7738
+    NOP
+    .LoopAgain
+    J       802A7688
+    NOP
+}
+
+% ====================================================
+% Rain's Code
+% ====================================================
+@Hook 80B94 % 800E76E4
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+ADDIU	A2, A2, FFFF
+BEQ		T0, R0, .SackOff
+NOP
+/% New Code %/
+ADDIU 	A0, R0, 0013		%
+BEQ		R0, R0, .End
+NOP
+.SackOff
+ADDIU 	A0, R0, 0009		%
+.End
+POP		T0
+J		800E76EC
+NOP
+}
+
+@Hook CC040 % 80135940
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+BEQ		T0, R0, .SackOff
+NOP
+%%%%%%%%%%%Sack On%%%%%%%%%%%%%%%%
+.Branch1
+LH             V0, 01B4 (V1)
+BEQ            V0, R0, .Branch2
+/% New Code %/
+SLTI           V0, A0, 0014			%
+ADDIU          A0, A0, 0001
+SLTI           V0, A0, 0014			%
+BNE            V0, R0, .Branch1
+ADDIU          V1, V1, 0002
+SLTI           V0, A0, 0014			%
+.Branch2
+BEQ		R0, R0, .End
+NOP
+%%%%%%%%%%%Sack Off%%%%%%%%%%%%%%%
+.SackOff
+LH             V0, 01B4 (V1)
+BEQ            V0, R0, .End
+SLTI           V0, A0, 000A			%
+ADDIU          A0, A0, 0001
+SLTI           V0, A0, 000A			%
+BNE            V0, R0, .SackOff
+ADDIU          V1, V1, 0002
+SLTI           V0, A0, 000A			%
+.End
+POP T0
+J	80135960
+NOP
+}
+
+
+@Hook 80118 % 800E6C68
+{
+PUSH	T4
+LAB		T4, 8010F2AE
+.Branch1
+LH             V0,  01B4 (A3)
+BEQL           V0, R0,  .Branch4
+ADDIU          A2, A2,  0001
+SLL            V0, V0, 5
+ADDU           A1, V0, T3
+LH             V0,  0004 (A1)
+LHU            V1,  0018 (A1)
+SLL            V0, V0, 3
+ANDI           V1, V1,  0001
+BEQ            V1, R0,  .Branch2
+ADDU           V0, V0, T2
+LW             V0,  0000 (V0)
+SW             A2,  0108 (A0)
+BEQ            R0, R0,   .Branch3
+SW             T1,  018C (A0)
+.Branch2
+LW             V0,  0004 (V0)
+SW             A2,  0108 (A0)
+SW             R0,  018C (A0)
+.Branch3
+SW             V0,  0000 (A0)
+LW             V0,  0000 (A1)
+SW             V0,  0084 (A0)
+LW             V0,  0014 (A1)
+ADDIU          T0, T0,  0001
+SW             V0,  0294 (A0)
+ADDIU          A0, A0,  0004
+ADDIU          A2, A2,  0001
+.Branch4
+/% New Code %/
+BEQ			   T4, R0, .SackOff
+NOP
+SLTI           V0, A2,  0014		%
+BEQ			   R0, R0, .SackOn
+NOP
+.SackOff
+SLTI           V0, A2,  000A		%
+.SackOn
+BNE            V0, R0,  .Branch1
+ADDIU          A3, A3,  0002
+POP		T4
+J		800E6CDC
+NOP
+}
+
+
+@Hook CC7B0 % 801360B0
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+ADDIU	V1, V1, 0004
+BEQ		T0, R0, .SackOff
+NOP
+SLTI    V0, A0, 0014		%
+BEQ		R0, R0, .End
+NOP
+.SackOff
+SLTI    V0, A0, 000A		%
+.End
+POP		T0
+J		801360B8
+NOP
+}
+
+@Hook 80AB8 % 800E7608
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+ADDIU	A0, A0, 0001
+BEQ		T0, R0, .SackOff
+NOP
+SLTI    V0, A0, 0014		%
+BEQ		R0, R0, .End
+NOP
+.SackOff
+SLTI    V0, A0, 000A		%
+.End
+POP		T0
+J		800E7610
+NOP
+}
+
+@Hook 13D854 % 8024A514
+{
+PUSH	T0
+LAB		T0, 8010F2AE
+.Branch1
+LH             V0,  01B4 (A2)
+LHU            V1,  01B4 (A2)
+BEQ            V0, R0,  .Branch2
+ADDIU          A0, A0,  0001
+SH             V1,  0000 (A1)
+ADDIU          A1, A1,  0002
+ADDIU          S0, S0,  0001
+.Branch2
+/% New Code %/
+BEQ			   T0, R0, .SackOff
+NOP
+SLTI           V0, A0,  0014		%
+BEQ			   R0, R0, .SackOn
+NOP
+.SackOff
+SLTI           V0, A0,  000A		%
+.SackOn
+BNE            V0, R0,  .Branch1
+ADDIU          A2, A2,  0002
+POP		T0
+J		8024A53C
+NOP
+}
+
+
+@Hook 13A3B4 % 80247074 % For putting 20 items on the pause screen
+{
+%Uh, this JAL puts one of my items into a badge slot...? what is this for
+PUSH	T0
+LAB		T0, 8010F2AE
+BEQ		T0, R0, .SackOff
+NOP
+NOP
+BEQ		R0, R0, .End
+NOP
+.SackOff
+JAL		80244A4C
+ADDIU	A1, R0, 0080
+.End
+POP		T0
+J		8024707C
+NOP
+}

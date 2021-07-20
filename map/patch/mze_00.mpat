@@ -1,0 +1,967 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 3
+[MapTattle]  $Function_GetTattle
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "tik_tex" 
+JAL 	~Func:sprintf
+RESERVED
+COPY 	V0, R0
+JPOP 	RA, A0, A1
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Respawn
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( FFFFFFFF )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Set     *AreaByte[2] 0 % last lobby, used when respawning
+Call    FadeOutMusic	    ( .Default 1 ) % Stop Music
+Exec    $Script_BindTriggers
+/% Display the current star pieces if all badges hasn't been purchased
+If  *Dungeon_MistBadges < 2
+    Set *Flag_Dungeon_Lobby .True
+EndIf%/
+Set *Flag_Dungeon_Lobby .True
+Set *Flag_Dungeon .False % Disable Timer
+% Reset all flags
+% Chests Opened Flags
+Set *Flag_Maze_Map1_Chest1 .False
+Set *Flag_Maze_Map1_Chest2 .False
+Set *Flag_Maze_Map2_Chest1 .False
+Set *Flag_Maze_Map2_Chest2 .False
+Set *Flag_Maze_Map4_Chest1 .False
+Set *Flag_Maze_Map4_Chest2 .False
+Set *Flag_Maze_Map5_Chest1 .False
+Set *Flag_Maze_Map5_Chest2 .False
+Set *Flag_Maze_Map6_Chest1 .False
+Set *Flag_Maze_Map6_Chest2 .False
+Set *Flag_Maze_Map8_Chest1 .False
+Set *Flag_Maze_Map8_Chest2 .False
+Set *Flag_Maze_Map9_Chest1 .False
+Set *Flag_Maze_Map9_Chest2 .False
+Set *Flag_Maze_Map10_Chest1 .False
+Set *Flag_Maze_Map10_Chest2 .False
+Set *Flag_Maze_Map12_Chest1 .False
+Set *Flag_Maze_Map12_Chest2 .False
+Set *Flag_Maze_Map13_Chest1 .False
+Set *Flag_Maze_Map13_Chest2 .False
+Set *Flag_Maze_Map14_Chest1 .False
+Set *Flag_Maze_Map14_Chest2 .False
+Set *Flag_Maze_Map16_Chest1 .False
+Set *Flag_Maze_Map16_Chest2 .False
+Set *Flag_Maze_Map17_Chest1 .False
+Set *Flag_Maze_Map17_Chest2 .False
+Set *Flag_Maze_Map18_Chest1 .False
+Set *Flag_Maze_Map18_Chest2 .False
+Set *Flag_Maze_Map19_Chest1 .False
+Set *Flag_Maze_Map19_Chest2 .False
+Set *Flag_Maze_Map20_Chest1 .False
+Set *Flag_Maze_Map20_Chest2 .False
+Set *Flag_Maze_SpecialChest1 .False
+Set *Flag_Maze_SpecialChest2 .False
+Set *Flag_Maze_HiddenBlock5 .False
+Set *Flag_Maze_HiddenBlock9 .False
+Set *Flag_Maze_HiddenBlock13 .False
+Set *Flag_LockInputs_GiantChest .False
+% Reset Enemies Defeated Flags
+Set *AreaFlag[000] .False
+Set *AreaFlag[001] .False
+Set *AreaFlag[002] .False
+Set *AreaFlag[003] .False
+Set *AreaFlag[004] .False
+Set *AreaFlag[005] .False
+Set *AreaFlag[006] .False
+Set *AreaFlag[007] .False
+Set *AreaFlag[008] .False
+Set *AreaFlag[009] .False
+Set *AreaFlag[00A] .False
+Set *AreaFlag[00B] .False
+Set *AreaFlag[00C] .False
+Set *AreaFlag[00D] .False
+Set *AreaFlag[00E] .False
+% Fuzzies' Flags
+Set *Flag_Maze_Fuzzy1 .False
+Set *Flag_Maze_Fuzzy2 .False
+Set *Flag_Maze_Fuzzy3 .False
+% Enemies
+Set *AreaByte[1] .Default
+Set *Maze_ChestsOpened_CurrentP .False
+Call $Function_NukeTrapsData % Restart trap's data
+% Clear Enemies Defeated Flags (RAM)
+Call $CleanEnemiesFlags
+Call GetEntryID ( *Var[0] )
+If  *Var[0] == 2 % Respawn
+    Exec    $Script_MakeExits
+    Exec    $Script_RespawnPlayer
+Else
+    If *Var[0] == 1 % comming from the maze
+        % Fully Restore HP, FP and Star Power
+        % HP
+        Call $ReadAddress       ( 8010F293 0 *Var[0] .False .False ) % get max hp
+        Call $WriteAddress      ( 8010F292 0 *Var[0] .False .False ) % set hp as max
+        % FP
+        Call $ReadAddress       ( 8010F296 0 *Var[0] .False .False ) % get max fp
+        Call $WriteAddress      ( 8010F295 0 *Var[0] .False .False ) % set fp as max
+        % Star Power
+        Call FullyRestoreSP
+        % Nuke $Maze_PartnerData
+        Call $WriteAddress ( $Maze_PartnerData 2 .False 0 .False ) % 1st word
+        Call $WriteAddress ( $Maze_PartnerData 2 .False 4 .False ) % 2nd word
+    EndIf
+    Set	   *Var[0] $Script_MakeExits
+    Exec    EnterWalk
+    Wait    1
+EndIf
+Return
+End
+}
+
+#new:Script $Script_RespawnPlayer
+{
+Call DisablePlayerInput ( .True )
+% Check Partner
+Call $ReadAddress ( 8010F2AC 0 *Var[0] .False .False ) % get goombario byte, to know if last floor was a trap one
+% Activate partners
+If  *Var[0] == .False
+    % Goombario
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 0 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2AC 0 .True .False .False )
+    EndIf
+    % Kooper
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 1 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2B4 0 .True .False .False )
+    EndIf
+    % Bombette
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 2 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2BC 0 .True .False .False )
+    EndIf
+    % Parakarry
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 3 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2C4 0 .True .False .False )
+    EndIf
+    % Bow
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 4 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2EC 0 .True .False .False )
+    EndIf
+    % Watt
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 5 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2D4 0 .True .False .False )
+    EndIf
+    % Sushie
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 6 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2DC 0 .True .False .False )
+    EndIf
+    % Lakilester
+    Call $ReadAddress ( $Maze_PartnerData 0 *Var[0] 7 .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( 8010F2E4 0 .True .False .False )
+    EndIf
+    % Nuke $Maze_PartnerData
+    Call $WriteAddress ( $Maze_PartnerData 2 .False 0 .False ) % 1st word
+    Call $WriteAddress ( $Maze_PartnerData 2 .False 4 .False ) % 2nd word
+    Thread % Respawn Partner
+        Wait    6
+        Set     *LastPartnerUsed *AreaByte[F]
+        Call    $RespawnPartner ( *LastPartner )
+    EndThread
+EndIf
+% Fully Restore HP, FP and Star Power
+% HP
+Call $ReadAddress       ( 8010F293 0 *Var[0] .False .False ) % get max hp
+Call $WriteAddress      ( 8010F292 0 *Var[0] .False .False ) % set hp as max
+% FP
+Call $ReadAddress       ( 8010F296 0 *Var[0] .False .False ) % get max fp
+Call $WriteAddress      ( 8010F295 0 *Var[0] .False .False ) % set fp as max
+% Star Power
+Call FullyRestoreSP
+Call SetPlayerAnimation ( 00010002 ) % idle
+Call SetPlayerAnimation ( 0001000F ) % Dead
+Wait 32`
+Call SetPlayerAnimation ( 00010030 ) % Get Up
+Wait 16`
+Set *AreaByte[F] 0
+Set *AreaFlag[0A0] .False
+Set *AreaFlag[0A1] .False
+Call DisablePlayerInput ( .False )
+Return
+End
+}
+
+#new:Function $RespawnPartner
+{
+	PUSH	RA
+	LW      V0, C (A0)
+    JAL     ~Func:get_variable
+   	LW      A1, 0 (V0)
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA
+   	JR      RA
+	ADDIU   V0, R0, 2
+}
+
+#new:Script $Script_BindTriggers
+{
+Bind $Script_Sign .Trigger:WallPressA ~Collider:Sign_Col 00000001 00000000 
+If *Flag_MistBadge1 == .False
+    Bind $Script_Badge1 .Trigger:WallPressA ~Collider:Badge1 00000001 00000000 
+Else
+    Call EnableModel ( ~Model:Badge1 .False )
+EndIf
+If *Flag_MistBadge2 == .False
+    Bind $Script_Badge2 .Trigger:WallPressA ~Collider:Badge2 00000001 00000000 
+Else
+    Call EnableModel ( ~Model:Badge2 .False )
+EndIf
+If *Flag_MistBadge3 == .False
+    Bind $Script_Badge3 .Trigger:WallPressA ~Collider:Badge3 00000001 00000000 
+Else
+    Call EnableModel ( ~Model:Badge3 .False )
+EndIf
+If *Flag_ChestLobbyKey == .False
+    Call    MakeItemEntity ( .Item:WaterStone ~Vec3d:MistStone .ItemSpawnMode:Decoration *Flag_ChestLobbyKey )
+    Bind $Script_Buy_MistStone .Trigger:WallPressA ~Collider:MistStoneTrigger 00000001 00000000 
+EndIf
+Return
+End
+}
+
+#new:Script $Script_Sign
+{
+Call     DisablePlayerInput	( .True )
+Call     ShowMessageAtScreenPos     	( $String_Sign1 000000A0 00000028 )
+Call     DisablePlayerInput	( .False )
+Return
+End
+}
+
+#new:Script $Script_Badge1
+{
+    Set     *Var[F] 0
+    ExecWait $Script_Badge_Main
+    Return
+    End
+}
+
+#new:Script $Script_Badge2
+{
+    Set     *Var[F] 1
+    ExecWait $Script_Badge_Main
+    Return
+    End
+}
+
+#new:Script $Script_Badge3
+{
+    Set     *Var[F] 2
+    ExecWait $Script_Badge_Main
+    Return
+    End
+}
+
+#new:Script $Script_Badge_Main
+{
+    Call     DisablePlayerInput	( .True )
+    Call     ShowMessageAtScreenPos     	( $String_Badge_Start 000000A0 00000028 )
+    Call     $ReadAddress   ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+    % Which Badge?
+    Switch *Dungeon_MistBadges
+        Case == 0
+            Set *Var[1] 100`
+        Case == 1
+            Set *Var[1] 300`
+        Case == 2
+            Set *Var[1] 600`
+    EndSwitch
+    If  *Var[0] < *Var[1]
+        Call     ShowMessageAtScreenPos     	( $String_Badge_Nope 000000A0 00000028 )
+        Call     DisablePlayerInput	( .False )
+        Return
+    EndIf
+    Call     ShowMessageAtScreenPos	( $String_Badge_Ask 000000A0 00000028 )
+    Call     ShowChoice    ( 001E001D ) % yes no
+    Call     CloseMessage % close message box
+    If *Var[0] != 0 % no
+        Call     DisablePlayerInput	( .False )
+        Return
+    EndIf
+    SetTimescale *Fixed[15.0]
+    Loop *Var[1] % Amount to substract
+        Call    $ReadAddress   ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+        Sub     *Var[0] 1 % substract 1 by 1
+        Call    $WriteAddress  ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+        Call    PlaySound ( 0215 )
+        Wait    1
+    EndLoop
+    SetTimescale *Fixed[1.0]
+    % Which Badge?
+    Switch *Var[F]
+        Case == 0
+            Set *Flag_MistBadge1 .True
+            Call EnableModel ( ~Model:Badge1 .False )
+        Case == 1
+            Set *Flag_MistBadge2 .True
+            Call EnableModel ( ~Model:Badge2 .False )
+        Case == 2
+            Set *Flag_MistBadge3 .True
+            Call EnableModel ( ~Model:Badge3 .False )
+    EndSwitch
+    Call    ShowGotItem ( 0059 .Default .Default )
+    Call    AddKeyItem ( 0059 )
+    Add  *Dungeon_MistBadges 1
+    If *Dungeon_MistBadges == 3
+        Set *Flag_Cheev_Dungeon_05 .True % Challenge Completed
+    EndIf
+    Unbind
+    Call    DisablePlayerInput	( .False )
+    Return
+    End
+}
+
+#new:Script $Script_Buy_MistStone
+{
+    Set     *Var[F] 2
+    Call     DisablePlayerInput	( .True )
+    Call     ShowMessageAtScreenPos     	( $String_Stone_Start 000000A0 00000028 )
+    Call     $ReadAddress   ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+    Set      *Var[1] 150` % Price
+    If  *Var[0] < *Var[1]
+        Call     ShowMessageAtScreenPos     	( $String_Badge_Nope 000000A0 00000028 )
+        Call     DisablePlayerInput	( .False )
+        Return
+    EndIf
+    Call     ShowMessageAtScreenPos	( $String_Badge_Ask 000000A0 00000028 )
+    Call     ShowChoice    ( 001E001D ) % yes no
+    Call     CloseMessage % close message box
+    If *Var[0] != 0 % no
+        Call     DisablePlayerInput	( .False )
+        Return
+    EndIf
+    SetTimescale *Fixed[15.0]
+    Loop *Var[1] % Amount to substract
+        Call    $ReadAddress   ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+        Sub     *Var[0] 1 % substract 1 by 1
+        Call    $WriteAddress  ( 8035612C 1 *Var[0] 0 .False ) % get star pieces
+        Call    PlaySound ( 0215 )
+        Wait    1
+    EndLoop
+    SetTimescale *Fixed[1.0]
+    Call    SetItemPos ( 0 0 -1000` 0 )
+    Call    ShowGotItem 	( .Item:WaterStone .True 0 ) % Mist Stone
+    Call    AddKeyItem  	( .Item:WaterStone ) 
+    Set     *Flag_ChestLobbyKey .True
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call	SetPlayerAnimation ( .PlayerAnim:Thinking )
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Wait	10`
+    Call	ShowMessageAtScreenPos ( $String_UseStone A0 28 )
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Unbind
+    Call    DisablePlayerInput	( .False )
+    Return
+    End
+}
+
+#string $String_UseStone
+{
+[STYLE:INSPECT][...]
+Hmm ... I think this Stone could
+[PushColor][Color:07]fit[PopColor] into that [PushColor][Color:07]strange pillar[PopColor] in
+[PushColor][Color:07]the middle of the first room[PopColor]
+of the [PushColor][Color:07]Maze[PopColor].
+[WAIT][END]
+}
+
+#new:Function $Function_NukeTrapsData
+{
+SAW     R0, $Maze_Trap2_Data
+SAW     R0, $Maze_Trap4_Data
+SAW     R0, $Maze_Trap6_Data
+SAW     R0, $Maze_Trap8_Data
+SAW     R0, $Maze_Trap10_Data
+SAW     R0, $Maze_Trap12_Data
+SAW     R0, $Maze_Trap14_Data
+SAW     R0, $Maze_Trap16_Data
+SAW     R0, $Maze_Trap17_Data
+SAW     R0, $Maze_Trap19_Data
+SAW     R0, $Maze_ChestData_Map1_5
+SAW     R0, $Maze_ChestData_Map9_13
+SAW     R0, $Maze_ChestData_Map18_20
+SAW     R0, $Maze_ChestData_Special1
+SAW     R0, $Maze_ChestData_Special1_Blocks_Coords
+SAW     R0, $Maze_ChestData_Special2
+SAH     R0, 80356130 % temp star pieces
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $CleanEnemiesFlags
+{
+% Nuke all Enemies Defeated flags from the Maze
+% Each map use 12 Words (48 Bytes) the maze has 12 maps
+% 12 * 12 = 144` (90)
+ADDIU T1, R0, 0 % loop Counter
+LIO   T0, 800B0FC0 % 1st Word (Map ID #0)
+.Loop
+SW    R0, 0 (T0)
+ADDIU T0, T0, 4 % move to next word
+ADDIU T1, T1, 1 % loop counter
+ADDIU T2, R0, 90 % total loops to do
+BNE   T1, T2, .Loop
+NOP
+JR    RA
+ADDIU V0, R0, 2
+}
+
+#string $String_Sign1
+{
+[DelayOff][STYLE:SIGN][...]
+This cursed maze holds Star
+Pieces used to get
+magnificent power ups.
+[WAIT][NEXT][...]
+The enemies, traps, and
+treasures will reset upon your
+return.
+[WAIT][NEXT][...]
+Escape with what you can, lest
+the maze claims you as another
+victim.
+[WAIT][END]
+}
+
+#string $String_Badge_Start
+{
+[DelayOff][STYLE:INSPECT][...]
+Is some kind of badge...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+Looks like it's stuck on the wall!
+[WAIT][NEXT][...]
+The only way to detach it is by
+using [PushColor][Color:07]Star Piece's Material.[PopColor]
+[WAIT][END]
+}
+
+#string $String_Badge_Nope
+{
+[DelayOff][STYLE:INSPECT][...]
+Looks like I don't have the [PushColor][Color:07]enough[PopColor]
+Star Pieces.
+[WAIT][END]
+}
+
+#string $String_Badge_Ask
+{
+[DelayOff][STYLE:INSPECT][...]
+Do you want to use some Star
+Pieces to detach it?
+[Func_04][END]
+}
+
+#string $String_Stone_Start
+{
+[DelayOff][STYLE:INSPECT][...]
+Is some kind of [PushColor][Color:07]Stone[PopColor].
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+Looks like it's stuck on the wall!
+[WAIT][NEXT][...]
+The only way to detach it is by
+using [PushColor][Color:07]Star Piece's Material.[PopColor]
+[WAIT][END]
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0 1 0
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:Entry1 1 0
+Return
+End
+}
+
+#new:Script $Script_Exit0
+{
+Call     UseExitHeading  	( 3C 0 )
+Exec     80285CF4 
+Call     GotoMap         	( "pt_00" 4 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit1
+{
+    % Fully Restore HP, FP and Star Power
+    % HP
+    Call $ReadAddress       ( 8010F293 0 *Var[0] .False .False ) % get max hp
+    Call $WriteAddress      ( 8010F292 0 *Var[0] .False .False ) % set hp as max
+    % FP
+    Call $ReadAddress       ( 8010F296 0 *Var[0] .False .False ) % get max fp
+    Call $WriteAddress      ( 8010F295 0 *Var[0] .False .False ) % set fp as max
+    % Star Power
+    Call FullyRestoreSP
+    ExecWait $Script_GetNewTrapsData
+    ExecWait $Script_GetChestsData
+    ExecWait $Script_GetSpecialChestsData
+    ExecWait $Script_SavePartnersData
+    % Get Set of Enemies
+    Call    RandInt ( 7 *AreaByte[1] ) % AreaByte[1] = Enemies Group ID
+    %Set     *AreaByte[1] 7 % testing
+    Call    $Function_SetMazeTimer
+    Set     *Flag_LockInputs_GiantChest .True % always lock Player's inputs at the moment a giant chest is opening
+    Call     UseExitHeading  	( 3C 1 )
+    Exec     ExitWalk 
+    Call     GotoMap         	( "mze_01" 0 )
+    Wait     100` 
+    Return
+    End
+}
+
+% Get the data for all traps on this run
+#new:Script $Script_GetNewTrapsData
+{
+    Set  *Var[1] 10` % because there 10 traps
+    Loop *Var[1]
+        % init vars
+        Set *Var[0] 0
+        Set *Var[2] 0
+        Set *Var[3] 0
+        Set *Var[4] 0
+        Set *Var[5] 0
+        Switch  *Var[1]
+            Case == 10`
+                Set     *Var[0] $Maze_Trap2_Data
+            Case == 9
+                Set     *Var[0] $Maze_Trap4_Data
+            Case == 8
+                Set     *Var[0] $Maze_Trap6_Data
+            Case == 7
+                Set     *Var[0] $Maze_Trap8_Data
+            Case == 6
+                Set     *Var[0] $Maze_Trap10_Data
+            Case == 5
+                Set     *Var[0] $Maze_Trap12_Data
+            Case == 4
+                Set     *Var[0] $Maze_Trap14_Data
+            Case == 3
+                Set     *Var[0] $Maze_Trap16_Data
+            Case == 2
+                Set     *Var[0] $Maze_Trap17_Data
+            Case == 1
+                Set     *Var[0] $Maze_Trap19_Data
+        EndSwitch
+        % Get Trap
+        Call    RandInt ( 10` *Var[2] )
+        Call    $WriteAddress ( *Var[0] 0 *Var[2] 0 .False ) % Trap ID
+        % Get Trap Var
+        Switch  *Var[2]
+            CaseOR == 0 % Spikes - 1 Side - Middle Hole to surpass it
+            CaseOR == 5 % Walls - 1 Side
+            CaseOR == 6 % Walls - 2 Sides
+            CaseOR == 7 % Walls - 1 Side - The first and last wall crash with another moving wall
+            CaseOR == 9 % Walls - 2 Sides - 1 side has a chest at the end
+                Call    RandInt ( 1 *Var[3] )
+            EndCaseGroup
+            Default % For traps that doesn't use trap var
+                Set *Var[3] 0
+        EndSwitch
+        Call    $WriteAddress ( *Var[0] 0 *Var[3] 1 .False ) % Trap Var
+        % Get Chest Spawn Post
+        % If you want to know the location of each chest platform value look at mze_09.mpat
+        % An ASCII map is above Script_EnableModels_ChestPlatform_1
+        Switch  *Var[2]
+            CaseOR == 0 % Spikes - 1 Side - Middle Hole to surpass it
+            CaseOR == 5 % Walls - 1 Side
+                Call    RandInt ( 100` *Var[5] )
+                If  *Var[5] < 60` % 60% chance to spawn a chest
+                    If *Var[5] < 30` % 30% chance to spawn 2 chests
+                        Set *Var[4] 10`
+                    Else
+                        Call    RandInt ( 1 *Var[5] )
+                        % Read Trap Var
+                        If *Var[3] == 0 % Left
+                            If *Var[5] == 0
+                                Set *Var[4] 2
+                            Else
+                                Set *Var[4] 1
+                            EndIf
+                        Else % Right
+                            If *Var[5] == 0
+                                Set *Var[4] 2
+                            Else
+                                Set *Var[4] 3
+                            EndIf
+                        EndIf
+                    EndIf
+                EndIf
+            EndCaseGroup
+            CaseOR == 1 % Spikes - 2 Sides - Middle Hole to surpass it
+            CaseOR == 2 % Spikes - 2 Sides - Spikes move on different directions (you don't need the middle hole)
+                Call    RandInt ( 100` *Var[5] )
+                If  *Var[5] < 60` % 60% chance to spawn a chest
+                    If *Var[5] < 30` % 30% chance to spawn 2 chests
+                        % This chests can't spawn if the middle pillars are thinn
+                        If *Var[3] == 0
+                            Set *Var[4] 10`
+                        Else
+                            Set *Var[4] 0 % Don't spawn any chests
+                        EndIf
+                    Else
+                        Set *Var[4] 2
+                    EndIf
+                EndIf
+            EndCaseGroup
+            CaseOR == 3 % Spikes - XL Side - Two large groups of spikes move in the opposite direction
+            CaseOR == 4 % Spikes - XL Side - Each row move on the opposite direction to the previous one (0101010)
+                Set *Var[4] 0 % This traps doesn't spawn chests
+            EndCaseGroup
+            CaseOR == 6 % Walls - 2 Sides
+            CaseOR == 7 % Walls - 1 Side - The first and last wall crash with another moving wall
+                Call    RandInt ( 100` *Var[5] )
+                If  *Var[5] < 60` % 60% chance to spawn a chest
+                    If *Var[5] < 30` % 30% chance to spawn 2 chests
+                        % This chests can't spawn if the middle pillars are thinn
+                        If *Var[3] == 1
+                            If *Var[2] != 6 % Walls - 2 Sides
+                                Set *Var[4] 10`
+                            Else
+                                Set *Var[4] 0
+                            EndIf
+                        Else
+                            Set *Var[4] 0 % Don't spawn any chests
+                        EndIf
+                    Else
+                        Call    RandInt ( 1 *Var[5] )
+                        % Read Trap Var
+                        If *Var[3] == 0 % Left
+                            Set *Var[4] 8
+                        Else % Right
+                            Set *Var[4] 5
+                        EndIf
+                    EndIf
+                EndIf
+            EndCaseGroup
+            Case == 8 % Walls - 2 Sides - You need to climb to a platform to enter the trap
+                Call    RandInt ( 100` *Var[5] )
+                If *Var[5] < 30` % 30% chance to spawn 2 chests
+                    Set *Var[4] 10`
+                EndIf
+            Case == 9 % Walls - 2 Sides - 1 side has a chest at the end
+                If *Var[3] == 0 % Left
+                    Set *Var[4] 12`
+                Else % Right
+                    Set *Var[4] 13`
+                EndIf
+            Case == 10` % Walls - XL Side
+                Set *Var[4] 0 % This trap will never spawn a chest
+        EndSwitch
+        Call    $WriteAddress ( *Var[0] 0 *Var[4] 2 .False ) % Chest Spawn Pos 1
+        % unused, always save a 0 in the last byte
+        Set     *Var[5] 0
+        Call    $WriteAddress ( *Var[0] 0 *Var[5] 3 .False ) % Chest Spawn Pos 2
+        /% Testing - Write the same trap on all rooms
+        Set     *Var[2] 8  % Trap ID
+        Set     *Var[3] 0  % Trap Var
+        Set     *Var[4] A  % Chest Spawn Pos 1
+        Call    $WriteAddress ( *Var[0] 0 *Var[2] 0 .False ) % Trap ID
+        Call    $WriteAddress ( *Var[0] 0 *Var[3] 1 .False ) % Trap Var
+        Call    $WriteAddress ( *Var[0] 0 *Var[4] 2 .False ) % Chest Spawn Pos 1
+        Call    $WriteAddress ( *Var[0] 0 *Var[5] 3 .False ) % Chest Spawn Pos 2 % unused
+        %/
+    EndLoop
+    Return
+    End
+}
+
+/% Get chest's spawn positions for all rooms with enemies
+Chest's Data
+
+Data structure
+AABBCCDD
+AA= Map 1 - Chest Pos 1
+BB= Map 1 - Chest Pos 2
+
+CC= Map 2 - Chest Pos 1
+DD= Map 2 - Chest Pos 2
+%/
+#new:Script $Script_GetChestsData
+{
+
+Set  *Var[1] 3 % because 3 words are used for all battle maps (1 word covers 2 maps, so 3x2 = 6 battle maps)
+Loop *Var[1]
+    Switch  *Var[1]
+        Case == 3
+            Set     *Var[2] $Maze_ChestData_Map1_5
+        Case == 2
+            Set     *Var[2] $Maze_ChestData_Map9_13
+        Case == 1
+            Set     *Var[2] $Maze_ChestData_Map18_20
+    EndSwitch
+    Set *Var[5] .Default
+    % Var5 == Offset
+    Loop 2
+        % Get Chest 1 Pos
+        Call    RandInt ( 3 *Var[4] ) % Get Random Chest Pos
+        Call    $WriteAddress ( *Var[2] 0 *Var[4] *Var[5] .False ) % ( Address ByteSize NewValue Offset FollowPointer )
+        % Get Chest 2 Pos
+        Loop
+            Call    RandInt ( 3 *Var[0] ) % Get Random Chest Pos
+            If  *Var[0] != *Var[4] % both chest positions are different
+                Add     *Var[5] 1 % move offset
+                Call    $WriteAddress ( *Var[2] 0 *Var[0] *Var[5] .False  )
+                BreakLoop
+            EndIf
+        EndLoop
+        Add *Var[5] 1 % move offset
+    EndLoop
+EndLoop
+Return
+End
+}
+
+#new:Script $Script_GetSpecialChestsData
+{
+% Get 8bits Symbols
+% Write 1st byte
+Set     *Var[1] 2 % write the other 2 bytes
+Call    RandInt       ( 4 *Var[0] )
+Call    $WriteAddress ( $Maze_ChestData_Special1 0 *Var[0] *Var[1] .False )
+Loop *Var[1]
+    Label   Start
+    Call    RandInt       ( 4 *Var[0] )
+    % Check if this symbol has been already used
+    Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[2] *Var[1] .False )
+    If *Var[2] == *Var[0]
+        Goto Start
+    EndIf
+    % Check if is the last byte to write
+    % so check if the other byte is different too
+    If *Var[1] == 1
+        Call $ReadAddress ( $Maze_ChestData_Special1 0 *Var[2] 2 .False )
+        If *Var[2] == *Var[0]
+            Goto Start
+        EndIf
+    EndIf
+    % Move offset
+    Set     *Var[2] *Var[1]
+    Sub     *Var[2] 1
+    Call    $WriteAddress ( $Maze_ChestData_Special1 0 *Var[0] *Var[2] .False )
+EndLoop
+% Shuffle Sprite's cubes sprites
+Call $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] 0 .False )
+Call $ReadAddress ( $Maze_ChestData_Special1 0 *Var[1] 1 .False )
+Call $ReadAddress ( $Maze_ChestData_Special1 0 *Var[2] 2 .False )
+Set *Var[3] 3 % number of loops
+Loop *Var[3]
+    Switch *Var[3]
+        Case == 1
+            Set *Var[5] *Var[0]
+        Case == 2
+            Set *Var[5] *Var[1]
+        Case == 3
+            Set *Var[5] *Var[2]
+    EndSwitch
+    Loop
+        Call RandInt ( 4 *Var[4] )
+        If *Var[4] != *Var[5]
+            BreakLoop
+        EndIf
+    EndLoop
+    % Save value
+    Switch *Var[3]
+        Case == 1
+            Call $WriteAddress ( $Maze_ChestData_Special1 0 *Var[4] 4 .False )
+        Case == 2
+            Call $WriteAddress ( $Maze_ChestData_Special1 0 *Var[4] 5 .False )
+        Case == 3
+            Call $WriteAddress ( $Maze_ChestData_Special1 0 *Var[4] 6 .False )
+    EndSwitch
+EndLoop
+% Save Invicible Blocks Spawn Coords
+/% 
+mze_03 - misc notes
+[1]-112 73 -205
+[3]145 73 191
+257 0 396
+
+mze_04
+[1]-187 73 -193
+[2]225 73 122
+412 0 315
+
+mze_05
+[1]-117 73 -244
+[2]151 73 218
+268 0 462
+%/
+% Save mze_03 (Map ID #5) coords
+Call    RandInt ( 257` *Var[0] ) % get x
+Set     *Var[2] -112`
+Add     *Var[0] *Var[2]
+Call    RandInt ( 396` *Var[1] ) % get z
+Set     *Var[2] -205`
+Add     *Var[1] *Var[2]
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[0] 0 .False ) % write x
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2     63` 4 .False ) % write y
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 8 .False ) % write z
+% Save mze_04 (Map ID #9) coords
+Call    RandInt ( 412` *Var[0] ) % get x
+Set     *Var[2] -187`
+Add     *Var[0] *Var[2]
+Call    RandInt ( 315` *Var[1] ) % get z
+Set     *Var[2] -193`
+Add     *Var[1] *Var[2]
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[0] C .False ) % write x
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2     63` 10 .False ) % write y
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 14 .False ) % write z
+% Save mze_05 (Map ID #13) coords
+Call    RandInt ( 268` *Var[0] ) % get x
+Set     *Var[2] -117`
+Add     *Var[0] *Var[2]
+Call    RandInt ( 462` *Var[1] ) % get z
+Set     *Var[2] -244`
+Add     *Var[1] *Var[2]
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[0] 18 .False ) % write x
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2     63` 1C .False ) % write y
+Call    $WriteAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 20 .False ) % write z
+% Get Fuzzie's Chest Data / Special Chest 2
+Call    RandInt ( 1 *AreaByte[0] ) % Chest's Corner
+Call    RandInt ( 3 *Var[0] )
+Switch *Var[0]
+    Case == 0
+        Set *Var[0] 3
+    Case == 1
+        Set *Var[0] 7
+    Case == 2
+        Set *Var[0] 11`
+    Case == 3
+        Set *Var[0] 15`
+EndSwitch
+%Set *Var[0] 3 % testing
+Call    $WriteAddress ( $Maze_ChestData_Special2 0 *Var[0] .False .False ) % save chest's map ID
+Call    RandInt ( 3 *Var[0] ) % Fuzzy's #1 Patch
+Call    RandInt ( 3 *Var[1] ) % Fuzzy's #2 Patch
+Call    RandInt ( 3 *Var[2] ) % Fuzzy's #3 Patch
+Call    $WriteAddress ( $Maze_ChestData_Special2 0 *Var[0] 1 .False )
+Call    $WriteAddress ( $Maze_ChestData_Special2 0 *Var[1] 2 .False )
+Call    $WriteAddress ( $Maze_ChestData_Special2 0 *Var[2] 3 .False )
+Return
+End
+}
+
+% Save unlocked Partners byte flags in $Maze_PartnerData
+#new:Script $Script_SavePartnersData
+{
+    % Goombario
+    Call $ReadAddress ( 8010F2AC 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 0 .False )
+    EndIf
+    % Kooper
+    Call $ReadAddress ( 8010F2B4 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 1 .False )
+    EndIf
+    % Bombette
+    Call $ReadAddress ( 8010F2BC 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 2 .False )
+    EndIf
+    % Parakarry
+    Call $ReadAddress ( 8010F2C4 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 3 .False )
+    EndIf
+    % Bow
+    Call $ReadAddress ( 8010F2EC 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 4 .False )
+    EndIf
+    % Watt
+    Call $ReadAddress ( 8010F2D4 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 5 .False )
+    EndIf
+    % Sushie
+    Call $ReadAddress ( 8010F2DC 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 6 .False )
+    EndIf
+    % Lakilester
+    Call $ReadAddress ( 8010F2E4 0 *Var[0] .False .False )
+    If *Var[0] == .True
+        Call $WriteAddress ( $Maze_PartnerData 0 .True 7 .False )
+    EndIf
+    Return
+    End
+}
+
+#new:Function $Function_SetMazeTimer
+{
+    ORI     T0, R0, D0 % Full Timer
+    SAB     T0, $DungeonTimer
+    JR      RA
+    ADDIU   V0, R0, 2
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the entrance to the
+cursed maze, you can farm Star
+Pieces here.
+[WAIT][NEXT][...]
+You can use those Star Pieces
+to get permanent upgrades for your
+HP and FP, plus other stuff.
+[WAIT][NEXT][...]
+We really need to overcome this
+area if we want to beat the Pit.
+Let's go Mario!
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+Sorry, but I can't hold my breath
+anymore!
+[WAIT][NEXT][...]
+Yuck, this place smells horrible!
+[WAIT][END]
+}
+

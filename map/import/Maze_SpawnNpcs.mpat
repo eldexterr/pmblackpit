@@ -1,0 +1,1156 @@
+% This file has all the Enemies Spawn Data for the Maze
+
+% Spawn Npcs
+#new:Script $Script_MakeNpcs
+{
+    %Return % disable all enemies % testing
+    % Spawn accordingly to your formation ID and map
+    Switch *AreaByte[1]
+        Case == 0
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup1_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup1_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup1_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup1_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup1_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup1_mze11
+            EndSwitch
+        Case == 1
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup2_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup2_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup2_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup2_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup2_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup2_mze11
+            EndSwitch
+        Case == 2
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup3_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup3_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup3_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup3_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup3_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup3_mze11
+            EndSwitch
+        Case == 3
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup4_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup4_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup4_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup4_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup4_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup4_mze11
+            EndSwitch
+        Case == 4
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup5_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup5_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup5_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup5_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup5_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup5_mze11
+            EndSwitch
+        Case == 5
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup6_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup6_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup6_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup6_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup6_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup6_mze11
+            EndSwitch
+        Case == 6
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup7_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup7_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup7_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup7_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup7_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup7_mze11
+            EndSwitch
+        Case == 7
+            Switch *Dungeon_MapID
+                Case == 1 % mze_02
+                    Set *Var[0] $NpcGroup8_mze02
+                Case == 5 % mze_03
+                    Set *Var[0] $NpcGroup8_mze03
+                Case == 9 % mze_04
+                    Set *Var[0] $NpcGroup8_mze04
+                Case == 13` % mze_05
+                    Set *Var[0] $NpcGroup8_mze05
+                Case == 18` % mze_10
+                    Set *Var[0] $NpcGroup8_mze10
+                Case == 20` % mze_11
+                    Set *Var[0] $NpcGroup8_mze11
+            EndSwitch
+    EndSwitch
+    % Spawn Mistar?
+    If *Dungeon_MapID == 20`
+        If *AreaFlag[00E]  == .False % Mistar Defeated, current playthrough flag
+            If *Flag_Mistar == .False
+                Set *Var[0] $NpcGroupList_Mistar
+            EndIf
+        Else
+            Return % Mistar has been beated on this playthrough
+        EndIf
+    EndIf
+    Call	MakeNpcs ( 1 *Var[0] )
+    Return
+    End
+}
+
+% NPCs Data % AI code is in their respectives files on /import/enemies
+
+% NpcGroups
+% Mistar
+#new:NpcGroupList $NpcGroupList_Mistar
+{
+00000002 $NpcGroup_Enemy4_Mistar 37030000
+00000001 $NpcGroup_MistarKid     00000000
+00000000 00000000 00000000
+}
+
+% 1
+#new:NpcGroupList $NpcGroup1_mze02
+{
+00000001 $NpcGroup_Enemy1_Gloomba 38000000
+00000001 $NpcGroup_Enemy2_Paragloomba 38010000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1_mze03
+{
+00000001 $NpcGroup_Enemy1_SpikedGloomba 38020000
+00000001 $NpcGroup_Enemy2_Paragloomba 38030000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1_mze04
+{
+00000001 $NpcGroup_Enemy1_SpikedGloomba 38040000
+00000001 $NpcGroup_Enemy2_SpikedGloomba 38040000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1_mze05
+{
+00000001 $NpcGroup_Enemy1_Paragloomba 38050000
+00000001 $NpcGroup_Enemy2_Paragloomba 38050000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1_mze10
+{
+00000001 $NpcGroup_Enemy1_Gloomba 38060001
+00000001 $NpcGroup_Enemy2_SpikedGloomba 38070001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1_mze11
+{
+00000001 $NpcGroup_Enemy1_SpikedGloomba 38070001
+00000001 $NpcGroup_Enemy2_Gloomba 38060001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+% 2
+#new:NpcGroupList $NpcGroup2_mze02
+{
+00000001 $NpcGroup_Enemy1_SpikedGloomba 38080000
+00000001 $NpcGroup_Enemy2_Pokey 38090000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup2_mze03
+{
+00000001 $NpcGroup_Enemy1_Pokey 380A0000
+00000001 $NpcGroup_Enemy2_SpikeTop 380B0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup2_mze04
+{
+00000001 $NpcGroup_Enemy1_Pokey 380C0000
+00000001 $NpcGroup_Enemy2_Pokey 380C0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup2_mze05
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 380D0000
+00000001 $NpcGroup_Enemy2_SpikeTop 380D0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup2_mze10
+{
+00000001 $NpcGroup_Enemy1_SpikedGloomba 380E0001
+00000001 $NpcGroup_Enemy2_SpikeTop 380F0001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup2_mze11
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 380F0001
+00000001 $NpcGroup_Enemy2_SpikedGloomba 380E0001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+% 3
+#new:NpcGroupList $NpcGroup3_mze02
+{
+00000001 $NpcGroup_Enemy1_Paragloomba 39000000
+00000001 $NpcGroup_Enemy2_Bzzap 39010000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup3_mze03
+{
+00000001 $NpcGroup_Enemy1_Bzzap 39020000
+00000001 $NpcGroup_Enemy2_SpikeTop 39030000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup3_mze04
+{
+00000001 $NpcGroup_Enemy1_Bzzap 39040000
+00000001 $NpcGroup_Enemy2_Bzzap 39040000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup3_mze05
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 380D0000
+00000001 $NpcGroup_Enemy2_SpikeTop 380D0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup3_mze10
+{
+00000001 $NpcGroup_Enemy1_Paragloomba 39050001
+00000001 $NpcGroup_Enemy2_SpikeTop 39060001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup3_mze11
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 39060001
+00000001 $NpcGroup_Enemy2_Paragloomba 39050001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+% 4
+#new:NpcGroupList $NpcGroup4_mze02
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 39070000
+00000001 $NpcGroup_Enemy2_RuffPuff 39080000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup4_mze03
+{
+00000001 $NpcGroup_Enemy1_Bzzap 39090000
+00000001 $NpcGroup_Enemy2_RuffPuff 390A0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup4_mze04
+{
+00000001 $NpcGroup_Enemy1_RuffPuff 390B0000
+00000001 $NpcGroup_Enemy2_RuffPuff 390B0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup4_mze05
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 390C0000
+00000001 $NpcGroup_Enemy2_Paratroopa 390C0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup4_mze10
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 390D0001
+00000001 $NpcGroup_Enemy2_Bzzap 390E0001
+00000001 $NpcGroup_Enemy3_Buzzar 3B0B0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup4_mze11
+{
+00000001 $NpcGroup_Enemy1_Bzzap 390E0001
+00000001 $NpcGroup_Enemy2_Paratroopa 390D0001
+00000001 $NpcGroup_Enemy3_Buzzar 3B0B0001
+00000000 00000000 00000000
+}
+
+% 5
+#new:NpcGroupList $NpcGroup5_mze02
+{
+00000001 $NpcGroup_Enemy1_Pokey 3A000000
+00000001 $NpcGroup_Enemy2_Ember 3A010000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup5_mze03
+{
+00000001 $NpcGroup_Enemy1_Ember 3A020000
+00000004 $NpcGroup_Enemy2_DryBones 3A030000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup5_mze04
+{
+00000001 $NpcGroup_Enemy1_Pokey 3A040000
+00000004 $NpcGroup_Enemy2_DryBones 3A050000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup5_mze05
+{
+00000001 $NpcGroup_Enemy1_Ember 3A060000
+00000001 $NpcGroup_Enemy2_Ember 3A060000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup5_mze10
+{
+00000001 $NpcGroup_Enemy1_Ember 3A010001
+00000001 $NpcGroup_Enemy2_Pokey 3A000001
+00000001 $NpcGroup_Enemy3_Buzzar 3B0B0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup5_mze11
+{
+00000001 $NpcGroup_Enemy1_Pokey 3A040001
+00000001 $NpcGroup_Enemy2_Buzzar 3B0B0001
+00000004 $NpcGroup_Enemy3_DryBones 3A050001
+00000000 00000000 00000000
+}
+
+% 6
+#new:NpcGroupList $NpcGroup6_mze02
+{
+00000001 $NpcGroup_Enemy1_Dupplighost 3A070000
+00000001 $NpcGroup_Enemy2_Ember 3A080000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup6_mze03
+{
+00000001 $NpcGroup_Enemy1_Ember 3A090000
+00000001 $NpcGroup_Enemy2_Bzzap 3A0A0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup6_mze04
+{
+00000001 $NpcGroup_Enemy1_Ember 3A060000
+00000001 $NpcGroup_Enemy2_Ember 3A060000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup6_mze05
+{
+00000001 $NpcGroup_Enemy1_Dupplighost 3A0B0000
+00000001 $NpcGroup_Enemy2_Dupplighost 3A0B0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup6_mze10
+{
+00000001 $NpcGroup_Enemy1_Dupplighost 3A0C0001
+00000001 $NpcGroup_Enemy2_Bzzap 3A0D0001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup6_mze11
+{
+00000001 $NpcGroup_Enemy1_Bzzap 3A0D0001
+00000001 $NpcGroup_Enemy2_Dupplighost 3A0C0001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+% 7
+#new:NpcGroupList $NpcGroup7_mze02
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 3B000000
+00000001 $NpcGroup_Enemy2_Bony 3B010000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7_mze03
+{
+00000001 $NpcGroup_Enemy1_Bony 3B020000
+00000002 $NpcGroup_Enemy2_Putrid 3B030000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7_mze04
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 3B040000
+00000002 $NpcGroup_Enemy2_Putrid 3B050000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7_mze05
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 390C0000
+00000001 $NpcGroup_Enemy2_Paratroopa 390C0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7_mze10
+{
+00000001 $NpcGroup_Enemy1_Bony 3B010001
+00000001 $NpcGroup_Enemy2_Paratroopa 3B000001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7_mze11
+{
+00000001 $NpcGroup_Enemy1_Paratroopa 3B000001
+00000001 $NpcGroup_Enemy2_Bony 3B010001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+% 8
+#new:NpcGroupList $NpcGroup8_mze02
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 3B060000
+00000002 $NpcGroup_Enemy2_Putrid 3B070000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup8_mze03
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 3B080000
+00000001 $NpcGroup_Enemy2_Bony 3B090000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup8_mze04
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 380D0000
+00000001 $NpcGroup_Enemy2_SpikeTop 380D0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup8_mze05
+{
+00000001 $NpcGroup_Enemy1_Bony 3B020000
+00000002 $NpcGroup_Enemy2_Putrid 3B030000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup8_mze10
+{
+00000001 $NpcGroup_Enemy1_SpikeTop 3B080001
+00000001 $NpcGroup_Enemy2_Bony 3B090001
+00000001 $NpcGroup_Enemy3_Dino 3B0C0001
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup8_mze11
+{
+00000001 $NpcGroup_Enemy1_Bony 3B090001
+00000001 $NpcGroup_Enemy2_SpikeTop 3B080001
+00000001 $NpcGroup_Enemy3_Blooper 3B0A0001
+00000000 00000000 00000000
+}
+
+% Gloomba
+#new:NpcGroup $NpcGroup_Enemy1_Gloomba
+{
+00000000 $NpcSettings_BasicAI ~Vec3f:Enemy1_Gloomba
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_Gloomba
+% animations
+00260401 00260402 00260403 00260403 00260401 00260401 00260405 00260405 
+00260403 00260403 00260403 00260403 00260403 00260403 00260403 00260403 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Gloomba
+{
+00000001 $NpcSettings_BasicAI ~Vec3f:Enemy2_Gloomba
+00000400 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_Gloomba
+% animations
+00260401 00260402 00260403 00260403 00260401 00260401 00260405 00260405 
+00260403 00260403 00260403 00260403 00260403 00260403 00260403 00260403 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+% Paragloomba
+#new:NpcGroup $NpcGroup_Enemy1_Paragloomba
+{
+00000000 $NpcSettings_Paragoomba ~Vec3f:Enemy1_Paragloomba
+00000800 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_Paragloomba
+%animations
+00280301 00280303 00280304 00280304 00280301 00280301 00280306 00280306 
+00280304 00280304 00280304 00280304 00280304 00280304 00280304 00280304 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Paragloomba
+{
+00000001 $NpcSettings_Paragoomba ~Vec3f:Enemy2_Paragloomba
+00000800 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_Paragloomba
+%animations
+00280301 00280303 00280304 00280304 00280301 00280301 00280306 00280306 
+00280304 00280304 00280304 00280304 00280304 00280304 00280304 00280304 
+00000000 00000000 00000000 00000000
+}
+
+% Spiked Gloomba
+#new:NpcGroup $NpcGroup_Enemy1_SpikedGloomba
+{
+00000000 $NpcSettings_BasicAI ~Vec3f:Enemy1_SpikedGloomba
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_SpikedGloomba
+% animations
+00270101 00270102 00270103 00270103 00270101 00270101 00270105 00270105 
+00270103 00270103 00270103 00270103 00270103 00270103 00270103 00270103 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_SpikedGloomba
+{
+00000001 $NpcSettings_BasicAI ~Vec3f:Enemy2_SpikedGloomba
+00000400 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_SpikedGloomba
+% animations
+00270101 00270102 00270103 00270103 00270101 00270101 00270105 00270105 
+00270103 00270103 00270103 00270103 00270103 00270103 00270103 00270103 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+% Dark Paratroopa
+#new:NpcGroup $NpcGroup_Enemy1_Paratroopa
+{
+00000000 $NpcSettings_Paratroopa ~Vec3f:Enemy1_DarkParatroopa
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_DarkParatroopa
+%animations
+002A0001 002A0002 002A0003 002A0003 002A0001 002A0001 002A0006 002A0006 
+002A0004 002A000C 002A000A 002A000E 002A0003 002A0003 002A0003 002A0003 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Paratroopa
+{
+00000001 $NpcSettings_Paratroopa ~Vec3f:Enemy2_DarkParatroopa
+00000400 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_DarkParatroopa
+%animations
+002A0001 002A0002 002A0003 002A0003 002A0001 002A0001 002A0006 002A0006 
+002A0004 002A000C 002A000A 002A000E 002A0003 002A0003 002A0003 002A0003 
+00000000 00000000 00000000 00000000
+}
+
+% Pokey Mummy
+#new:NpcGroup $NpcGroup_Enemy1_Pokey
+{
+00000000 $NpcSettings_Pokey ~Vec3f:Enemy1_Pokey
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:15:DriedFruit:9:TastyTonic:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:Enemy1_Pokey
+% animations
+00310104 00310108 00310108 00310108 00310104 00310104 0031010C 0031010C 
+00310108 00310108 00310108 00310108 00310108 00310108 00310108 00310108 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Pokey
+{
+00000001 $NpcSettings_Pokey ~Vec3f:Enemy2_Pokey
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:15:DriedFruit:9:TastyTonic:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:Enemy2_Pokey
+% animations
+00310104 00310108 00310108 00310108 00310104 00310104 0031010C 0031010C 
+00310108 00310108 00310108 00310108 00310108 00310108 00310108 00310108 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+% Pyro Guy
+#new:NpcGroup $NpcGroup_Enemy1_PyroGuy
+{
+00000000 $NpcSettings_PyroGuy ~Vec3f:Enemy1_Pyro
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_Pyro
+%animations
+003E0001 003E0002 003E0003 003E0002 003E0001 003E0001 003E0006 003E0006 
+003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 
+0000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_PyroGuy
+{
+00000001 $NpcSettings_PyroGuy ~Vec3f:Enemy2_Pyro
+00000400 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_Pyro
+%animations
+003E0001 003E0002 003E0003 003E0002 003E0001 003E0001 003E0006 003E0006 
+003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 003E0001 
+0000000 00000000 00000000 00000000
+}
+
+% Spike Top
+#new:NpcGroup $NpcGroup_Enemy1_SpikeTop
+{
+00000000 $NpcSettings_Koopa ~Vec3f:Enemy1_SpikeTop
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:70:4:50 ~HP:30:60:4:50 ~HP:50:50:4:40 ~HP:80:40:4:40 ~HP:100:30:4:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:3
+~Movement:Enemy1_SpikeTop
+% animations 
+004D0003 004D0006 004D0008 004D0008 004D0000 004D0000 004D0013 004D0013 
+004D000B 004D000A 004D000C 004D0000 004D0000 004D0000 004D0000 004D0000 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_SpikeTop
+{
+00000001 $NpcSettings_Koopa ~Vec3f:Enemy2_SpikeTop
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:70:4:50 ~HP:30:60:4:50 ~HP:50:50:4:40 ~HP:80:40:4:40 ~HP:100:30:4:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:3
+~Movement:Enemy2_SpikeTop
+% animations 
+004D0003 004D0006 004D0008 004D0008 004D0000 004D0000 004D0013 004D0013 
+004D000B 004D000A 004D000C 004D0000 004D0000 004D0000 004D0000 004D0000 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Lava Bubble
+#new:NpcGroup $NpcGroup_Enemy1_LavaBubble
+{
+00000000 $NpcSettings_Ember ~Vec3f:Enemy1_LaveBubble_Ember
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_LaveBubble_Ember
+% animations
+00460001 00460002 00460003 00460003 00460001 00460001 00460007 00460007 
+00460003 00460003 00460003 00460003 00460003 00460003 00460003 00460003 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_LavaBubble
+{
+00000001 $NpcSettings_Ember ~Vec3f:Enemy2_LaveBubble_Ember
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_LaveBubble_Ember
+% animations
+00460001 00460002 00460003 00460003 00460001 00460001 00460007 00460007 
+00460003 00460003 00460003 00460003 00460003 00460003 00460003 00460003 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Putrid Piranha
+#new:NpcGroup $NpcGroup_Enemy2_Putrid
+{
+00000001 $NpcSettings_PiranhaPlant ~Vec3f:Enemy2_Piranha
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:SuperShroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_Piranha
+% animations
+00360001 00360002 00360003 00360003 00360001 00360001 0036000E 0036000E 
+00360018 00360017 00360005 00360006 00360007 00360001 00360001 00360001 
+00000003 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy2_Putrid[1F0]
+00000002 $NpcSettings_PiranhaHitbox ~Vec3f:Enemy2_Piranha_Hitbox % 0 -1000 0
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy2_Piranha_Hitbox
+00360001 00360002 00360003 00360003 00360001 00360001 0036000E 0036000E 
+00360018 00360017 00360005 00360006 00360007 00360001 00360001 00360001 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+% Bzzap
+#new:NpcGroup $NpcGroup_Enemy1_Bzzap
+{
+00000000 $NpcSettings_Bzzap ~Vec3f:Enemy1_Bzzap
+00002D00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:15:MapleSyrup:6:HoneySyrup:4
+~HP:20:70:3:50 ~HP:30:60:3:50 ~HP:50:50:3:40 ~HP:80:40:3:40 ~HP:100:30:3:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:4
+~Movement:Enemy1_Bzzap
+% animations
+004B0002 004B0002 004B0003 004B0003 004B0001 004B0002 004B0006 004B0006 
+004B0004 004B0002 004B0001 004B0001 004B0001 004B0001 004B0001 004B0001 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Bzzap
+{
+00000001 $NpcSettings_Bzzap ~Vec3f:Enemy2_Bzzap
+00002D00 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:15:MapleSyrup:6:HoneySyrup:4
+~HP:20:70:3:50 ~HP:30:60:3:50 ~HP:50:50:3:40 ~HP:80:40:3:40 ~HP:100:30:3:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:4
+~Movement:Enemy2_Bzzap
+% animations
+004B0002 004B0002 004B0003 004B0003 004B0001 004B0002 004B0006 004B0006 
+004B0004 004B0002 004B0001 004B0001 004B0001 004B0001 004B0001 004B0001 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Ruff Puff
+#new:NpcGroup $NpcGroup_Enemy1_RuffPuff
+{
+00000000 $NpcSettings_RuffPuff ~Vec3f:Enemy1_RuffPuff
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:10:ThunderRage:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+~Movement:Enemy1_RuffPuff
+%animations
+007D0000 007D0000 007D0005 007D0005 007D0000 007D0000 007D0006 007D0006 
+007D0005 007D0001 007D0001 007D0001 007D0001 007D0001 007D0001 007D0001 
+00000002 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_RuffPuff
+{
+00000001 $NpcSettings_RuffPuff ~Vec3f:Enemy2_RuffPuff
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:10:ThunderRage:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+~Movement:Enemy2_RuffPuff
+%animations
+007D0000 007D0000 007D0005 007D0005 007D0000 007D0000 007D0006 007D0006 
+007D0005 007D0001 007D0001 007D0001 007D0001 007D0001 007D0001 007D0001 
+00000002 00000000 00000000 00000000
+}
+
+% Dupplighost
+#new:NpcGroup $NpcGroup_Enemy1_Dupplighost
+{
+00000000 $NpcSettings_Dupplighost ~Vec3f:Enemy1_Dupplighost
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mystery:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:3:40 ~FP:30:40:3:40 ~FP:50:40:3:40 ~FP:80:40:3:40 ~FP:100:30:3:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+~Movement:Enemy1_Dupplighost
+% animations
+004E0002 004E0003 004E0004 004E0004 004E0002 004E0002 004E000A 004E000A 
+004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Dupplighost
+{
+00000001 $NpcSettings_Dupplighost ~Vec3f:Enemy2_Dupplighost
+00000400 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mystery:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:3:40 ~FP:30:40:3:40 ~FP:50:40:3:40 ~FP:80:40:3:40 ~FP:100:30:3:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+~Movement:Enemy2_Dupplighost
+% animations
+004E0002 004E0003 004E0004 004E0004 004E0002 004E0002 004E000A 004E000A 
+004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Ember
+#new:NpcGroup $NpcGroup_Enemy1_Ember
+{
+00000000 $NpcSettings_Ember ~Vec3f:Enemy1_LaveBubble_Ember
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy1_LaveBubble_Ember
+% animations
+00460101 00460102 00460103 00460103 00460101 00460101 00460107 00460107 
+00460103 00460103 00460103 00460103 00460103 00460103 00460103 00460103 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Ember
+{
+00000001 $NpcSettings_Ember ~Vec3f:Enemy2_LaveBubble_Ember
+00000D00 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:Enemy2_LaveBubble_Ember
+% animations
+00460101 00460102 00460103 00460103 00460101 00460101 00460107 00460107 
+00460103 00460103 00460103 00460103 00460103 00460103 00460103 00460103 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Bony Beetle
+#new:NpcGroup $NpcGroup_Enemy1_Bony
+{
+00000000 $NpcSettings_Koopa ~Vec3f:Enemy1_BonyBeetle
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:70:4:50 ~HP:30:60:4:50 ~HP:50:50:4:40 ~HP:80:40:4:40 ~HP:100:30:4:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:3
+~Movement:Enemy1_BonyBeetle
+% animations 
+00550004 0055000C 0055000E 0055000E 00550004 00550004 00550018 00550018 
+00550010 00550016 00550012 00550004 00550004 00550004 00550004 00550004 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Bony
+{
+00000001 $NpcSettings_Koopa ~Vec3f:Enemy2_BonyBeetle
+00002C00 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~Items:5:Mushroom:A
+~HP:20:70:4:50 ~HP:30:60:4:50 ~HP:50:50:4:40 ~HP:80:40:4:40 ~HP:100:30:4:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:3
+~Movement:Enemy2_BonyBeetle
+% animations 
+00550004 0055000C 0055000E 0055000E 00550004 00550004 00550018 00550018 
+00550010 00550016 00550012 00550004 00550004 00550004 00550004 00550004 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+% Dry Bones
+#new:NpcGroup $NpcGroup_Enemy2_DryBones
+{
+00000001 $NpcSettings_DryBones ~Vec3f:Enemy2_DryBones
+00000800 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:SuperShroom:A ~HP:Standard:2 ~FP:Standard:4 ~CoinBonus:0:4
+~Movement:Enemy2_DryBones
+%
+00530002 00530003 00530004 00530004 00530002 00530002 00530007 00530007 
+00530005 00530006 00530002 00530002 00530002 00530002 00530002 00530002 
+00000003 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[1F0]
+00000002 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone1
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[3E0]
+00000003 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone2
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[5D0]
+00000004 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone3
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy3_DryBones
+{
+00000002 $NpcSettings_DryBones ~Vec3f:Enemy2_DryBones
+00000800 $Script_Init_EnemyNPC 00000000 00000000 00000000 
+~Items:5:SuperShroom:A ~HP:Standard:2 ~FP:Standard:4 ~CoinBonus:0:4
+~Movement:Enemy2_DryBones
+%
+00530002 00530003 00530004 00530004 00530002 00530002 00530007 00530007 
+00530005 00530006 00530002 00530002 00530002 00530002 00530002 00530002 
+00000003 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[1F0]
+00000003 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone1
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[3E0]
+00000004 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone2
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+% 
+% $NpcGroup_Enemy1_DryBones[5D0]
+00000005 $NpcSettings_Projectile ~Vec3f:Enemy_DryBones_Bone3
+00800D00 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy_DryBones_Bone1
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00540000 00540000 00540000 00540000 00540000 00540000 00540000 00540000 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+% Sub Bosses
+#new:NpcGroup $NpcGroup_Enemy3_Blooper
+{
+00000002 $NpcSettings_MediGuy ~Vec3f:Enemy3_Blooper
+00000800 $Script_Init_EnemyNPC 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy3_Blooper
+% animations
+00500D0F 00500D0F 00500D10 00500D10 00500D0F 00500D0F 00500D04 00500D04 
+00500D10 00500D10 00500D0F 00500D0F 00500D0F 00500D0F 00500D0F 00500D0F 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy2_Buzzar
+{
+00000001 $NpcSettings_MediGuy ~Vec3f:Enemy3_Buzzar
+00000800 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy3_Buzzar
+% animations
+00670401 00670401 00670417 00670417 00670401 00670401 0067040B 0067040B 
+00670417 00670417 00670401 00670401 00670401 00670401 00670401 00670401 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy3_Buzzar
+{
+00000002 $NpcSettings_MediGuy ~Vec3f:Enemy3_Buzzar
+00000800 $Script_Init_EnemyNPC 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy3_Buzzar
+% animations
+00670401 00670401 00670417 00670417 00670401 00670401 0067040B 0067040B 
+00670417 00670417 00670401 00670401 00670401 00670401 00670401 00670401 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Enemy3_Dino
+{
+00000002 $NpcSettings_Cleft ~Vec3f:Enemy3_Dino
+00000400 $Script_Init_EnemyNPC 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:Enemy3_Dino
+% animations
+004F0503 004F0504 004F0505 004F0505 004F0503 004F0503 004F0508 004F0508 
+004F0503 004F0503 004F0504 004F0503 004F0505 004F0505 004F0504 004F0500
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+% Mistar
+#new:NpcGroup $NpcGroup_Enemy4_Mistar
+{
+00000003 $NpcSettings_Mistar ~Vec3f:Enemy3_Mistar
+00440C0D $Script_Init_Mistar 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0805 007E0805
+007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 
+00000000 00000000 00000000 00000000 % no tattle
+% $NpcGroup_Enemy4_Mistar[1F0]
+00000004 $NpcSettings_Mistar ~Vec3f:Enemy3_Mistar
+21544C0C $Script_Init_Mistar_HitBox 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 
+007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 007E0801 
+00000001 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_MistarKid
+{
+00000005 $NpcSettings_Mistar ~Vec3f:Enemy3_Mistar
+00A40D01 $Script_Init_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Mistar
+{
+00000000 00500018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 000D0000
+}
+
+#new:Script $Script_Init_null
+{
+    Call    SetNpcPos ( .Npc:Self 0 -1000` 0 )
+	Return
+	End
+}
+
+#new:Script $Script_Init_Mistar
+{
+    Call     SetSelfVar 	( .Default 0 )
+    Call     BindNpcIdle 	( .Npc:Self $Mistar_Idle )
+    Call     BindNpcDefeat 	( .Npc:Self $Script_TrackOutcome )
+    Return
+    End
+}
+
+#new:Script $Script_Init_Mistar_HitBox
+{
+	Call     EnableNpcShadow 	( .Npc:Self .False )
+	Call     BindNpcHit  	( .Npc:Self $Mistar_Hit )
+	Return
+	End
+}
+
+#new:Script $Mistar_Hit
+{
+    Call   GetOwnerEncounterTrigger  ( *Var[0] )
+    If  *Var[0] != .EncounterTrigger:Hammer % 4
+        % The only way to trigger the fight is by hammering
+        Return
+    EndIf
+    Call   SetSelfEnemyFlagBits 	( 1F000000 .True ) % Disable NPC HitBox after being hit
+    Call   SetNpcAnimation ( 3 007E0805 ) % charging
+    Call   SetNpcVar ( 3 .Default .True ) % trigger fight
+	Return
+	End
+}
+
+#new:Script $Mistar_Idle
+{
+    Loop
+        Call    GetSelfVar ( .Default *Var[0] )
+        If *Var[0] == .True
+            Call    SetSelfVar ( .Default .False )
+            Call	StartBossBattle 	 ( A3 ) % .Song:Mistar
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}

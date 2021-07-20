@@ -1,0 +1,929 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 2
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	     A0, 800B0CF0
+LIA 	     A1, "tik_tex" 
+JAL 	     ~Func:sprintf
+RESERVED
+CLEAR 	V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default )
+Call    SetCamEnabled       	( .Cam:Default .True )
+Call    SetCamLeadPlayer       	( .Cam:Default .False )
+Exec    $Script_StarShrine_LightAnim
+Exec    $Script_CheckStarShrine
+Exec    $Script_MakeEntities
+Call    FadeOutMusic	   ( .Default 1 ) % Stop Music
+If  *Flag_StarShrine_Entrance == .False
+    Bind    $Script_OpenDoor .Trigger:WallPressA ~Collider:DoorLocked .True .Default
+    Exec $Script_EnableTexPanning
+Else
+    Call EnableModel ( ~Model:StarsWall .False )
+    Call ModifyColliderFlags ( .False ~Collider:DoorLocked 7FFFFE00 )
+EndIf
+Call      MakeNpcs ( 0 $NpcGroupList_pre01 )
+Exec      $Script_CheatoAppears
+Set	     *Var[0] $Script_MakeExits 
+Exec      EnterWalk
+Wait      1
+Return
+End
+}
+
+#new:NpcGroupList $NpcGroupList_pre01
+{
+00000001 $NpcGroup_Cheato 	2F020000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Cheato
+{
+00000001 $Cheato_Settings ~Vec3f:CheatoSpawn
+00A40D01 $Script_Init_Cheato 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $Cheato_Settings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_Cheato
+{
+	Call     BindNpcIdle	( .Npc:Self $Script_Cheato_Idle )
+     Call	     BindNpcDefeat 	( .Npc:Self $Script_Cheato_AfterBattle )
+	Return
+	End
+}
+
+#new:Script $Script_Cheato_Idle
+{
+     Loop
+          Call      GetSelfVar ( 0 *Var[0] )
+          If *Var[0] == .True
+               BreakLoop
+          EndIf
+          Wait 1
+     EndLoop
+     % Stylish Tutorial
+     Call      DisablePlayerInput ( .True )
+     % Force Player to stop using Watt or Lakilester
+     Exec      $PlayerStopUsingPartner
+     Wait      1
+     Thread % Mario goes :O !
+          Call      SetPlayerAnimation ( .PlayerAnim:StandStill )
+          Call      PlaySoundAtPlayer ( 0262 .Default ) % !
+          Call      ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+          Wait      35`
+          Call      SetPlayerAnimation ( .PlayerAnim:StandStill )
+     EndThread
+     Call	     SetNpcFlagBits ( .Npc:Self 00000200 .True ) % enable npc gravity
+     % Cheato comes towards Mario
+     Call      GetPlayerPos   ( *Var[0] *Var[1] *Var[2] )
+     Add       *Var[0] 180`
+     Call      SetNpcPos      ( .Npc:Self *Var[0] *Var[1] *Var[2] )
+     Call      SetNpcSpeed    ( .Npc:Self *Fixed[4.0] )
+     Sub       *Var[0] 120`
+     Call      SetNpcAnimation ( .Npc:Self 00AE0003 ) % running
+     Call      NpcMoveTo      ( .Npc:Self *Var[0] *Var[2] 0 )
+     Exec	     $Script_CheatoTalk1 *MapVar[0]
+     Exec	     $SkipCutscene_CheatoTalk1
+     Loop
+          DoesScriptExist ( *MapVar[0] *Var[0] )
+          If *Var[0] == .False
+               BreakLoop
+          EndIf
+          Wait 1
+     EndLoop
+     Set 	     *Flag_Skip .False
+     Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+     Call      SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_3 )
+     Call      ShowChoice    ( 001E001D ) % yes no
+     If *Var[0] == 1 % no
+          Call CloseMessage
+          Call SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_3_No )
+          Call ShowChoice    ( 001E001D ) % yes no
+          If *Var[0] == 0 % yes
+               Call CloseMessage
+               Exec	$Script_CheatoTalk3 *MapVar[0]
+               Exec	$SkipCutscene_CheatoTalk2
+               Loop
+                    DoesScriptExist ( *MapVar[0] *Var[0] )
+                    If *Var[0] == .False
+                         BreakLoop
+                    EndIf
+                    Wait 1
+               EndLoop
+               Wait 1
+               Goto End
+          EndIf
+     EndIf
+     Call CloseMessage
+     % Start Battle
+     Call      SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_StartBattle )
+     Set       *Var[0] .PlayerAnim:NodYes
+     Set       *Var[1] .False
+     Set       *Var[2] 35`
+     ExecWait  $SetPlayerAnimation
+     Call	     StartBattle
+     Wait      30`
+     Exec	     $Script_CheatoTalk2 *MapVar[0]
+     Exec	     $SkipCutscene_CheatoTalk2
+     Loop
+          DoesScriptExist ( *MapVar[0] *Var[0] )
+          If *Var[0] == .False
+               BreakLoop
+          EndIf
+          Wait 1
+     EndLoop
+     Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+     Label     End
+     Set 	     *Flag_Skip .False
+     Call      SetNpcAnimation ( .Npc:Self 00AE0001 ) % idle
+     % hide cheato
+     Set       *Flag_StylishLearned .True
+     Call	     SetNpcFlagBits ( .Npc:Self 00000200 .False ) % disable npc gravity
+     Call      SetNpcPos  ( 1 0 -1000` 0 )
+     Call      SetSelfVar ( 0 .False )
+     Call      DisablePlayerInput ( .False )
+     Return
+     End
+}
+
+#new:Script $Script_CheatoTalk1
+{
+     Call      SetNpcAnimation ( .Npc:Self 00AE0001 ) % idle
+     Wait      5
+     Call      SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_1 )
+     Set       *Var[0] 00080007 % hand to the ear
+     Set       *Var[1] .False
+     Set       *Var[2] 35`
+     ExecWait  $SetPlayerAnimation
+     Call      SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_2 )
+     Set       *Var[0] 00080016 % surprised
+     Set       *Var[1] .False
+     Set       *Var[2] 35`
+     ExecWait  $SetPlayerAnimation
+     Return
+     End
+}
+
+#new:Script $Script_CheatoTalk2
+{
+     Call      SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_4 )
+     Set       *Var[0] .PlayerAnim:ThumbsUp
+     Set       *Var[1] .False
+     Set       *Var[2] 35`
+     ExecWait  $SetPlayerAnimation
+     % cheato walks away
+     Call      GetNpcPos ( 1 *Var[0] *Var[1] *Var[2] )
+     Add       *Var[0] 200`
+     Call      SetNpcAnimation ( .Npc:Self 00AE0003 ) % running
+     Call      NpcMoveTo ( 1 *Var[0] *Var[2] 0 )
+     Return
+     End
+}
+
+#new:Script $Script_CheatoTalk3
+{
+     Call SpeakToPlayer 	( .Npc:Self 00AE0004 00AE0001 00000000 $String_Cheato_DontTeach )
+     % cheato walks away
+     Call GetNpcPos ( 1 *Var[0] *Var[1] *Var[2] )
+     Add  *Var[0] 200`
+     Call SetNpcAnimation ( .Npc:Self 00AE0003 ) % running
+     Call NpcMoveTo ( 1 *Var[0] *Var[2] 0 )
+     Return
+     End
+}
+
+#new:Script $SkipCutscene_CheatoTalk1
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+               Call	SetNpcAnimation 	( .Npc:Self 00AE0001 ) % idle
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill ) % idle
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+			Kill	*MapVar[0]
+               Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_CheatoTalk2
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+               Call	SetNpcAnimation 	( .Npc:Self 00AE0001 ) % idle
+               Call SetNpcPos           ( .Npc:Self 0 -1000` 0 )
+               Call	SetPlayerAnimation ( .PlayerAnim:StandStill ) % idle
+               Wait 5
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+			Kill	     *MapVar[0]
+               Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Cheato_AfterBattle
+{
+     Call  SetSelfEnemyFlagBits ( 00000004 .True ) % bit2 == Don't make Cheato's sprite start flashing after leaving the fight
+     Return
+     End
+}
+
+#new:Script $Script_CheatoAppears
+{
+     Call GetEntryID ( *Var[0] )
+     If *Var[0] == 1 % Coming from the shrine
+          If *Flag_StylishLearned == .False
+               Call $ReadAddress ( 8010F51E 0 *Var[0] .False .False ) % load current star spirits
+               If *Var[0] > 0 % the player have at least one spirit and he doesn't know about the stylish moves
+                    Call AwaitPlayerApproach ( -260` 10` 50` )
+                    Call SetNpcVar ( 1 0 .True )
+               EndIf
+          EndIf
+     EndIf
+     Return
+     End
+}
+
+
+
+#new:Script $Script_MakeEntities
+{
+Call     MakeEntity 	( .Entity:Signpost 	~Vec4d:Sign1 80000000 )
+Call     AssignScript 	( $Script_Sign )
+Return
+End
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0A 1 0
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:Entry1A 1 0
+Return
+End
+}
+
+#new:Script $Script_Exit0
+{
+Call     UseExitHeading  	( 3C 0 )
+Exec     80285CF4 
+Call     GotoMap         	( "pt_255" 3 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit1
+{
+Call     UseExitHeading  	( 3C 1 )
+Exec     80285CF4 
+Call     GotoMap         	( "pre_02" 0 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Sign
+{
+Call     DisablePlayerInput	( .True )
+Call     ShowMessageAtScreenPos     	( $String_StarShrine 000000A0 00000028 )
+Call     DisablePlayerInput	( .False )
+Return
+End
+}
+
+#new:Script $Script_OpenDoor
+{
+Call      DisablePlayerInput	( .True )
+Call      ShowMessageAtScreenPos ( $String_Spell_Start1 000000A0 00000028 )
+Call 	PlaySoundAtPlayer 	( 0262 .Cam:Default ) % !
+Call 	ShowEmote 	( .Cam:Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+Call 	SetPlayerAnimation ( 00010002 ) % idle
+Wait	     1
+Call 	SetPlayerAnimation ( 00080016 ) % surprised
+Wait      35`
+Call 	SetPlayerAnimation ( 00010002 ) % idle
+Call      ShowMessageAtScreenPos ( $String_Spell_Start2 000000A0 00000028 )
+Call	     $ReadAddress ( 8035612E 1 *Var[0] .False .False ) % load star points
+If  *Var[0] < 50`
+    Call 	PlaySoundAtPlayer 	( 0263 .Cam:Default ) % ?
+    Call 	SetPlayerAnimation ( 00010002 ) % idle
+    Wait	1
+    Call 	SetPlayerAnimation ( .PlayerAnim:Thinking )
+    Call 	ShowEmote 	( .Cam:Default .Emote:Question -45` 20` 0 0 0 0 0 )
+    Wait  35`
+    Call 	SetPlayerAnimation ( 00010002 ) % idle
+    Call  ShowMessageAtScreenPos ( $String_Spell_Fail 000000A0 00000028 )
+    Call  DisablePlayerInput	( .False )
+    Return
+EndIf
+Call    ShowMessageAtScreenPos ( $String_Spell_Broken 000000A0 00000028 )
+Call 	PlaySoundAtPlayer 	( 0262 .Cam:Default ) % !
+Call 	ShowEmote 	( .Cam:Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+% Door Opened % FX
+Loop 3
+    Call  PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -484` 18` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -455` 21` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -484` 49` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -455` 42` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -483` 28` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -469` 37` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -485` 70` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+    Call	PlaySound		( 241 ) % Focus
+    Call  PlayEffect  	( ~FX:Sparkles:Star -457` 70` -39` 20` 0 0 0 0 0 0 0 0 )
+    Wait  3
+EndLoop
+Call    PlayEffect  	( ~FX:Sparkles:Star -469` 37` -39` 20` 0 0 0 0 0 0 0 0 )
+Call    PlayEffect  	( ~FX:EnergyWaveOut:White -469` 37` -39` *Fixed[0.2] 26` 0 0 0 0 0 0 0 )
+%
+Set     *Flag_StarShrine_Entrance .True
+Call    ModifyColliderFlags ( .False ~Collider:DoorLocked 7FFFFE00 )
+Call    EnableModel ( ~Model:StarsWall .False )
+Wait    10`
+Call    DisablePlayerInput	( .False )
+Return
+End
+}
+
+#new:Script $Script_StarShrine_LightAnim
+{
+	Loop
+		% >>>
+		Call    MakeLerp    	( 0 13` 25` .Easing:CosIn )
+		Loop
+			Call     UpdateLerp
+			Call     TranslateModel ( ~Model:DoorLight 0 0 *Var[0] )
+			Wait     1
+			If  *Var[1]  ==  .False
+				BreakLoop
+			EndIf
+		EndLoop
+		% <<<
+		Call    MakeLerp    	( 13` 0 25` .Easing:CosIn )
+		Loop
+			Call     UpdateLerp
+			Call     TranslateModel ( ~Model:DoorLight 0 0 *Var[0] )
+			Wait     1
+			If  *Var[1]  ==  .False
+				BreakLoop
+			EndIf
+		EndLoop
+	EndLoop
+	Return
+	End
+}
+
+% Check if a New Star Spirit is available
+#new:Script $Script_CheckStarShrine
+{
+Call	EnableModel ( ~Model:DoorLight .False )
+Call	$ReadAddress ( 8035612E 1 *Var[0] .False .False ) % load star points
+% Which Star Spirit will be unlocked now
+Switch  *StarSpirits
+	Case == 0 % The player doesn't have any star spirits
+		If *Var[0] >= 50` % Star Points
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 1
+		If *Var[0] >= 100`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 2
+		If *Var[0] >= 200`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 3
+		If *Var[0] >= 350`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 4
+		If *Var[0] >= 500`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 5
+		If *Var[0] >= 650`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 6
+		If *Var[0] >= 800`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 7
+EndSwitch
+Return
+End
+}
+
+#new:Function $Function_LoadStarPoints
+{
+PUSH    RA, V0, V1, A1, A2, A3
+LAHU    A2, 8035612E % Star Points
+LW      A1, C (A0)
+JAL     ~Func:set_variable
+LW      A1, 0 (A1)
+JPOP    RA, V0, V1, A1, A2, A3
+}
+
+% Texture Panning
+#new:Script $Script_EnableTexPanning
+{
+	Call     EnableTexPanning 	( ~Model:StarsWall .True )
+	Thread
+		Set  *Var[0]  .Default % panner id
+		Set  *Var[1]  484` 	    % x scroll
+		Set  *Var[2]  -645`     % y scroll
+		Set  *Var[3]  0 	    % x scroll (aux)
+		Set  *Var[4]  0 	    % y scroll (aux)
+		Set  *Var[5]  .False 
+		Set  *Var[6]  .True
+		Set  *Var[7]  .False 
+		Set  *Var[8]  .False 
+		Set  *Var[9]  .False 
+		Set  *Var[A]  .False 
+		Set  *Var[B]  .False 
+		Set  *Var[C]  .False 
+		Exec     $Script_80244A70 
+	EndThread
+	Return
+	End
+}
+
+	#new:Script $Script_80244A70
+{
+	SetGroup 0
+	If  *Var[5]  ==  .True
+		If  *Var[6]  ==  .True 
+			If  *Var[7]  ==  .True 
+				If  *Var[8]  ==  .True 
+					Call     $Function_802402E0
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call     $Function_80240404
+	Return
+	End
+}
+   
+   #new:Function $Function_80240404
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 70 (S0)
+   18:  SW        R0, 74 (S0)
+   1C:  SW        R0, 78 (S0)
+   20:  SW        R0, 7C (S0)
+        .o24
+   24:  LW        V0, 70 (S0)
+   28:  BNE       V0, R0, .o64
+   2C:  NOP
+   30:  LW        V1, A8 (S0)
+   34:  LW        V0, 88 (S0)
+   38:  ADDU      V1, V1, V0
+   3C:  BGEZ      V1, .o50
+   40:  SW        V1, A8 (S0)
+   44:  LUI       V0, 2
+   48:  BEQ       R0, R0, .o60
+   4C:  ADDU      V0, V1, V0
+        .o50
+   50:  LUI       A0, 2
+   54:  SLT       V0, A0, V1
+   58:  BEQ       V0, R0, .o64
+   5C:  SUBU      V0, V1, A0
+        .o60
+   60:  SW        V0, A8 (S0)
+        .o64
+   64:  LW        V0, 74 (S0)
+   68:  BNE       V0, R0, .oA4
+   6C:  NOP
+   70:  LW        V1, AC (S0)
+   74:  LW        V0, 8C (S0)
+   78:  ADDU      V1, V1, V0
+   7C:  BGEZ      V1, .o90
+   80:  SW        V1, AC (S0)
+   84:  LUI       V0, 2
+   88:  BEQ       R0, R0, .oA0
+   8C:  ADDU      V0, V1, V0
+        .o90
+   90:  LUI       A0, 2
+   94:  SLT       V0, A0, V1
+   98:  BEQ       V0, R0, .oA4
+   9C:  SUBU      V0, V1, A0
+        .oA0
+   A0:  SW        V0, AC (S0)
+        .oA4
+   A4:  LW        V0, 78 (S0)
+   A8:  BNE       V0, R0, .oE4
+   AC:  NOP
+   B0:  LW        V1, B0 (S0)
+   B4:  LW        V0, 90 (S0)
+   B8:  ADDU      V1, V1, V0
+   BC:  BGEZ      V1, .oD0
+   C0:  SW        V1, B0 (S0)
+   C4:  LUI       V0, 2
+   C8:  BEQ       R0, R0, .oE0
+   CC:  ADDU      V0, V1, V0
+        .oD0
+   D0:  LUI       A0, 2
+   D4:  SLT       V0, A0, V1
+   D8:  BEQ       V0, R0, .oE4
+   DC:  SUBU      V0, V1, A0
+        .oE0
+   E0:  SW        V0, B0 (S0)
+        .oE4
+   E4:  LW        V0, 7C (S0)
+   E8:  BNE       V0, R0, .o124
+   EC:  NOP
+   F0:  LW        V1, B4 (S0)
+   F4:  LW        V0, 94 (S0)
+   F8:  ADDU      V1, V1, V0
+   FC:  BGEZ      V1, .o110
+  100:  SW        V1, B4 (S0)
+  104:  LUI       V0, 2
+  108:  BEQ       R0, R0, .o120
+  10C:  ADDU      V0, V1, V0
+        .o110
+  110:  LUI       A0, 2
+  114:  SLT       V0, A0, V1
+  118:  BEQ       V0, R0, .o124
+  11C:  SUBU      V0, V1, A0
+        .o120
+  120:  SW        V0, B4 (S0)
+        .o124
+  124:  LW        A0, 84 (S0)
+  128:  JAL       8011BC1C
+  12C:  LW        A1, A8 (S0)
+  130:  LW        A0, 84 (S0)
+  134:  JAL       8011BC34
+  138:  LW        A1, AC (S0)
+  13C:  LW        A0, 84 (S0)
+  140:  JAL       8011BC4C
+  144:  LW        A1, B0 (S0)
+  148:  LW        A0, 84 (S0)
+  14C:  JAL       8011BC64
+  150:  LW        A1, B4 (S0)
+  154:  LW        V0, 70 (S0)
+  158:  LW        V1, 78 (S0)
+  15C:  LW        A0, 98 (S0)
+  160:  ADDIU     V0, V0, 1
+  164:  SW        V0, 70 (S0)
+  168:  LW        V0, 74 (S0)
+  16C:  ADDIU     V1, V1, 1
+  170:  SW        V1, 78 (S0)
+  174:  LW        V1, 70 (S0)
+  178:  ADDIU     V0, V0, 1
+  17C:  SW        V0, 74 (S0)
+  180:  LW        V0, 7C (S0)
+  184:  SLT       V1, V1, A0
+  188:  ADDIU     V0, V0, 1
+  18C:  BNE       V1, R0, .o198
+  190:  SW        V0, 7C (S0)
+  194:  SW        R0, 70 (S0)
+        .o198
+  198:  LW        V0, 74 (S0)
+  19C:  LW        V1, 9C (S0)
+  1A0:  SLT       V0, V0, V1
+  1A4:  BEQL      V0, R0, .o1AC
+  1A8:  SW        R0, 74 (S0)
+        .o1AC
+  1AC:  LW        V0, 78 (S0)
+  1B0:  LW        V1, A0 (S0)
+  1B4:  SLT       V0, V0, V1
+  1B8:  BEQL      V0, R0, .o1C0
+  1BC:  SW        R0, 78 (S0)
+        .o1C0
+  1C0:  LW        V0, 7C (S0)
+  1C4:  LW        V1, A4 (S0)
+  1C8:  SLT       V0, V0, V1
+  1CC:  BEQL      V0, R0, .o1D4
+  1D0:  SW        R0, 7C (S0)
+        .o1D4
+  1D4:  LW        RA, 14 (SP)
+  1D8:  LW        S0, 10 (SP)
+  1DC:  DADDU     V0, R0, R0
+  1E0:  JR        RA
+  1E4:  ADDIU     SP, SP, 18
+}
+   
+   #new:Function $Function_802402E0
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  SW        RA, 14 (SP)
+   10:  LW        V1, A8 (S0)
+   14:  LW        V0, 88 (S0)
+   18:  ADDU      V1, V1, V0
+   1C:  BGEZ      V1, .o30
+   20:  SW        V1, A8 (S0)
+   24:  LUI       V0, 2
+   28:  BEQ       R0, R0, .o40
+   2C:  ADDU      V0, V1, V0
+        .o30
+   30:  LUI       A0, 2
+   34:  SLT       V0, A0, V1
+   38:  BEQ       V0, R0, .o44
+   3C:  SUBU      V0, V1, A0
+        .o40
+   40:  SW        V0, A8 (S0)
+        .o44
+   44:  LW        V1, AC (S0)
+   48:  LW        V0, 8C (S0)
+   4C:  ADDU      V1, V1, V0
+   50:  BGEZ      V1, .o64
+   54:  SW        V1, AC (S0)
+   58:  LUI       V0, 2
+   5C:  BEQ       R0, R0, .o74
+   60:  ADDU      V0, V1, V0
+        .o64
+   64:  LUI       A0, 2
+   68:  SLT       V0, A0, V1
+   6C:  BEQ       V0, R0, .o78
+   70:  SUBU      V0, V1, A0
+        .o74
+   74:  SW        V0, AC (S0)
+        .o78
+   78:  LW        V1, B0 (S0)
+   7C:  LW        V0, 90 (S0)
+   80:  ADDU      V1, V1, V0
+   84:  BGEZ      V1, .o98
+   88:  SW        V1, B0 (S0)
+   8C:  LUI       V0, 2
+   90:  BEQ       R0, R0, .oA8
+   94:  ADDU      V0, V1, V0
+        .o98
+   98:  LUI       A0, 2
+   9C:  SLT       V0, A0, V1
+   A0:  BEQ       V0, R0, .oAC
+   A4:  SUBU      V0, V1, A0
+        .oA8
+   A8:  SW        V0, B0 (S0)
+        .oAC
+   AC:  LW        V1, B4 (S0)
+   B0:  LW        V0, 94 (S0)
+   B4:  ADDU      V1, V1, V0
+   B8:  BGEZ      V1, .oCC
+   BC:  SW        V1, B4 (S0)
+   C0:  LUI       V0, 2
+   C4:  BEQ       R0, R0, .oDC
+   C8:  ADDU      V0, V1, V0
+        .oCC
+   CC:  LUI       A0, 2
+   D0:  SLT       V0, A0, V1
+   D4:  BEQ       V0, R0, .oE0
+   D8:  SUBU      V0, V1, A0
+        .oDC
+   DC:  SW        V0, B4 (S0)
+        .oE0
+   E0:  LW        A0, 84 (S0)
+   E4:  JAL       8011BC1C
+   E8:  LW        A1, A8 (S0)
+   EC:  LW        A0, 84 (S0)
+   F0:  JAL       8011BC34
+   F4:  LW        A1, AC (S0)
+   F8:  LW        A0, 84 (S0)
+   FC:  JAL       8011BC4C
+  100:  LW        A1, B0 (S0)
+  104:  LW        A0, 84 (S0)
+  108:  JAL       8011BC64
+  10C:  LW        A1, B4 (S0)
+  110:  LW        RA, 14 (SP)
+  114:  LW        S0, 10 (SP)
+  118:  DADDU     V0, R0, R0
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 18
+}
+
+#string $String_StarShrine
+{
+[DelayOff][STYLE:SIGN][...]
+
+             [UP] Star Shrine
+[WAIT][END]
+}
+
+#string $String_Spell_Start1
+{
+[STYLE:INSPECT][...]
+Looks like the entry is sealed
+with some kind of magic.
+[WAIT][END]
+}
+
+#string $String_Spell_Start2
+{
+[STYLE:INSPECT][...]
+I can feel an energy emanating
+from my [PushColor][Color:07]Star Points[PopColor].
+[WAIT][END]
+}
+
+#string $String_Spell_Fail
+{
+[STYLE:INSPECT][...]
+...
+[WAIT][NEXT][...]
+Looks like nothing happens...
+[WAIT][NEXT][...]
+Maybe I should try coming again
+when I have [PushColor][Color:07]more Star Points[PopColor].
+[WAIT][END]
+}
+
+#string $String_Spell_Broken
+{
+[STYLE:INSPECT][...]
+Looks like something is about
+to happen!
+[WAIT][END]
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the entrance to
+the Star Shrine.
+[WAIT][NEXT][...]
+A light will appear from the main
+lobby through here when you have
+enough star points
+[WAIT][NEXT][...]
+to get a new Star Spirit.
+[WAIT][END]
+}
+
+#string $String_Cheato_1
+{
+[STYLE:RIGHT][...]
+Hey Mario, how is everything
+going?
+[WAIT][NEXT][...]
+Nice job removing those
+rocks, now we can finally use
+the shrine again.
+[WAIT][NEXT][...]
+At moments like this the only
+thing we can't lose is our faith,
+you now?
+[WAIT][NEXT][...]
+It is always wise to pray to
+the Spirits, Mario.
+[WAIT][END]
+}
+
+#string $String_Cheato_2
+{
+[STYLE:RIGHT][...]
+Oh so you got your first Star
+Spirit?
+[WAIT][NEXT][...]
+Okay I think is time for
+professor Cheato to teach you
+something really useful!
+[WAIT][END]
+}
+
+#string $String_Cheato_3
+{
+[STYLE:RIGHT][...]
+Firsts things first, using
+Star Powers doesn't work like
+before, not anymore.
+[WAIT][NEXT][...]
+Do you wish to learn more about
+this Mario?
+[Func_04][END]
+}
+
+#string $String_Cheato_3_No
+{
+[STYLE:RIGHT][...]
+This information can be [PushColor][Color:19]crucial[PopColor]
+for your success in a Pit.
+[WAIT][NEXT][...]
+Are you sure you don't want
+me to teach about this?
+[Func_04][END]
+}
+
+#string $String_Cheato_StartBattle
+{
+[STYLE:RIGHT][...]
+In that case, let's begin
+[WAIT][END]
+}
+
+#string $String_Cheato_DontTeach
+{
+[STYLE:RIGHT][...]
+Okay then, good luck over there.
+[WAIT][NEXT][...]
+See you Mario.
+[WAIT][END]
+}
+
+#string $String_Cheato_4
+{
+[STYLE:RIGHT][...]
+Nice job, I think this should
+be everything for now.
+[WAIT][NEXT][...]
+See you Mario.
+[WAIT][END]
+}

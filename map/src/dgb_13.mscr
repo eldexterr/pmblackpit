@@ -1,0 +1,183 @@
+% Script File: dgb_13.mscr
+% Decoded from: 0 to 6D0 (dgb_13)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -450.0    0.0  -40.0    0.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000001
+    [Background]  00000000
+    [MapTattle]   001900CD
+}
+
+#new:Script $Script_80240050
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFE3
+            Call  SetMusicTrack ( 00000000 .Song:TubbasManor 00000000 00000008 )
+        Case  <  FFFFFFF0
+            Call  SetMusicTrack ( 00000000 .Song:TubbaEscape 00000000 00000008 )
+        Default
+            Call  SetMusicTrack ( 00000000 .Song:TubbasManor 00000000 00000008 )
+    EndSwitch
+    Return
+    End
+}
+
+PADDING: 802400E8 to 802400F0 (000000E8 to 000000F0)
+00000000 00000000
+
+#new:Script $Script_ExitWalk_802400F0
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000001A ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802406C0 00000005 ) % dgb_03
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_8024014C
+{
+    Bind  $Script_ExitWalk_802400F0 .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:TubbasManor
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_80240270
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deilits 7FFFFE00 )
+    ExecWait  $Script_80240680
+    Exec  $Script_80240050
+    Set   *Var[0]  $Script_8024014C
+    Exec  EnterWalk
+    Wait  1`
+    Return
+    End
+}
+
+#new:Script $Script_80240270
+{
+    Call  MakeItemEntity    ( .Item:MegaRush ~Vec3d:Item80240270 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_12 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item80240294 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_13 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item802402B8 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_14 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item802402DC .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_15 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item80240300 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_16 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item80240324 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_17 )
+    Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item80240348 .ItemSpawnMode:Fixed_NeverVanish *Flag_DGB_18 )
+    Return
+    End
+}
+
+PADDING: 8024037C to 80240380 (0000037C to 00000380)
+00000000
+
+#new:Script $Script_80240380
+{
+    Call  MakeLerp  ( 00000000 0000001E 0000000F .Easing:Linear )
+    Loop
+        Call  UpdateLerp ( )
+        Call  TranslateGroup    ( ~Model:b1 00000000 00000000 *Var[0] )
+        Call  UpdateColliderTransform   ( ~Collider:o265 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_80240424
+{
+    Call  MakeLerp  ( 0000001E 00000000 0000000F .Easing:Linear )
+    Loop
+        Call  UpdateLerp ( )
+        Call  TranslateGroup    ( ~Model:b1 00000000 00000000 *Var[0] )
+        Call  UpdateColliderTransform   ( ~Collider:o265 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802404C8
+{
+    Call  MakeLerp  ( 00000000 0000001E 0000000F .Easing:Linear )
+    Loop
+        Call  UpdateLerp ( )
+        Call  TranslateGroup    ( ~Model:b3 00000000 00000000 *Var[0] )
+        Call  UpdateColliderTransform   ( ~Collider:o267 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024056C
+{
+    Call  MakeLerp  ( 0000001E 00000000 0000000F .Easing:Linear )
+    Loop
+        Call  UpdateLerp ( )
+        Call  TranslateGroup    ( ~Model:b3 00000000 00000000 *Var[0] )
+        Call  UpdateColliderTransform   ( ~Collider:o267 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_80240610
+{
+    If  *MapVar[0]  ==  00000000
+        ExecWait  $Script_80240380
+        Set   *MapVar[0]  00000001
+    Else
+        ExecWait  $Script_80240424
+        Set   *MapVar[0]  00000000
+    EndIf
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_80240680
+{
+    Call  ParentColliderToModel ( ~Collider:o265 ~Model:o419 )
+    Bind  $Script_80240610 .Trigger:WallPressA ~Collider:o265 00000001 00000000
+    Return
+    End
+}
+
+#new:ASCII $ASCII_802406C0
+{
+    "dgb_03"
+}
+
+PADDING: 802406C8 to 802406D0 (000006C8 to 000006D0)
+00000000 00000000
+

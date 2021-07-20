@@ -1,0 +1,144 @@
+% This file have Black Pit's formation 9
+
+% ====================================================
+% Formations
+% ====================================================
+
+% Enemies
+#import 3C_HuffNPuffBP.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000001 $Formation_HuffPuffBP	    $Stage_BlackPit 00000000 % 0
+00000000 00000000 00000000 00000000 00000000
+}
+#new:Formation $Formation_HuffPuffBP
+{
+$3C_HuffNPuffBP 	$Vector3D_HuffPuff 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Vector3D $Vector3D_HuffPuff
+{ 80` 80` 0` }
+
+% ====================================================
+% Stages
+% ====================================================
+
+#new:StageTable $StageTable 
+{
+"bp_02" $Stage_BlackPit
+00000000 00000000 
+}
+
+#new:Stage $Stage_BlackPit
+{
+"tik_tex"
+"bp_bt01_shape"
+"bp_bt01_hit"
+$Script_BeforeBattle_BlackPit
+$Script_AfterBattle_BlackPit
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $Script_BeforeBattle_BlackPit
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % Black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	% Disable General's Guy Tank or Tutankoopa platform
+	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
+	If *Var[0] != 3D00 % general guy's formation
+		Call	EnableGroup ( 40 .False ) % ~Model:sensya
+	EndIf
+	If *Var[0] != 3C02 % tutankoopa's formation
+		Call	EnableGroup ( 10 .False ) % ~Model:tutankoopa
+	EndIf
+	ExecWait	$Script_SetNumber
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_BlackPit
+{
+	% Player died?
+	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False ) % read current hp
+	If	*Var[0] == .False
+		Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
+		Call    GotoMap ( "bp_01" 4 )
+	EndIf
+	Return
+	End
+}
+
+#define .Model_I 18
+#define .Model_V 19
+#define .Model_X 1A
+#define .Model_II 100
+#define .Model_III 101
+
+% Set current number by reading the formation ID
+#new:Script $Script_SetNumber
+{
+	Call	EnableGroup ( 1B .False ) % disable all numbers
+	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
+	Switch *Var[0]
+		Case == 3C00 % 1
+			Call	EnableModel ( .Model_I .True )
+		Case == 3C01 % 2
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_I -10` 0 0 )
+			Call	TranslateModel ( .Model_II 10` 0 0 )
+		Case == 3C02 % 3
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_II -18` 0 0 )
+			Call	TranslateModel ( .Model_III 18` 0 0 )
+		Case == 3C03 % 4
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_V .True )
+			Call	TranslateModel ( .Model_I -15` 0 0 )
+			Call	TranslateModel ( .Model_V 15` 0 0 )
+		Case == 3C04 % 5
+			Call	EnableModel ( .Model_V .True )
+		Case == 3D00 % 6
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	TranslateModel ( .Model_V -8` 0 0 )
+			Call	TranslateModel ( .Model_I 24` 0 0 )
+		Case == 3E00 % 7
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_V -29` 0 0 )
+			Call	TranslateModel ( .Model_II 18` 0 0 )
+		Case == 3F00 % 8
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_V -37` 0 0 )
+			Call	TranslateModel ( .Model_I 8` 0 0 )
+			Call	TranslateModel ( .Model_II -8` 0 0 )
+			Call	TranslateModel ( .Model_III 24` 0 0 )
+		Case == 4000 % 9
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_X .True )
+			Call	TranslateModel ( .Model_I -16` 0 0 )
+			Call	TranslateModel ( .Model_X 13` 0 0 )
+		Case == 4100 % 10
+			Call	EnableModel ( .Model_X .True )
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle
+{
+	Return
+	End
+}

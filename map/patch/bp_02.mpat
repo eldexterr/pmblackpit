@@ -1,0 +1,664 @@
+% Black Pit's Main Map
+
+#define .Npc_GoombaKing 0
+#define .FloorsBeated *MapVar[0]
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 00000000
+[EntryList] $EntryList
+[EntryCount] 2
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % Entrance
+~Vec4f:Entry1 % Exit
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "arn_tex"
+JAL 	~Func:sprintf
+RESERVED
+CLEAR   V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 ) % black
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    SetMusicTrack 		( .Default A4 00000000 00000008 ) % Black Pit Theme
+Call    EnableModel ( ~Model:doorL2 .False )
+Call    EnableModel ( ~Model:doorR2 .False )
+Exec    $TrackEntry
+Wait    5
+% Nuke temporary highscore data
+Call    $WriteAddress ( $Timer_Total 2 0 .False .False )
+Call    $WriteAddress ( $BP_TotalTurns 0 0 .False .False )
+Return
+End
+}
+
+#new:Script $TrackEntry
+{
+    Call     GetEntryID  	( *Var[0] )
+    Switch *Var[0]
+        Case == 0 % Entrance
+            Call    ModifyColliderFlags ( .False ~Collider:exit1 7FFFFE00 )
+            Bind    $Script_StartFirstBattle  .Trigger:FloorAbove ~Collider:start_battle 00000001 00000000
+            Call    MakeNpcs ( 0 $NpcGroupList_BlackPit )
+            %
+            Set     *Var[2] ~Model:doorL
+            Set     *Var[3] ~Model:doorR
+            ExecWait EnterDoubleDoor
+            Exec    $Script_MakeExits
+        Case == 1 % Exit
+            Set     *Var[0] $Script_MakeExits
+            Exec    EnterWalk
+    EndSwitch
+    Return
+    End
+}
+
+#new:NpcGroupList $NpcGroupList_BlackPit
+{
+00000001 $NpcGroup_GoombaKing 	3C000000
+00000009 $NpcGroup_BlackPit 	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_GoombaKing
+{
+% Goomba King
+00000000 $NpcSettings_Generic ~Vec3f:Npc_Pos1
+01100000 $Script_Init_BP_GoombaKing 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00620902 00620902 00620902 00620902 00620902 00620902 00620902 00620902 
+00620902 00620902 00620902 00620902 00620902 00620902 00620902 00620902 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_BlackPit
+{
+% Koopa Bros.
+00000001 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00661104 00661104 00661104 00661104 00661104 00661104 00661104 00661104 
+00661104 00661104 00661104 00661104 00661104 00661104 00661104 00661104 
+00000000 00000000 00000000 00000000
+% Tutankoopa
+00000002 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00680601 00680601 00680601 00680601 00680601 00680601 00680601 00680601 
+00680601 00680601 00680601 00680601 00680601 00680601 00680601 00680601 
+00000000 00000000 00000000 00000000
+% Tubbla
+00000003 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 
+006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 006C0701 
+00000000 00000000 00000000 00000000
+% Lantern Guy
+00000004 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 
+006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 006D1202 
+00000000 00000000 00000000 00000000
+% General Guy
+00000005 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00760502 00760502 00760502 00760502 00760502 00760502 00760502 00760502 
+00760502 00760502 00760502 00760502 00760502 00760502 00760502 00760502 
+00000000 00000000 00000000 00000000
+% Kent C. Koopa
+00000006 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 
+00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 00470D01 
+00000000 00000000 00000000 00000000
+% Lava Piranha
+00000007 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 
+007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 007A0401 
+00000000 00000000 00000000 00000000
+% Huff Puff
+00000008 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 
+004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 004C0403 
+00000000 00000000 00000000 00000000
+% Bowser
+00000009 $NpcSettings_Generic 0.0 -1000.0 0.0
+01100000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 
+00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 00D70400 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_Init_BP_GoombaKing
+{
+    Call    BindNpcIdle ( .Npc:Self $Script_NpcIdle_GoombaKing )
+    Call    BindNpcDefeat ( .Npc:Self $Script_NpcOutcome_GoombaKing )
+    Return
+    End
+}
+
+#new:Script $Script_NpcIdle_GoombaKing
+{
+    Loop
+        Call    GetSelfVar ( 0 *Var[0] )
+        If *Var[0] == .True
+            Call    SetSelfVar ( 0 .False )
+            Call    StartBossBattle ( A4 ) % Black Pit Theme
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Used only when you enter to the map from the left door
+% Move mario to the center and start Goomba King's battle
+#new:Script $Script_StartFirstBattle
+{
+    Unbind
+    Set     *PitFlag .False
+    Set     *Flag_BlackPit .True % start tracking the time and the turns
+    % cutscene
+    Call    DisablePlayerInput ( .True )
+    ExecWait    $PlayerStopUsingPartner
+    Exec    $Script_Cutscene_WalkInit *Var[A]
+    Exec	$SkipCutscene_WalkInit
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    Call    SetNpcVar ( .Npc_GoombaKing 0 .True ) % start battle
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_WalkInit
+{
+    Call    GetNpcPos ( .Npc_GoombaKing *Var[0] *Var[1] *Var[2] )
+    Add     *Var[2] 80` % z
+    Call    SetPlayerSpeed ( *Fixed[3.0] )
+    Call    PlayerMoveTo ( *Var[0] *Var[2] 0 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % prepare to jump
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_GoombaKing 00620906 ) % run
+    Wait    20`
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_WalkInit
+{
+	Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+            ExecWait $Script_FadeScreenOut
+            Call    SetPlayerFlagBits ( 00005000 .False ) % Force PlayerMoveTo to stop
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetNpcAnimation ( .Npc_GoombaKing 00620906 ) % run
+            % set player and partner positions
+            Call    GetNpcPos ( .Npc_GoombaKing *Var[0] *Var[1] *Var[2] )
+            Add     *Var[2] 80` % z
+            Call    SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Call    TeleportPartnerToPlayer
+            Exec    $MovePartnerBehindMario
+            Wait    5
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+% Goomba King's Npc BattleOutcome control the entire Black Pit's code
+#new:Script $Script_NpcOutcome_GoombaKing
+{    
+    Call    GetBattleOutcome ( *Var[0] )
+    Switch  *Var[0]
+        CaseOR == .Outcome:PlayerWon
+        CaseOR == .Outcome:EnemyFled
+            Call    SetSelfEnemyFlagBits ( 00000004 .True ) % bit2 == Don't make the player and npc sprite start flashing after the fight ends
+            Exec    $Script_BlackPit_MainScript
+            Return
+        EndCaseGroup
+        Case == .Outcome:PlayerLost
+            Call    GotoMap ( "bp_01" 4 )
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_BlackPit_MainScript
+{
+    % Do the Defeat Animation
+    Switch .FloorsBeated
+        Case == 0
+            Set *Var[0] 0 % King Goomba
+            Set *Var[1] 00620909
+        Case == 1
+            Set *Var[0] 1 % Koopa Bros
+            Set *Var[1] 0066110B
+        Case == 2
+            Set *Var[0] 2 % Tutan Koopa
+            Set *Var[1] 00680606
+        Case == 3
+            Set *Var[0] 3 % Tubbla Bubbla
+            Set *Var[1] 006C070D
+        Case == 4
+            Set *Var[0] 4 % Lantern Guy
+            Set *Var[1] 006D1204
+        Case == 5
+            Set *Var[0] 5 % General Guy
+            Set *Var[1] 00760505
+        Case == 6
+            Set *Var[0] 6 % Kent C. Koopa
+            Set *Var[1] 00470D1C
+        Case == 7
+            Set *Var[0] 7 % Lava Piranha
+            Set *Var[1] 007A0404
+        Case == 8
+            Set *Var[0] 8 % Huff N' Puff
+            Set *Var[1] 004C040D
+        Case >= 9
+            Set *Var[0] 9 % Bowser
+            Set *Var[1] 00D70400
+    EndSwitch
+    % Var0 = NpcID
+    % Var1 = Hurt Animation
+    ExecWait $DoNpcDefeat
+    % "Leave the map" and go to the "next floor"
+    Add     .FloorsBeated 1
+    % Highscores stuff
+    If .FloorsBeated == 10` % Black Pit beated
+        % Save Highscore data
+        % Best time
+        If *Flag_GoldenLS == .True % If the Golden Life Shroom is activated
+            Wait 1
+            Goto HighscoreEnd
+        EndIf
+        Call    $Function_Format_BPBestTime
+        Call    $ReadAddress ( $CurrentBestTime 2 *Var[0] .False .False )
+        If *Var[0] == .False % 1st time beating the Black Pit
+            Set *Var[0] 99595959`
+        EndIf
+        Call    $ReadAddress ( $Timer_Total 2 *Var[1] .False .False )
+        If *Var[0] > *Var[1] % Save a better time
+            Call    $ReadAddress ( $Timer_Total 0 *Var[0] 0 .False )
+            Call    $ReadAddress ( $Timer_Total 0 *Var[1] 1 .False )
+            Call    $ReadAddress ( $Timer_Total 0 *Var[2] 2 .False )
+            Call    $ReadAddress ( $Timer_Total 0 *Var[3] 3 .False )
+            Set     *BestTimeBP_HH *Var[0]
+            Set     *BestTimeBP_MM *Var[1]
+            Set     *BestTimeBP_SS *Var[2]
+            Set     *BestTimeBP_MS *Var[3]
+            % Play a little sound when the player get a new record
+            Call    GetNpcVar ( .Npc_GoombaKing 1 *Var[0] )
+            If *Var[0] == .False
+                Call    PlaySound ( 000B )
+                Call    SetNpcVar ( .Npc_GoombaKing 1 .True )
+            EndIf
+        EndIf
+        % Best amount of turns
+        Set     *Var[0] *BestTimeBP_Turns
+        Call    $ReadAddress ( $BP_TotalTurns 0 *Var[1] .False .False )
+        If *BestTimeBP_Turns == .False % 1st time beating the Black Pit
+            Set *Var[0] 99595959`
+        EndIf
+        If *Var[0] > *Var[1] % Save a better amount of turns
+            Set *BestTimeBP_Turns *Var[1]
+            % Play a little sound when the player get a new record
+            Call    GetNpcVar ( .Npc_GoombaKing 1 *Var[0] )
+            If *Var[0] == .False
+                Call    PlaySound ( 000B )
+                Call    SetNpcVar ( .Npc_GoombaKing 1 .True )
+            EndIf
+        EndIf
+        % Nuke temporary highscore data
+        Label   HighscoreEnd
+        Call    $WriteAddress ( $Timer_Total 2 0 .False .False )
+        Call    $WriteAddress ( $BP_TotalTurns 0 0 .False .False )
+    EndIf
+    Exec    $Script_Cutscene_BattleEnds *Var[A]
+    Exec	$SkipCutscene_BattleEnds
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    If .FloorsBeated == 10` % Black Pit beated
+        % Exit the Black Pit
+        ExecWait $Script_Exit1 % finally leave the map
+        Return
+    EndIf
+    Call    $WriteAddress ( 800B0FAB 0 0 .False .False ) % force "coming from battle unfading" to stop
+    SetF	*Var[0] *Fixed[25.0]  % speed
+    SetF	*Var[1] *Fixed[255.0] % fully dark
+    ExecWait $Script_FadeScreenOut
+    %
+    Call    SetPlayerPos ( ~Vec3d:EnterFloor )
+    Call    ResetCam ( .Cam:Default *Fixed[50.0] )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Call    TeleportPartnerToPlayer
+    % Set next npc pos
+    Switch .FloorsBeated
+        CaseOR == 1 % Koopa Bros
+        CaseOR == 2 % Tutan Koopa
+        CaseOR == 3 % Tubbla Bubbla
+        CaseOR == 4 % Lantern Guy
+        CaseOR == 5 % General Guy
+        CaseOR == 6 % Kent C. Koopa
+            Call    SetNpcPos ( .FloorsBeated ~Vec3d:Npc_Pos1 )
+        EndCaseGroup
+        Case == 7 % Lava Piranha
+            Call    SetNpcPos ( .FloorsBeated ~Vec3d:Npc_Pos2 )
+        Case == 8 % Huff N' Puff
+            Call    SetNpcPos ( .FloorsBeated ~Vec3d:Npc_Pos3 )
+        Case == 9 % Bowser
+            Call    SetNpcPos ( .FloorsBeated ~Vec3d:Npc_Pos4 )
+    EndSwitch
+    Wait    15`
+    Thread % Fade Screen Brightness
+        SetF	*Var[0] *Fixed[25.0] % speed
+        SetF	*Var[1] *Fixed[5.0]  % fully bright
+        ExecWait $Script_FadeScreenIn
+    EndThread
+    % Walk to the npc and start the next battle
+    Exec    $Script_Cutscene_BattleStarts *Var[A]
+    Exec	$SkipCutscene_BattleStarts
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    % Set next Battle ID
+    Switch .FloorsBeated
+        Case == 1
+            Set *Var[0] 3C01 % Koopa Bros
+        Case == 2
+            Set *Var[0] 3C02 % Tutan Koopa
+        Case == 3
+            Set *Var[0] 3C03 % Tubbla Bubbla
+        Case == 4
+            Set *Var[0] 3C04 % Lantern Guy
+        Case == 5
+            Set *Var[0] 3D00 % General Guy
+        Case == 6
+            Set *Var[0] 3E00 % Kent C. Koopa
+        Case == 7
+            Set *Var[0] 3F00 % Lava Piranha
+        Case == 8
+            Set *Var[0] 4000 % Huff N' Puff
+        Case >= 9
+            Set *Var[0] 4100 % Bowser
+    EndSwitch
+    Call    SetPlayerAnimation ( 00010006 ) % prepare to jump
+    Call    $SetNpcGroupBattleID ( 0 *Var[0] )
+    Call    SetNpcVar ( .Npc_GoombaKing 0 .True ) % start battle
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_BattleEnds
+{
+    Wait    20`
+    Thread
+        Call    PlayerMoveTo ( ~PosXd:LeaveFloor ~PosZd:LeaveFloor 0 )
+    EndThread
+    Wait    90` % wait until mario is walking on the stairs
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_BattleStarts
+{
+    
+    Call    GetNpcPos ( .Npc_GoombaKing *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 2 % x
+    Add     *Var[2] 80` % z
+    Call    SetPlayerSpeed ( *Fixed[3.0] )
+    Call    PlayerMoveTo ( *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_BattleEnds
+{
+	Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+            SuspendAll 2
+            Call    SetPlayerFlagBits ( 00005000 .False ) % Force PlayerMoveTo to stop
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_BattleStarts
+{
+	Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+            ExecWait $Script_FadeScreenOut
+            Call    SetPlayerFlagBits ( 00005000 .False ) % Force PlayerMoveTo to stop
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            % set player and partner positions
+            Call    GetNpcPos ( .Npc_GoombaKing *Var[0] *Var[1] *Var[2] )
+            Add     *Var[1] 2 % x
+            Add     *Var[2] 80` % z
+            Call    SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Call    TeleportPartnerToPlayer
+            Exec    $MovePartnerBehindMario
+            Wait    5
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Function $Function_Format_BPBestTime
+{
+    PUSH    RA, A0, S0
+    % Hours
+    LIO     A1, *BestTimeBP_HH
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     T0, $CurrentBestTime
+    SB      V0, 0 (T0) % Save Best HH
+    % Minutes
+    LIO     A1, *BestTimeBP_MM
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     T0, $CurrentBestTime
+    SB      V0, 1 (T0) % Save Best MM
+    % Seconds
+    LIO     A1, *BestTimeBP_SS
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     T0, $CurrentBestTime
+    SB      V0, 2 (T0) % Save Best SS
+    % Milliseconds
+    LIO     A1, *BestTimeBP_MS
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     T0, $CurrentBestTime
+    SB      V0, 3 (T0) % Save Best MS
+    POP     RA, A0, S0
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Unknown $CurrentBestTime
+{ 00000000 }
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:WallPressA ~Collider:exit0 00000001 00000000 % Entrance
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000 % Exit
+Return
+End	
+}
+
+#new:Script $Script_Exit0
+{
+    Call    DisablePlayerInput    ( .True )
+    Call    EnableModel ( ~Model:doorL .False )
+    Call    EnableModel ( ~Model:doorR .False )
+    Call    EnableModel ( ~Model:doorL2 .True )
+    Call    EnableModel ( ~Model:doorR2 .True )
+    Call    UseDoorSounds ( .DoorSounds:Metal )
+    Set     *Var[0] ~Entry:Entry0
+    Set     *Var[1] ~Collider:exit0
+    Set     *Var[2] ~Model:doorL2
+    Set     *Var[3] ~Model:doorR2
+    Exec    ExitDoubleDoor
+	Wait    17`
+	Call    GotoMap	( "bp_01" 1 )
+	Wait    100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+    Set     *Flag_BlackPit .False
+	Call     UseExitHeading  	( 60` 1 )
+	Exec     ExitWalk
+	Call     GotoMap	( "bp_03" 0 )
+	Wait     100`
+	Return
+	End
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the Black Pit.
+[WAIT][NEXT][...]
+All battles in this place will
+happen consecutively.
+[WAIT][NEXT][...]
+That means you will not have
+any room for swapping badges,
+partners or healing before any
+battle in the entire Pit!
+[WAIT][NEXT][...]
+This is our last test before
+reaching the final showdown.
+[WAIT][NEXT][...]
+So remember to have everyone fully
+upgraded, and a decent amount of
+Badges and Star Spirits!
+[WAIT][END]
+}

@@ -1,0 +1,125 @@
+% Script File: kpa_121.mscr
+% Decoded from: 0 to 430 (kpa_121)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -373.0 -240.0  100.0   90.0
+    ~Vec4f:Entry1 %  465.0    0.0   95.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   00190188
+}
+
+#new:Script $Script_80240060
+{
+    Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Metal )
+    Thread
+        Wait  30`
+        Call  802D5FA4  ( 00000007 )
+    EndThread
+    Return
+    End
+}
+
+PADDING: 802400C8 to 802400D0 (000000C8 to 000000D0)
+00000000 00000000
+
+#new:Script $Script_ExitDoubleDoor_802400D0
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:deilitw
+    Set   *Var[2]  ~Model:o348
+    Set   *Var[3]  ~Model:o356
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80240420 00000001 ) % kpa_83
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitSingleDoor_80240174
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    If  *StoryProgress  <  0000005F
+        Set   *StoryProgress  0000005F
+    EndIf
+    Set   *Var[0]  ~Entry:Entry1
+    Set   *Var[1]  ~Collider:deilitte
+    Set   *Var[2]  ~Model:o340
+    Set   *Var[3]  .DoorSwing:In % 1
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80240428 00000000 ) % osr_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240240
+{
+    Bind  $Script_ExitDoubleDoor_802400D0 .Trigger:WallPressA ~Collider:deilittw 00000001 00000000
+    Bind  $Script_ExitSingleDoor_80240174 .Trigger:WallPressA ~Collider:deilitte 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterSingleDoor_80240288
+{
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[0]  00000000
+            Set   *Var[2]  ~Model:o356
+            Set   *Var[3]  ~Model:o348
+            Exec  EnterDoubleDoor
+            Exec  $Script_80240240
+        Case  ==  ~Entry:Entry1
+            Set   *Var[0]  00000001
+            Set   *Var[2]  ~Model:o340
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+            Exec  $Script_80240240
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:BowsersCastle
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Exec  $Script_80240060
+    Exec  $Script_EnterSingleDoor_80240288
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 8024041C to 80240420 (0000041C to 00000420)
+00000000
+
+#new:ASCII $ASCII_80240420
+{
+    "kpa_83"
+}
+
+#new:ASCII $ASCII_80240428
+{
+    "osr_02"
+}
+

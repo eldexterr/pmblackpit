@@ -1,0 +1,144 @@
+% This hook let you do whatever thing you want to do with all actors
+% at the start of a battle, like buffing them or nerfing them, used by
+% the Pit events to buff or freeze all actors at the start of a battle.
+
+@Hook 16FF50 % 80241670
+{
+PUSH	RA, V0, V1, A0, A1, A2, A3
+% Check if the player is inside the pit
+LIO     A1, *PitFlag
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Check if an event is currently active
+LIO     A1, *Flag_Event
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+CLEAR	A2 % flags
+LIA		A0, $Script_Init_SetActorStats
+JAL		~Func:start_script
+ADDIU	A1, R0, 1 % priority
+% Vanilla code
+% check if the player used Dizzy Attack
+% Isn't used by this hook but I just wanted to document it :p
+.End
+POP		RA, V0, V1, A0, A1, A2, A3
+LBU	    V0, 0010 (FP) 
+SB	    V0, 0208 (S0)
+% Load Status to Set against the enemy in V1
+% 800B0FB0 = Status
+% 800B0FB3 = Amount of Turns
+LB	    V1, 00A0 (FP)
+J       80241680
+% Status to Set at the Start of the battle
+% If V1 and V0 are equal daze the enemy at the start of the battle
+ADDIU	V0, R0, 0004 % 04 = Dizzy
+}
+
+#new:Script:Battle $Script_Init_SetActorStats
+{
+Exec    $Script_SetActorStats
+Return
+End
+}
+
+#new:Script:Battle $Script_SetActorStats % unfinished
+{
+% Get Amount of Actors in current Battle
+Set *Var[2] 1 % Amount of actors, start with 1 because there will be always at least 1 actor in battle.
+Set *Var[1] 4 % Offset % start reading from actor 2
+Loop
+    % Start reading each word(4 bytes) until you find a 00000000
+    % 800DC150 = Actor's Pointers Table
+    Call    $ReadAddress ( 800DC150 2 *Var[0] *Var[1] .False )
+    If  *Var[0] == .False
+        BreakLoop
+    EndIf
+    Add *Var[1] 4 % read next actor
+    Add *Var[2] 1 % add one new actor to the counter
+EndLoop
+Switch *EventToLoad
+    Case == 3 % Chill
+        Loop % wait until the player can use his turn
+            Call GetBattlePhase ( *Var[0] )
+            If *Var[0] == .Phase:PlayerBegin
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+        Call 8026E198 ( D ) % DisablePlayerBattleInputs
+        % Sleep all enemies for 2 turns
+        Set  *Var[0] 200 % .Actor:Enemy0
+        Loop  *Var[2] % amount of actors
+            % Check if the actor is still alive (maybe the player made a 1st strike and he died)
+            % check if the current actor pointer is 00000000 (means is dead)
+            Set *Var[3] 4
+            Mul *Var[3] *Var[0]
+            Call $ReadAddress ( 800DB950 2 *Var[4] *Var[3] .False )
+            If *Var[4] != .False
+                Call  AfflictActor      ( *Var[0] .Status:Sleep 2 )
+            EndIf
+            Add   *Var[0] 1 % target next actor
+        EndLoop
+        Call 8026E198 ( 0 ) % EnablePlayerBattleInputs
+        Call 8026777C % show debuff icons
+    Case == 2 % Burn
+        Loop % wait until the player can use his turn
+            Call GetBattlePhase ( *Var[0] )
+            If *Var[0] == .Phase:PlayerBegin
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+        Call 8026E198 ( D ) % DisablePlayerBattleInputs
+        % Boost Attacks by 2
+        Thread
+            Wait  10`
+            Call  PlaySound  ( 02DD ) % boost
+        EndThread
+        Set  *Var[0] 200 % .Actor:Enemy0
+        Loop  *Var[2] % amount of actors
+            % Check if the actor is still alive (maybe the player made a 1st strike and he died)
+            % check if the current actor pointer is 00000000 (means is dead)
+            Set *Var[3] 4
+            Mul *Var[3] *Var[0]
+            Call $ReadAddress ( 800DB950 2 *Var[4] *Var[3] .False )
+            If *Var[4] != .False
+                Thread
+                    Call  8026BF48      ( .True )
+                    Call  BoostAttack   ( *Var[0] 2 )
+                    Call  8026BF48      ( .False )
+                EndThread
+            EndIf
+            Add   *Var[0] 1 % target next actor
+        EndLoop
+        Wait 1
+        Call WaitForBuffDone
+        Call 8026E198 ( 0 ) % EnablePlayerBattleInputs
+        %Call    8026777C % show debuff icons
+    Case == 1 % Rain % actors give more coins
+        Loop % wait until the player can use his turn
+            Call GetBattlePhase ( *Var[0] )
+            If *Var[0] == .Phase:PlayerBegin
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+        Call 8026E198 ( D ) % DisablePlayerBattleInputs
+        % The code that handle this is at globals/patch/ExtraDifficulties.patch/@Hook 1AB210
+        Call ShowMessageAtScreenPos ( $String_CoinBoost A0 65` )
+        Call WaitForMessageBoxDone
+        Call 8026E198 ( 0 ) % EnablePlayerBattleInputs
+EndSwitch
+Return
+End
+}
+
+#string $String_CoinBoost
+{
+[DelayOff][STYLE:POPUP][...]
+[Color:2F]Get more coins from enemies.[PAUSE:3C][END]
+}

@@ -1,0 +1,121 @@
+% Script File: pra_15.mscr
+% Decoded from: 0 to 310 (pra_15)
+
+#new:Function_Init $Function_Init
+{
+	LAW       V1, 8007419C
+	ADDIU     V0, R0, 1
+	SB        V0, 84 (V1)
+	JR        RA
+	CLEAR     V0
+}
+
+PADDING: 80240018 to 80240020 (00000018 to 00000020)
+00000000 00000000
+
+#new:Function $Function_80240020
+{
+	LIA       V0, 8009A650
+	LW        V1, 0 (V0)
+	ADDIU     A0, R0, FF7F
+	AND       V1, V1, A0
+	SW        V1, 0 (V0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  487.0  -60.0  106.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000001
+    [Background]  80200000
+    [MapTattle]   00190142
+}
+
+#new:Script $Script_80240090
+{
+    Call  SetMusicTrack ( 00000000 .Song:ShiverMountain 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Basic )
+    Return
+    End
+}
+
+PADDING: 802400CC to 802400D0 (000000CC to 000000D0)
+00000000
+
+#new:Script $Script_ExitWalk_802400D0
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80240300 00000003 ) % pra_01
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_8024012C
+{
+    Bind  $Script_ExitWalk_802400D0 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterWalk_80240158
+{
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[0]  $Script_8024012C
+            Exec  EnterWalk
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:CrystalPalace
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_802402C0
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:o1298 00000008 )
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:deilie 00000008 )
+    Call  $Function_80240020 ( )
+    Exec  $Script_EnterWalk_80240158
+    Wait  1`
+    Exec  $Script_80240090
+    Return
+    End
+}
+
+PADDING: 802402B4 to 802402C0 (000002B4 to 000002C0)
+00000000 00000000 00000000
+
+#new:Script $Script_802402C0
+{
+    Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802402C0 .ItemSpawnMode:Fixed_NeverVanish *Flag_PRA_10 )
+    Return
+    End
+}
+
+PADDING: 802402F4 to 80240300 (000002F4 to 00000300)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80240300
+{
+    "pra_01"
+}
+
+PADDING: 80240308 to 80240310 (00000308 to 00000310)
+00000000 00000000
+

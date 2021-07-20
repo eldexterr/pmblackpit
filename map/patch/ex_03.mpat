@@ -1,0 +1,291 @@
+
+/%
+This map is about basic enemy AI.
+%/
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000004 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW % -475.0    0.0    0.0   90.0
+~Vec4f:EntryE %  475.0    0.0    0.0  270.0
+~Vec4f:EntryN %    0.0    0.0 -475.0  180.0
+~Vec4f:EntryS %    0.0    0.0  475.0    0.0
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	LIA		A0, 800B0CF0
+	LIA		A1, "sbk_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:Script_Main $Script_Main
+{
+	Set      *WorldMapLocation 0000000A
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 )
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:Sign 80000000 )
+	Call     AssignScript 	( $Script_ReadSign )
+	% Prepare exits
+	Set      *Var[0] $Script_MakeExits 
+	Exec     EnterWalk 
+	Return
+	End
+}
+
+#new:Script $Script_ReadSign
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_Sign 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups
+{
+00000001 $NpcGroup_BoxGoomba 00000000 
+00000001 $NpcGroup_RingGoomba 00000000 
+00000000 00000000 00000000 
+}
+
+%%
+% Goombas
+%%
+
+#new:NpcGroup $NpcGroup_BoxGoomba
+{
+00000000 $NpcSettings_BoxGoomba ~Vec3f:SquareNPC
+00000400 00000000 00000000 00000000 0000005A 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+~Movement:SquareNPC
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005 
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003 
+00000001 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_RingGoomba			% radii chosen to be approximately the same area as the box, ~factor of 2 / sqrt(pi)
+{
+00000001 $NpcSettings_RingGoomba ~Vec3f:CircleNPC
+00000400 00000000 00000000 00000000 0000005A 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+% -- Wandering enemies have collision with walls and ramps.
+% -- If they hit the wander boundary, they walk back toward the wander origin.
+% -- Height for these volumes uses the NPC collision height from NpcSettings.
+% -- Enemies are only alerted if they have a line-of-sight to Mario.
+% -- If line-of-sight is broken during chase, they lose track of him.
+~Movement:CircleNPC
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005 
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_BoxGoomba
+{
+00000000 00140017 00000000 00000000 $Script_GoombaAI 80077F70 $Update_Box_Models $Remove_Box_Models 
+00000000 00000000 00050000 
+}
+
+#new:NpcSettings $NpcSettings_RingGoomba
+{
+00000000 00140017 00000000 00000000 $Script_GoombaAI 80077F70 $Update_Ring_Models $Remove_Ring_Models 
+00000000 00000000 00050000 
+}
+
+#new:Script $Script_GoombaAI
+{
+	Call     DoBasicAI   	( $AISettings_Goomba )
+	Return
+	End
+}
+	
+#new:Script $Update_Box_Models
+{
+	Loop
+		Call	GetNpcPos		( FFFFFFFF *Var[0] *Var[1] *Var[2] )
+		Call	TranslateModel	( ~Model:BoxAlert *Var[0] 3 *Var[2] )
+		Call	TranslateModel	( ~Model:BoxChase *Var[0] 3 *Var[2] )
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+	
+#new:Script $Remove_Box_Models
+{
+	ExecWait	8007809C		% Call the default cleanup script.
+	Call		EnableModel		( ~Model:BoxAlert .False )
+	Call		EnableModel		( ~Model:BoxChase .False )
+	Return
+	End
+}
+	
+#new:Script $Update_Ring_Models
+{
+	Loop
+		Call	GetNpcPos		( FFFFFFFF *Var[0] *Var[1] *Var[2] )
+		Call	TranslateModel	( ~Model:RingAlert *Var[0] 3 *Var[2] )
+		Call	TranslateModel	( ~Model:RingChase *Var[0] 3 *Var[2] )
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Remove_Ring_Models
+{
+	ExecWait	8007809C		% Call the default cleanup script.
+	Call		EnableModel		( ~Model:RingAlert .False )
+	Call		EnableModel		( ~Model:RingChase .False )
+	Return
+	End
+}
+	
+#new:AISettings $AISettings_Goomba
+{
+    1.5 % move speed
+    300` % move time
+    30` % wait time
+  130.0 % alert radius
+    0.0
+    1`
+    1.25 % chase speed
+    180` % max turn rate (0 = enemy rushes at position where the player was detected and keeps going)
+    3`
+  150.0 % chase radius
+    0.0
+    1`
+}
+	
+%%
+% Exits
+%%
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_ExitW .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000 
+	Bind     $Script_ExitE .Trigger:FloorAbove ~Collider:deilie 00000001 00000000 
+	Bind     $Script_ExitN .Trigger:FloorAbove ~Collider:deilin 00000001 00000000 
+	Bind     $Script_ExitS .Trigger:FloorAbove ~Collider:deilis 00000001 00000000 
+	Return
+	End
+}
+
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000000 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_02" 00000001 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000001 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_04" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitN
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000002 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_03" 00000003 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitS
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000003 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_03" 00000002 )
+	Wait     100` 
+	Return
+	End
+}
+
+%%
+% Embedded Strings
+%%
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This looks like a map for testing
+enemy movement and AI. Let's have
+a look at the sign over there.
+[WAIT][END]
+}
+
+#string $String_Sign
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+This map demonstrates how the
+basic enemy AI works.
+[WAIT][NEXT][...]
+The cyan boundaries are player
+detection volumes. Enemies are
+only aware of Mario if he is
+within this volume.
+[WAIT][NEXT][...]
+The pink boundaries are random
+wandering volumes. Enemies that
+wander cannot leave them unless
+they are chasing the player.
+[WAIT][NEXT][...]
+These enemies will begin chasing
+Mario if he enters their red
+circle and give up if he exits
+their white circle.
+[WAIT][NEXT][...]
+Their chase speed has been
+reduced so you can outrun them.
+Check out the map patch file for
+more information.
+[DelayOn][WAIT][END]
+}

@@ -1,0 +1,2490 @@
+% This file handle the notification who appear when you complete a challenge
+% Also have the code for a few challenges, although most challenges are in their respective scripts (ej. look for Rowf script for his challenges)
+
+#new:Data $Challenge_PopUp_Data
+{
+00000000
+% XX000000 % Notification Active Flag
+% 00XX0000 % Star Points Gained
+% 0000XXXX % Challenge String ID
+}
+
+#new:Data $Challenge_PopUp_Data2
+{
+00000000
+% XX000000 % Notification Timer
+% 00XX0000 % Opacity
+% 0000XX00 % Notification State
+% 000000XX % unused
+}
+
+% Needed by BadgeBelts.patch, when you pause the menu to see the cheev unlocked
+#export $Challenge_PopUp_Data
+#export $Challenge_PopUp_Data2
+
+#new:Function $Function_ChallengeNotification
+{
+PUSH    RA, S0, S1, S2, S3, V0, V1, A1, A2, A3
+LIO     T0, $Challenge_PopUp_Data
+LBU     T1, 0 (T0) % Load Notif Flag
+BEQ     T1, R0, .End
+NOP
+% A notification need to be displayed
+LIO     T0, $Challenge_PopUp_Data2
+LBU     S0, 0 (T0) % Load PopUp timer
+LBU     S1, 1 (T0) % Opacity
+LBU     S2, 2 (T0) % PopUp State ID
+LIO     T1, $Challenge_PopUp_Data
+LBU     S3, 1 (T1) % Star Points earned
+BNE     S2, R0, .CheckState1
+NOP
+% Start Notification Animation
+ADDIU   T1, R0, 1
+BEQ     R0, R0, .End
+SB      T1, 2 (T0) % Set state as: Start Animation
+.CheckState1
+ADDIU   T1, R0, 1
+BNE     S2, T1, .CheckState2
+NOP
+ADDIU   S1, S1, 20 % How fast the notification appears
+% Check if the box is fully visible
+SLTIU   T1, S1, 100
+BNE     T1, R0, .SaveNewOpacity
+NOP
+% The box is fully displayed
+ADDIU   S1, R0, FF % Max
+% Set Box State to 2 (Start Animation Ended)
+ADDIU   T1, R0, 2
+SB      T1, 2 (T0)
+.SaveNewOpacity
+BEQ     R0, R0, .PrintNotifBox
+SB      S1, 1 (T0) % Save new Opacity
+.CheckState2
+ADDIU   T1, R0, 2
+BNE     S2, T1, .CheckState3
+NOP
+% Give Star Points
+BEQ     S3, R0, .BypassGivingSP
+NOP
+ADDIU   T0, R0, 1
+LAHU    T1, 8035612E
+ADDIU   T1, T1, 1 % Add 1 SP
+SAH     T1, 8035612E
+SUBU    S3, S3, T0 % Sub 1 SP from the ones remaining to give
+LIO     T0, $Challenge_PopUp_Data
+SB      S3, 1 (T0)
+% Play Sound
+ADDIU	A0, R0, 0215 % Star Point
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	~Func:_play_sound
+COPY 	A3, A1
+.BypassGivingSP
+LABU    T0, 80074094 % Game State / 00 = Overworld
+BNE     T0, R0, .BypassStartButton
+NOP
+.CheckStartInput
+% Track Start Button
+LABU    T0, 80074036 % Inputs % bit4 = Start
+SLL    	T0, T0, 27`
+SRL 	T0, T0, 31` % Move all bits to just leave bit4
+BEQ	    T0, R0, .BypassStartButton % If the Start button wasn't pressed
+NOP
+% Pause the game and open the challenge unlocked
+ADDIU 	A2, R0, 1
+LIO 	A1, *GoToExtraTab
+JAL 	~Func:set_variable
+RESERVED
+%% The code that open the extra tab and open the challenge unlocked is at BadgeBelts.patch
+% In Hook 422C
+.BypassStartButton
+LIO     T0, $Challenge_PopUp_Data2
+ADDIU   S0, S0, 4 % How long the notification will stay
+SB      S0, 0 (T0) % Save Timer
+% The timer has ended?
+SLTIU   T1, S0, 100
+BNE     T1, R0, .PrintNotifBox
+NOP
+% Has ended, set box state to 3 (Dissapear)
+% Set timer back to 0
+SB      R0, 0 (T0) % Save Timer
+ADDIU   T1, R0, 3 % State 3
+SB      T1, 2 (T0)
+BEQ     R0, R0, .PrintNotifBox
+NOP
+.CheckState3
+ADDIU   T2, R0, 20 % How fast the notification dissappear
+SUBU    S1, S1, T2
+% Check if the box is fully invisible
+SLTI    T1, S1, 0
+BEQ     T1, R0, .SaveNewOpacity
+NOP
+% The box ending fade animation has ended
+% Restart all Animation Data
+SB      R0, 0 (T0) % Load PopUp timer
+SB      R0, 1 (T0) % Opacity
+SB      R0, 2 (T0) % PopUp State ID
+SAB     R0, $Challenge_PopUp_Data
+BEQ     R0, R0, .End
+NOP
+.PrintNotifBox
+JAL     $Function_NotificationBox
+NOP
+.End
+POP     RA, S0, S1, S2, S3, V0, V1, A1, A2, A3
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $Function_NotificationBox
+{
+PUSH	RA, A0, A1, A2, A3, T0, T1, T2
+% Draw Box Frame
+ADDIU	A0, R0, 12  % posX
+ADDIU	A1, R0, 3B  % posY
+ADDIU	A2, R0, 81 % sizeX
+ADDIU	A3, R0, 2D % sizeY
+ADDIU   T2, R0, FF % fogRGB
+COPY    T1, S1  % Load Opacity
+% Check if the opacity is above 60
+SLTIU   T0, T1, 60
+BEQL    T0, R0, .LockOpacity
+ADDIU	T1, R0, 60 % opacity
+.LockOpacity
+JAL		$DrawBox_Notification
+ADDIU	T0, R0, 0  % style
+% Draw Box BG
+ADDIU	A0, R0, 10  % posX
+ADDIU	A1, R0, 39  % posY
+ADDIU	A2, R0, 85 % sizeX
+ADDIU	A3, R0, 30 % sizeY
+ADDIU   T2, R0, 00 % fogRGB
+COPY    T1, S1  % Load Opacity
+JAL		$DrawBox_Notification
+ADDIU	T0, R0, 1  % style
+% Draw Strings
+% START (Hold)
+% Check if the player is in the overworld
+LABU    T0, 80074094 % Game State / 00 = Overworld
+BNE     T0, R0, .DontPrintStart
+NOP
+% Check if the player can currently move Mario
+LABU    T0, 802BFF0B % Lakitester's cloud state
+BEQ     T0, R0, .CheckInputsState % the player isn't using Lakilester
+NOP
+.CheckLakisInputs
+% Lakilester use his own Inputs Disabled Byte Flag
+LABU    T0, 8010EBC4 % Lakilester's DisablePlayerInput Byte Flag
+BNE	    T0, R0, .DontPrintStart % Inputs currently locked
+NOP
+% The player is mounting laki but the inputs are currently unlocked
+BEQ     R0, R0, .PrintStart
+NOP
+% Check if the inputs are locked
+.CheckInputsState
+LABU    T0, 8010EFCA % Player Flags % bit5=Locked Inputs
+SLL    	T0, T0, 26`
+SRL 	T0, T0, 31` % Move all bits to just leave bit5
+BNE	    T0, R0, .DontPrintStart % Inputs currently locked
+NOP
+.PrintStart
+% Draw Box
+ADDIU	A0, R0, F5 % posX
+ADDIU	A1, R0, C6 % posY
+LABU    A2, $SkipCs_Data % ?? = MAX % sizeX
+ADDIU	A3, R0, 14 % sizeY
+ADDIU	T0, R0, 3  % style
+JAL		$DrawBox
+ADDIU	T1, R0, FF % opacity
+% Draw START string
+LIO     A0, $String_START
+ORI     A1, R0, 003D % x pos
+COPY    A3, S1 % Load Opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A2, R0, 0069 % y pos
+% Challenge
+.DontPrintStart
+LIO     A0, $String_Challenge
+ORI     A1, R0, 001C % x pos
+COPY    A3, S1 % Load Opacity
+JAL     ~Func:draw_string
+ORI     A2, R0, 003E % y pos
+% Challenge Title
+LIO     T0, $Challenge_PopUp_Data
+LHU     T0, 2 (T0)
+LUI     A0, 002F % String Bank ID
+ADDU    A0, A0, T0 % load Challenge Text ID
+ORI     A1, R0, 0019 % x pos
+COPY    A3, S1 % Load Opacity
+JAL     ~Func:draw_string
+ORI     A2, R0, 0050 % y pos
+POP		RA, A0, A1, A2, A3, T0, T1, T2
+JR		RA
+NOP
+}
+
+#string $String_START
+{
+[Size:0D:0D][Color:12][START] [Color:0A]View[END]
+}
+
+#string $String_Challenge
+{
+[Size:10:10][Color:04][STAR]  [Color:06]Challenge  [Color:04][STAR][END]
+}
+
+#string $String_StarPointIcon
+{
+[Item:00:1D][END]
+}
+
+% Each Challenge have an achieved flag plus a notificated flag
+% so this JAL check if any achievement already unlocked haven't
+% been notificated, if not, open the notification and set that
+% notification flag as true.
+#new:Function $Function_TrackChallenges
+{
+PUSH    RA, V0, V1, A1, A2, A3, S0, S1, S2
+% If a notification is already being played, bypass everything
+LABU    T0, $Challenge_PopUp_Data
+BNE     T0, R0, .End
+NOP
+% Globals Challenges checks
+% Global_01 is the last achievement to be checked, because is the platinum one
+% so always is the last achievement to trigger
+LIO 	A1, *Flag_Cheev_Global_02
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_03
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_02
+JAL 	~Func:get_variable
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_03
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_02
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002A % Challenge String ID
+.CheckFlag_Global_03
+LIO 	A1, *Flag_Cheev_Global_03
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_04
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_03
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_04
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_03
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002B % Challenge String ID
+.CheckFlag_Global_04
+LIO 	A1, *Flag_Cheev_Global_04
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_05
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_04
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_05
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_04
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002C % Challenge String ID
+.CheckFlag_Global_05
+LIO 	A1, *Flag_Cheev_Global_05
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_06
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_05
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_06
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_05
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002D % Challenge String ID
+.CheckFlag_Global_06
+LIO 	A1, *Flag_Cheev_Global_06
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_07
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_06
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_07
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_06
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002E % Challenge String ID
+.CheckFlag_Global_07
+LIO 	A1, *Flag_Cheev_Global_07
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_08
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_07
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_08
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_07
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 002F % Challenge String ID
+.CheckFlag_Global_08
+LIO 	A1, *Flag_Cheev_Global_08
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_09
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_08
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_09
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_08
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0030 % Challenge String ID
+.CheckFlag_Global_09
+LIO 	A1, *Flag_Cheev_Global_09
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_10
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_09
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_10
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_09
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0031 % Challenge String ID
+.CheckFlag_Global_10
+LIO 	A1, *Flag_Cheev_Global_10
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_11
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_10
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_11
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_10
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0032 % Challenge String ID
+.CheckFlag_Global_11
+LIO 	A1, *Flag_Cheev_Global_11
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_12
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_11
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_12
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_11
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0033 % Challenge String ID
+.CheckFlag_Global_12
+LIO 	A1, *Flag_Cheev_Global_12
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_13
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_12
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_13
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_12
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0034 % Challenge String ID
+.CheckFlag_Global_13
+LIO 	A1, *Flag_Cheev_Global_13
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_14
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_13
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_14
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_13
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0035 % Challenge String ID
+.CheckFlag_Global_14
+LIO 	A1, *Flag_Cheev_Global_14
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_15
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_14
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_15
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_14
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0036 % Challenge String ID
+.CheckFlag_Global_15
+LIO 	A1, *Flag_Cheev_Global_15
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_16
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_15
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_16
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_15
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0037 % Challenge String ID
+.CheckFlag_Global_16
+LIO 	A1, *Flag_Cheev_Global_16
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_17
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_16
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_17
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_16
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0038 % Challenge String ID
+.CheckFlag_Global_17
+LIO 	A1, *Flag_Cheev_Global_17
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_18
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_17
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_18
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_17
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 007E % Challenge String ID
+.CheckFlag_Global_18
+LIO 	A1, *Flag_Cheev_Global_18
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_19
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_18
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_19
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_18
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0039 % Challenge String ID
+.CheckFlag_Global_19
+LIO 	A1, *Flag_Cheev_Global_19
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_20
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_19
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_20
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_19
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003A % Challenge String ID
+.CheckFlag_Global_20
+LIO 	A1, *Flag_Cheev_Global_20
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_21
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_20
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_21
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_20
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 0 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003B % Challenge String ID
+.CheckFlag_Global_21
+LIO 	A1, *Flag_Cheev_Global_21
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_22
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_21
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_22
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_21
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003C % Challenge String ID
+.CheckFlag_Global_22
+LIO 	A1, *Flag_Cheev_Global_22
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_23
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_22
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_23
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_22
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003D % Challenge String ID
+.CheckFlag_Global_23
+LIO 	A1, *Flag_Cheev_Global_23
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_24
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_23
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_24
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_23
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003E % Challenge String ID
+.CheckFlag_Global_24
+%======
+% Global24 have his challenge code here too
+LAHU    T0, 80356038 % Damage Dealed in the entire game
+SLTIU   T1, T0, 20000`
+BNE     T1, R0, .CheckFlag_Global_24_2 % Bypass Completing the challenge
+NOP
+% Set challenge as completed
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:set_variable
+RESERVED
+%========
+.CheckFlag_Global_24_2
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_25
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_24
+JAL 	~Func:get_variable
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_25
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_24
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 003F % Challenge String ID
+.CheckFlag_Global_25
+LIO 	A1, *Flag_Cheev_Global_25
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_26
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_25
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_26
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_25
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0040 % Challenge String ID
+.CheckFlag_Global_26
+LIO 	A1, *Flag_Cheev_Global_26
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_27
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_26
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_27
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_26
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 00DB % Challenge String ID
+.CheckFlag_Global_27
+LIO 	A1, *Flag_Cheev_Global_27
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .CheckFlag_Global_28
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_27
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Global_28
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_27
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 00DC % Challenge String ID
+.CheckFlag_Global_28
+LIO 	A1, *Flag_Cheev_Global_28
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_01
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Global_28
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_01
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_28
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 00DD % Challenge String ID
+%===============
+% Classic Mode
+%===============
+.CheckFlag_Classic_01
+LIO 	A1, *Flag_Cheev_Classic_01
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_02
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_01
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_02
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_01
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0041 % Challenge String ID
+.CheckFlag_Classic_02
+LIO 	A1, *Flag_Cheev_Classic_02
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_03
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_02
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_03
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_02
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0042 % Challenge String ID
+.CheckFlag_Classic_03
+LIO 	A1, *Flag_Cheev_Classic_03
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_04
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_03
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_04
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_03
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0043 % Challenge String ID
+.CheckFlag_Classic_04
+LIO 	A1, *Flag_Cheev_Classic_04
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_05
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_04
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_05
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_04
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0044 % Challenge String ID
+.CheckFlag_Classic_05
+LIO 	A1, *Flag_Cheev_Classic_05
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_06
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_05
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_06
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_05
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0045 % Challenge String ID
+.CheckFlag_Classic_06
+LIO 	A1, *Flag_Cheev_Classic_06
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_07
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_06
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_07
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_06
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0046 % Challenge String ID
+.CheckFlag_Classic_07
+LIO 	A1, *Flag_Cheev_Classic_07
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_08
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_07
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_08
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_07
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0047 % Challenge String ID
+.CheckFlag_Classic_08
+LIO 	A1, *Flag_Cheev_Classic_08
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_09
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_08
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_09
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_08
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0048 % Challenge String ID
+.CheckFlag_Classic_09
+LIO 	A1, *Flag_Cheev_Classic_09
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_10
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_09
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_10
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_09
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004A % Challenge String ID
+.CheckFlag_Classic_10
+LIO 	A1, *Flag_Cheev_Classic_10
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_11
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_10
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_11
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_10
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004B % Challenge String ID
+.CheckFlag_Classic_11
+LIO 	A1, *Flag_Cheev_Classic_11
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_12
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_11
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_12
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_11
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004C % Challenge String ID
+.CheckFlag_Classic_12
+LIO 	A1, *Flag_Cheev_Classic_12
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_13
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_12
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_13
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_12
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004D % Challenge String ID
+.CheckFlag_Classic_13
+LIO 	A1, *Flag_Cheev_Classic_13
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_14
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_13
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_14
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_13
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 0 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004E % Challenge String ID
+.CheckFlag_Classic_14
+LIO 	A1, *Flag_Cheev_Classic_14
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_15
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_14
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_15
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_14
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 004F % Challenge String ID
+.CheckFlag_Classic_15
+LIO 	A1, *Flag_Cheev_Classic_15
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_16
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_15
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_16
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_15
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0050 % Challenge String ID
+.CheckFlag_Classic_16
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_17
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_16
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_17
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_16
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0051 % Challenge String ID
+.CheckFlag_Classic_17
+LIO 	A1, *Flag_Cheev_Classic_17
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_18
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_17
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_18
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_17
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0052 % Challenge String ID
+.CheckFlag_Classic_18
+LIO 	A1, *Flag_Cheev_Classic_18
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_19
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_18
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_19
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_18
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0053 % Challenge String ID
+.CheckFlag_Classic_19
+LIO 	A1, *Flag_Cheev_Classic_19
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_20
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_19
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_20
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_19
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0054 % Challenge String ID
+.CheckFlag_Classic_20
+LIO 	A1, *Flag_Cheev_Classic_20
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_21
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_20
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_21
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_20
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0055 % Challenge String ID
+.CheckFlag_Classic_21
+LIO 	A1, *Flag_Cheev_Classic_21
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_22
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_21
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_22
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_21
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0056 % Challenge String ID
+.CheckFlag_Classic_22
+LIO 	A1, *Flag_Cheev_Classic_22
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Classic_23
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_22
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Classic_23
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_22
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0057 % Challenge String ID
+.CheckFlag_Classic_23
+LIO 	A1, *Flag_Cheev_Classic_23
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_01
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Classic_23
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_01
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Classic_23
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0058 % Challenge String ID
+.CheckFlag_Rogue_01
+LIO 	A1, *Flag_Cheev_Rogue_01
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_02
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_01
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_02
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_01
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0059 % Challenge String ID
+.CheckFlag_Rogue_02
+LIO 	A1, *Flag_Cheev_Rogue_02
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_03
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_02
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_03
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_02
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005A % Challenge String ID
+.CheckFlag_Rogue_03
+LIO 	A1, *Flag_Cheev_Rogue_03
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_04
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_03
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_04
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_03
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005B % Challenge String ID
+.CheckFlag_Rogue_04
+LIO 	A1, *Flag_Cheev_Rogue_04
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_05
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_04
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_05
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_04
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005C % Challenge String ID
+.CheckFlag_Rogue_05
+LIO 	A1, *Flag_Cheev_Rogue_05
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_06
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_05
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_06
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_05
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005D % Challenge String ID
+.CheckFlag_Rogue_06
+LIO 	A1, *Flag_Cheev_Rogue_06
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_07
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_06
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_07
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_06
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005E % Challenge String ID
+.CheckFlag_Rogue_07
+LIO 	A1, *Flag_Cheev_Rogue_07
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_08
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_07
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_08
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_07
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 0 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 005F % Challenge String ID
+.CheckFlag_Rogue_08
+LIO 	A1, *Flag_Cheev_Rogue_08
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_09
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_08
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_09
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_08
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0060 % Challenge String ID
+.CheckFlag_Rogue_09
+LIO 	A1, *Flag_Cheev_Rogue_09
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_10
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_09
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_10
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_09
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0061 % Challenge String ID
+.CheckFlag_Rogue_10
+LIO 	A1, *Flag_Cheev_Rogue_10
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_11
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_10
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_11
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_10
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0062 % Challenge String ID
+.CheckFlag_Rogue_11
+LIO 	A1, *Flag_Cheev_Rogue_11
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_12
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_11
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_12
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_11
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0063 % Challenge String ID
+.CheckFlag_Rogue_12
+LIO 	A1, *Flag_Cheev_Rogue_12
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_13
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_12
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_13
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_12
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0064 % Challenge String ID
+.CheckFlag_Rogue_13
+LIO 	A1, *Flag_Cheev_Rogue_13
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_14
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_13
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_14
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_13
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0065 % Challenge String ID
+.CheckFlag_Rogue_14
+LIO 	A1, *Flag_Cheev_Rogue_14
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_15
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_14
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_15
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_14
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0066 % Challenge String ID
+.CheckFlag_Rogue_15
+LIO 	A1, *Flag_Cheev_Rogue_15
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_16
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_15
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_16
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_15
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0067 % Challenge String ID
+.CheckFlag_Rogue_16
+LIO 	A1, *Flag_Cheev_Rogue_16
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_17
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_16
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_17
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_16
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0069 % Challenge String ID
+.CheckFlag_Rogue_17
+LIO 	A1, *Flag_Cheev_Rogue_17
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_18
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_17
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_18
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_17
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006A % Challenge String ID
+.CheckFlag_Rogue_18
+LIO 	A1, *Flag_Cheev_Rogue_18
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_19
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_18
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_19
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_18
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006B % Challenge String ID
+.CheckFlag_Rogue_19
+LIO 	A1, *Flag_Cheev_Rogue_19
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_20
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_19
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_20
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_19
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006C % Challenge String ID
+.CheckFlag_Rogue_20
+LIO 	A1, *Flag_Cheev_Rogue_20
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_21
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_20
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_21
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_20
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006D % Challenge String ID
+.CheckFlag_Rogue_21
+LIO 	A1, *Flag_Cheev_Rogue_21
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_22
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_21
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_22
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_21
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006E % Challenge String ID
+.CheckFlag_Rogue_22
+LIO 	A1, *Flag_Cheev_Rogue_22
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_23
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_22
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_23
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_22
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 006F % Challenge String ID
+.CheckFlag_Rogue_23
+LIO 	A1, *Flag_Cheev_Rogue_23
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_24
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_23
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_24
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_23
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0070 % Challenge String ID
+.CheckFlag_Rogue_24
+LIO 	A1, *Flag_Cheev_Rogue_24
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Rogue_25
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_24
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Rogue_25
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_24
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0071 % Challenge String ID
+.CheckFlag_Rogue_25
+LIO 	A1, *Flag_Cheev_Rogue_25
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_01
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Rogue_25
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_01
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Rogue_25
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0072 % Challenge String ID
+.CheckFlag_Dungeon_01
+LIO 	A1, *Flag_Cheev_Dungeon_01
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_02
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_01
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_02
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_01
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0073 % Challenge String ID
+.CheckFlag_Dungeon_02
+LIO 	A1, *Flag_Cheev_Dungeon_02
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_03
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_02
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_03
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_02
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0074 % Challenge String ID
+.CheckFlag_Dungeon_03
+LIO 	A1, *Flag_Cheev_Dungeon_03
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_04
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_03
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_04
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_03
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0075 % Challenge String ID
+.CheckFlag_Dungeon_04
+LIO 	A1, *Flag_Cheev_Dungeon_04
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_05
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_04
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_05
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_04
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0076 % Challenge String ID
+.CheckFlag_Dungeon_05
+LIO 	A1, *Flag_Cheev_Dungeon_05
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_06
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_05
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_06
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_05
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0077 % Challenge String ID
+.CheckFlag_Dungeon_06
+LIO 	A1, *Flag_Cheev_Dungeon_06
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_07
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_06
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_07
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_06
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0078 % Challenge String ID
+.CheckFlag_Dungeon_07
+LIO 	A1, *Flag_Cheev_Dungeon_07
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_08
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_07
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_08
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_07
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 5 % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 0079 % Challenge String ID
+.CheckFlag_Dungeon_08
+LIO 	A1, *Flag_Cheev_Dungeon_08
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .CheckFlag_Dungeon_09
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_08
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .CheckFlag_Dungeon_09
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_08
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 20` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 007A % Challenge String ID
+.CheckFlag_Dungeon_09
+LIO 	A1, *Flag_Cheev_Dungeon_09
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .Flag_Cheev_Global_01
+NOP
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_09
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .Flag_Cheev_Global_01
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Dungeon_09
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 10` % Star Points to give
+BEQ     R0, R0, .OpenNotificationPop
+ADDIU   S0, R0, 007B % Challenge String ID
+%% Check the Platinum Achievement for the Last %%
+.Flag_Cheev_Global_01
+% Check if Platinum is already unlocked
+LIO 	A1, *Flag_Cheev_Global_01
+JAL 	~Func:get_variable 
+RESERVED
+BNE     V0, R0, .End
+NOP
+% Check if all achievements has been triggered
+% Get Challenges completed
+COPY    S2, R0
+JAL     $Function_GetCheevsUnlocked
+NOP
+ADDIU   T0, R0, 82` % Challenges Amount
+BNE     S2, T0, .End
+NOP
+% If all challenges has been completed unlock this cheev
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Global_01
+JAL 	~Func:set_variable 
+RESERVED
+LIO 	A1, *Flag_Cheev_Notif_Global_01
+JAL 	~Func:get_variable 
+RESERVED
+% If this achievement has been already unlocked and notificated
+BNE     V0, R0 .End
+NOP
+% This achievement has been unlocked but hasn't been notificated
+% Set notif flag as true
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Notif_Global_01
+JAL 	~Func:set_variable
+RESERVED
+ADDIU   S1, R0, 0 % Star Points to give
+ADDIU   S0, R0, 0029 % Challenge String ID
+.OpenNotificationPop
+% Write Star Points to give
+LIO     T0, $Challenge_PopUp_Data
+ADDIU   T1, R0, 1
+SH      S0, 2 (T0) % Write achievemnt string
+SB      S1, 1 (T0) % Write Star Points to give
+SB      T1, 0 (T0) % Open notification pop-up
+% Reset Pop-Up Animation Data
+SAW     R0, $Challenge_PopUp_Data2
+% Play Challenge unlocked sound
+ADDIU	A0, R0, 000C
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	~Func:_play_sound
+COPY 	A3, A1
+.End
+POP     RA, V0, V1, A1, A2, A3, S0, S1, S2
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $Function_GetCheevsUnlocked
+{
+PUSH    RA, V0, V1, A1, A2, A3
+%===================
+% Globals Challenges
+%===================
+LIO 	A1, *Flag_Cheev_Global_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_07
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_13
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_18
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_19
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+%LIO 	A1, *Flag_Cheev_Global_20 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+%ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_21
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_22
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_23
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_25
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_26
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_27
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Global_28
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+%============
+% Classic Mode Challenges
+%============
+LIO 	A1, *Flag_Cheev_Classic_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_07
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+%LIO 	A1, *Flag_Cheev_Classic_13 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+%ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_18
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_19
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_20
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_21
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_22
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Classic_23
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+%===================
+% Roguelike Mode Challenges
+%===================
+LIO 	A1, *Flag_Cheev_Rogue_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+%LIO 	A1, *Flag_Cheev_Rogue_07 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_13
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_18
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_19
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_20
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_21
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_22
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_23
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_24
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Rogue_25
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+%==========
+% Dungeon Challenges
+%==========
+LIO 	A1, *Flag_Cheev_Dungeon_01
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_02
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_03
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_04
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_05
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_06
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_07
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_08
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+LIO 	A1, *Flag_Cheev_Dungeon_09
+JAL 	~Func:get_variable
+RESERVED
+ADDU    S2, S2, V0
+POP     RA, V0, V1, A1, A2, A3
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+%===========
+%% Draw Box
+%===========
+
+% A0 = posX
+% A1 = posY
+% A2 = sizeX
+% A3 = sizeY
+% T0 = style
+% T1 = opacity
+#new:Function $DrawBox_Notification
+{
+ADDIU         SP, SP, -58
+SW            RA, 50 (SP)
+% setup call to DrawBox
+SW            R0, 10 (SP) % posZ
+SW            A2, 14 (SP) % width
+SW            A3, 18 (SP) % height
+SW            T1, 1C (SP) % opacity
+SW            T2, 20 (SP) % fogRGB
+COPY          A2, A0 % posX
+COPY          A3, A1 % posY
+CLEAR         A0 % flags
+COPY          A1, T0 % flags
+SW            R0, 24 (SP) % scaleX (unused)
+SW            R0, 28 (SP) % scaleY (unused)
+SW            R0, 2C (SP) % rotX (unused)
+SW            R0, 30 (SP) % rotY (unused)
+SW            R0, 34 (SP) % rotZ (unused)
+SW            R0, 38 (SP) % fpDrawContents (optional) % expect an address(?)
+SW            R0, 3C (SP) % drawContents() arg0 (optional)
+SW            R0, 40 (SP) % txMtx (unused)
+SW            R0, 44 (SP) % txShiftY (unused)
+SW            R0, 48 (SP) % txShiftX (unused)
+JAL           ~Func:draw_box
+SW            R0, 4C (SP) % unk
+LW            RA, 50 (SP)
+JR            RA
+ADDIU         SP, SP, 58
+}
+
+% For MiscHooks.patch
+#export $Function_TrackChallenges
+#export $Function_ChallengeNotification

@@ -1,0 +1,133 @@
+% This handle writing the current Partner ID
+@Hook 83DF0 % 800EA940
+{
+PUSH RA, A1, A2, V0, S3
+LAB A2, 8010F2A2 % Current Partner % Value to Set in Var
+LIO A1, *LastPartnerUsed
+JAL ~Func:set_variable
+NOP
+POP  RA, A1, A2, V0, S3
+PUSH RA
+JAL	800EA5D0      % Restore Code
+SB	V0, 0012 (S3) % Overwrite Current Partner % Restore Code
+POP RA
+J   800EA948      % Jump Back
+NOP
+}
+
+% Check if the R Button is pressed
+#new:Function $Function_TrackRButton_Quickswap
+{
+PUSH	RA, A0, A1, A2, A3, V0, V1, T0, T1, T2
+LABU 	T0, 80074037 % One frame Inputs
+SLL	 	T0, T0, 27`
+SRL  	T0, T0, 31` % Move all bits to just leave bit4
+ADDIU 	T1, R0, 1
+BNE		T0, T1, .End % If the player didn't pressed the R Button, just end the function
+NOP
+% Check Conditions
+% Checking if Mario isn't touching the ground
+LABU	T0, 800B1D83
+BEQ		T0, T1, .End % If mario isn't touching solid ground, finish the function
+NOP
+% The player is using any other partner?
+LABU	T0, 8010CD33 % Using a partner
+ANDI	T0, T0, 8 % bit3 % using a partner
+BEQ		T0, R0, .CheckInputsLocked % it isn't
+NOP
+% The player is using a Partner check if isn't Bow, Watt or Lakilester
+% Checking Partners
+ADDIU	T2, R0, 0
+LABU	T0, 8010F2A2 % Partner ID
+% The player have Bow out?
+ADDIU 	T1, R0, 9 	 % Bow ID
+BEQL	T0, T1, .BowWattLaki
+ADDIU	T2, R0, 1	 % Set T2 as 1, it means Mario have Bow or Watt out so the player can quick swap while using them
+% The player have Watt out?
+ADDIU 	T1, R0, 6 	 % Watt ID
+BEQL	T0, T1, .BowWattLaki
+ADDIU	T2, R0, 1	 % Set T2 as 1
+% The player have Laki out?
+ADDIU 	T1, R0, 8 	 % Lakilester ID
+BEQL	T0, T1, .BowWattLaki
+ADDIU	T2, R0, 1
+.BowWattLaki
+BNE		T2, R0, .SwapPartner
+NOP
+.CheckInputsLocked
+LABU	T0, 8010EFCA % PlayerFlags (3rd Byte)
+ANDI  	T0, T0, 30 % bit4+5
+BNE		T0, R0, .End % If the player have the controls locked, finish the function
+NOP
+% Launch Script
+.SwapPartner
+CLEAR	A2
+LIA		A0, $Script_SwapPartners
+JAL		~Func:start_script
+ADDIU	A1, R0, 1 % This line looks like is unneccesary
+.End
+POP		RA, A0, A1, A2, A3, V0, V1, T0, T1, T2
+JR		RA
+NOP
+}
+
+#export $Function_TrackRButton_Quickswap % used by globals/patch/BadgeBelts.patch
+
+#new:Function $LoadLastPartner
+{
+	PUSH	RA, A1, A2, V0
+	LAB 	A2, 803560D5 % Current Partner % Value to Set in Var
+	LIO 	A1, *Var[0] % Var[0]
+	JAL 	~Func:set_variable
+	NOP
+	POP		RA, A1, A2, V0
+	JR		RA
+	NOP
+}
+    
+#new:Function $RespawnPartner
+{
+	PUSH	RA
+	LW      V0, C (A0)
+    JAL     ~Func:get_variable
+   	LW      A1, 0 (V0)
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA
+   	ADDIU   V0, R0, 2
+   	JR      RA
+	NOP
+}
+	   
+#new:Function $DespawnPartner
+{
+    PUSH	RA
+    LW      V0, C (A0)
+    LAB     A2, 8010F2A2
+    JAL     ~Func:set_variable
+    LW      A1, 0 (V0)
+    POP		RA
+    JR      RA
+    ADDIU   V0, R0, 2
+}
+    
+#new:Script:Map $Script_SwapPartners
+{
+    If *HandleSpammingLButton == .True
+        Return
+	EndIf
+	If *LastPartnerUsed == 0 % If the player haven't even changed partners
+		Return
+	EndIf
+    Set     *HandleSpammingLButton .True
+	Call	DisablePlayerInput ( .True )
+	Call	$DespawnPartner
+	Call	$LoadLastPartner
+    Call	$RespawnPartner  ( *Var[0] )
+    Wait    2
+	Call	DisablePlayerInput ( .False )
+    Set     *HandleSpammingLButton .False
+    Return
+    End
+}

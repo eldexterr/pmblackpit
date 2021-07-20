@@ -1,0 +1,680 @@
+% Dimentio's Battle Script and Animations by elDexter
+% Sprites made by CyberShadow and Retriver II
+
+#define .Anim:Ground:Idle	        00F00001
+#define .Anim:Fly:Idle	            00F00002
+#define .Anim:Ground:Attack1:1	    00F00003
+#define .Anim:Ground:Attack1:2	    00F00004
+#define .Anim:Ground:Attack1:3	    00F00005
+#define .Anim:Fly:Attack1:1	        00F00006
+#define .Anim:Fly:Attack1:2	        00F00007
+#define .Anim:Fly:Attack1:3	        00F00008
+#define .Anim:Fly:Attack2:1	        00F00009
+#define .Anim:Fly:Attack2:2	        00F0000A
+#define .Anim:Fly:Attack2:3	        00F0000B
+#define .Anim:Fly:Attack2:4	        00F0000C
+#define .Anim:Ground:Disappear:Out  00F0000D
+#define .Anim:Ground:Disappear:In   00F0000E
+#define .Anim:Fly:Disappear:Out     00F0000F
+#define .Anim:Fly:Disappear:In      00F00010
+#define .Anim:GroundToFly           00F00011
+#define .Anim:FlyToGround           00F00012
+#define .Anim:Ground:Hurt           00F00013
+#define .Anim:Fly:Hurt              00F00014
+#define .Anim:Ground:Talk           00F00015
+#define .Anim:Fly:Talk              00F00016
+#define .Anim:Ground:Tired:1        00F00017
+#define .Anim:Ground:Tired:2        00F00018
+#define .Anim:Ground:Tired:Talk     00F00019
+#define .Anim:Fly:Tired             00F0001A
+#define .Anim:Projectile:1          00F0001B
+#define .Anim:Projectile:2          00F0001C
+
+#define .Model:Dimentio1_cube C
+#define .Model:Dimentio1_portal1 A
+#define .Model:Dimentio1_cubeFX B
+
+#new:Actor $37_Dimentio1
+{
+% stats
+[Index]       F4b 
+[Level]       0`b 
+[MaxHP]       170`b 
+[Coins]       0`b 
+[Flags]       00000004 % Hide Shadow
+[StatusTable] $StatusTable_Dimentio1 
+% ai
+[PartsCount]   2`s 
+[PartsTable]  $PartsTable_Dimentio1 
+[Script]      $Script_Init_Dimentio1 
+% move effectiveness
+[Escape]       0`b 
+[Item]         0`b 
+[AirLift]      0`b 
+[Hurricane]    0`b % Bow's "Spook" as well
+[UpAndAway]    0`b 
+[PowerBounce]  60`b 
+[SpinSmash]    4`b % weight (0-4)
+% ui positions
+[Size]         35`b  45`b % width height
+[HealthBar]    3`b   3`b % dx dy
+[StatusTurn]   10`b  30`b % dx dy
+[StatusIcon]   10`b  30`b % dx dy
+}
+
+#new:StatusTable $StatusTable_Dimentio1
+{
+.Status:Normal      	 0`
+.Status:Default     	 0`
+.Status:Sleep       	 0`
+.Status:Poison      	 0`
+.Status:Frozen      	 0`
+.Status:Dizzy       	 0`
+.Status:Fear        	 0`
+.Status:Static      	 0`
+.Status:Paralyze    	 0`
+.Status:Shrink      	 0`
+.Status:Stop        	 0`
+.Status:DefaultTurnMod   0`
+.Status:SleepTurnMod    -1`
+.Status:PoisonTurnMod    0`
+.Status:FrozenTurnMod    0`
+.Status:DizzyTurnMod    -1`
+.Status:FearTurnMod      0`
+.Status:StaticTurnMod    0`
+.Status:ParalyzeTurnMod -1`
+.Status:ShrinkTurnMod   -1`
+.Status:StopTurnMod     -2`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Dimentio1
+{
+%===============
+% Part 1 - Dimentio
+00800000 % Flags
+1b  % PartID
+0b  % XPos
+0b  % YPos
+0b  % ZPos
+0b  % CursorXPos
+32`b % CursorYPos
+0b  % Unknown
+FFb % Opacity
+$IdleAnimations_Dimentio1_Ground
+$DefenseTable_Dimentio1
+00000000 00000002 % ????
+FDb  % Cursor(Type2) X Pos (used in some partners moves)
+F6b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+00000000 % ?
+%===============
+% Part 2 - Projectile
+00120001 % Flags
+2b  % PartID
+0b  % XPos
+0b  % YPos
+0b  % ZPos
+0b  % CursorXPos
+0b  % CursorYPos
+0b  % Unknown
+FFb % Opacity
+$IdleAnimations_Dimentio1_Ground
+$DefenseTable_Dimentio1
+00000000 00000000 % ????
+00b  % Cursor(Type2) X Pos (used in some partners moves)
+00b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+00000000 % ?
+}
+
+#new:IdleAnimations $IdleAnimations_Dimentio1_Ground
+{
+.Status:Normal    .Anim:Ground:Idle
+.Status:Stone     00F00000
+.Status:Sleep     00F00000
+.Status:Poison    00F00000
+.Status:Stop      00F00000
+.Status:Static    00F00000
+.Status:Paralyze  00F00000
+.Status:Dizzy     00F00000
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_Dimentio1_Fly
+{
+.Status:Normal    .Anim:Fly:Idle
+.Status:Stone     .Anim:Fly:Tired
+.Status:Sleep     .Anim:Fly:Tired
+.Status:Poison    .Anim:Fly:Tired
+.Status:Stop      .Anim:Fly:Tired
+.Status:Static    .Anim:Fly:Tired
+.Status:Paralyze  .Anim:Fly:Tired
+.Status:Dizzy     .Anim:Fly:Tired
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_Dimentio1
+{
+.Element:Normal  2
+.Element:Fire	 2
+.Element:Water	 2
+.Element:Ice	 2
+.Element:Mystery 2
+.Element:Magic	 2
+.Element:Hammer	 2
+.Element:Jump	 2
+.Element:Cosmic	 2
+.Element:Blast	 2
+.Element:Shock	 2
+.Element:Quake	 2
+.Element:Throw	 2
+.Element:End
+}
+
+#new:Script $Script_Init_Dimentio1
+{
+	Call	BindTakeTurn			( .Actor:Self $Script_TakeTurn_Dimentio1 )
+	Call	BindHandleEvent			( .Actor:Self $Script_HandleEvent_Dimentio1 )
+	Call	HPBarToHome				( .Actor:Self )
+	Return
+	End
+}
+
+#new:Script $Script_HandleEvent_Dimentio1
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+	Call     EnableIdleScript 	( .Actor:Self 0 )
+	Call     GetLastEvent 	( .Actor:Self *Var[0] )
+	Switch  *Var[0] 
+		CaseOR  ==  .Event:HitCombo
+		CaseOR  ==  .Event:Hit
+		CaseOR  ==  .Event:MultibounceHit
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Ground:Hurt
+			ExecWait DoNormalHit
+		EndCaseGroup
+		Case  ==  .Event:BurnHit
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Ground:Hurt 
+			SetConst  *Var[2]  .Anim:Ground:Idle 
+			ExecWait DoBurnHit 
+		CaseOR  ==  00000017
+		CaseOR  ==  .Event:Immune
+		CaseOR  ==  .Event:AirLiftFailed
+		CaseOR  ==  .Event:BurnTaunt
+		CaseOR  ==  .Event:ScareAway
+		CaseOR  ==  .Event:BeginAirLift
+		CaseOR  ==  .Event:BlowAway
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Ground:Idle 
+			ExecWait DoImmune 
+		EndCaseGroup
+		CaseOR  ==  .Event:Death
+		CaseOR  ==  .Event:ShockDeath
+		CaseOR  ==  .Event:BurnDeath
+		CaseOR  ==  .Event:MultibounceDeath
+		CaseOR  ==  .Event:BurnDeath
+            ExecWait $Script_Dimentio1_EndFight
+			Return
+		EndCaseGroup
+		Case  ==  .Event:RecoverStatus
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Ground:Idle 
+			ExecWait DoRecover
+		Default
+	EndSwitch
+	Call     EnableIdleScript 	( .Actor:Self 1 )
+	Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Script $Script_Dimentio1_EndFight
+{
+	Call	ActorSpeak ( $String_Dimentio1_EndFight1 .Actor:Self 1 -1 -1 )
+	Call	GetActorHP ( .Actor:Self *Var[0] )
+	If *Var[0] == 0
+		Set *Var[0] 1
+	EndIf
+	Set 	*DimentioHP *Var[0] % unused
+	Wait	15`
+	Call    SetActorFlagBits 	( .Actor:Enemy0 00400000 .True ) % Finish Fight
+    Call    SetBattleFlagBits 	( 00060000 .True )
+    Call    8026F60C ( 20` ) % FadeScreen ( Speed )
+	Return
+	End
+}
+
+#string $String_Dimentio1_EndFight1
+{
+[STYLE:RIGHT][...]
+Well, I think I had enough fun
+from all of you.
+[WAIT][NEXT][...]
+What if I just put an end to
+all of this?
+I got tired of you.
+[WAIT][NEXT][...]
+Not gonna lie it has been quite
+some time since the last time
+I had this much fun.
+[WAIT][NEXT][...]
+I must say thanks to all of
+you, but...
+[WAIT][NEXT][...]
+Now prepare to die along with
+this dimention, ciao!
+[WAIT][END]
+}
+
+#new:Script $Script_TakeTurn_Dimentio1
+{
+% Check if dimentio have x amount of HP to end the fight
+Call GetEnemyMaxHP ( .Actor:Self *Var[0] )
+Sub  *Var[0] 40`
+Call GetActorHP ( .Actor:Self *Var[1] )
+If *Var[1] <= *Var[0]
+	ExecWait $Script_Dimentio1_EndFight
+	Return
+EndIf
+Call RandInt ( 100` *Var[0] ) % get attack
+%Set	*Var[0] 39` % testing
+Switch *Var[0]
+	Case < 40`  % 40/100 % Fire
+		Label	FireAttack
+		ExecWait $Script_Dimentio1_Attack_Fire
+	Case < 60`  % 20/100 % Thunder
+		% The partner is already hurt?
+		Call $ReadAddress ( 800DC14C 0 *Var[0] 216 .True ) % Partner's Actor Data(+216) = Current Status
+		If *Var[0] == .Status:Daze
+			Wait 1
+			Goto FireAttack
+		EndIf
+		ExecWait $Script_Dimentio1_Attack_Thunder
+	Case < 75`  % 15/100 % Sleep
+		% Check if Mario already have an status
+		Call	 GetStatusFlags ( .Actor:Player *Var[0] )
+		If *Var[0] == 00002000 % If the player have Zap Tap or used a Volt Shroom
+			Wait 1
+			Goto AttackSleep
+		Else
+			If *Var[0] != 0 % If the player already had an stat beside Static
+				Wait 1
+				Goto Projectile
+			EndIf
+		EndIf
+		Label AttackSleep
+		ExecWait $Script_Dimentio1_Attack_Sleep
+	Case <= 100` % 25/100 % Projectile
+		Label Projectile
+		ExecWait $Script_Dimentio1_Attack_Projectile
+EndSwitch
+Return
+End
+}
+
+#new:Script $Script_Dimentio1_Attack_Fire
+{
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call	 PlaySoundAtActor ( .Actor:Self 0378 )
+	Thread % show sparkles on dimentio's hand
+		Call	 GetActorPos 	  ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:1 )
+	Wait     15`
+	%==============================
+	% Cube appears
+	Call	GetActorPos ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 24` % y
+    Add     *Var[2] 20` % z
+	Call    TranslateModel ( .Model:Dimentio1_portal1 *Var[0] *Var[1] *Var[2] )
+	Call    TranslateModel ( .Model:Dimentio1_cubeFX *Var[0] *Var[1] *Var[2] )
+    Call    ScaleModel ( .Model:Dimentio1_portal1 *Fixed[0.0] *Fixed[0.0] *Fixed[0.0] ) % Initial Size
+    Call    EnableModel ( .Model:Dimentio1_portal1 .True )
+    % Start Animation
+    Call    PlaySound ( 0185 )
+    SetF    *Var[4] *Fixed[0.0]
+    Set     *Var[0] 11` % amount of loops % 12 = Fixed[1.1]
+    Loop *Var[0]
+        % set models position
+        Call	GetActorPos ( .Actor:Player *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 24` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:Dimentio1_portal1 *Var[5] *Var[6] *Var[7] )
+		AddF    *Var[4] *Fixed[0.1]
+		% scale model
+        Call    ScaleModel ( .Model:Dimentio1_portal1 *Var[4] *Var[4] *Fixed[1.0] )
+        If  *Var[0] == 1
+            BreakLoop
+        EndIf
+        Wait    1
+	EndLoop
+	Call    EnableModel ( .Model:Dimentio1_cubeFX .True )
+	Call    StopSound ( 0185 )
+	Wait    15`
+	%==============================
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:2 )
+	Wait     10`
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[F] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Call SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+			Wait 13`
+			Goto ReturnHome
+	EndSwitch
+	Thread
+		Wait	15`
+		Call    SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+		Wait	13`
+		Call    SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	EndThread
+	% Damage Mario
+	Call    EnemyDamageTarget ( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 00000008 00000020 ) % 0000FFFF = Invulnerable to Zap Tap
+	% FX
+	Call	PlaySoundAtActor  ( .Actor:Player 00F5 ) % burned
+	Call  	GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 12` % y
+	Call    PlayEffect    	  ( ~FX:RingBlast:Red *Var[0] *Var[1] *Var[2] *Fixed[1.0] 20` 0 0 0 0 0 0 0 )
+	Wait	20`
+	%Call  	SetAnimation  	  ( .Actor:Player 0 .PlayerAnim:Charred )
+	Loop  	10`
+        Call  GetActorPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+        Call  RandInt       ( 30` *Var[3] )
+        Call  RandInt       ( 30` *Var[4] )
+        Add   *Var[0]  -15`
+        Add   *Var[2]  10`
+        Add   *Var[0]  *Var[3]
+        Add   *Var[1]  *Var[4]
+        Call  PlayEffect    ( ~FX:SmokeBurst:Black *Var[0] *Var[1] *Var[2] 1 20` 0 0 0 0 0 0 0 )
+        Wait  1
+	EndLoop
+	%Call  	SetAnimation  	  ( .Actor:Player 0 00010002 ) % idle
+	% Return home
+	Label 	 ReturnHome
+	%==============================
+	% Cube Dissapears
+	Wait	15`
+	Call    EnableModel ( .Model:Dimentio1_cubeFX .False )
+    Call    PlaySound ( 0185 )
+    SetF    *Var[4] *Fixed[1.1]
+    Set     *Var[0] 11` % amount of loops % 12 = Fixed[1.1]
+    Loop *Var[0]
+        % set models positions
+        % mario
+        Call	GetActorPos ( .Actor:Player *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 24` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:Dimentio1_portal1 *Var[5] *Var[6] *Var[7] )
+        SubF    *Var[4] *Fixed[0.1]
+        Call    ScaleModel ( .Model:Dimentio1_portal1 *Var[4] *Var[4] *Fixed[1.0] )
+        If  *Var[0] == 1
+            Call    ScaleModel ( .Model:Dimentio1_portal1 *Fixed[0.0] *Fixed[0.0] *Fixed[1.0] )
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+	Call    StopSound ( 0185 )
+	Call    EnableModel ( .Model:Dimentio1_portal1 .False )
+	%==============================
+	Call     SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Script $Script_Dimentio1_Attack_Thunder
+{
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call	 PlaySoundAtActor ( .Actor:Self 0378 )
+	Thread % show sparkles on dimentio's hand
+		Call	 GetActorPos 	  ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:1 )
+	Wait     12`
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:2 )
+	Wait     12`
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[F] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Call SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+			Wait 14`
+			Goto AttackPartner
+	EndSwitch
+	Thread
+		Wait	25`
+		Call    SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+		Wait	13`
+		Call    SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	EndThread
+	% 1st Thunder
+	Call	 GetActorPos ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+	Call     PlayEffect  	( ~FX:Lightning:YellowMagic3 *Var[0] *Var[1] *Var[2] 0 0 0 0 0 0 0 0 0 )
+	Call	 PlaySound		( 0366 ) % Thunder
+	% Damage Mario
+	Call    EnemyDamageTarget ( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 00000008 00000020 ) % 0000FFFF = Invulnerable to Zap Tap
+	% 2nd Thunder
+	Label 	 AttackPartner
+	Wait	 10`
+	Call	 GetActorPos ( .Actor:Partner *Var[0] *Var[1] *Var[2] )
+	Call     PlayEffect  	( ~FX:Lightning:YellowMagic3 *Var[0] *Var[1] *Var[2] 0 0 0 0 0 0 0 0 0 )
+	Call	 PlaySound		( 0366 ) % Thunder
+	% Damage Partner
+	Call     SetTargetActor     ( .Actor:Self .Actor:Partner )
+	Call     SetGoalToTarget 	( .Actor:Self )
+	Call     EnemyTestTarget 	( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[F] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Wait 1
+			Goto BackToHome
+	EndSwitch
+	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 20000110 0000FFFF 00000000 00000002 00000020 )
+    Wait     30`
+	% Return home
+	Label	 BackToHome
+	Call     SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Script $Script_Dimentio1_Attack_Sleep
+{
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call	 PlaySoundAtActor ( .Actor:Self 0378 )
+	Thread % show sparkles on dimentio's hand
+		Call	 GetActorPos 	  ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:1 )
+	Wait     12`
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:2 )
+	Wait     12`
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[F] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Call SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+			Wait 13`
+			Goto ReturnHome
+	EndSwitch
+	Thread
+		Wait	15`
+		Call    SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+		Wait	13`
+		Call    SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	EndThread
+	% Damage Mario
+	Call     EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80001264 0 00000020 )
+    Wait     30`
+	% Return home
+	Label 	 ReturnHome
+	Call     SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Script $Script_Dimentio1_Attack_Projectile
+{
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call	 RandInt ( 100` *Var[0] )
+	If	*Var[0] <= 60` % Partner
+		Set *Var[7] 0 % Attack Partner
+		% The partner is already hurt?
+		Call $ReadAddress ( 800DC14C 0 *Var[0] 216 .True ) % Partner's Actor Data(+216) = Current Status
+		If *Var[0] == .Status:Daze
+			Set *Var[7] 1 % Attack Player instead
+		EndIf
+	Else % Player
+		Set *Var[7] 1 % Attack Player
+	EndIf
+	% Attack Partner or Player?
+	If *Var[7] == 0 % Partner
+		Call     SetTargetActor   ( .Actor:Self .Actor:Partner )
+	Else
+		Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	EndIf
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call	 PlaySoundAtActor ( .Actor:Self 0378 )
+	Thread % show sparkles on dimentio's hand
+		Call	 GetActorPos 	  ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 1 .Anim:Ground:Attack1:1 )
+	Wait     12`
+	% Spawn Projectile
+	Call	 GetPartPos 		( .Actor:Self 1 *Var[0] *Var[1] *Var[2] )
+	If *Var[7] == 0 % Partner
+		Add 	 *Var[1] 75`  % y
+	Else % Player
+		Add 	 *Var[1] 64`  % y
+	EndIf
+	Call	 SetPartPos 		( .Actor:Self 2 *Var[0] *Var[1] *Var[2] )
+	Call	 PlaySoundAtPart 	( .Actor:Self 2 2069 )
+	Call	 SetAnimation 		( .Actor:Self 2 .Anim:Projectile:1 )
+	Call     SetPartFlagBits 	( .Actor:Self 2 00000001 .False ) % Make the Projectile visible
+	Call	 SetAnimationRate 	( .Actor:Self 2 *Fixed[2.0] )
+	Wait	 20`
+	Call	 SetAnimation 		( .Actor:Self 2 .Anim:Projectile:2 )
+	% Fly Projectile
+	Call     GetGoalPos  		( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Call     PlaySoundAtPart 	( .Actor:Self 2 207E )
+	Call     SetPartSounds 		( .Actor:Self 2 1 0 0 )
+	Call     SetPartMoveSpeed 	( .Actor:Self 2 *Fixed[12.0] )
+	Call     SetPartJumpGravity ( .Actor:Self 2 *Fixed[0.10058594] )
+	Call     SetAnimation 	  	( .Actor:Self 1 .Anim:Ground:Attack1:2 )
+	Wait	 6
+	Thread % Rotate Projectile
+		Call	SetPartRotation ( .Actor:Self 2 0 0 0 )
+		Loop
+			Call	GetPartRotation ( .Actor:Self 2 0 0 *Var[3] )
+			Add		*Var[3] 25`
+			Call	SetPartRotation ( .Actor:Self 2 0 0 *Var[3] )
+			Call	GetActorVar ( .Actor:Self 0 *Var[0] )
+			Wait 	1
+			If *Var[0] == .True
+				Call SetActorVar ( .Actor:Self 0 .False )
+				BreakLoop
+			EndIf
+		EndLoop
+	EndThread
+	Call     FlyPartTo 			( .Actor:Self 2 *Var[0] *Var[1] *Var[2] 0 20` .Easing:Linear )
+	Wait     2
+	Call     SetAnimation 	  	( .Actor:Self 1 .Anim:Ground:Attack1:3 )
+	Call	 SetActorVar		( .Actor:Self 0 .True ) % stop rotating the rock
+	Call     SetPartFlagBits 	( .Actor:Self 2 00000001 .True ) % Make the Projectile invisible again
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[F] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Wait 1
+			Goto ReturnHome
+	EndSwitch
+	% Damage Target
+	If *Var[7] == 0 % Partner
+		Set *Var[0] 2
+	Else % player
+		Set *Var[0] 8
+	EndIf
+	Call     EnemyDamageTarget ( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 *Var[0] 00000020 ) % 0000FFFF = Invulnerable to Zap Tap
+	Wait     30`
+	% Return home
+	Label 	 ReturnHome
+	Call     SetAnimation 	   ( .Actor:Self 1 .Anim:Ground:Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}

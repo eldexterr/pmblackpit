@@ -1,0 +1,886 @@
+% Blank Map, used a few times to display a single message on screen and for some cutscenes
+
+#define .Npc_Dimentio 0
+#define .Npc_RubyK 1
+#define .Npc_Chuck 2
+#define .Npc_Fishmael 3
+#define .Npc_Oaklie 4
+#define .Npc_Cheato 5
+#define .Npc_Mario 6
+
+#new:Function_Init $Function_Init
+{
+	JR        RA
+	ADDIU     V0, R0, 1
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Black_Simple 		% 0 % Save Game (Black BG)
+	~Vec4f:White_Simple 		% 1 % Save Game (White BG)
+	~Vec4f:White_goto_pt255 	 % 2 % Go to pt_255 (White BG)
+	~Vec4f:White_goto_MazeOpened % 3 % Go to the Maze Opened Cutscene (White BG)
+	~Vec4f:Black_AFFL 			% 4 % A few floors later (Black BG)
+	~Vec4f:Black_StartGame 		% 5 % Start the game 
+	~Vec4f:White_Dimentio 		% 6 % Dimentio get beated (cutscene)
+	~Vec4f:White_GameFinished 	% 7 % Game has been beaten, do you want to save?
+	~Vec4f:Black_Ruby 			% 8 % Ruby king tell everyone to pray for mario (cutscene)
+	~Vec4f:Black_Checkpoint1 	% 9 % Dying on Dimentio Phase 1
+	~Vec4f:Black_Checkpoint2 	% A % Dying on Dimentio Phase 2
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  C
+    [Background]  00000000
+    [MapTattle]   00000000
+}
+
+#new:Script_Main $Script_Main
+{
+	Call	GetEntryID ( *Var[0] )
+	If *Var[0] != ~Entry:White_Dimentio % 6
+		Call  	FadeOutMusic   ( .Default 1 ) % Stop Music
+	EndIf
+    Call  	DisablePlayerInput    ( .True )
+    Call  	DisablePlayerPhysics  ( .True )
+    Call  	SetPlayerPos  ( 0 -1000` 0 )
+    Wait  1
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    If  *Var[0]  !=  .Partner:None % 0
+        Call  DisablePartnerAI  ( 0 )
+        Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+        Call  SetNpcPos     ( .Npc:Partner 0 -1000` 0 )
+	EndIf
+	% Init Cam Data
+    Call  	SetSpriteShading  ( -1 )
+	Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  	SetCamEnabled ( .Cam:Default .True )
+    Call  	SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  	SetCamType    ( .Cam:Default 00000004 .False )
+    Call  	SetCamPitch   ( .Cam:Default 0 0 )
+    Call  	SetCamDistance    ( .Cam:Default 440` )
+    Call  	SetCamPosA    ( .Cam:Default 0 100` )
+    Call  	SetCamPosB    ( .Cam:Default 0 0 )
+    Call  	SetCamPosC    ( .Cam:Default 0 30` ) % Y Pos
+    Call  	SetPanTarget  ( .Cam:Default 0 0 0 )
+    Call  	SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+    Call  	PanToTarget   ( .Cam:Default 00000000 00000001 )
+	% Load Background Color
+    Call  GetEntryID ( *Var[0] )
+    Switch *Var[0]
+        % Black
+		CaseOR == ~Entry:Black_Simple % 0
+		CaseOR == ~Entry:Black_AFFL % 4
+		CaseOR == ~Entry:Black_StartGame % 5
+		CaseOR == ~Entry:Black_Ruby % 8
+		CaseOR == ~Entry:Black_Checkpoint1 % 9
+		CaseOR == ~Entry:Black_Checkpoint2 % A
+            Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 ) % black
+        EndCaseGroup
+        % White
+		CaseOR == ~Entry:White_Simple % 1
+		CaseOR == ~Entry:White_goto_pt255 % 2
+		CaseOR == ~Entry:White_goto_MazeOpened % 3
+		CaseOR == ~Entry:White_Dimentio % 6
+		CaseOR == ~Entry:White_GameFinished % 7
+            Call  SetCamBGColor     ( .Cam:Default 000000D0 000000D0 000000D0 ) % white
+        EndCaseGroup
+	EndSwitch
+	/% unused
+    Call  SetCamEnabled     ( .Cam:Default .True ) 
+    %Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    %Call  SetCamType        ( .Cam:Default 4 .False )
+    Call  SetCamPitch       ( .Cam:Default 0 0 )
+    Call  SetCamDistance    ( .Cam:Default 440` )
+    Call  SetCamPosA        ( .Cam:Default 0 100` )
+    Call  SetCamPosB        ( .Cam:Default 0 0 )
+    Call  SetCamPosC        ( .Cam:Default 0 65` )
+    Call  SetPanTarget      ( .Cam:Default 0 0 0 )
+    Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+    Call  PanToTarget       ( .Cam:Default 0 1 )
+    Call  DisablePlayerInput    ( .True )
+	Call  DisablePlayerPhysics  ( .True )%/
+	Call    SetCamEnabled       ( .Cam:Default .True )
+	Call    SetCamLeadPlayer    ( .Cam:Default .False )
+	Wait  1
+	Call  GetEntryID ( *Var[0] )
+    Switch *Var[0]
+		CaseOR == ~Entry:Black_Simple % 0
+		CaseOR == ~Entry:White_Simple % 1
+			Wait	10`
+			Exec  $Script_SaveGame
+		EndCaseGroup
+		Case == ~Entry:White_goto_pt255 % 2
+			Wait	25`
+			Call	GotoMapSpecial ( "pt_255" 0 6 )
+		Case == ~Entry:White_goto_MazeOpened % 3
+			Wait	25`
+			Call	GotoMapSpecial ( "pt_00" 9 6 )
+		Case == ~Entry:Black_AFFL % 4
+			Thread
+				Wait	25`
+				Call  	ShowMessageAtScreenPos    ( $String_AFFL1 000000A0 00000028 )
+				Wait	10`
+				Call	GotoMapSpecial ( "pt_00" 3 1 )
+			EndThread
+		Case == ~Entry:Black_StartGame % 5
+			Exec  	$Script_WelcomeToBlackPit
+		Case == ~Entry:White_Dimentio % 6
+			Call	MakeNpcs ( 0 $NpcGroupList_DimentioCS )
+			ExecWait $Script_Cutscene_DimentioBeated_Init
+		Case == ~Entry:White_GameFinished % 7
+			Exec	$Script_GameBeated
+		Case == ~Entry:Black_Ruby % 8
+			Call	MakeNpcs ( 0 $NpcGroupList_RubyCS )
+			Exec	$Script_Cutscene_Ruby
+		Case == ~Entry:Black_Checkpoint1
+			Wait	10`
+			Exec	$Script_Checkpoint1
+		Case == ~Entry:Black_Checkpoint2
+			Wait	10`
+			Exec	$Script_Checkpoint2
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Checkpoint1
+{
+	Set   *Flag_DimentiosShield .False
+	Call  DisablePlayerInput    ( .True )
+	Call  DisablePlayerPhysics  ( .True )
+	Call  SetPlayerPos  ( -1000` 0 0 )
+	Wait  1`
+	Call  GetCurrentPartnerID   ( *Var[0] )
+	If  *Var[0]  !=  .Partner:None % 0
+		Call  DisablePartnerAI  ( .Default )
+		Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+		Call  SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	EndIf
+	Call  	ResetCam ( .Default *Fixed[1.0] )
+	Wait  	20`
+	Call  	ShowMessageAtScreenPos    ( $String_AskTryAgain 000000A0 00000028 )
+	Call	ShowChoice ( $Choice_Checkpoint1 )
+	Switch *Var[0]
+		Case == 0 % Start of the fight
+			Call	GotoMap ( "bp_04" 3 )
+		Case == 1 % Go back to the Main Menu
+			Call  	$Function_GoToMainMenu
+	EndSwitch
+	Call	CloseMessage
+    Return
+    End
+}
+
+#new:Script $Script_Checkpoint2
+{
+	Set   *Flag_DimentiosShield .False
+	Call  DisablePlayerInput    ( .True )
+	Call  DisablePlayerPhysics  ( .True )
+	Call  SetPlayerPos  ( -1000` 0 0 )
+	Wait  1`
+	Call  GetCurrentPartnerID   ( *Var[0] )
+	If  *Var[0]  !=  .Partner:None % 0
+		Call  DisablePartnerAI  ( .Default )
+		Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+		Call  SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	EndIf
+	Call  	ResetCam ( .Default *Fixed[1.0] )
+	Wait  	20`
+	Call  	ShowMessageAtScreenPos    ( $String_AskTryAgain 000000A0 00000028 )
+	Call	ShowChoice ( $Choice_Checkpoint2 )
+	Switch *Var[0]
+		Case == 0 % Phase 2 Start
+			Call	GotoMap ( "bp_04" 4 )
+		Case == 1 % Phase 1 Start
+			Call	GotoMap ( "bp_04" 3 )
+		Case == 2 % Go back to the Main Menu
+			Call  	$Function_GoToMainMenu
+	EndSwitch
+	Call	CloseMessage
+    Return
+    End
+}
+
+#string $String_AskTryAgain
+{
+[DelayOff][STYLE:INSPECT][...]
+From where do you want to start
+again?
+[DelayOn][Func_04][END]
+}
+
+#string $Choice_Checkpoint1 % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:33:60:DF:2E][...]
+[DelayOff][Cursor:00][Option:00]Start of the fight
+[Cursor:01][Option:01]Go back to the Main Menu
+[Option:FF][DelayOn][EndChoice:02][END]
+}
+
+#string $Choice_Checkpoint2 % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:33:60:DF:3E][...]
+[DelayOff][Cursor:00][Option:00]Phase 2
+[Cursor:01][Option:01]Phase 1
+[Cursor:02][Option:02]Go back to the Main Menu
+[Option:FF][DelayOn][EndChoice:03][END]
+}
+
+#string $String_GameBeated_Reward1
+{
+[DelayOff][STYLE:INSPECT][...]
+A new [PushColor][Color:07]skin[PopColor] is now available to be
+purchased.
+[DelayOn][WAIT][END]
+}
+
+#string $String_GameBeated_Reward2
+{
+[DelayOff][STYLE:INSPECT][...]
+A new piece of [PushColor][Color:07]furniture[PopColor] is
+now available to be purchased.
+[DelayOn][WAIT][END]
+}
+
+#string $String_GameBeated_Reward3
+{
+[DelayOff][STYLE:INSPECT][...]
+The [PushColor][Color:07]very-hard[PopColor] difficulty is now
+available for the Classic and
+Roguelike Pit.
+[DelayOn][WAIT][END]
+}
+
+% NPCs
+
+#new:NpcGroupList $NpcGroupList_DimentioCS
+{
+00000007 $NpcGroup_DimentioCS	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroupList $NpcGroupList_RubyCS
+{
+00000001 $NpcGroup_RubyCS	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_DimentioCS
+{
+% Dimentio
+00000000 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00014 00F00001 
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000000 00000000 00000000 00000000
+% Ruby King
+00000001 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+00000000 00000000 00000000 00000000
+% Chuck
+00000002 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 
+00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 00AF0000 
+00000000 00000000 00000000 00000000
+% Fishmael
+00000003 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 
+008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 008D0000 
+00000000 00000000 00000000 00000000
+% Oaklie
+00000004 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 
+00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 00BE0000 
+00000000 00000000 00000000 00000000
+% Cheato
+00000005 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 
+00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 00AE0000 
+00000000 00000000 00000000 00000000
+% Mario
+00000006 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01002000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_RubyCS
+{
+% Ruby King
+00000001 $NpcSettings_Generic 0 -1000.0 0 % XYZ Spawn Coords (floats)
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_null
+{
+	Return
+	End
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Cutscene_DimentioBeated_Init
+{
+	% Set Yaws
+	Call	SetNpcYaw ( .Npc_Mario 90` )
+	Call	SetNpcYaw ( .Npc_Dimentio -90` )
+	Call	InterpPlayerYaw ( 90` 0 )
+	% Set Animations
+	Call	SetNpcAnimation ( .Npc_Mario 00F2001B ) % hammer rised
+	Call	SetNpcAnimation ( .Npc_Dimentio 00F0001A ) % Tired (flying)
+	% Make Player invisible
+	Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+	Call    HidePlayerShadow ( .True )
+	% Set positions
+	Call  	SetNpcPos  ( .Npc_Dimentio 0 0 0 )
+	Call	GetNpcPos ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -50` % x
+	Add		*Var[1] 20` % y
+	Call  	SetNpcPos  ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+	Exec	$Script_StickMarioToMarioNPC
+	% Set Sprites colors
+	Call    802D2520 ( 00010000 6 0 0 0 .False ) % PlayerFXFlags FxID RGB
+	Call    802CFD30 ( .Npc_Mario 6 0 0 0 .False ) 		% npcID FxID RGB
+	Call    802CFD30 ( .Npc_Dimentio 6 0 0 0 .False ) 	% npcID FxID RGB
+	% Hide shadows
+	Call	EnableNpcShadow ( .Npc_Mario .False )
+	Call	EnableNpcShadow ( .Npc_RubyK .False )
+	Call	EnableNpcShadow ( .Npc_Cheato .False )
+	Call	EnableNpcShadow ( .Npc_Fishmael .False )
+	Call	EnableNpcShadow ( .Npc_Oaklie .False )
+	Call	EnableNpcShadow ( .Npc_Chuck .False )
+	Call	EnableNpcShadow ( .Npc_Dimentio .False )
+	Exec	$Script_Cutscene_DimentioBeated
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_DimentioBeated
+{
+	% Mario is falling towards Dimentio
+	Exec	$Script_NpcFlyTo_MarioNPC
+	Wait	10`
+	Exec	$Script_HammerGlowFX
+	% Npcs' Power animations
+	Thread % SetNpcAlpha
+		Set *Var[5] 5
+		Loop *Var[5]
+			Set		*Var[3] FF
+			Call    802CFD30 ( *Var[5] 7 *Var[3] .False .False .False )
+			Loop 10`
+				% fade npc
+				Sub		*Var[3] 25`
+				Call    802CFD30 ( *Var[5] 7 *Var[3] .False .False .False )
+				Wait	1
+			EndLoop
+		EndLoop
+	EndThread
+	Set *Var[5] 5
+	Loop *Var[5] % SetNpcScale
+		Call	PlaySound ( 013E )
+		SetF	*Var[4] *Fixed[1.4]
+		Call	SetNpcScale ( *Var[5] *Var[4] *Var[4] *Var[4] )
+		Loop 10`
+			Call	GetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+			Add		*Var[0] -34` % x
+			Add		*Var[1] 27` % y
+			Add		*Var[2] 10` % z
+			Call	SetNpcPos ( *Var[5] *Var[0] *Var[1] *Var[2] )
+			% scale
+			SubF	*Var[4] *Fixed[0.140]
+			Call	SetNpcScale ( *Var[5] *Var[4] *Var[4] *Var[4] )
+			Wait	1
+		EndLoop
+	EndLoop
+	Call    SetNpcVar ( .Npc_Mario 0 .False ) % stop glow fx
+	Exec	$Script_ToogleMariosVisibility
+	% Player Sprite is now visible
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+    Switch *Var[0]
+        Case == 1 % Super Hammer
+            Call	SetPlayerAnimation ( 00060014 )
+        Case == 2 % Ultra Hammer
+            Call	SetPlayerAnimation ( 00060018 )
+        Default
+            Call	SetPlayerAnimation ( 00060010 )
+	EndSwitch
+	Thread
+		Call	ShakeCam 	( .Cam:Default 0 10` *Fixed[1.5] )
+	EndThread
+	% Set Mario Pos
+	Call    SetNpcVar ( .Npc_Mario 1 .False ) % Mario isn't sticked to mario npc anymore
+	Call    GetNpcPos ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+	Add     *Var[0] -30` % x
+	Add		*Var[1] 10` % y
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Call	PlaySound ( 2117 ) % Hammer
+	% Dimentio get defeated
+	Call    GetNpcPos ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 10` % y
+    Call    PlayEffect    ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+	% sparkles come from Dimentios body
+	Thread
+		Call	ShakeCam 	( .Cam:Default 0 130` *Fixed[1.9] )
+		Call    SetNpcVar ( .Npc_Mario 2 .False ) % stop dimentio's sparkles
+	EndThread
+	Exec 	$Script_DimentioSparkles
+	% DoNpcDefeat
+	Wait	110`
+	Set		*Var[0] .Npc_Dimentio
+	Set		*Var[1] 00F00014 % hurt (flying)
+	ExecWait $DoNpcDefeat
+	Call    GetNpcPos   ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  ( ~FX:PinkSparkles *Var[0] *Var[1] *Var[2] *Var[0] *Var[1] *Var[2] )
+	Wait	20`
+	/% UNUSED - Was when I was using DoNpcDefeat original function
+	80077EB9 = Chances to spawn a Shroom when a enemy dies
+	Call 	$WriteAddress ( 80077EB9 0 10` .False .False ) % set chances back to 10 (default value)%/
+	Call	PlaySound ( 0188 )
+	Wait	5
+	Call	GotoMapSpecial ( $bp_04 2 7 )
+	Return
+	End
+}
+
+#new:ASCII $bp_04
+{ "bp_04" }
+
+#new:Script $Script_HammerGlowFX
+{
+	Call    SetNpcVar ( .Npc_Mario 0 .True )
+	Call	PlaySoundAtNpc ( .Npc_Mario 0207 0 ) % charge sfx
+	Loop
+		Call	GetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -32` % x
+		Add		*Var[1] 34` % y
+		Call    PlayEffect  ( ~FX:EnergyIn:LongStreaks1 *Var[0] *Var[1] *Var[2] *Fixed[0.5] 19` 0 0 0 0 0 0 0 )
+		Call	GetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+		/% Removed because it lags the game so much ESPECIALLY in console
+		Add		*Var[0] -35` % x
+		Add		*Var[1] 42` % y
+		Call    PlayEffect  ( ~FX:RadialFlowOut:ThinLines *Var[0] *Var[1] *Var[2] 2 19` 0 0 0 0 0 0 0 )%/
+		Call	GetNpcVar ( .Npc_Mario 0 *Var[0] )
+		If *Var[0] == .False
+			Call	StopSound ( 0207 )
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_DimentioSparkles
+{
+	Call	PlaySound ( 020F )
+	Call    SetNpcVar ( .Npc_Mario 2 .True )
+	Loop
+		Call	GetNpcPos ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+		Add		*Var[1] 21` % y
+		Call    PlayEffect  ( ~FX:ShimmerBurst:Pink *Var[0] *Var[1] *Var[2] *Fixed[0.8] 10` 0 0 0 0 0 0 0 )
+		Call	GetNpcVar ( .Npc_Mario 2 *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_NpcFlyTo_MarioNPC
+{
+	Call    GetNpcPos ( .Npc_Dimentio *Var[0] *Var[1] *Var[2] )
+	Add     *Var[0] -30` % x
+	Add		*Var[1] 10` % y
+	Call    NpcFlyTo ( .Npc_Mario *Var[0] *Var[1] *Var[2] 70` 0 .Easing:Linear )
+	Return
+	End
+}
+
+% Set Player pos the same as Mario NPC's XYZ pos, needed to update the camera
+#new:Script $Script_StickMarioToMarioNPC
+{
+    Call    SetNpcVar ( .Npc_Mario 1 .True )
+    Loop
+        Call    GetNpcPos 		( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+        Call    SetPlayerPos	( *Var[0] *Var[1] *Var[2] )        
+        Call    GetNpcVar ( .Npc_Mario 1 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Toogle Player Sprites and Mario NPC visibility
+#new:Script $Script_ToogleMariosVisibility
+{
+    Call    $ReadBitFlag ( 8010EFCE .False .False 5 *Var[0] )
+    If *Var[0] == .False % Player is visible
+        % Toggle Mario Player Sprite & Mario NPC visibilities
+        Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+        Call    SetNpcFlagBits ( .Npc_Mario 01000000 .False ) % Make Mario NPC visible
+    Else % Player is invisible
+        % Toggle Mario Player Sprite & Mario NPC visibilities
+        Call    $WriteBitFlag ( 8010EFCE .False .False 5 .False ) % Turn Player visible
+        Call    SetNpcFlagBits ( .Npc_Mario 01000000 .True ) % Make Mario NPC invisible
+    EndIf
+    Return
+    End
+}
+
+%==================
+% Ruby Cutscene
+
+#new:Script $Script_Cutscene_Ruby
+{
+	% === INIT =======
+	% Set Animation
+	Call	SetNpcAnimation ( .Npc_RubyK 007F150D ) % walking
+	% Hide Player
+	Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+	Call    HidePlayerShadow ( .True )
+	% Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	% Set position
+	Call  	SetNpcPos  ( .Npc_RubyK 0 0 0 )
+	% Set alpha
+	Call    802CFD30 ( .Npc_RubyK 7 0 .False .False .False )
+	% Init cam
+	% === CUTSCENE =======
+	Wait	50`
+	Thread % unfade king
+		Set	*Var[0] 0
+		Loop
+			Add		*Var[0] 12`
+			If	*Var[0] >= 7F
+				Call    802CFD30 ( .Npc_RubyK 7 7F .False .False .False ) % set alpha
+				BreakLoop
+			EndIf
+			Call    802CFD30 ( .Npc_RubyK 7 *Var[0] .False .False .False ) % set alpha
+			Wait	1
+		EndLoop
+	EndThread
+	Call	SetNpcAnimation ( .Npc_RubyK 007F1511 ) % :O
+	% king !
+	Call    PlaySound ( 0262 ) % !
+	Call    ShowEmote   	( .Npc_RubyK .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Wait	20`
+	% turn around
+	Call	InterpNpcYaw ( .Npc_RubyK -90` 0 )
+	Wait	14`
+	Call	InterpNpcYaw ( .Npc_RubyK 90` 0 )
+	Wait	14`
+	Call	InterpNpcYaw ( .Npc_RubyK -90` 0 )
+	Wait	14`
+	Call	SetMusicTrack   ( .Default .Song:PeachWishes 00000000 00000008 )
+	Call	SetNpcAnimation ( .Npc_RubyK 007F1519 ) % O_O!
+	% The king flies away
+	Call	GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -140` % x
+	Add		*Var[1] -100` % y
+	Call	SetNpcSpeed ( .Npc_RubyK *Fixed[3.0] )
+	Thread
+		Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 0 0 .Easing:Linear )
+	EndThread
+	Wait	20`
+	Call	GotoMapSpecial ( "pt_00" E 0 )
+	Return
+	End
+}
+
+%===================
+% Game Beated
+
+#new:Script $Script_GameBeated
+{
+	Call    $ReadAddress ( $PlayerData_Misc_Checkpoint1 0 *Var[0] 6 .False ) % restore player's palette
+	Set *PlayerSkin *Var[0]
+	If	*Flag_Cheev_Global_03 == .False
+		Wait	50`
+		Set	*Var[4] .True % to display the skin and furniture messages
+	Else
+		Set	*Var[4] .False
+	EndIf
+	Set	*Flag_Cheev_Global_03 .True
+	% Wait until the challenges notification ends
+	Loop
+		Call $ReadAddress ( $Challenge_PopUp_Data 0 *Var[1] 0 .False )
+		If *Var[1] == .False
+			% Make a 2nd check
+			Wait 2
+			Call $ReadAddress ( $Challenge_PopUp_Data 0 *Var[1] 0 .False )
+			If *Var[1] == .False
+				BreakLoop
+			EndIf
+		EndIf
+		Wait 1
+	EndLoop
+	% Set Slot as Beaten
+	Call 	$ReadAddress ( 8007418A 0 *Var[0] .False .False ) % read current slot
+	Switch *Var[0]
+		Case == 0
+			Set	*Var[1] 800779D2 % Slot #1 Beated Byte
+		Case == 1
+			Set	*Var[1] 800779EA % Slot #2 Beated Byte
+		Case == 2
+			Set	*Var[1] 80077A02 % Slot #3 Beated Byte
+		Case == 3
+			Set	*Var[1] 80077A1A % Slot #4 Beated Byte
+	EndSwitch
+	Call 	$WriteAddress ( *Var[1] 0 96 0 .False ) % save game beated flag (each slot have one of this but the game only needs one to be true to show the new pause image)
+	Call 	$WriteAddress ( *Var[1] 0 96 1 .False ) % save current slot beated flag - 96=Add a "O" character at the end of the slot's name, to recolor it
+	% Is the 1st time beating the game on this slot?
+	If *Var[4] == .True
+		Call  ShowMessageAtScreenPos  ( $String_GameBeated_Reward1 000000A0 00000028 )
+		Call  ShowMessageAtScreenPos  ( $String_GameBeated_Reward2 000000A0 00000028 )
+		Call  ShowMessageAtScreenPos  ( $String_GameBeated_Reward3 000000A0 00000028 )
+	EndIf
+	% Ask for saving the game
+	Wait  40`
+	Exec  $Script_SaveAndQuit
+	Return
+	End
+}
+
+#new:Script $Script_WelcomeToBlackPit
+{
+	Call  PlayAmbientSounds ( .AmbientSounds:Birds )
+	Wait  30`
+	Call  ShowMessageAtScreenPos  ( $String_StartGame_1 000000A0 00000028 )
+	Call  ShowMessageAtScreenPos  ( $String_StartGame_2 000000A0 00000028 )
+	Call  GotoMap ( "bp_06" 0 )
+	Return
+	End
+}
+
+#string $String_StartGame_1
+{
+[STYLE:EPILOGUE][...]
+It was a normal day in the
+Mushroom Kingdom.
+[WAIT][NEXT][...]
+Mario was looking for some
+Goomnuts on the outsides
+around him.
+[WAIT][NEXT][...]
+No matter how hard he
+searched, Mario didn't seem
+to find any.
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+After a long time of
+searching, Mario got quite
+far from his home.
+[WAIT][NEXT][...]
+In one of those Mario
+finally finds a Goomnuts
+tree with a somewhat
+strange appearance.
+[WAIT][END]
+}
+
+#string $String_StartGame_2
+{
+[STYLE:EPILOGUE][...]
+After searching so long,
+Mario tries to take one
+without thinking twice.
+[WAIT][NEXT][...]
+Mario is unaware of the
+situation and falls into a
+hole that was found next
+to that mysterious tree...
+[WAIT][END]
+}
+
+#new:Script $Script_SaveGame
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  DisablePlayerPhysics  ( .True )
+	Call  SetPlayerPos  ( -1000` 0 0 )
+	Wait  1`
+	Call  GetCurrentPartnerID   ( *Var[0] )
+	If  *Var[0]  !=  .Partner:None % 0
+		Call  DisablePartnerAI  ( .Default )
+		Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+		Call  SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	EndIf
+	Call  ResetCam ( .Default *Fixed[1.0] )
+	Wait  10`
+	Exec  $Script_SaveAndQuit
+    Return
+    End
+}
+
+#new:Script $Script_SaveAndQuit
+{
+	Wait  	10`
+	Call	PlaySound ( 0009 ) % Save Message
+	Call  	ShowMessageAtScreenPos    ( 001D0004 000000A0 00000028 ) % Do you want to save?
+	Call	ShowChoice ( 001E000A ) % Save Don't Save
+    Switch  *Var[0]
+		Case  ==  0 % Save
+			Call	GetEntryID ( *Var[0] )
+			If *Var[0] == ~Entry:White_GameFinished % 7
+				Call  	$Script_Save_GameFinished
+			Else
+				Call  	$Script_Save
+			EndIf
+            Wait  	10`
+			Call	PlaySound ( 0010 ) % game saved
+			Call	SwitchMessage ( 001D0005 ) % Save Completed
+            Call  	$Function_GoToMainMenu
+            Wait  	100`
+		Case  ==  1 % Don't Save
+			Call	SwitchMessage ( $String_DontSave1 )
+			Call	ShowChoice ( 001E0004 ) % Yes No
+			If *Var[0] != 0 % no
+				Call	CloseMessage
+				Jump	$Script_SaveAndQuit
+			EndIf
+			Call	CloseMessage
+            Call  	$Function_GoToMainMenu
+            Wait  	100`
+    EndSwitch
+    Return
+    End
+}
+
+#string $String_DontSave1
+{
+	[InputOff][PAUSE:0F][InputOn][NEXT][...]
+	Do you want to back to the
+	Main Menu?[Func_04][END]
+}
+
+#string $String_AFFL1
+{
+	[STYLE:INSPECT][...]
+	A few floors later...
+	[WAIT][END]
+}
+
+#new:Function $Script_Save
+{
+	ADDIU     SP, SP, FFD0
+	LIA       A0, $ASCII_pt_255
+	SW        S0, 18 (SP)
+	LIA       S0, 8007419C
+	ADDIU     A1, SP, 10
+	SW        RA, 28 (SP)
+	SW        S3, 24 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	LW        V0, 0 (S0)
+	LHU       S1, 86 (V0)
+	LHU       S2, 8C (V0)
+	LHU       S3, 8E (V0)
+	JAL       ~Func:get_map_IDs_by_name
+	ADDIU     A2, SP, 12
+	LW        V1, 0 (S0)
+	LHU       V0, 10 (SP)
+	LHU       A1, 12 (SP)
+	LBU       A0, 166 (V1)
+	SH        V0, 86 (V1)
+	ADDIU     V0, R0, 0 % entry ID
+	SH        A1, 8C (V1)
+	JAL       ~Func:fio_save_game
+	SH        V0, 8E (V1)
+	LW        V1, 0 (S0)
+	SH        S1, 86 (V1)
+	SH        S2, 8C (V1)
+	SH        S3, 8E (V1)
+	LW        RA, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Script_Save_GameFinished
+{
+	ADDIU     SP, SP, FFD0
+	LIA       A0, $ASCII_bp_03
+	SW        S0, 18 (SP)
+	LIA       S0, 8007419C
+	ADDIU     A1, SP, 10
+	SW        RA, 28 (SP)
+	SW        S3, 24 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	LW        V0, 0 (S0)
+	LHU       S1, 86 (V0)
+	LHU       S2, 8C (V0)
+	LHU       S3, 8E (V0)
+	JAL       ~Func:get_map_IDs_by_name
+	ADDIU     A2, SP, 12
+	LW        V1, 0 (S0)
+	LHU       V0, 10 (SP)
+	LHU       A1, 12 (SP)
+	LBU       A0, 166 (V1)
+	SH        V0, 86 (V1)
+	ADDIU     V0, R0, 4 % entry ID
+	SH        A1, 8C (V1)
+	JAL       ~Func:fio_save_game
+	SH        V0, 8E (V1)
+	LW        V1, 0 (S0)
+	SH        S1, 86 (V1)
+	SH        S2, 8C (V1)
+	SH        S3, 8E (V1)
+	LW        RA, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:ASCII $ASCII_pt_255
+{
+    "pt_255"
+}
+
+#new:ASCII $ASCII_bp_03
+{
+    "bp_03"
+}

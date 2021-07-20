@@ -1,0 +1,94 @@
+% This file change the Coins, Star Points and Star Pieces cap
+% Coins: 999 > 9999
+% Star Points: 127 > 999
+% Star Pieces: 255 > 9999
+
+%=============================
+% Coins
+%=============================
+
+% C-Up Stats Bar - To display 4 digits instead of 3
+@Function 81EF4
+{
+    ADDIU	V0, R0, 0004
+}
+
+% Grabbing coins in the overworld 1
+@Function CBB00 % 80135400
+{
+    SLTI	V0, V0, 10000`
+}
+
+% Grabbing coins in the overworld 2
+@Function CBB08 % 80135408
+{
+    ORI 	V0, R0, 9999`
+}
+
+% Call AddCoin - 1
+@Function 8358C % 800EA0DC
+{
+    SLTI	V0, V0, 10000`
+}
+
+% Call AddCoin - 2
+@Function 83594 % 800EA0E4
+{
+    ORI 	V0, R0, 9999`
+}
+
+% ShowCoinCounter - Move the coins amount a little bit to the right
+@Function 82840 % 82840
+{
+    ADDIU	A1, S3, 0043
+}
+
+% ShowCoinCounter - Make the box a little larger
+@Function 82A5C % 800E95AC
+{
+    ADDIU	A3, R0, 0049 % X Size
+}
+
+% Pause Menu, move the coin x's icon a little bit to the left (yeah is actually an icon lol)
+@Function 138DA8 % 80245A68
+{
+    ADDI	A1, S3, FFF8 % -8 % x pos
+}
+
+%=============================
+% Star Points
+%=============================
+
+% C-Up Stats Bar
+
+% To display 3 digits instead of 2
+@Function 81E1C % 800E896C
+{
+    ADDIU	V0, R0, 0003
+}
+
+@Function 138E0C % 80245ACC
+{
+    LAHU    A0, 8035612E % Load new Star Points Address % Pause Menu
+}
+
+@Function 81E28 % 800E8978
+{
+    LAHU    A3, 8035612E % Load new Star Points Address % C-Up Stats Bar
+}
+
+%=============================
+% Star Pieces
+%=============================
+
+% Pause Menu
+@Function 138E9C % 80245B5C
+{
+    LAHU    A0, 8035612C % Load new Star Pieces Address
+}
+
+% Pause Menu, move the coin x's icon a little bit to the left
+@Function 138EBC % 80245B7C
+{
+    ADDI	A1, S3, FFF8 % -8 % x pos
+}

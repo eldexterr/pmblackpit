@@ -1,0 +1,767 @@
+#import PitMain.mpat 			% Load each floor whole code
+
+#new:Script_Main $Script_Main
+{
+      Call SetSpriteShading  ( FFFFFFFF )
+      Call SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+      Call SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+      Call SetCamEnabled       ( .Cam:Default .True )
+      Call SetCamLeadPlayer       ( .Cam:Default .False )
+      ExecWait $Script_Main2_Wait % used to adding new functions to run on the main, without needing to modify each map's main script
+      Exec 	 $Script_Main2_Exec % same as above but using exec
+      Return
+      End
+}
+    
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups
+{
+% AABBCCCC - SectionIndex, FormationIndex, StageIndex
+00000001 $NpcGroup_Enemy1 32000000	% 2xSpear Guy & Jungle Fuzzy
+/%00000001 $NpcGroup_Enemy2 32010000	% 2xSpear Guy & Hurt Plant
+00000001 $NpcGroup_Enemy3 32020000	% 4xSpear Guy
+% Enemy 4-6 are used only when playing on Hard Mode
+00000001 $NpcGroup_Enemy4 3A000000	% 2xSpear Guy & Jungle Fuzzy
+00000001 $NpcGroup_Enemy5 3A010000	% 2xSpear Guy & Hurt Plant
+00000001 $NpcGroup_Enemy6 3A020000	% 4xSpear Guy%/
+00000001 $NpcGroup_Mover  00000000
+00000001 $NpcGroup_BanditMover 37010000%
+00000002 $NpcGroup_MoneyBag  00000000%
+% Roguelike
+00000001 $NpcGroup_Spring1 30090000
+00000001 $NpcGroup_Spring2 301B0000
+00000001 $NpcGroup_Spring3 31090000
+00000001 $NpcGroup_Spring4 311B0000
+00000001 $NpcGroup_Spring5 320C0000
+00000001 $NpcGroup_Spring6 32180002
+00000001 $NpcGroup_Spring7 33000002
+00000001 $NpcGroup_Spring8 34090002
+00000001 $NpcGroup_Spring9 35030003
+00000001 $NpcGroup_Spring10 36060003
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1
+{
+00000001 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7
+{
+00000001 00000000 00000000
+}
+
+%%
+% Enemies
+%%
+
+/%#new:ExtraAnimationList $ExtraAnimationList_80245124 % unused
+00420000 00420003 00420005 00420006 00420007 0042000F 00420010 0042001A 
+0042001B FFFFFFFF %/
+
+#new:NpcGroup $NpcGroup_Enemy1 %Gloomba
+{
+00000000 $NpcSettings_Enemy1 ~Vec3f:Enemy1
+00000C00 $Script_Init_EnemyNPC 00000000 00000000 0000005A 
+~Items:5:SleepySheep:A
+~HP:20:70:3:50 ~HP:30:60:3:50 ~HP:50:50:3:40 ~HP:80:40:3:40 ~HP:100:30:3:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+FFFFFDEC 00000000 0000005D 00000014 00000000 FFFF8001 00000000 FFFFFDEC 
+00000000 0000005D 00000064 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+% animations
+00420003 00420005 00420006 00420006 00420003 00420003 00420007 00420007 
+0042001A 0042001B 00420003 00420003 00420003 00420003 00420003 00420003 
+%00000003 00000000 $ExtraAnimationList_80245124 00000000
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Enemy1
+{
+00000000 00140017 00000000 00000000 $Script_EnemyAI 80077F70
+00000000 00000000 00050000 
+}
+
+#new:Script $Script_EnemyAI
+{
+Call     DoBasicAI   	( $AISettings_Enemy )
+Return
+End
+}
+
+/%#new:NpcSettings $NpcSettings_Enemy1
+00000000 00170016 00000000 00000000 $Script_EnemyAI 80077F70 00000000 8007809C 
+00000000 00000000 00100000 
+
+	#new:Script $Script_EnemyAI
+    0:  Call     SetSelfVar 	( 00000000 00000000 )
+   14:  Call     SetSelfVar 	( 00000001 00000005 )
+   28:  Call     SetSelfVar 	( 00000002 0000000C )
+   3C:  Call     SetSelfVar 	( 00000003 00000009 )
+   50:  Call     $Function_8024219C ( $AISettings_Enemy )
+   60:  Return
+   68:  End%/
+	
+#new:AISettings $AISettings_Enemy
+{
+1.5 % move speed
+300` % move time
+30` % wait time
+160.0 % alert radius
+0.0
+1`
+2.5 % chase speed
+180` % max turn rate (0 = enemy rushes at position where the player was detected and keeps going)
+3`
+130.0 % chase radius
+0.0
+1`
+}
+	
+/%#new:JumpTable $JumpTable_80247C28
+$Function_8024219C[184] $Function_8024219C[194] $Function_8024219C[1AC] $Function_8024219C[1BC] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[1D4] $Function_8024219C[1E4] 
+$Function_8024219C[1FC] $Function_8024219C[20C] $Function_8024219C[224] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[23C] $Function_8024219C[244] 
+$Function_8024219C[25C] $Function_8024219C[274] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] 
+$Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[28C] $Function_8024219C[284] 
+
+#new:JumpTable $JumpTable_80247A78
+$Function_80241708[80] $Function_80241708[98] $Function_80241708[B8] $Function_80241708[D0] 
+$Function_80241708[10C] $Function_80241708[158] 
+
+#new:ConstDouble $ConstDouble_80247A90
+180.000000d
+
+#new:Function $Function_8024219C
+    0:  ADDIU     SP, SP, FFB0
+    4:  SW        S2, 38 (SP)
+    8:  DADDU     S2, A0, R0
+    C:  SW        RA, 48 (SP)
+   10:  SW        S5, 44 (SP)
+   14:  SW        S4, 40 (SP)
+   18:  SW        S3, 3C (SP)
+   1C:  SW        S1, 34 (SP)
+   20:  SW        S0, 30 (SP)
+   24:  LW        S1, 148 (S2)
+   28:  LH        A0, 8 (S1)
+   2C:  JAL       {Func:get_npc_unsafe}
+   30:  DADDU     S0, A1, R0
+   34:  LW        V1, C (S2)
+   38:  DADDU     A0, S2, R0
+   3C:  LW        A1, 0 (V1)
+   40:  JAL       {Func:get_variable}
+   44:  DADDU     S5, V0, R0
+   48:  SW        R0, 10 (SP)
+   4C:  LW        V1, D0 (S1)
+   50:  LW        V1, 30 (V1)
+   54:  SW        V1, 14 (SP)
+   58:  LW        V1, D0 (S1)
+   5C:  LW        V1, 1C (V1)
+   60:  SW        V1, 18 (SP)
+   64:  LW        V1, D0 (S1)
+   68:  LW        V1, 24 (V1)
+   6C:  SW        V1, 1C (SP)
+   70:  LW        V1, D0 (S1)
+   74:  LW        V1, 28 (V1)
+   78:  ADDIU     S4, SP, 10
+   7C:  SW        V1, 20 (SP)
+   80:  LW        V1, D0 (S1)
+   84:  LIF       F0, 65.0
+   8C:  LW        V1, 2C (V1)
+   90:  DADDU     S3, V0, R0
+   94:  SWC1      F0, 28 (SP)
+   98:  SH        R0, 2C (SP)
+   9C:  BNE       S0, R0, .oB4
+   A0:  SW        V1, 24 (SP)
+   A4:  LW        V0, B0 (S1)
+   A8:  ANDI      V0, V0, 4
+   AC:  BEQ       V0, R0, .o130
+   B0:  NOP
+        .oB4
+   B4:  ADDIU     A0, R0, F7FF
+   B8:  SW        R0, 70 (S2)
+   BC:  SH        R0, 8E (S5)
+   C0:  LW        V0, CC (S1)
+   C4:  LW        V1, 0 (S5)
+   C8:  LW        V0, 0 (V0)
+   CC:  AND       V1, V1, A0
+   D0:  SW        V1, 0 (S5)
+   D4:  SW        V0, 28 (S5)
+   D8:  LW        V0, D0 (S1)
+   DC:  LW        V0, 34 (V0)
+   E0:  BNEL      V0, R0, .oF8
+   E4:  ADDIU     V0, R0, FDFF
+   E8:  ORI       V0, V1, 200
+   EC:  ADDIU     V1, R0, FFF7
+   F0:  BEQ       R0, R0, .o100
+   F4:  AND       V0, V0, V1
+        .oF8
+   F8:  AND       V0, V1, V0
+   FC:  ORI       V0, V0, 8
+        .o100
+  100:  SW        V0, 0 (S5)
+  104:  LW        V0, B0 (S1)
+  108:  ANDI      V0, V0, 4
+  10C:  BEQ       V0, R0, .o12C
+  110:  ADDIU     V0, R0, 63
+  114:  SW        V0, 70 (S2)
+  118:  SW        R0, 74 (S2)
+  11C:  LW        V0, B0 (S1)
+  120:  ADDIU     V1, R0, FFFB
+  124:  AND       V0, V0, V1
+  128:  SW        V0, B0 (S1)
+        .o12C
+  12C:  SW        R0, 6C (S1)
+        .o130
+  130:  LW        V0, 70 (S2)
+  134:  SLTI      V0, V0, 1E
+  138:  BEQ       V0, R0, .o160
+  13C:  NOP
+  140:  LW        V0, 6C (S1)
+  144:  BNE       V0, R0, .o160
+  148:  NOP
+  14C:  JAL       $Function_80241AD4
+  150:  DADDU     A0, S2, R0
+  154:  BEQ       V0, R0, .o160
+  158:  ADDIU     V0, R0, 1E
+  15C:  SW        V0, 70 (S2)
+        .o160
+  160:  LW        V1, 70 (S2)
+  164:  SLTIU     V0, V1, 64
+  168:  BEQ       V0, R0, .o28C
+  16C:  SLL       V0, V1, 2
+  170:  LTW       V0, V0 ($JumpTable_80247C28)
+  17C:  JR        V0
+  180:  NOP
+% LBL: from $JumpTable_80247C28 , entry 0`
+  184:  DADDU     A0, S2, R0
+  188:  DADDU     A1, S3, R0
+  18C:  JAL       800495A0
+  190:  DADDU     A2, S4, R0
+% LBL: from $JumpTable_80247C28 , entry 1`
+  194:  DADDU     A0, S2, R0
+  198:  DADDU     A1, S3, R0
+  19C:  JAL       800496B8
+  1A0:  DADDU     A2, S4, R0
+  1A4:  BEQ       R0, R0, .o28C
+  1A8:  NOP
+% LBL: from $JumpTable_80247C28 , entry 2`
+  1AC:  DADDU     A0, S2, R0
+  1B0:  DADDU     A1, S3, R0
+  1B4:  JAL       $Function_802416B8
+  1B8:  DADDU     A2, S4, R0
+% LBL: from $JumpTable_80247C28 , entry 3`
+  1BC:  DADDU     A0, S2, R0
+  1C0:  DADDU     A1, S3, R0
+  1C4:  JAL       $Function_80241708
+  1C8:  DADDU     A2, S4, R0
+  1CC:  BEQ       R0, R0, .o28C
+  1D0:  NOP
+% LBL: from $JumpTable_80247C28 , entry 10`
+  1D4:  DADDU     A0, S2, R0
+  1D8:  DADDU     A1, S3, R0
+  1DC:  JAL       80049E3C
+  1E0:  DADDU     A2, S4, R0
+% LBL: from $JumpTable_80247C28 , entry 11`
+  1E4:  DADDU     A0, S2, R0
+  1E8:  DADDU     A1, S3, R0
+  1EC:  JAL       80049ECC
+  1F0:  DADDU     A2, S4, R0
+  1F4:  BEQ       R0, R0, .o28C
+  1F8:  NOP
+% LBL: from $JumpTable_80247C28 , entry 12`
+  1FC:  DADDU     A0, S2, R0
+  200:  DADDU     A1, S3, R0
+  204:  JAL       80049F7C
+  208:  DADDU     A2, S4, R0
+% LBL: from $JumpTable_80247C28 , entry 13`
+  20C:  DADDU     A0, S2, R0
+  210:  DADDU     A1, S3, R0
+  214:  JAL       8004A124
+  218:  DADDU     A2, S4, R0
+  21C:  BEQ       R0, R0, .o28C
+  220:  NOP
+% LBL: from $JumpTable_80247C28 , entry 14`
+  224:  DADDU     A0, S2, R0
+  228:  DADDU     A1, S3, R0
+  22C:  JAL       8004A3E8
+  230:  DADDU     A2, S4, R0
+  234:  BEQ       R0, R0, .o28C
+  238:  NOP
+% LBL: from $JumpTable_80247C28 , entry 30`
+  23C:  JAL       $Function_802418CC
+  240:  DADDU     A0, S2, R0
+% LBL: from $JumpTable_80247C28 , entry 31`
+  244:  JAL       $Function_80241938
+  248:  DADDU     A0, S2, R0
+  24C:  LW        V1, 70 (S2)
+  250:  ADDIU     V0, R0, 20
+  254:  BNE       V1, V0, .o28C
+  258:  NOP
+% LBL: from $JumpTable_80247C28 , entry 32`
+  25C:  JAL       $Function_802419A8
+  260:  DADDU     A0, S2, R0
+  264:  LW        V1, 70 (S2)
+  268:  ADDIU     V0, R0, 21
+  26C:  BNE       V1, V0, .o28C
+  270:  NOP
+% LBL: from $JumpTable_80247C28 , entry 33`
+  274:  JAL       $Function_80241A80
+  278:  DADDU     A0, S2, R0
+  27C:  BEQ       R0, R0, .o28C
+  280:  NOP
+% LBL: from $JumpTable_80247C28 , entry 99`
+  284:  JAL       8004A73C
+  288:  DADDU     A0, S2, R0
+% LBL: from $JumpTable_80247C28 , entry 98`
+        .o28C
+  28C:  LW        RA, 48 (SP)
+  290:  LW        S5, 44 (SP)
+  294:  LW        S4, 40 (SP)
+  298:  LW        S3, 3C (SP)
+  29C:  LW        S2, 38 (SP)
+  2A0:  LW        S1, 34 (SP)
+  2A4:  LW        S0, 30 (SP)
+  2A8:  DADDU     V0, R0, R0
+  2AC:  JR        RA
+  2B0:  ADDIU     SP, SP, 50
+  
+  #new:Function $Function_80241AD4
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        RA, 24 (SP)
+    8:  SW        S4, 20 (SP)
+    C:  SW        S3, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S1, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, 148 (A0)
+   24:  LH        A0, 8 (S0)
+   28:  JAL       {Func:get_npc_unsafe}
+   2C:  ADDIU     S1, R0, 1
+   30:  LH        A0, 8 (S0)
+   34:  DADDU     S0, V0, R0
+   38:  LIA       A1, 800B1D80
+   40:  LAH       V1, 8009A634
+   48:  ADDU      A0, A0, S1
+   4C:  SLL       V0, V1, 2
+   50:  ADDU      V0, V0, V1
+   54:  SLL       V0, V0, 2
+   58:  SUBU      V0, V0, V1
+   5C:  SLL       V1, V0, 3
+   60:  ADDU      V0, V0, V1
+   64:  SLL       V0, V0, 3
+   68:  JAL       {Func:get_enemy}
+   6C:  ADDU      S2, V0, A1
+   70:  LIA       S4, 800F7B30
+   78:  LWC1      F12, 38 (S0)
+   7C:  LW        V1, 0 (S4)
+   80:  LWC1      F14, 40 (S0)
+   84:  LW        A2, 28 (V1)
+   88:  LW        A3, 30 (V1)
+   8C:  JAL       {Func:dist2D}
+   90:  DADDU     S3, V0, R0
+   94:  LWC1      F2, 74 (S3)
+   98:  CVT.S.W   F2, F2
+   9C:  C.LT.S    F2, F0
+   A0:  NOP
+   A4:  BC1TL     .oAC
+   A8:  DADDU     S1, R0, R0
+        .oAC
+   AC:  LWC1      F12, 6C (S2)
+   B0:  LWC1      F14, C (S0)
+   B4:  LIF       F20, 270.0
+   BC:  JAL       {Func:get_clamped_angle_diff}
+   C0:  NOP
+   C4:  JAL       {Func:clamp_angle}
+   C8:  MOV.S     F12, F0
+   CC:  LAD       F2, $ConstDouble_80247A90
+   D4:  CVT.D.S   F0, F0
+   D8:  C.LT.D    F0, F2
+   DC:  NOP
+   E0:  BC1F      .oF0
+   E4:  NOP
+   E8:  LIF       F20, 90.0
+        .oF0
+   F0:  LWC1      F12, 38 (S0)
+   F4:  LW        V0, 0 (S4)
+   F8:  LWC1      F14, 40 (S0)
+   FC:  LW        A2, 28 (V0)
+  100:  JAL       80029C80
+  104:  LW        A3, 30 (V0)
+  108:  MOV.S     F12, F20
+  10C:  JAL       {Func:get_clamped_angle_diff}
+  110:  MOV.S     F14, F0
+  114:  LWC1      F2, 78 (S3)
+  118:  CVT.S.W   F2, F2
+  11C:  ABS.S     F0, F0
+  120:  C.LT.S    F2, F0
+  124:  NOP
+  128:  BC1TL     .o130
+  12C:  DADDU     S1, R0, R0
+        .o130
+  130:  LW        V0, 0 (S4)
+  134:  LWC1      F0, 3C (S0)
+  138:  LWC1      F2, 2C (V0)
+  13C:  LH        V0, A8 (S0)
+  140:  SUB.S     F0, F0, F2
+  144:  MTC1      V0, F2
+  148:  NOP
+  14C:  CVT.D.W   F2, F2
+  150:  ADD.D     F2, F2, F2
+  154:  ABS.S     F0, F0
+  158:  CVT.D.S   F0, F0
+  15C:  C.LE.D    F2, F0
+  160:  NOP
+  164:  BC1TL     .o16C
+  168:  DADDU     S1, R0, R0
+        .o16C
+  16C:  LAB       V1, 8010EBB3
+  174:  ADDIU     V0, R0, 9
+  178:  BEQL      V1, V0, .o180
+  17C:  DADDU     S1, R0, R0
+        .o180
+  180:  ADDIU     V0, R0, 7
+  184:  BEQL      V1, V0, .o18C
+  188:  DADDU     S1, R0, R0
+        .o18C
+  18C:  DADDU     V0, S1, R0
+  190:  LW        RA, 24 (SP)
+  194:  LW        S4, 20 (SP)
+  198:  LW        S3, 1C (SP)
+  19C:  LW        S2, 18 (SP)
+  1A0:  LW        S1, 14 (SP)
+  1A4:  LW        S0, 10 (SP)
+  1A8:  LDC1      F20, 28 (SP)
+  1AC:  JR        RA
+  1B0:  ADDIU     SP, SP, 30
+  
+  #new:Function $Function_802416B8
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, 148 (S1)
+   18:  JAL       {Func:get_npc_unsafe}
+   1C:  LH        A0, 8 (S0)
+   20:  LUI       A1, 4387
+   24:  DADDU     A0, V0, R0
+   28:  JAL       {Func:set_npc_yaw}
+   2C:  SH        R0, 8E (A0)
+   30:  ADDIU     V0, R0, 3
+   34:  SW        R0, 6C (S0)
+   38:  SW        V0, 70 (S1)
+   3C:  LW        RA, 18 (SP)
+   40:  LW        S1, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  JR        RA
+   4C:  ADDIU     SP, SP, 20
+
+#new:Function $Function_80241708
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S2, 28 (SP)
+    8:  DADDU     S2, A0, R0
+    C:  SW        RA, 2C (SP)
+   10:  SW        S1, 24 (SP)
+   14:  SW        S0, 20 (SP)
+   18:  LW        S0, 148 (S2)
+   1C:  JAL       {Func:get_npc_unsafe}
+   20:  LH        A0, 8 (S0)
+   24:  LW        V1, 6C (S0)
+   28:  BNE       V1, R0, .o58
+   2C:  DADDU     S1, V0, R0
+   30:  JAL       {Func:rand_int}
+   34:  ADDIU     A0, R0, 64
+   38:  SLTI      V0, V0, 32
+   3C:  BNE       V0, R0, .o48
+   40:  ADDIU     V0, R0, 1
+   44:  ADDIU     V0, R0, 3
+        .o48
+   48:  SW        V0, 6C (S0)
+   4C:  LUI       A1, 4387
+   50:  JAL       {Func:set_npc_yaw}
+   54:  DADDU     A0, S1, R0
+        .o58
+   58:  LW        V0, 6C (S0)
+   5C:  ADDIU     V1, V0, FFFF
+   60:  SLTIU     V0, V1, 6
+   64:  BEQ       V0, R0, .o19C
+   68:  SLL       V0, V1, 2
+   6C:  LTW       V0, V0 ($JumpTable_80247A78)
+   78:  JR        V0
+   7C:  NOP
+% LBL: from $JumpTable_80247A78 , entry 0`
+   80:  LIO       V1, 0042000F
+   88:  ADDIU     V0, R0, 2
+   8C:  SW        V0, 6C (S0)
+   90:  SW        R0, 70 (S0)
+   94:  SW        V1, 28 (S1)
+% LBL: from $JumpTable_80247A78 , entry 1`
+   98:  LW        V0, 70 (S0)
+   9C:  ADDIU     V0, V0, 1
+   A0:  SW        V0, 70 (S0)
+   A4:  SLTI      V0, V0, 33
+   A8:  BNE       V0, R0, .o19C
+   AC:  ADDIU     V0, R0, 5
+   B0:  BEQ       R0, R0, .o19C
+   B4:  SW        V0, 6C (S0)
+% LBL: from $JumpTable_80247A78 , entry 2`
+   B8:  LIO       V1, 00420010
+   C0:  ADDIU     V0, R0, 4
+   C4:  SW        V0, 6C (S0)
+   C8:  SW        R0, 70 (S0)
+   CC:  SW        V1, 28 (S1)
+% LBL: from $JumpTable_80247A78 , entry 3`
+   D0:  LW        V0, 70 (S0)
+   D4:  ADDIU     V1, R0, 19
+   D8:  ADDIU     V0, V0, 1
+   DC:  BNE       V0, V1, .oF4
+   E0:  SW        V0, 70 (S0)
+   E4:  LIF       F0, 90.0
+   EC:  NOP
+   F0:  SWC1      F0, C (S1)
+        .oF4
+   F4:  LW        V0, 70 (S0)
+   F8:  SLTI      V0, V0, 3D
+   FC:  BNE       V0, R0, .o19C
+  100:  ADDIU     V0, R0, 5
+  104:  BEQ       R0, R0, .o19C
+  108:  SW        V0, 6C (S0)
+% LBL: from $JumpTable_80247A78 , entry 4`
+  10C:  LUI       V1, 42
+  110:  ADDIU     V0, R0, 6
+  114:  ORI       V1, V1, 3
+  118:  SW        V0, 6C (S0)
+  11C:  SW        R0, 70 (S0)
+  120:  LH        A0, A8 (S1)
+  124:  ADDIU     V0, R0, A
+  128:  SW        V1, 28 (S1)
+  12C:  SW        R0, 14 (SP)
+  130:  SW        V0, 18 (SP)
+  134:  MTC1      A0, F0
+  138:  NOP
+  13C:  CVT.S.W   F0, F0
+  140:  SWC1      F0, 10 (SP)
+  144:  LW        A1, 38 (S1)
+  148:  LW        A2, 3C (S1)
+  14C:  LW        A3, 40 (S1)
+  150:  JAL       80070790
+  154:  DADDU     A0, R0, R0
+% LBL: from $JumpTable_80247A78 , entry 5`
+  158:  LW        V0, 70 (S0)
+  15C:  ADDIU     V0, V0, 1
+  160:  SW        V0, 70 (S0)
+  164:  SLTI      V0, V0, B
+  168:  BNE       V0, R0, .o19C
+  16C:  NOP
+  170:  JAL       {Func:rand_int}
+  174:  ADDIU     A0, R0, 64
+  178:  DADDU     V1, V0, R0
+  17C:  SLTI      V0, V1, 5A
+  180:  BNE       V0, R0, .o198
+  184:  ADDIU     V0, R0, 7
+  188:  SLTI      V0, V1, 5F
+  18C:  BNE       V0, R0, .o198
+  190:  ADDIU     V0, R0, 1
+  194:  ADDIU     V0, R0, 3
+        .o198
+  198:  SW        V0, 6C (S0)
+        .o19C
+  19C:  LW        V1, 6C (S0)
+  1A0:  ADDIU     V0, R0, 7
+  1A4:  BEQL      V1, V0, .o1AC
+  1A8:  SW        R0, 70 (S2)
+        .o1AC
+  1AC:  LW        RA, 2C (SP)
+  1B0:  LW        S2, 28 (SP)
+  1B4:  LW        S1, 24 (SP)
+  1B8:  LW        S0, 20 (SP)
+  1BC:  JR        RA
+  1C0:  ADDIU     SP, SP, 30
+
+#new:Function $Function_802418CC
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, 148 (S1)
+   18:  JAL       {Func:get_npc_unsafe}
+   1C:  LH        A0, 8 (S0)
+   20:  ADDIU     V1, R0, 1
+   24:  DADDU     A0, V0, R0
+   28:  SW        V1, 6C (S0)
+   2C:  LH        V0, 8C (A0)
+   30:  BNE       V0, R0, .o58
+   34:  ADDIU     V0, R0, 2
+   38:  LHU       V1, 72 (S0)
+   3C:  SW        V0, 6C (S0)
+   40:  SH        V1, 8E (A0)
+   44:  LW        V0, CC (S0)
+   48:  LW        V0, 20 (V0)
+   4C:  SW        V0, 28 (A0)
+   50:  ADDIU     V0, R0, 1F
+   54:  SW        V0, 70 (S1)
+        .o58
+   58:  LW        RA, 18 (SP)
+   5C:  LW        S1, 14 (SP)
+   60:  LW        S0, 10 (SP)
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 20
+
+#new:Function $Function_80241938
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, 148 (S1)
+   18:  JAL       {Func:get_npc_unsafe}
+   1C:  LH        A0, 8 (S0)
+   20:  DADDU     A0, V0, R0
+   24:  LHU       V0, 8E (A0)
+   28:  ADDIU     V0, V0, FFFF
+   2C:  SH        V0, 8E (A0)
+   30:  SLL       V0, V0, 10
+   34:  BGTZ      V0, .o5C
+   38:  ADDIU     V0, R0, 3
+   3C:  LHU       V1, 76 (S0)
+   40:  SW        V0, 6C (S0)
+   44:  SH        V1, 8E (A0)
+   48:  LW        V0, CC (S0)
+   4C:  LW        V0, 24 (V0)
+   50:  SW        V0, 28 (A0)
+   54:  ADDIU     V0, R0, 20
+   58:  SW        V0, 70 (S1)
+        .o5C
+   5C:  LW        RA, 18 (SP)
+   60:  LW        S1, 14 (SP)
+   64:  LW        S0, 10 (SP)
+   68:  JR        RA
+   6C:  ADDIU     SP, SP, 20
+
+#new:Function $Function_802419A8
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S1, 34 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 38 (SP)
+   10:  SW        S0, 30 (SP)
+   14:  LW        S0, 148 (S1)
+   18:  JAL       {Func:get_npc_unsafe}
+   1C:  LH        A0, 8 (S0)
+   20:  DADDU     A1, V0, R0
+   24:  LHU       V0, 8E (A1)
+   28:  ADDIU     V0, V0, FFFF
+   2C:  SH        V0, 8E (A1)
+   30:  SLL       V0, V0, 10
+   34:  BGTZ      V0, .oC4
+   38:  ADDIU     V0, R0, 4
+   3C:  LW        V1, CC (S0)
+   40:  SW        V0, 6C (S0)
+   44:  LW        V0, 0 (V1)
+   48:  SW        V0, 28 (A1)
+   4C:  LHU       V0, 7A (S0)
+   50:  SH        V0, 8E (A1)
+   54:  LW        V0, 78 (S0)
+   58:  SLTI      V0, V0, 8
+   5C:  BNE       V0, R0, .oC0
+   60:  ADDIU     V0, R0, 21
+   64:  ADDIU     A0, R0, 3
+   68:  ADDIU     V1, SP, 28
+   6C:  LH        A3, A8 (A1)
+   70:  LIF       F0, 1.0
+   78:  LIF       F2, 2.0
+   80:  LIF       F4, -20.0
+   88:  MTC1      A3, F6
+   8C:  NOP
+   90:  CVT.S.W   F6, F6
+   94:  SWC1      F0, 10 (SP)
+   98:  SWC1      F2, 14 (SP)
+   9C:  SWC1      F4, 18 (SP)
+   A0:  LW        V0, 78 (S0)
+   A4:  MFC1      A3, F6
+   A8:  DADDU     A2, R0, R0
+   AC:  SW        V1, 20 (SP)
+   B0:  ADDIU     V0, V0, FFFF
+   B4:  JAL       8006FE90
+   B8:  SW        V0, 1C (SP)
+   BC:  ADDIU     V0, R0, 21
+        .oC0
+   C0:  SW        V0, 70 (S1)
+        .oC4
+   C4:  LW        RA, 38 (SP)
+   C8:  LW        S1, 34 (SP)
+   CC:  LW        S0, 30 (SP)
+   D0:  JR        RA
+   D4:  ADDIU     SP, SP, 40
+
+#new:Function $Function_80241A80
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, 148 (S1)
+   18:  JAL       {Func:get_npc_unsafe}
+   1C:  LH        A0, 8 (S0)
+   20:  LHU       V1, 8E (V0)
+   24:  ADDIU     V1, V1, FFFF
+   28:  SH        V1, 8E (V0)
+   2C:  SLL       V1, V1, 10
+   30:  BGTZ      V1, .o40
+   34:  ADDIU     V0, R0, C
+   38:  SW        R0, 6C (S0)
+   3C:  SW        V0, 70 (S1)
+        .o40
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 20
+	
+	#new:Script $Script_DisableEnemyAI
+	Call     DoBasicAI   	( $AISettings_DisableEnemy )
+	Return
+	End
+	
+		#new:AISettings $AISettings_DisableEnemy
+    0.0 % move speed
+    0` % move time
+    30` % wait time
+  0.0 % alert radius
+    0.0
+    1`
+    0.0 % chase speed
+    180` % max turn rate (0 = enemy rushes at position where the player was detected and keeps going)
+    3`
+  0.0 % chase radius
+    0.0
+    1`%/

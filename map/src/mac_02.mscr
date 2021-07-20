@@ -1,0 +1,7077 @@
+% Script File: mac_02.mscr
+% Decoded from: 0 to E540 (mac_02)
+
+#new:Function $Function_80240000
+{
+	LAW       V0, 800F7B30
+	LW        V1, 4 (V0)
+	LUI       A0, 10
+	OR        V1, V1, A0
+	SW        V1, 4 (V0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80240020
+{
+	LAH       V0, 8015A552
+	SW        V0, 84 (A0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80240034
+{
+	LAH       V1, 8015A552
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, B0 (S0)
+	BEQ       V1, V0, .o2C
+	ADDIU     V0, R0, 2
+	BEQ       R0, R0, .oAC
+	SW        R0, 84 (S0)
+	.o2C
+	LAW       V1, 8007419C
+	LB        V0, 40 (V1)
+	LB        A3, 44 (V1)
+	BLTZL     V0, .o44
+	SUBU      V0, R0, V0
+	.o44
+	BNE       V0, R0, .o54
+	NOP
+	BEQL      A3, R0, .oAC
+	CLEAR     V0
+	.o54
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	MFC1      A2, F4
+	MTC1      A3, F4
+	NOP
+	CVT.S.W   F4, F4
+	MTC1      R0, F12
+	MFC1      A3, F4
+	JAL       ~Func:atan2
+	MOV.S     F14, F12
+	LIF       F2, 60.0
+	NOP
+	C.LT.S    F0, F2
+	NOP
+	BC1F      .oA8
+	ADDIU     V0, R0, 1
+	SW        V0, 84 (S0)
+	BEQ       R0, R0, .oAC
+	ADDIU     V0, R0, 2
+	.oA8
+	CLEAR     V0
+	.oAC
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802400F0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	JAL       ~Func:get_current_map_header
+	SW        S0, 10 (SP)
+	COPY      A0, S1
+	LIO       A1, *Var[0]
+	JAL       ~Func:get_variable
+	COPY      S2, V0
+	COPY      A0, S1
+	LUI       A1, FE36
+	LW        V1, 14 (S2)
+	SLL       S0, V0, 4
+	ADDU      V1, S0, V1
+	LWC1      F0, 0 (V1)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C81
+	COPY      A0, S1
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      V0, S0, V0
+	LWC1      F0, 4 (V0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C82
+	COPY      A0, S1
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      V0, S0, V0
+	LWC1      F0, 8 (V0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C83
+	COPY      A0, S1
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      S0, S0, V0
+	LWC1      F0, C (S0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C84
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802401D0
+{
+	LAW       V1, 80077410
+	LIF       F12, 180.0
+	ADDIU     SP, SP, FFE8
+	SW        RA, 14 (SP)
+	SW        S0, 10 (SP)
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	LTF       F0, V0 (800B1DEC)
+	ADD.S     F12, F0, F12
+	JAL       ~Func:clamp_angle
+	COPY      S0, A0
+	TRUNC.W.S F2, F0
+	SWC1      F2, 84 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024023C
+{
+	ADDIU     SP, SP, FFD8
+	SW        S0, 18 (SP)
+	COPY      S0, A0
+	SW        RA, 1C (SP)
+	SDC1      F20, 20 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_float_variable
+	LW        A1, 0 (V0)
+	ADDIU     A0, SP, 10
+	LIA       V0, 8010EFC8
+	MFC1      A2, F0
+	LWC1      F0, 28 (V0)
+	LWC1      F2, 30 (V0)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	LW        A3, 80 (V0)
+	LWC1      F20, 2C (V0)
+	JAL       ~Func:add_vec2D_polar
+	ADDIU     A1, SP, 14
+	COPY      A0, S0
+	LUI       A1, FE36
+	LW        A2, 10 (SP)
+	JAL       ~Func:set_float_variable
+	ORI       A1, A1, 3C80
+	COPY      A0, S0
+	LUI       A1, FE36
+	MFC1      A2, F20
+	JAL       ~Func:set_float_variable
+	ORI       A1, A1, 3C81
+	COPY      A0, S0
+	LUI       A1, FE36
+	LW        A2, 14 (SP)
+	JAL       ~Func:set_float_variable
+	ORI       A1, A1, 3C82
+	LW        RA, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F20, 20 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_802402E0
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V1, A8 (S0)
+	LW        V0, 88 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o30
+	SW        V1, A8 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .o40
+	ADDU      V0, V1, V0
+	.o30
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .o44
+	SUBU      V0, V1, A0
+	.o40
+	SW        V0, A8 (S0)
+	.o44
+	LW        V1, AC (S0)
+	LW        V0, 8C (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o64
+	SW        V1, AC (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .o74
+	ADDU      V0, V1, V0
+	.o64
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .o78
+	SUBU      V0, V1, A0
+	.o74
+	SW        V0, AC (S0)
+	.o78
+	LW        V1, B0 (S0)
+	LW        V0, 90 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o98
+	SW        V1, B0 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .oA8
+	ADDU      V0, V1, V0
+	.o98
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .oAC
+	SUBU      V0, V1, A0
+	.oA8
+	SW        V0, B0 (S0)
+	.oAC
+	LW        V1, B4 (S0)
+	LW        V0, 94 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .oCC
+	SW        V1, B4 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .oDC
+	ADDU      V0, V1, V0
+	.oCC
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .oE0
+	SUBU      V0, V1, A0
+	.oDC
+	SW        V0, B4 (S0)
+	.oE0
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_main_pan_u
+	LW        A1, A8 (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_main_pan_v
+	LW        A1, AC (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_aux_pan_u
+	LW        A1, B0 (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_aux_pan_v
+	LW        A1, B4 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240404
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	BEQ       A1, R0, .o24
+	SW        RA, 14 (SP)
+	SW        R0, 70 (S0)
+	SW        R0, 74 (S0)
+	SW        R0, 78 (S0)
+	SW        R0, 7C (S0)
+	.o24
+	LW        V0, 70 (S0)
+	BNE       V0, R0, .o64
+	NOP
+	LW        V1, A8 (S0)
+	LW        V0, 88 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o50
+	SW        V1, A8 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .o60
+	ADDU      V0, V1, V0
+	.o50
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .o64
+	SUBU      V0, V1, A0
+	.o60
+	SW        V0, A8 (S0)
+	.o64
+	LW        V0, 74 (S0)
+	BNE       V0, R0, .oA4
+	NOP
+	LW        V1, AC (S0)
+	LW        V0, 8C (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o90
+	SW        V1, AC (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .oA0
+	ADDU      V0, V1, V0
+	.o90
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .oA4
+	SUBU      V0, V1, A0
+	.oA0
+	SW        V0, AC (S0)
+	.oA4
+	LW        V0, 78 (S0)
+	BNE       V0, R0, .oE4
+	NOP
+	LW        V1, B0 (S0)
+	LW        V0, 90 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .oD0
+	SW        V1, B0 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .oE0
+	ADDU      V0, V1, V0
+	.oD0
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .oE4
+	SUBU      V0, V1, A0
+	.oE0
+	SW        V0, B0 (S0)
+	.oE4
+	LW        V0, 7C (S0)
+	BNE       V0, R0, .o124
+	NOP
+	LW        V1, B4 (S0)
+	LW        V0, 94 (S0)
+	ADDU      V1, V1, V0
+	BGEZ      V1, .o110
+	SW        V1, B4 (S0)
+	LUI       V0, 2
+	BEQ       R0, R0, .o120
+	ADDU      V0, V1, V0
+	.o110
+	LUI       A0, 2
+	SLT       V0, A0, V1
+	BEQ       V0, R0, .o124
+	SUBU      V0, V1, A0
+	.o120
+	SW        V0, B4 (S0)
+	.o124
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_main_pan_u
+	LW        A1, A8 (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_main_pan_v
+	LW        A1, AC (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_aux_pan_u
+	LW        A1, B0 (S0)
+	LW        A0, 84 (S0)
+	JAL       ~Func:set_aux_pan_v
+	LW        A1, B4 (S0)
+	LW        V0, 70 (S0)
+	LW        V1, 78 (S0)
+	LW        A0, 98 (S0)
+	ADDIU     V0, V0, 1
+	SW        V0, 70 (S0)
+	LW        V0, 74 (S0)
+	ADDIU     V1, V1, 1
+	SW        V1, 78 (S0)
+	LW        V1, 70 (S0)
+	ADDIU     V0, V0, 1
+	SW        V0, 74 (S0)
+	LW        V0, 7C (S0)
+	SLT       V1, V1, A0
+	ADDIU     V0, V0, 1
+	BNE       V1, R0, .o198
+	SW        V0, 7C (S0)
+	SW        R0, 70 (S0)
+	.o198
+	LW        V0, 74 (S0)
+	LW        V1, 9C (S0)
+	SLT       V0, V0, V1
+	BEQL      V0, R0, .o1AC
+	SW        R0, 74 (S0)
+	.o1AC
+	LW        V0, 78 (S0)
+	LW        V1, A0 (S0)
+	SLT       V0, V0, V1
+	BEQL      V0, R0, .o1C0
+	SW        R0, 78 (S0)
+	.o1C0
+	LW        V0, 7C (S0)
+	LW        V1, A4 (S0)
+	SLT       V0, V0, V1
+	BEQL      V0, R0, .o1D4
+	SW        R0, 7C (S0)
+	.o1D4
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 802405EC to 802405F0 (000005EC to 000005F0)
+00000000
+
+#new:Function $Function_802405F0
+{
+	ADDIU     SP, SP, FFE0
+	ADDIU     A0, R0, 47
+	ADDIU     A1, R0, FFFF
+	ADDIU     A2, R0, 1
+	COPY      A3, A2
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	JAL       8011B950
+	SW        S0, 10 (SP)
+	CLEAR     A0
+	COPY      A1, A0
+	COPY      A2, A0
+	JAL       ~Func:set_background_color_blend
+	ADDIU     A3, R0, FF
+	CLEAR     S0
+	ADDIU     S2, R0, FFFC
+	LUI       S1, 80
+	LIA       V0, 800B1D80
+	SH        R0, 2C (V0)
+	SH        R0, 2E (V0)
+	SH        R0, 30 (V0)
+	.o5C
+	JAL       ~Func:get_npc_by_index
+	COPY      A0, S0
+	COPY      V1, V0
+	BEQL      V1, R0, .o90
+	ADDIU     S0, S0, 1
+	LW        A0, 0 (V1)
+	BEQ       A0, R0, .o90
+	ADDIU     S0, S0, 1
+	LB        V0, A4 (V1)
+	BEQ       V0, S2, .o90
+	NOP
+	OR        V0, A0, S1
+	SW        V0, 0 (V1)
+	.o90
+	SLTI      V0, S0, 40
+	BNE       V0, R0, .o5C
+	ADDIU     V0, R0, 2
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+PADDING: 802406A4 to 802406B0 (000006A4 to 000006B0)
+00000000 00000000 00000000
+
+#new:Function $Function_802406B0
+{
+	ADDIU     SP, SP, FFD0
+	SDC1      F20, 18 (SP)
+	MTC1      A1, F20
+	SDC1      F22, 20 (SP)
+	MTC1      A2, F22
+	SW        S0, 10 (SP)
+	SDC1      F24, 28 (SP)
+	MTC1      A3, F24
+	SW        RA, 14 (SP)
+	JAL       ~Func:guMtxIdentF
+	COPY      S0, A0
+	MUL.S     F22, F20, F22
+	NOP
+	MUL.S     F20, F20, F24
+	NOP
+	LIF       F0, 1.0
+	NOP
+	SWC1      F0, 14 (S0)
+	SWC1      F22, 10 (S0)
+	SWC1      F20, 18 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F24, 28 (SP)
+	LDC1      F22, 20 (SP)
+	LDC1      F20, 18 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_80240720
+{
+	ADDIU     SP, SP, FF78
+	SW        S1, 54 (SP)
+	COPY      S1, A0
+	SW        RA, 5C (SP)
+	SW        S2, 58 (SP)
+	SW        S0, 50 (SP)
+	SDC1      F28, 80 (SP)
+	SDC1      F26, 78 (SP)
+	SDC1      F24, 70 (SP)
+	SDC1      F22, 68 (SP)
+	SDC1      F20, 60 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_model_list_index_from_tree_index
+	COPY      A0, V0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	COPY      S2, V0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	MOV.S     F28, F0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_float_variable
+	MOV.S     F26, F0
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_float_variable
+	MOV.S     F22, F0
+	COPY      A0, S2
+	JAL       ~Func:get_model_from_list_index
+	MOV.S     F24, F0
+	COPY      S1, V0
+	LHU       V0, 0 (S1)
+	ANDI      V0, V0, 400
+	BNE       V0, R0, .o124
+	ADDIU     S0, S1, 58
+	MTC1      R0, F20
+	MFC1      A2, F22
+	MFC1      A1, F20
+	MFC1      A3, F20
+	JAL       ~Func:guTranslateF
+	COPY      A0, S0
+	MFC1      A1, F28
+	MFC1      A2, F26
+	MFC1      A3, F24
+	JAL       $Function_802406B0
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	ADDIU     A0, SP, 10
+	NEG.S     F22, F22
+	MFC1      A1, F20
+	MFC1      A2, F22
+	JAL       ~Func:guTranslateF
+	COPY      A3, A1
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, A1
+	LHU       V0, 0 (S1)
+	ORI       V0, V0, 1400
+	BEQ       R0, R0, .o19C
+	SH        V0, 0 (S1)
+	.o124
+	MTC1      R0, F20
+	MFC1      A2, F22
+	MFC1      A1, F20
+	MFC1      A3, F20
+	JAL       ~Func:guTranslateF
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	ADDIU     S0, S1, 58
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	MFC1      A1, F28
+	MFC1      A2, F26
+	MFC1      A3, F24
+	JAL       $Function_802406B0
+	ADDIU     A0, SP, 10
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S0
+	ADDIU     A0, SP, 10
+	NEG.S     F22, F22
+	MFC1      A1, F20
+	MFC1      A2, F22
+	JAL       ~Func:guTranslateF
+	COPY      A3, A1
+	ADDIU     A0, SP, 10
+	COPY      A1, S0
+	JAL       ~Func:guMtxCatF
+	COPY      A2, A1
+	.o19C
+	LW        RA, 5C (SP)
+	LW        S2, 58 (SP)
+	LW        S1, 54 (SP)
+	LW        S0, 50 (SP)
+	LDC1      F28, 80 (SP)
+	LDC1      F26, 78 (SP)
+	LDC1      F24, 70 (SP)
+	LDC1      F22, 68 (SP)
+	LDC1      F20, 60 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 88
+}
+
+PADDING: 802408EC to 802408F0 (000008EC to 000008F0)
+00000000
+
+#new:Function $Function_802408F0
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_entity_by_index
+	LW        A0, 84 (A0)
+	COPY      V1, V0
+	LW        A0, 0 (V1)
+	LUI       A1, 10
+	OR        A0, A0, A1
+	SW        A0, 0 (V1)
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 80240924 to 80240930 (00000924 to 00000930)
+00000000 00000000 00000000
+
+% Origin: HEURISTIC
+#new:Function $Function_80240930
+{
+	ADDIU     SP, SP, FFB8
+	SW        S5, 24 (SP)
+	COPY      S5, A0
+	SW        RA, 2C (SP)
+	SW        S6, 28 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F24, 40 (SP)
+	SDC1      F22, 38 (SP)
+	SDC1      F20, 30 (SP)
+	LW        S3, 148 (S5)
+	LH        A0, 8 (S3)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S6, A1
+	COPY      S4, V0
+	SW        R0, 74 (S5)
+	LWC1      F24, 38 (S4)
+	LWC1      F22, 40 (S4)
+	CLEAR     S2
+	SW        R0, 78 (S5)
+	LW        V1, D0 (S3)
+	LW        V0, 0 (V1)
+	LIO       AT, 46FFFE00
+	MTC1      AT, F20
+	BLEZ      V0, .oD4
+	COPY      S0, S2
+	COPY      S1, S2
+	.o7C
+	ADDU      V0, S1, V1
+	MOV.S     F12, F24
+	LWC1      F4, 4 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A2, F4
+	LWC1      F4, C (V0)
+	CVT.S.W   F4, F4
+	MFC1      A3, F4
+	JAL       ~Func:dist2D
+	MOV.S     F14, F22
+	C.LT.S    F0, F20
+	NOP
+	BC1F      .oBC
+	ADDIU     S1, S1, C
+	MOV.S     F20, F0
+	SW        S2, 78 (S5)
+	.oBC
+	LW        V1, D0 (S3)
+	ADDIU     S0, S0, 1
+	LW        V0, 0 (V1)
+	SLT       V0, S0, V0
+	BNE       V0, R0, .o7C
+	ADDIU     S2, S2, 1
+	.oD4
+	LW        V0, CC (S3)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (S4)
+	LW        V0, D0 (S3)
+	LW        V0, 7C (V0)
+	BGEZ      V0, .oFC
+	NOP
+	LWC1      F0, 0 (S6)
+	BEQ       R0, R0, .o11C
+	SWC1      F0, 18 (S4)
+	.oFC
+	LAD       F2, $ConstDouble_8024E200
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	DIV.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 18 (S4)
+	.o11C
+	ADDIU     V0, R0, 1
+	SW        V0, 70 (S5)
+	LW        RA, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F24, 40 (SP)
+	LDC1      F22, 38 (SP)
+	LDC1      F20, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240A88
+{
+	ADDIU     SP, SP, FFA8
+	SW        S2, 38 (SP)
+	COPY      S2, A0
+	SW        RA, 44 (SP)
+	SW        S4, 40 (SP)
+	SW        S3, 3C (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	SDC1      F22, 50 (SP)
+	SDC1      F20, 48 (SP)
+	LW        S1, 148 (S2)
+	COPY      S3, A1
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S4, A2
+	LW        V1, 14 (S3)
+	BLTZ      V1, .o104
+	COPY      S0, V0
+	LW        V0, 74 (S2)
+	BGTZ      V0, .o100
+	ADDIU     V0, V0, FFFF
+	COPY      A0, S4
+	SW        V1, 74 (S2)
+	SW        R0, 10 (SP)
+	LW        A2, C (S3)
+	LW        A3, 10 (S3)
+	JAL       800490B4
+	COPY      A1, S1
+	BEQ       V0, R0, .oF8
+	CLEAR     A0
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	COPY      A0, S0
+	ADDIU     A1, R0, 2F4
+	JAL       800494C0
+	LUI       A2, 20
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 1
+	BNE       V0, R0, .o27C
+	ADDIU     V0, R0, A
+	BEQ       R0, R0, .o27C
+	ADDIU     V0, R0, C
+	.oF8
+	LW        V0, 74 (S2)
+	ADDIU     V0, V0, FFFF
+	.o100
+	SW        V0, 74 (S2)
+	.o104
+	LH        V0, 8C (S0)
+	BNE       V0, R0, .o280
+	NOP
+	LWC1      F0, 18 (S0)
+	LIF       F3, 2.25
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1F      .o13C
+	COPY      A0, S0
+	BEQ       R0, R0, .o140
+	CLEAR     A1
+	.o13C
+	ADDIU     A1, R0, 1
+	.o140
+	JAL       8003D660
+	NOP
+	LWC1      F12, 38 (S0)
+	LW        V1, 78 (S2)
+	LWC1      F14, 40 (S0)
+	SLL       V0, V1, 1
+	ADDU      V0, V0, V1
+	LW        V1, D0 (S1)
+	SLL       V0, V0, 2
+	ADDU      V0, V0, V1
+	LWC1      F22, 4 (V0)
+	CVT.S.W   F22, F22
+	LWC1      F20, C (V0)
+	CVT.S.W   F20, F20
+	MFC1      A2, F22
+	MFC1      A3, F20
+	JAL       ~Func:atan2
+	NOP
+	LW        A1, 18 (S0)
+	MFC1      A2, F0
+	COPY      A0, S0
+	JAL       ~Func:npc_move_heading
+	SW        A2, C (S0)
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	MFC1      A2, F22
+	MFC1      A3, F20
+	JAL       ~Func:dist2D
+	NOP
+	LWC1      F2, 18 (S0)
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o280
+	ADDIU     A0, R0, 3E8
+	ADDIU     V0, R0, 2
+	JAL       ~Func:rand_int
+	SW        V0, 70 (S2)
+	LIO       V1, 55555556
+	MULT      V0, V1
+	SRA       A0, V0, 1F
+	MFHI      T0
+	SUBU      A0, T0, A0
+	SLL       V1, A0, 1
+	ADDU      V1, V1, A0
+	SUBU      V0, V0, V1
+	ADDIU     V1, V0, 2
+	SW        V1, 74 (S2)
+	LW        V0, 2C (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	LW        V0, 4 (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	LW        V0, 8 (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	BNE       V1, R0, .o230
+	NOP
+	.o22C
+	SW        V0, 70 (S2)
+	.o230
+	JAL       ~Func:rand_int
+	ADDIU     A0, R0, 2710
+	LIO       V1, 51EB851F
+	MULT      V0, V1
+	SRA       V1, V0, 1F
+	MFHI      T0
+	SRA       A0, T0, 5
+	SUBU      A0, A0, V1
+	SLL       V1, A0, 1
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 3
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 2
+	LW        A0, 4 (S3)
+	SUBU      V0, V0, V1
+	SLT       V0, V0, A0
+	BEQ       V0, R0, .o280
+	ADDIU     V0, R0, 4
+	.o27C
+	SW        V0, 70 (S2)
+	.o280
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	LDC1      F22, 50 (SP)
+	LDC1      F20, 48 (SP)
+	JR        RA
+	ADDIU     SP, SP, 58
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240D30
+{
+	ADDIU     SP, SP, FFD8
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        RA, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        S2, 148 (S3)
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A1
+	LW        A0, 8 (S1)
+	COPY      S0, V0
+	SRL       V1, A0, 1F
+	ADDU      A0, A0, V1
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 8 (S1)
+	ADDIU     A0, R0, B4
+	SRL       A1, V1, 1F
+	ADDU      V1, V1, A1
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	JAL       ~Func:rand_int
+	SH        V1, 8E (S0)
+	LWC1      F12, C (S0)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	ADD.S     F12, F12, F0
+	LIF       F0, 90.0
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F12, F0
+	SWC1      F0, C (S0)
+	LW        V0, CC (S2)
+	LW        V0, 0 (V0)
+	SW        V0, 28 (S0)
+	ADDIU     V0, R0, 3
+	SW        V0, 70 (S3)
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240DF0
+{
+	ADDIU     SP, SP, FFB8
+	SW        S4, 40 (SP)
+	COPY      S4, A0
+	SW        RA, 44 (SP)
+	SW        S3, 3C (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S1, 148 (S4)
+	COPY      S2, A1
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S3, A2
+	LW        V1, 14 (S2)
+	BLTZ      V1, .o100
+	COPY      S0, V0
+	COPY      A0, S3
+	SW        R0, 10 (SP)
+	LW        A2, 24 (S2)
+	LW        A3, 28 (S2)
+	JAL       800490B4
+	COPY      A1, S1
+	BEQ       V0, R0, .o100
+	CLEAR     A0
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	LAW       V0, 800F7B30
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	COPY      A0, S0
+	ADDIU     A1, R0, 2F4
+	LUI       A2, 20
+	JAL       800494C0
+	SWC1      F0, C (A0)
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 1
+	BNE       V0, R0, .o198
+	ADDIU     V0, R0, A
+	BEQ       R0, R0, .o198
+	ADDIU     V0, R0, C
+	.o100
+	LH        V0, 8C (S0)
+	BNE       V0, R0, .o19C
+	NOP
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BNE       V0, R0, .o19C
+	NOP
+	LW        V0, 74 (S4)
+	ADDIU     V0, V0, FFFF
+	BEQ       V0, R0, .o194
+	SW        V0, 74 (S4)
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 10
+	BNE       V0, R0, .o160
+	NOP
+	LWC1      F0, C (S0)
+	LIF       F12, 180.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F0, F12
+	SWC1      F0, C (S0)
+	.o160
+	LW        A0, 8 (S2)
+	SRL       V0, A0, 1F
+	ADDU      A0, A0, V0
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 8 (S2)
+	SRL       A0, V1, 1F
+	ADDU      V1, V1, A0
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	BEQ       R0, R0, .o19C
+	SH        V1, 8E (S0)
+	.o194
+	ADDIU     V0, R0, 4
+	.o198
+	SW        V0, 70 (S4)
+	.o19C
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240FAC
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S2, A1
+	LW        V1, 78 (S1)
+	ADDIU     V1, V1, 1
+	SW        V1, 78 (S1)
+	LW        A0, D0 (S0)
+	LW        A0, 0 (A0)
+	SLT       V1, V1, A0
+	BNE       V1, R0, .o4C
+	COPY      A1, V0
+	SW        R0, 78 (S1)
+	.o4C
+	LW        V0, CC (S0)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (A1)
+	LW        V0, D0 (S0)
+	LW        V0, 7C (V0)
+	BGEZ      V0, .o74
+	NOP
+	LWC1      F0, 0 (S2)
+	BEQ       R0, R0, .o94
+	SWC1      F0, 18 (A1)
+	.o74
+	LAD       F2, $ConstDouble_8024E208
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	DIV.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 18 (A1)
+	.o94
+	ADDIU     V0, R0, 1
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241060
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	LW        V1, CC (S0)
+	LIF       F4, 10.0
+	LIF       F0, 2.0
+	LWC1      F2, 3C (V0)
+	LW        A0, 10 (V1)
+	LW        V1, 0 (V0)
+	SWC1      F4, 1C (V0)
+	SWC1      F0, 14 (V0)
+	SWC1      F2, 64 (V0)
+	ORI       V1, V1, 800
+	SW        V1, 0 (V0)
+	SW        A0, 28 (V0)
+	ADDIU     V0, R0, B
+	SW        V0, 70 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802410D4
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, 148 (S0)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (V0)
+	COPY      A0, V0
+	LWC1      F2, 3C (A0)
+	LWC1      F0, 1C (A0)
+	ADD.S     F2, F2, F0
+	LWC1      F4, 14 (A0)
+	SUB.S     F0, F0, F4
+	LWC1      F4, 64 (A0)
+	C.LT.S    F4, F2
+	SWC1      F2, 3C (A0)
+	BC1T      .o68
+	SWC1      F0, 1C (A0)
+	LW        V0, 0 (A0)
+	ADDIU     V1, R0, F7FF
+	SWC1      F4, 3C (A0)
+	SW        R0, 1C (A0)
+	AND       V0, V0, V1
+	SW        V0, 0 (A0)
+	ADDIU     V0, R0, C
+	SW        V0, 70 (S0)
+	.o68
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024114C
+{
+	ADDIU     SP, SP, FFD0
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        RA, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F20, 28 (SP)
+	LW        S1, 148 (S3)
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A1
+	LW        A0, 20 (S0)
+	COPY      S2, V0
+	SRL       V1, A0, 1F
+	ADDU      A0, A0, V1
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 20 (S0)
+	LWC1      F12, 38 (S2)
+	SRL       A0, V1, 1F
+	ADDU      V1, V1, A0
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	SH        V1, 8E (S2)
+	LW        V0, CC (S1)
+	LWC1      F14, 40 (S2)
+	LW        V0, C (V0)
+	SW        V0, 28 (S2)
+	LWC1      F0, 18 (S0)
+	LAW       V0, 800F7B30
+	SWC1      F0, 18 (S2)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	MOV.S     F20, F0
+	LWC1      F12, C (S2)
+	JAL       ~Func:get_clamped_angle_diff
+	MOV.S     F14, F20
+	MOV.S     F2, F0
+	LW        V0, 1C (S0)
+	ABS.S     F0, F2
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	C.LT.S    F4, F0
+	NOP
+	BC1F      .oFC
+	NOP
+	MTC1      R0, F0
+	LWC1      F20, C (S2)
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .oF8
+	SUBU      V0, R0, V0
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	BEQ       R0, R0, .oFC
+	ADD.S     F20, F20, F0
+	.oF8
+	ADD.S     F20, F20, F4
+	.oFC
+	JAL       ~Func:clamp_angle
+	MOV.S     F12, F20
+	ADDIU     V0, R0, D
+	SWC1      F0, C (S2)
+	SW        V0, 70 (S3)
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F20, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024127C
+{
+	ADDIU     SP, SP, FFB8
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S2, 148 (S3)
+	COPY      S1, A1
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A2
+	COPY      A0, S0
+	COPY      A1, S2
+	ADDIU     V1, R0, 1
+	SW        V1, 10 (SP)
+	LW        A2, 24 (S1)
+	LW        A3, 28 (S1)
+	JAL       800490B4
+	COPY      S0, V0
+	BNE       V0, R0, .oCC
+	COPY      A0, S0
+	ADDIU     A0, R0, 2
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	LW        V0, CC (S2)
+	LW        V1, 0 (V0)
+	ADDIU     V0, R0, 19
+	SH        V0, 8E (S0)
+	ADDIU     V0, R0, E
+	BEQ       R0, R0, .o100
+	SW        V1, 28 (S0)
+	.oCC
+	JAL       8003D660
+	ADDIU     A1, R0, 1
+	LW        A1, 18 (S0)
+	LW        A2, C (S0)
+	JAL       ~Func:npc_move_heading
+	COPY      A0, S0
+	LH        V0, 8E (S0)
+	LHU       V1, 8E (S0)
+	BLEZ      V0, .oFC
+	ADDIU     V0, V1, FFFF
+	BEQ       R0, R0, .o104
+	SH        V0, 8E (S0)
+	.oFC
+	ADDIU     V0, R0, C
+	.o100
+	SW        V0, 70 (S3)
+	.o104
+	LW        RA, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024139C
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	LHU       V1, 8E (V0)
+	ADDIU     V1, V1, FFFF
+	SH        V1, 8E (V0)
+	SLL       V1, V1, 10
+	BNE       V1, R0, .o54
+	NOP
+	LW        V0, B0 (S0)
+	ANDI      V0, V0, 80
+	BEQ       V0, R0, .o50
+	ADDIU     V0, R0, F
+	BEQ       R0, R0, .o54
+	SW        V0, 70 (S1)
+	.o50
+	SW        R0, 70 (S1)
+	.o54
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241404
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S2, A1
+	LW        V1, D0 (S0)
+	LW        A0, 78 (S1)
+	LW        V1, 0 (V1)
+	SLT       V1, A0, V1
+	BEQ       V1, R0, .o88
+	COPY      A2, V0
+	SLL       V0, A0, 1
+	ADDU      V0, V0, A0
+	SLL       A1, V0, 2
+	.o4C
+	LW        V1, D0 (S0)
+	LWC1      F2, 3C (A2)
+	ADDU      V0, A1, V1
+	LWC1      F0, 8 (V0)
+	CVT.S.W   F0, F0
+	C.LE.S    F0, F2
+	NOP
+	BC1FL     .o78
+	ADDIU     A0, A0, 1
+	BEQ       R0, R0, .o88
+	SW        A0, 78 (S1)
+	.o78
+	LW        V0, 0 (V1)
+	SLT       V0, A0, V0
+	BNE       V0, R0, .o4C
+	ADDIU     A1, A1, C
+	.o88
+	LWC1      F0, 0 (S2)
+	SWC1      F0, 18 (A2)
+	LW        V0, CC (S0)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (A2)
+	ADDIU     V0, R0, 1
+	SW        R0, 74 (S1)
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802414C4
+{
+	ADDIU     SP, SP, FF98
+	SW        S4, 58 (SP)
+	COPY      S4, A0
+	SW        RA, 60 (SP)
+	SW        S5, 5C (SP)
+	SW        S3, 54 (SP)
+	SW        S2, 50 (SP)
+	SW        S1, 4C (SP)
+	SW        S0, 48 (SP)
+	LW        S1, 148 (S4)
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A1
+	LW        V1, C (S4)
+	COPY      A0, S4
+	LW        A1, 0 (V1)
+	JAL       ~Func:get_variable
+	COPY      S2, V0
+	SW        R0, 18 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 94 (V1)
+	SW        V1, 1C (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 80 (V1)
+	SW        V1, 20 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 88 (V1)
+	SW        V1, 24 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 8C (V1)
+	ADDIU     S5, SP, 18
+	SW        V1, 28 (SP)
+	LW        V1, D0 (S1)
+	LIF       F0, 65.0
+	LW        V1, 90 (V1)
+	COPY      S3, V0
+	SWC1      F0, 30 (SP)
+	SH        R0, 34 (SP)
+	BNE       S0, R0, .oB4
+	SW        V1, 2C (SP)
+	LW        V0, B0 (S1)
+	ANDI      V0, V0, 4
+	BEQ       V0, R0, .o1C0
+	NOP
+	.oB4
+	ADDIU     A0, R0, F7FF
+	SW        R0, 70 (S4)
+	SH        R0, 8E (S2)
+	LW        V0, CC (S1)
+	LW        V1, 0 (S2)
+	LW        V0, 0 (V0)
+	AND       V1, V1, A0
+	SW        V1, 0 (S2)
+	SW        V0, 28 (S2)
+	LW        V0, D0 (S1)
+	LW        V0, 98 (V0)
+	BNEL      V0, R0, .oF8
+	ADDIU     V0, R0, FDFF
+	ORI       V0, V1, 200
+	ADDIU     V1, R0, FFF7
+	BEQ       R0, R0, .o100
+	AND       V0, V0, V1
+	.oF8
+	AND       V0, V1, V0
+	ORI       V0, V0, 8
+	.o100
+	SW        V0, 0 (S2)
+	LW        V0, B0 (S1)
+	ANDI      V0, V0, 4
+	BEQ       V0, R0, .o130
+	ADDIU     V0, R0, 63
+	SW        V0, 70 (S4)
+	SW        R0, 74 (S4)
+	LW        V0, B0 (S1)
+	ADDIU     V1, R0, FFFB
+	AND       V0, V0, V1
+	BEQ       R0, R0, .o15C
+	SW        V0, B0 (S1)
+	.o130
+	LW        V0, 0 (S1)
+	LUI       V1, 4000
+	AND       V0, V0, V1
+	BEQ       V0, R0, .o15C
+	LUI       V1, BFFF
+	ADDIU     V0, R0, C
+	SW        V0, 70 (S4)
+	LW        V0, 0 (S1)
+	ORI       V1, V1, FFFF
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	.o15C
+	ADDIU     A1, SP, 38
+	ADDIU     A2, SP, 3C
+	LWC1      F0, 38 (S2)
+	LH        V0, A8 (S2)
+	LIF       F4, 100.0
+	MTC1      V0, F6
+	NOP
+	CVT.S.W   F6, F6
+	ADDIU     V0, SP, 44
+	SWC1      F0, 38 (SP)
+	LWC1      F0, 3C (S2)
+	LWC1      F2, 40 (S2)
+	ADD.S     F0, F0, F6
+	SWC1      F4, 44 (SP)
+	SWC1      F2, 40 (SP)
+	SWC1      F0, 3C (SP)
+	SW        V0, 10 (SP)
+	LW        A0, 80 (S2)
+	JAL       800DCB7C
+	ADDIU     A3, SP, 40
+	BEQ       V0, R0, .o1C0
+	NOP
+	LWC1      F0, 3C (SP)
+	SWC1      F0, 3C (S2)
+	.o1C0
+	LW        V1, 70 (S4)
+	SLTIU     V0, V1, 64
+	BEQ       V0, R0, .o2D4
+	SLL       V0, V1, 2
+	LTW       V0, V0 ($JumpTable_8024E210)
+	JR        V0
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 0`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240930
+	COPY      A2, S5
+    % LBL: from $JumpTable_8024E210 , entry 1`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240A88
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 2`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240D30
+	COPY      A2, S5
+    % LBL: from $JumpTable_8024E210 , entry 3`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240DF0
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 4`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240FAC
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 10`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80241060
+	COPY      A2, S5
+    % LBL: from $JumpTable_8024E210 , entry 11`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802410D4
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 12`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_8024114C
+	COPY      A2, S5
+    % LBL: from $JumpTable_8024E210 , entry 13`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_8024127C
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 14`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_8024139C
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 15`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80241404
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_8024E210 , entry 99`
+	JAL       8004A73C
+	COPY      A0, S4
+    % LBL: from $JumpTable_8024E210 , entry 98`
+	.o2D4
+	LW        RA, 60 (SP)
+	LW        S5, 5C (SP)
+	LW        S4, 58 (SP)
+	LW        S3, 54 (SP)
+	LW        S2, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 68
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802417C0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	LIA       S0, $???_80246150
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, 0 (S0)
+	BNE       V0, R0, .o60
+	COPY      S1, A0
+	JAL       ~Func:heap_malloc
+	ADDIU     A0, R0, 40
+	SW        V0, 0 (S0)
+	CLEAR     V1
+	COPY      A1, V0
+	COPY      A0, S1
+	.o3C
+	LW        V0, 84 (A0)
+	ADDIU     A0, A0, 4
+	ADDIU     V1, V1, 1
+	SW        V0, 0 (A1)
+	SLTI      V0, V1, 10
+	BNE       V0, R0, .o3C
+	ADDIU     A1, A1, 4
+	BEQ       R0, R0, .o9C
+	NOP
+	.o60
+	CLEAR     V1
+	COPY      A1, V0
+	COPY      A0, S1
+	.o6C
+	LW        V0, 0 (A1)
+	ADDIU     A1, A1, 4
+	ADDIU     V1, V1, 1
+	SW        V0, 84 (A0)
+	SLTI      V0, V1, 10
+	BNE       V0, R0, .o6C
+	ADDIU     A0, A0, 4
+	LIA       S0, $???_80246150
+	JAL       ~Func:heap_free
+	LW        A0, 0 (S0)
+	SW        R0, 0 (S0)
+	.o9C
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80241874
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, C (S0)
+	LW        S1, 0 (V0)
+	JAL       ~Func:get_variable
+	COPY      A1, S1
+	LIO       V1, FFF0FFFF
+	COPY      A0, S0
+	AND       V0, V0, V1
+	SLL       V0, V0, 5
+	LTW       A2, V0 (800878E0)
+	JAL       ~Func:set_variable
+	COPY      A1, S1
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802418D8
+{
+	ADDIU     V0, R0, 1
+	SAW       V0, 80151310
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802418EC
+{
+	SAW       R0, 80151310
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802418FC
+{
+	ADDIU     SP, SP, FFB8
+	SW        S1, 24 (SP)
+	COPY      S1, A0
+	LUI       A1, F840
+	SW        RA, 44 (SP)
+	SW        S8, 40 (SP)
+	SW        S7, 3C (SP)
+	SW        S6, 38 (SP)
+	SW        S5, 34 (SP)
+	SW        S4, 30 (SP)
+	SW        S3, 2C (SP)
+	SW        S2, 28 (SP)
+	SW        S0, 20 (SP)
+	LW        S8, 148 (S1)
+	JAL       ~Func:get_variable
+	ORI       A1, A1, 6268
+	COPY      S0, V0
+	COPY      A0, S1
+	LIO       A1, *Flag_NPC_41
+	JAL       ~Func:get_variable
+	RESERVED
+	COPY      S7, V0
+	COPY      A0, S1
+	LIO       A1, *Byte_NPC_04
+	JAL       ~Func:get_variable
+	RESERVED
+	COPY      S6, V0
+	COPY      A0, S1
+	LIO       A1, *Byte_NPC_05
+	JAL       ~Func:get_variable
+	RESERVED
+	COPY      S5, V0
+	LBU       S3, 6D (S8)
+	ANDI      V0, S6, FFFF
+	SH        S3, 10 (SP)
+	LBU       S2, 6E (S8)
+	LBU       A3, 6F (S8)
+	ANDI      S4, S3, FFFF
+	BEQ       S4, V0, .oA8
+	SH        A3, 1E (SP)
+	CLEAR     S7
+	COPY      S0, S7
+	.oA8
+	ANDI      V0, S0, FFFF
+	BNE       V0, R0, .o108
+	COPY      A0, S1
+	JAL       ~Func:rand_int
+	ADDIU     A0, R0, 64
+	SLTI      V0, V0, 1E
+	BEQ       V0, R0, .o108
+	COPY      A0, S1
+	JAL       ~Func:rand_int
+	ADDIU     A0, S2, FFFF
+	COPY      S5, V0
+	COPY      S6, S3
+	COPY      A0, S1
+	LIO       A1, *Byte_NPC_04
+	JAL       ~Func:set_variable
+	COPY      A2, S4
+	COPY      A0, S1
+	LIO       A1, *Byte_NPC_05
+	JAL       ~Func:set_variable
+	ANDI      A2, S5, FFFF
+	ADDIU     S0, R0, 1
+	COPY      A0, S1
+	.o108
+	LIO       A1, *Flag_NPC_40
+	JAL       ~Func:set_variable
+	ANDI      A2, S0, FFFF
+	COPY      A0, S1
+	LIO       A1, *Flag_NPC_41
+	JAL       ~Func:set_variable
+	ANDI      A2, S7, FFFF
+	CLEAR     A0
+	LIO       A1, *CompletedQuizzes
+	JAL       ~Func:get_variable
+	RESERVED
+	CLEAR     A0
+	LIO       A1, *StoryProgress
+	JAL       ~Func:get_variable
+	COPY      S0, V0
+	COPY      A1, V0
+	CLEAR     V1
+	LIA       A2, $QuizRequirements
+	COPY      A0, A2
+	.o164
+	LW        V0, 0 (A0)
+	SLT       V0, A1, V0
+	BNE       V0, R0, .o188
+	SLL       V0, V1, 3
+	ADDIU     V1, V1, 1
+	SLTI      V0, V1, 8
+	BNE       V0, R0, .o164
+	ADDIU     A0, A0, 8
+	SLL       V0, V1, 3
+	.o188
+	ADDU      V0, V0, A2
+	LW        V0, 4 (V0)
+	LHU       V1, 10 (SP)
+	SLT       A0, S0, V0
+	ANDI      V0, S6, FFFF
+	BNE       V1, V0, .o1C0
+	ANDI      V0, S5, FFFF
+	LHU       A3, 1E (SP)
+	BNE       A3, V0, .o1C0
+	ANDI      V0, S7, FFFF
+	BNE       V0, R0, .o1C0
+	NOP
+	BNE       A0, R0, .o1DC
+	ADDIU     V0, R0, 1
+	.o1C0
+	LAW       V0, 8007419C
+	LB        V0, 75 (V0)
+	BEQ       V0, R0, .o1E4
+	NOP
+	BEQ       A0, R0, .o1E4
+	ADDIU     V0, R0, 1
+	.o1DC
+	BEQ       R0, R0, .o1F0
+	SW        V0, 84 (S1)
+	.o1E4
+	JAL       ~Func:kill_enemy
+	COPY      A0, S8
+	SW        R0, 84 (S1)
+	.o1F0
+	LW        RA, 44 (SP)
+	LW        S8, 40 (SP)
+	LW        S7, 3C (SP)
+	LW        S6, 38 (SP)
+	LW        S5, 34 (SP)
+	LW        S4, 30 (SP)
+	LW        S3, 2C (SP)
+	LW        S2, 28 (SP)
+	LW        S1, 24 (SP)
+	LW        S0, 20 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241B20
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 14 (SP)
+	SW        S0, 10 (SP)
+	JAL       ~Func:get_npc_unsafe
+	LW        A0, 14C (A0)
+	ADDIU     A0, R0, 8
+	COPY      S0, V0
+	LIA       V0, $Function_80241B8C
+	JAL       ~Func:heap_malloc
+	SW        V0, 8 (S0)
+	COPY      V1, V0
+	SW        V1, 20 (S0)
+	SW        R0, 0 (V1)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 1
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241B6C
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_npc_unsafe
+	LW        A0, 14C (A0)
+	LW        RA, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241B8C
+{
+	ADDIU     SP, SP, FFE8
+	LAH       V1, 8009A634
+	LIA       A1, 800B1D80
+	SW        RA, 10 (SP)
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	LW        V1, 20 (A0)
+	SLL       V0, V0, 3
+	LW        V1, 0 (V1)
+	ANDI      V1, V1, 1
+	BEQ       V1, R0, .o54
+	ADDU      V0, V0, A1
+	LWC1      F12, 6C (V0)
+	JAL       ~Func:clamp_angle
+	NEG.S     F12, F12
+	.o54
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241BEC
+{
+	ADDIU     SP, SP, FFD8
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 24 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	BEQ       A1, R0, .oEC
+	SW        S0, 10 (SP)
+	JAL       8011D82C
+	ADDIU     A0, R0, 1
+	CLEAR     A0
+	COPY      A1, A0
+	COPY      A2, A0
+	COPY      A3, A0
+	COPY      S0, A0
+	ADDIU     S4, R0, FFFC
+	ADDIU     S3, R0, C
+	LUI       S2, 80
+	LAW       V1, 801512F0
+	ADDIU     V0, R0, 1
+	JAL       ~Func:set_background_color_blend
+	SB        V0, 0 (V1)
+	.o60
+	JAL       ~Func:get_npc_by_index
+	COPY      A0, S0
+	COPY      A0, V0
+	BEQL      A0, R0, .o9C
+	ADDIU     S0, S0, 1
+	LW        V0, 0 (A0)
+	BEQL      V0, R0, .o9C
+	ADDIU     S0, S0, 1
+	LB        V1, A4 (A0)
+	BEQ       V1, S4, .o9C
+	ADDIU     S0, S0, 1
+	BEQ       V1, S3, .o9C
+	NOP
+	OR        V0, V0, S2
+	SW        V0, 0 (A0)
+	.o9C
+	SLTI      V0, S0, 40
+	BNE       V0, R0, .o60
+	NOP
+	CLEAR     S0
+	LUI       S2, 800
+	.oB0
+	JAL       ~Func:get_item_entity
+	COPY      A0, S0
+	COPY      V1, V0
+	BEQ       V1, R0, .oDC
+	ADDIU     S0, S0, 1
+	LW        A0, 0 (V1)
+	ANDI      V0, A0, 10
+	BEQ       V0, R0, .oDC
+	NOP
+	OR        V0, A0, S2
+	SW        V0, 0 (V1)
+	.oDC
+	SLTI      V0, S0, 100
+	BNE       V0, R0, .oB0
+	NOP
+	SW        R0, 70 (S1)
+	.oEC
+	LW        V0, 70 (S1)
+	ADDIU     V0, V0, 8
+	SW        V0, 70 (S1)
+	SLTI      V0, V0, 100
+	BNE       V0, R0, .o10C
+	CLEAR     A0
+	ADDIU     V0, R0, FF
+	SW        V0, 70 (S1)
+	.o10C
+	COPY      A1, A0
+	LBU       A3, 73 (S1)
+	JAL       ~Func:set_background_color_blend
+	COPY      A2, A0
+	LW        V0, 70 (S1)
+	LW        RA, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	XORI      V0, V0, FF
+	SLTIU     V0, V0, 1
+	SLL       V0, V0, 1
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241D38
+{
+	ADDIU     SP, SP, FFD8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	BEQ       A1, R0, .o40
+	SW        S1, 14 (SP)
+	CLEAR     A0
+	COPY      A1, A0
+	COPY      A2, A0
+	JAL       ~Func:set_background_color_blend
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, FF
+	SW        V0, 70 (S0)
+	SW        R0, 74 (S0)
+	.o40
+	LW        V0, 70 (S0)
+	ADDIU     V0, V0, FFF8
+	BGEZ      V0, .o54
+	SW        V0, 70 (S0)
+	SW        R0, 70 (S0)
+	.o54
+	CLEAR     A0
+	COPY      A1, A0
+	LBU       A3, 73 (S0)
+	JAL       ~Func:set_background_color_blend
+	COPY      A2, A0
+	LW        V0, 70 (S0)
+	BNE       V0, R0, .o88
+	NOP
+	LW        V0, 74 (S0)
+	BNE       V0, R0, .o88
+	ADDIU     V0, R0, 1
+	BEQ       R0, R0, .o154
+	SW        V0, 74 (S0)
+	.o88
+	LW        V1, 74 (S0)
+	ADDIU     V0, R0, 1
+	BNE       V1, V0, .o158
+	CLEAR     V0
+	JAL       8011D82C
+	CLEAR     A0
+	CLEAR     S0
+	ADDIU     S3, R0, FFFC
+	ADDIU     S2, R0, C
+	LUI       S1, FF7F
+	LAW       V0, 801512F0
+	ORI       S1, S1, FFFF
+	SB        R0, 0 (V0)
+	.oC0
+	JAL       ~Func:get_npc_by_index
+	COPY      A0, S0
+	COPY      A0, V0
+	BEQL      A0, R0, .oFC
+	ADDIU     S0, S0, 1
+	LW        V0, 0 (A0)
+	BEQL      V0, R0, .oFC
+	ADDIU     S0, S0, 1
+	LB        V1, A4 (A0)
+	BEQ       V1, S3, .oFC
+	ADDIU     S0, S0, 1
+	BEQ       V1, S2, .oFC
+	NOP
+	AND       V0, V0, S1
+	SW        V0, 0 (A0)
+	.oFC
+	SLTI      V0, S0, 40
+	BNE       V0, R0, .oC0
+	NOP
+	CLEAR     S0
+	LIO       S1, F7FFFFFF
+	.o114
+	JAL       ~Func:get_item_entity
+	COPY      A0, S0
+	COPY      V1, V0
+	BEQ       V1, R0, .o140
+	ADDIU     S0, S0, 1
+	LW        A0, 0 (V1)
+	ANDI      V0, A0, 10
+	BEQ       V0, R0, .o140
+	NOP
+	AND       V0, A0, S1
+	SW        V0, 0 (V1)
+	.o140
+	SLTI      V0, S0, 100
+	BNE       V0, R0, .o114
+	ADDIU     V0, R0, 2
+	BEQ       R0, R0, .o158
+	NOP
+	.o154
+	CLEAR     V0
+	.o158
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241EAC
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	LIA       S0, 8010F290
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LHU       V1, 2C0 (S0)
+	SLTIU     V0, V1, 3E7
+	BEQ       V0, R0, .o30
+	COPY      S1, A0
+	ADDIU     V0, V1, 1
+	SH        V0, 2C0 (S0)
+	.o30
+	LIO       A1, *CompletedQuizzes
+	JAL       ~Func:get_variable
+	CLEAR     A0
+	LTBU      V1, V0 ($QuizAnswers)
+	LW        V0, 84 (S1)
+	BNEL      V0, V1, .o6C
+	SW        R0, 84 (S1)
+	ADDIU     V0, R0, 1
+	SW        V0, 84 (S1)
+	LHU       V0, 2C2 (S0)
+	ADDIU     V0, V0, 1
+	SH        V0, 2C2 (S0)
+	.o6C
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241F30
+{
+	ADDIU     SP, SP, FFC8
+	SW        S1, 1C (SP)
+	SW        RA, 20 (SP)
+	SW        S0, 18 (SP)
+	SDC1      F22, 30 (SP)
+	SDC1      F20, 28 (SP)
+	BEQ       A1, R0, .o19C
+	COPY      S1, A0
+	LIO       A1, *Array[1]
+	JAL       ~Func:get_variable
+	RESERVED
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D482
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F20
+	NOP
+	CVT.S.W   F20, F20
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D483
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	MFC1      A1, F22
+	MFC1      A2, F20
+	MFC1      A3, F2
+	JAL       800715D0
+	CLEAR     A0
+	COPY      A0, S1
+	LIO       A1, *Array[1]
+	LIA       S0, $End[20]
+	JAL       ~Func:get_variable
+	SW        V0, 0 (S0)
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D482
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F20
+	NOP
+	CVT.S.W   F20, F20
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D483
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	MFC1      A1, F22
+	MFC1      A2, F20
+	MFC1      A3, F2
+	JAL       80071810
+	CLEAR     A0
+	COPY      A0, S1
+	LUI       A1, F4AC
+	SAW       V0, $End[24]
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D481
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D482
+	COPY      A0, S1
+	LUI       A1, F4AC
+	MTC1      V0, F20
+	NOP
+	CVT.S.W   F20, F20
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D483
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	MFC1      A1, F22
+	MFC1      A2, F20
+	LIF       F0, 1.0
+	MFC1      A3, F2
+	CLEAR     A0
+	SW        R0, 14 (SP)
+	JAL       80072890
+	SWC1      F0, 10 (SP)
+	LW        V1, 0 (S0)
+	LW        A0, C (V1)
+	SAW       V0, $End[28]
+	SW        R0, 18 (A0)
+	SW        R0, 20 (A0)
+	SW        R0, 24 (A0)
+	SW        R0, 28 (A0)
+	SW        R0, 1C (A0)
+	.o19C
+	LAW       V0, $End[20]
+	LW        A0, C (V0)
+	LW        V0, 20 (A0)
+	LW        V1, 28 (A0)
+	ADDIU     V0, V0, A
+	SW        V0, 20 (A0)
+	LW        V0, 24 (A0)
+	ADDIU     V1, V1, A
+	SW        V1, 28 (A0)
+	LW        V1, 18 (A0)
+	ADDIU     V0, V0, A
+	SW        V0, 24 (A0)
+	LW        V0, 1C (A0)
+	ADDIU     V1, V1, A
+	SW        V1, 18 (A0)
+	SLTI      V1, V1, FF
+	ADDIU     V0, V0, A
+	SW        V0, 1C (A0)
+	BNE       V1, R0, .o1FC
+	CLEAR     V0
+	ADDIU     V0, R0, FF
+	SW        V0, 18 (A0)
+	ADDIU     V0, R0, 2
+	.o1FC
+	LW        RA, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F22, 30 (SP)
+	LDC1      F20, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242148
+{
+	ADDIU     SP, SP, FFE8
+	BEQ       A1, R0, .o34
+	SW        RA, 10 (SP)
+	LAW       V1, $End[24]
+	LW        V0, 0 (V1)
+	LAW       A0, $End[28]
+	ORI       V0, V0, 10
+	SW        V0, 0 (V1)
+	LW        V0, 0 (A0)
+	ORI       V0, V0, 10
+	SW        V0, 0 (A0)
+	.o34
+	LAW       A0, $End[20]
+	LW        A1, C (A0)
+	LW        V0, 18 (A1)
+	LW        V1, 20 (A1)
+	ADDIU     V0, V0, FFF6
+	SW        V0, 18 (A1)
+	LW        V0, 24 (A1)
+	ADDIU     V1, V1, FFF6
+	SW        V1, 20 (A1)
+	LW        V1, 28 (A1)
+	ADDIU     V0, V0, FFF6
+	SW        V0, 24 (A1)
+	LW        V0, 1C (A1)
+	ADDIU     V1, V1, FFF6
+	SW        V1, 28 (A1)
+	LW        V1, 18 (A1)
+	ADDIU     V0, V0, FFF6
+	BLEZ      V1, .o8C
+	SW        V0, 1C (A1)
+	BEQ       R0, R0, .oA8
+	CLEAR     V0
+	.o8C
+	JAL       ~Func:remove_effect
+	SW        R0, 18 (A1)
+	LAW       A0, $End[0]
+	JAL       801235C0
+	NOP
+	ADDIU     V0, R0, 2
+	.oA8
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802421FC
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	LAW       V1, $End[20]
+	LW        V1, C (V1)
+	SW        V0, 34 (V1)
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242230
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	COPY      A0, V0
+	LAW       V0, $End[20]
+	ADDIU     V1, R0, 1
+	LW        A1, C (V0)
+	BEQ       A0, V1, .o60
+	SLTI      V0, A0, 2
+	BEQ       V0, R0, .o48
+	ADDIU     V0, R0, 2
+	BEQ       A0, R0, .o58
+	ADDIU     V0, R0, C0
+	BEQ       R0, R0, .o70
+	SW        R0, 38 (A1)
+	.o48
+	BEQ       A0, V0, .o6C
+	ADDIU     V0, R0, 40
+	BEQ       R0, R0, .o70
+	SW        R0, 38 (A1)
+	.o58
+	BEQ       R0, R0, .o70
+	SW        V0, 38 (A1)
+	.o60
+	ADDIU     V0, R0, 80
+	BEQ       R0, R0, .o70
+	SW        V0, 38 (A1)
+	.o6C
+	SW        V0, 38 (A1)
+	.o70
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802422B0
+{
+	LAW       V0, $End[28]
+	LW        V0, C (V0)
+	SW        R0, 1C (V0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802422C8
+{
+	LAW       V0, $End[28]
+	LW        V1, C (V0)
+	ADDIU     V0, R0, 1
+	SW        V0, 1C (V1)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802422E4
+{
+	LAW       V0, $End[28]
+	LW        V1, C (V0)
+	ADDIU     V0, R0, 2
+	JR        RA
+	SW        V0, 1C (V1)
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802422FC
+{
+	ADDIU     SP, SP, FFE8
+	LAW       V0, 8007419C
+	LUI       A1, FE36
+	SW        RA, 10 (SP)
+	LB        A2, 75 (V0)
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C80
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024232C
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_float_variable
+	COPY      S0, V0
+	ADDIU     V0, R0, 2
+	SLLV      V1, S0, V0
+	ADDU      V1, V1, S0
+	SLLV      V1, V1, V0
+	SUBU      V1, V1, S0
+	SLL       A0, V1, 3
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 3
+	STF       F0, V1 (800B1D98)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802423A0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	SLL       V1, V0, 2
+	ADDU      V1, V1, V0
+	SLL       V1, V1, 2
+	SUBU      V1, V1, V0
+	SLL       V0, V1, 3
+	ADDU      V1, V1, V0
+	SLL       V1, V1, 3
+	LTF       F2, V1 (800B1D98)
+	LIF       F0, 1024.0
+	NOP
+	MUL.S     F2, F2, F0
+	NOP
+	LIO       AT, CD5B5858
+	MTC1      AT, F0
+	NOP
+	ADD.S     F2, F2, F0
+	LW        A1, 0 (S0)
+	TRUNC.W.S F4, F2
+	MFC1      A2, F4
+	JAL       ~Func:set_variable
+	COPY      A0, S1
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242440
+{
+	ADDIU     SP, SP, FFB8
+	SW        S2, 18 (SP)
+	COPY      S2, A0
+	SW        RA, 30 (SP)
+	SW        S7, 2C (SP)
+	SW        S6, 28 (SP)
+	SW        S5, 24 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F22, 40 (SP)
+	SDC1      F20, 38 (SP)
+	LW        S0, C (S2)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S2
+	JAL       ~Func:get_variable
+	COPY      S7, V0
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S2
+	JAL       ~Func:get_variable
+	COPY      S6, V0
+	COPY      A0, S2
+	LIO       A1, *Array[1]
+	LAW       A2, 80077410
+	LW        S4, 0 (S0)
+	SLL       V1, A2, 2
+	ADDU      V1, V1, A2
+	SLL       V1, V1, 2
+	SUBU      V1, V1, A2
+	SLL       A2, V1, 3
+	ADDU      V1, V1, A2
+	SLL       V1, V1, 3
+	LTF       F0, V1 (800B1DEC)
+	LW        S5, 4 (S0)
+	TRUNC.W.S F4, F0
+	MFC1      S1, F4
+	JAL       ~Func:get_variable
+	COPY      S3, V0
+	MTC1      S1, F22
+	NOP
+	CVT.S.W   F22, F22
+	MOV.S     F12, F22
+	JAL       ~Func:cos_deg
+	COPY      S0, V0
+	MTC1      S3, F20
+	NOP
+	CVT.S.W   F20, F20
+	MUL.S     F0, F20, F0
+	NOP
+	COPY      A0, S2
+	MTC1      S0, F2
+	NOP
+	CVT.S.W   F2, F2
+	SUB.S     F2, F2, F0
+	LUI       A1, F4AC
+	TRUNC.W.S F4, F2
+	MFC1      S0, F4
+	JAL       ~Func:get_variable
+	ORI       A1, A1, D483
+	MOV.S     F12, F22
+	JAL       ~Func:sin_deg
+	COPY      S1, V0
+	MUL.S     F20, F20, F0
+	NOP
+	COPY      A0, S2
+	MTC1      S1, F0
+	NOP
+	CVT.S.W   F0, F0
+	SUB.S     F0, F0, F20
+	COPY      A1, S4
+	SUBU      A2, S0, S7
+	TRUNC.W.S F4, F0
+	MFC1      S0, F4
+	JAL       ~Func:set_variable
+	SUBU      S0, S0, S6
+	COPY      A0, S2
+	COPY      A1, S5
+	JAL       ~Func:set_variable
+	COPY      A2, S0
+	LW        RA, 30 (SP)
+	LW        S7, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F22, 40 (SP)
+	LDC1      F20, 38 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802425DC
+{
+	LIA       V1, 8010EFC8
+	BEQ       A1, R0, .o14
+	ADDIU     V0, R0, 3C
+	SW        V0, 70 (A0)
+	.o14
+	LWC1      F2, 80 (V1)
+	LIF       F0, 30.0
+	NOP
+	ADD.S     F0, F2, F0
+	LIF       F2, 360.0
+	NOP
+	C.LE.S    F2, F0
+	NOP
+	BC1F      .o4C
+	SWC1      F0, 80 (V1)
+	SUB.S     F0, F0, F2
+	SWC1      F0, 80 (V1)
+	.o4C
+	LW        V0, 70 (A0)
+	ADDIU     V0, V0, FFFF
+	SW        V0, 70 (A0)
+	SRA       V0, V0, 1F
+	JR        RA
+	ANDI      V0, V0, 2
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242640
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        S0, 10 (SP)
+	COPY      S0, A1
+	SW        RA, 18 (SP)
+	JAL       ~Func:get_npc_unsafe
+	ADDIU     A0, R0, FFFC
+	BEQ       S0, R0, .o30
+	COPY      V1, V0
+	ADDIU     V0, R0, 3C
+	SW        V0, 70 (S1)
+	.o30
+	LWC1      F2, C (V1)
+	LIF       F0, 30.0
+	NOP
+	ADD.S     F0, F2, F0
+	LIF       F2, 360.0
+	NOP
+	C.LE.S    F2, F0
+	NOP
+	BC1F      .o68
+	SWC1      F0, C (V1)
+	SUB.S     F0, F0, F2
+	SWC1      F0, C (V1)
+	.o68
+	LW        V1, 70 (S1)
+	ADDIU     V1, V1, FFFF
+	SRA       V0, V1, 1F
+	SW        V1, 70 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ANDI      V0, V0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802426D0
+{
+	ADDIU     SP, SP, FFD8
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        S0, 10 (SP)
+	COPY      S0, A1
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SDC1      F20, 20 (SP)
+	JAL       ~Func:get_npc_unsafe
+	ADDIU     A0, R0, FFFC
+	BEQ       S0, R0, .o88
+	COPY      S2, V0
+	COPY      A0, S1
+	LIO       A1, *Var[0]
+	JAL       ~Func:get_float_variable
+	RESERVED
+	COPY      A0, S1
+	LUI       A1, FE36
+	LIF       F20, 60.0
+	ORI       A1, A1, 3C85
+	DIV.S     F0, F0, F20
+	JAL       ~Func:get_float_variable
+	SWC1      F0, 74 (S1)
+	COPY      A0, S1
+	LIO       A1, *Var[1]
+	DIV.S     F0, F0, F20
+	JAL       ~Func:get_float_variable
+	SWC1      F0, 78 (S1)
+	DIV.S     F0, F0, F20
+	ADDIU     V0, R0, 3C
+	SWC1      F0, 7C (S1)
+	SW        V0, 70 (S1)
+	.o88
+	LWC1      F0, 38 (S2)
+	LWC1      F2, 74 (S1)
+	ADD.S     F0, F0, F2
+	SWC1      F0, 38 (S2)
+	LWC1      F0, 3C (S2)
+	LWC1      F2, 78 (S1)
+	ADD.S     F0, F0, F2
+	SWC1      F0, 3C (S2)
+	LWC1      F0, 40 (S2)
+	LWC1      F2, 7C (S1)
+	ADD.S     F0, F0, F2
+	SWC1      F0, 40 (S2)
+	LW        V1, 70 (S1)
+	ADDIU     V1, V1, FFFF
+	SLTIU     V0, V1, 1
+	SW        V1, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F20, 20 (SP)
+	SLL       V0, V0, 1
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802427B8
+{
+	ADDIU     SP, SP, FFE8
+	LAW       A1, $End[18]
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_variable
+	CLEAR     A0
+	COPY      V1, V0
+	ADDIU     V0, R0, 1
+	BNE       V1, V0, .o3C
+	ADDIU     V0, R0, 2
+	MTC1      R0, F0
+	NOP
+	MFC1      A1, F0
+	BEQ       R0, R0, .o54
+	CLEAR     A0
+	.o3C
+	BNE       V1, V0, .o60
+	ADDIU     A0, R0, 1
+	MTC1      R0, F0
+	NOP
+	MFC1      A1, F0
+	NOP
+	.o54
+	COPY      A2, A1
+	JAL       80071690
+	COPY      A3, A1
+	.o60
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242824
+{
+	ADDIU     SP, SP, FFE8
+	LIA       A1, $Function_802427B8
+	SW        RA, 10 (SP)
+	JAL       8012323C
+	CLEAR     A0
+	LW        RA, 10 (SP)
+	SAW       V0, $End[0]
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80242854
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_npc_safe
+	COPY      A0, V0
+	BEQ       V0, R0, .o44
+	NOP
+	LW        A1, 0 (S0)
+	LH        A2, A8 (V0)
+	JAL       ~Func:set_variable
+	COPY      A0, S1
+	.o44
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802428B0
+{
+	ADDIU     SP, SP, FFB0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 24 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F28, 48 (SP)
+	SDC1      F26, 40 (SP)
+	SDC1      F24, 38 (SP)
+	SDC1      F22, 30 (SP)
+	SDC1      F20, 28 (SP)
+	LW        S0, C (S1)
+	LW        S3, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A1, S3
+	MTC1      V0, F28
+	NOP
+	CVT.S.W   F28, F28
+	LW        S4, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_variable
+	COPY      A1, S4
+	MTC1      V0, F26
+	NOP
+	CVT.S.W   F26, F26
+	LW        S0, 0 (S0)
+	COPY      A0, S1
+	JAL       ~Func:get_variable
+	COPY      A1, S0
+	MTC1      V0, F24
+	NOP
+	CVT.S.W   F24, F24
+	LIA       S2, 8010EFC8
+	LAW       V1, 80077410
+	LWC1      F2, A8 (S2)
+	MTC1      R0, F0
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	C.EQ.S    F2, F0
+	LTF       F22, V0 (800B1DEC)
+	BC1F      .oEC
+	NOP
+	LIF       F0, 100.0
+	BEQ       R0, R0, .oFC
+	SUB.S     F22, F22, F0
+	.oEC
+	LIF       F0, 100.0
+	NOP
+	ADD.S     F22, F22, F0
+	.oFC
+	JAL       ~Func:clamp_angle
+	MOV.S     F12, F22
+	MOV.S     F22, F0
+	LIF       F20, 15.0
+	JAL       ~Func:sin_deg
+	MOV.S     F12, F22
+	MUL.S     F0, F0, F20
+	NOP
+	LH        V0, B0 (S2)
+	LIF       F4, 0.5
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	MUL.S     F2, F2, F4
+	NOP
+	ADD.S     F28, F28, F0
+	ADD.S     F26, F26, F2
+	JAL       ~Func:cos_deg
+	MOV.S     F12, F22
+	MUL.S     F0, F0, F20
+	NOP
+	COPY      A0, S1
+	COPY      A1, S3
+	TRUNC.W.S F6, F28
+	MFC1      A2, F6
+	JAL       ~Func:set_variable
+	SUB.S     F24, F24, F0
+	COPY      A0, S1
+	TRUNC.W.S F6, F26
+	MFC1      A2, F6
+	JAL       ~Func:set_variable
+	COPY      A1, S4
+	COPY      A0, S1
+	TRUNC.W.S F6, F24
+	MFC1      A2, F6
+	JAL       ~Func:set_variable
+	COPY      A1, S0
+	LW        RA, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F28, 48 (SP)
+	LDC1      F26, 40 (SP)
+	LDC1      F24, 38 (SP)
+	LDC1      F22, 30 (SP)
+	LDC1      F20, 28 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 50
+}
+
+#new:Function $Function_80242A80
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	BEQ       A1, R0, .o18
+	LW        A2, C (A0)
+	SAW       R0, $???_80248778
+	.o18
+	LIA       V1, $???_80248778
+	LW        V0, 0 (V1)
+	BNEL      V0, R0, .o34
+	SW        R0, 0 (V1)
+	BEQ       R0, R0, .o48
+	CLEAR     V0
+	.o34
+	LW        A1, 0 (A2)
+	LAW       A2, $???_8024877C
+	JAL       ~Func:set_variable
+	RESERVED
+	ADDIU     V0, R0, 2
+	.o48
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80242AD4
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	SAW       V0, $???_8024877C
+	ADDIU     V0, R0, 2
+	LW        RA, 10 (SP)
+	ADDIU     V1, R0, 1
+	SAW       V1, $???_80248778
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80242B0C
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	COPY      V1, V0
+	BEQ       V1, R0, .o64
+	CLEAR     A0
+	LW        V0, 0 (V1)
+	BEQL      V0, R0, .o50
+	SLL       V0, A0, 2
+	LIA       A1, $End[30]
+	.o34
+	ADDIU     V1, V1, 4
+	ADDIU     A0, A0, 1
+	SW        V0, 0 (A1)
+	LW        V0, 0 (V1)
+	BNE       V0, R0, .o34
+	ADDIU     A1, A1, 4
+	SLL       V0, A0, 2
+	.o50
+	STW       R0, V0 ($End[30])
+	BEQ       R0, R0, .o8C
+	NOP
+	.o64
+	LIA       V1, $End[30]
+	COPY      A1, V1
+	.o70
+	ADDIU     V0, A0, 10
+	SW        V0, 0 (V1)
+	ADDIU     V1, V1, 4
+	ADDIU     A0, A0, 1
+	SLTI      V0, A0, 70
+	BNE       V0, R0, .o70
+	SW        R0, 1C0 (A1)
+	.o8C
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80242BA8
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	COPY      V1, V0
+	BEQ       V1, R0, .o64
+	CLEAR     A0
+	LW        V0, 0 (V1)
+	BEQL      V0, R0, .o50
+	SLL       V0, A0, 2
+	LIA       A1, $End[1F8]
+	.o34
+	ADDIU     V1, V1, 4
+	ADDIU     A0, A0, 1
+	SW        V0, 0 (A1)
+	LW        V0, 0 (V1)
+	BNE       V0, R0, .o34
+	ADDIU     A1, A1, 4
+	SLL       V0, A0, 2
+	.o50
+	STW       R0, V0 ($End[1F8])
+	BEQ       R0, R0, .o8C
+	NOP
+	.o64
+	LIA       V1, $End[1F8]
+	COPY      A1, V1
+	.o70
+	ADDIU     V0, A0, 80
+	SW        V0, 0 (V1)
+	ADDIU     V1, V1, 4
+	ADDIU     A0, A0, 1
+	SLTI      V0, A0, 5B
+	BNE       V0, R0, .o70
+	SW        R0, 16C (A1)
+	.o8C
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80242C44
+{
+	ADDIU     SP, SP, FFD8
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        S2, 0 (S0)
+	ADDIU     S0, S0, 4
+	LW        S3, 0 (S0)
+	ADDIU     S0, S0, 4
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	COPY      S0, V0
+	COPY      A1, V0
+	ADDIU     V0, R0, 96
+	BNE       S0, V0, .oD0
+	CLEAR     A0
+	JAL       ~Func:rand_int
+	ADDIU     A0, R0, 3E8
+	SLTI      V0, V0, 1F4
+	BEQ       V0, R0, .o78
+	CLEAR     S0
+	BEQ       R0, R0, .o13C
+	ADDIU     A2, R0, C2
+	.o78
+	JAL       ~Func:rand_int
+	ADDIU     A0, R0, 2710
+	LIO       V1, B21642C9
+	MULT      V0, V1
+	ADDIU     S0, R0, 4
+	SRA       A0, V0, 1F
+	MFHI      A3
+	ADDU      V1, A3, V0
+	SRAV      V1, V1, S0
+	SUBU      A0, V1, A0
+	SLL       V1, A0, 1
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 3
+	SUBU      V1, V1, A0
+	SUBU      A0, V0, V1
+	SLL       V0, A0, 2
+	LTW       A2, V0 ($IntTable_8024909C)
+	BEQ       R0, R0, .o140
+	COPY      A0, S1
+	.oD0
+	LIA       V1, $???_80248A98
+	.oD8
+	LW        V0, 0 (V1)
+	BEQ       V0, S0, .oF8
+	SLTI      V0, A0, 1D
+	ADDIU     A0, A0, 1
+	SLTI      V0, A0, 1D
+	BNE       V0, R0, .oD8
+	ADDIU     V1, V1, 4
+	SLTI      V0, A0, 1D
+	.oF8
+	BEQL      V0, R0, .o124
+	CLEAR     A0
+	BEQ       A1, R0, .o118
+	NOP
+	LTB       A0, A0 ($ByteTable_80248CD0)
+	BEQ       R0, R0, .o124
+	RESERVED
+	.o118
+	LTB       A0, A0 ($ByteTable_80248CB0)
+	.o124
+	LIA       V1, $???_80248B10
+	SLL       V0, A0, 3
+	ADDU      V0, V0, V1
+	LW        S0, 0 (V0)
+	LW        A2, 4 (V0)
+	.o13C
+	COPY      A0, S1
+	.o140
+	JAL       ~Func:set_variable
+	COPY      A1, S2
+	COPY      A0, S1
+	COPY      A1, S3
+	JAL       ~Func:set_variable
+	COPY      A2, S0
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80242DBC
+{
+	ADDIU     SP, SP, FFD8
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        S2, 0 (S0)
+	ADDIU     S0, S0, 4
+	LW        S3, 0 (S0)
+	ADDIU     S0, S0, 4
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	COPY      S0, V0
+	COPY      A2, V0
+	CLEAR     A1
+	LIA       V1, $???_80248A98
+	.o5C
+	LW        V0, 0 (V1)
+	BEQ       V0, S0, .o7C
+	CLEAR     A0
+	ADDIU     A1, A1, 1
+	SLTI      V0, A1, 1D
+	BNE       V0, R0, .o5C
+	ADDIU     V1, V1, 4
+	CLEAR     A0
+	.o7C
+	LIA       V1, $???_80248A98
+	.o84
+	LW        V0, 0 (V1)
+	BEQ       V0, A2, .oA4
+	SLTI      V0, A1, 1D
+	ADDIU     A0, A0, 1
+	SLTI      V0, A0, 1D
+	BNE       V0, R0, .o84
+	ADDIU     V1, V1, 4
+	SLTI      V0, A1, 1D
+	.oA4
+	BEQ       V0, R0, .oF4
+	CLEAR     V1
+	SLTI      V0, A0, 1D
+	BEQ       V0, R0, .oF4
+	SLT       V0, A1, A0
+	BEQ       V0, R0, .oD4
+	SLL       V0, A1, 3
+	SUBU      V0, V0, A1
+	SLL       V0, V0, 2
+	ADDU      V0, V0, A1
+	BEQ       R0, R0, .oE8
+	ADDU      V0, A0, V0
+	.oD4
+	SLL       V0, A0, 3
+	SUBU      V0, V0, A0
+	SLL       V0, V0, 2
+	ADDU      V0, V0, A0
+	ADDU      V0, A1, V0
+	.oE8
+	LTB       V1, V0 ($ByteTable_80248CF0)
+	.oF4
+	BLTZL     V1, .oFC
+	CLEAR     V1
+	.oFC
+	BNE       V1, R0, .o154
+	COPY      A0, S1
+	LIA       A0, $???_8024903C
+	ADDIU     A3, A0, 60
+	.o110
+	LW        A1, 0 (A0)
+	BNE       A1, S0, .o128
+	NOP
+	LW        V0, 4 (A0)
+	BEQ       V0, A2, .o13C
+	NOP
+	.o128
+	BNEL      A1, A2, .o144
+	ADDIU     A0, A0, C
+	LW        V0, 4 (A0)
+	BNEL      V0, S0, .o144
+	ADDIU     A0, A0, C
+	.o13C
+	LW        V1, 8 (A0)
+	ADDIU     A0, A0, C
+	.o144
+	SLT       V0, A0, A3
+	BNE       V0, R0, .o110
+	NOP
+	COPY      A0, S1
+	.o154
+	LIA       V0, $???_80248B10
+	SLL       V1, V1, 3
+	ADDU      V1, V1, V0
+	LW        A2, 4 (V1)
+	LW        S0, 0 (V1)
+	JAL       ~Func:set_variable
+	COPY      A1, S2
+	COPY      A0, S1
+	COPY      A1, S3
+	JAL       ~Func:set_variable
+	COPY      A2, S0
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80242F60
+{
+	ADDIU     SP, SP, FE48
+	SW        RA, 1B0 (SP)
+	LW        V0, C (A0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	COPY      A2, V0
+	ADDIU     V1, SP, 10
+	LIA       V0, $RecipesDiscovedIDs
+	ADDIU     A0, V0, D0
+	.o28
+	LW        A3, 0 (V0)
+	LW        T0, 4 (V0)
+	LW        T1, 8 (V0)
+	LW        T2, C (V0)
+	SW        A3, 0 (V1)
+	SW        T0, 4 (V1)
+	SW        T1, 8 (V1)
+	SW        T2, C (V1)
+	ADDIU     V0, V0, 10
+	BNE       V0, A0, .o28
+	ADDIU     V1, V1, 10
+	ADDIU     V1, SP, E0
+	LIA       V0, $RecipesDiscovedFlags
+	ADDIU     A0, V0, D0
+	.o64
+	LW        A3, 0 (V0)
+	LW        T0, 4 (V0)
+	LW        T1, 8 (V0)
+	LW        T2, C (V0)
+	SW        A3, 0 (V1)
+	SW        T0, 4 (V1)
+	SW        T1, 8 (V1)
+	SW        T2, C (V1)
+	ADDIU     V0, V0, 10
+	BNE       V0, A0, .o64
+	ADDIU     V1, V1, 10
+	CLEAR     A0
+	ADDIU     A1, SP, E0
+	ADDIU     V1, SP, 10
+	.o9C
+	LW        V0, 0 (V1)
+	BNEL      A2, V0, .oC0
+	ADDIU     A1, A1, 4
+	CLEAR     A0
+	LW        A1, 0 (A1)
+	JAL       ~Func:set_variable
+	ADDIU     A2, R0, 1
+	BEQ       R0, R0, .oD0
+	NOP
+	.oC0
+	ADDIU     A0, A0, 1
+	SLTI      V0, A0, 34
+	BNE       V0, R0, .o9C
+	ADDIU     V1, V1, 4
+	.oD0
+	LW        RA, 1B0 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 1B8
+}
+
+#new:Function $Function_80243040
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_item_count
+	LW        S1, 0 (V0)
+	COPY      A0, S0
+	COPY      A2, V0
+	JAL       ~Func:set_variable
+	COPY      A1, S1
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80243088
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_item_empty_count
+	LW        S1, 0 (V0)
+	COPY      A0, S0
+	COPY      A2, V0
+	JAL       ~Func:set_variable
+	COPY      A1, S1
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802430D0
+{
+	ADDIU     A0, R0, 5A
+	LIA       V1, $End[4D0]
+	ADDIU     V0, R0, DA
+	.o10
+	SW        V0, 0 (V1)
+	ADDIU     V1, V1, FFFC
+	ADDIU     A0, A0, FFFF
+	BGEZ      A0, .o10
+	ADDIU     V0, V0, FFFF
+	SAW       R0, $End[4D4]
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80243104
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	SW        V0, 8C (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, 90 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, 94 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, 98 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, 9C (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, A0 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, A4 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, A8 (S1)
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, AC (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	COPY      A0, S1
+	SW        V0, B0 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802431F4
+{
+	ADDIU     SP, SP, FFB8
+	SW        S1, 1C (SP)
+	COPY      S1, A0
+	SW        RA, 34 (SP)
+	SW        S6, 30 (SP)
+	SW        S5, 2C (SP)
+	SW        S4, 28 (SP)
+	SW        S3, 24 (SP)
+	SW        S2, 20 (SP)
+	SW        S0, 18 (SP)
+	SDC1      F22, 40 (SP)
+	SDC1      F20, 38 (SP)
+	LW        S0, C (S1)
+	LW        S6, 0 (S0)
+	ADDIU     S0, S0, 4
+	JAL       ~Func:get_variable
+	COPY      A1, S6
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 10 (SP)
+	LW        S4, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_variable
+	COPY      A1, S4
+	COPY      A0, S1
+	LW        S5, 0 (S0)
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	JAL       ~Func:get_variable
+	COPY      A1, S5
+	ADDIU     A0, R0, FFFC
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	JAL       ~Func:get_npc_unsafe
+	SWC1      F0, 14 (SP)
+	LAW       A0, 80077410
+	LIF       F12, 180.0
+	SLL       V1, A0, 2
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 2
+	SUBU      V1, V1, A0
+	SLL       A0, V1, 3
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 3
+	LTF       F0, V1 (800B1DEC)
+	ADD.S     F12, F0, F12
+	JAL       ~Func:clamp_angle
+	COPY      S3, V0
+	ADDIU     S0, SP, 10
+	COPY      A0, S0
+	ADDIU     S2, SP, 14
+	COPY      A1, S2
+	LUI       A2, 4170
+	LW        A3, C (S3)
+	JAL       ~Func:add_vec2D_polar
+	MOV.S     F20, F0
+	COPY      A0, S0
+	LUI       A2, 4120
+	MFC1      A3, F20
+	JAL       ~Func:add_vec2D_polar
+	COPY      A1, S2
+	COPY      A0, S1
+	LWC1      F0, 10 (SP)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	COPY      A1, S6
+	COPY      A0, S1
+	TRUNC.W.S F2, F22
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	COPY      A1, S4
+	COPY      A0, S1
+	LWC1      F0, 14 (SP)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	COPY      A1, S5
+	LW        RA, 34 (SP)
+	LW        S6, 30 (SP)
+	LW        S5, 2C (SP)
+	LW        S4, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F22, 40 (SP)
+	LDC1      F20, 38 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80243380
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	JAL       ~Func:get_npc_unsafe
+	LW        A0, 8C (S0)
+	COPY      A1, V0
+	LW        A0, 94 (S0)
+	LW        V1, 28 (A1)
+	SW        A0, 28 (A1)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	SAW       V1, $End[4D8]
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802433C4
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_npc_unsafe
+	LW        A0, 8C (A0)
+	LAW       V1, $End[4D8]
+	SW        V1, 28 (V0)
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802433F0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        S2, 18 (SP)
+	SW        RA, 1C (SP)
+	SW        S1, 14 (SP)
+	LW        V0, C (S0)
+	BEQ       A1, R0, .o40
+	CLEAR     S2
+	LW        A1, 0 (V0)
+	JAL       ~Func:get_variable
+	NOP
+	SW        V0, 70 (S0)
+	SW        R0, 74 (S0)
+	LW        V0, 14 (V0)
+	SW        V0, 78 (S0)
+	.o40
+	LW        A1, 78 (S0)
+	LW        S1, 70 (S0)
+	JAL       ~Func:get_variable
+	COPY      A0, S0
+	BEQ       V0, R0, .o6C
+	ADDIU     V1, R0, 2
+	LW        V0, 74 (S0)
+	BEQ       V0, V1, .oFC
+	NOP
+	BEQ       R0, R0, .oF8
+	SW        V1, 74 (S0)
+	.o6C
+	LAW       V0, 800F7B30
+	LW        A2, 0 (S1)
+	LW        A3, 4 (S1)
+	LWC1      F12, 28 (V0)
+	JAL       ~Func:dist2D
+	LWC1      F14, 30 (V0)
+	LW        V1, 74 (S0)
+	ADDIU     A0, R0, 1
+	BEQ       V1, A0, .oE0
+	MOV.S     F2, F0
+	SLTI      V0, V1, 2
+	BEQL      V0, R0, .oB4
+	ADDIU     V0, R0, 2
+	BEQ       V1, R0, .oC4
+	NOP
+	BEQ       R0, R0, .oFC
+	NOP
+	.oB4
+	BEQL      V1, V0, .oF8
+	SW        A0, 74 (S0)
+	BEQ       R0, R0, .oFC
+	NOP
+	.oC4
+	LWC1      F0, 8 (S1)
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .oFC
+	NOP
+	BEQ       R0, R0, .oF8
+	SW        A0, 74 (S0)
+	.oE0
+	LWC1      F0, C (S1)
+	C.LT.S    F0, F2
+	NOP
+	BC1F      .oFC
+	NOP
+	SW        R0, 74 (S0)
+	.oF8
+	ADDIU     S2, R0, 1
+	.oFC
+	BEQ       S2, R0, .o114
+	NOP
+	LW        A1, 10 (S1)
+	LH        A2, 76 (S0)
+	JAL       8014AA54
+	CLEAR     A0
+	.o114
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -600.0    0.0    0.0   90.0
+    ~Vec4f:Entry1 %  600.0    0.0    0.0  270.0
+    ~Vec4f:Entry2 %    0.0    0.0 -600.0  180.0
+    ~Vec4f:Entry3 %    0.0    0.0  600.0    0.0
+    ~Vec4f:Entry4 % -450.0   30.0  245.0   90.0
+    ~Vec4f:Entry5 % -460.0   50.0 -270.0  180.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000006
+    [Background]  80200000
+    [MapTattle]   00190002
+}
+
+#new:Script $Script_802435C0
+{
+    Switch  *StoryProgress
+        Case  FFFFFFF3  to  00000005
+            Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+        Default
+            Exec  $Script_8024E150
+    EndSwitch
+    Return
+    End
+}
+
+PADDING: 80243624 to 80243630 (00003624 to 00003630)
+00000000 00000000 00000000
+
+#new:Script $Script_80243630
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  DisablePlayerPhysics  ( .True )
+    Call  DisablePartnerAI      ( 00000000 )
+    Call  HidePlayerShadow      ( .True )
+    Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    If  *Var[0]  !=  .Partner:None % 0
+        Call  EnableNpcShadow   ( .Npc:Partner .False )
+        Call  SetNpcPos ( .Npc:Partner 00000000 FFFFFC18 00000000 )
+    EndIf
+    Call  GetEntryID    ( *Var[0] )
+    Call  $Function_802400F0 ( )
+    Sub   *Var[2]  00000028
+    Call  SetPlayerPos  ( *Var[1] *Var[2] *Var[3] )
+    Call  InterpPlayerYaw   ( *Var[4] 00000000 )
+    Call  PlaySound     ( 00000163 )
+    Call  802D286C      ( 00000100 )
+    Call  802D2520      ( 00010000 00000005 00000002 00000001 00000001 00000000 )
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Loop  00000028
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+    EndLoop
+    Wait  3`
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    If  *Var[0]  !=  .Partner:None % 0
+        Thread
+            Call  DisablePartnerAI  ( 00000000 )
+            Call  GetPlayerPos      ( *Var[0] *Var[1] *Var[2] )
+            Sub   *Var[2]  00000003
+            Call  SetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+            Call  SetNpcFlagBits    ( .Npc:Partner 00000002 .False )
+            Call  EnablePartnerAI ( )
+            Call  EnableNpcShadow   ( .Npc:Partner .True )
+        EndThread
+    EndIf
+    Wait  2`
+    Call  802D2520  ( 00010000 00000000 00000000 00000000 00000000 00000000 )
+    Wait  1`
+    Call  SetPlayerAnimation    ( 00010002 )
+    Call  DisablePlayerPhysics  ( .False )
+    Call  DisablePlayerInput    ( .False )
+    Call  HidePlayerShadow      ( .False )
+    Label  0
+    Call  $Function_80240020 ( )
+    Wait  1`
+    If  *Var[0]  !=  FFFFFFFF % FFFFFFFF
+        Goto  0
+    EndIf
+    Exec  *Var[A]
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80243984
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  DisablePlayerPhysics  ( .True )
+    Call  HidePlayerShadow      ( .True )
+    Call  ModifyColliderFlags   ( 00000000 *Var[B] 7FFFFE00 )
+    Call  GetEntryID    ( *Var[0] )
+    Call  $Function_802400F0 ( )
+    Set   *Var[5]  *Var[1]
+    Set   *Var[6]  *Var[2]
+    Set   *Var[7]  *Var[3]
+    Add   *Var[2]  00000002
+    Call  SetPlayerPos  ( *Var[1] *Var[2] *Var[3] )
+    Call  InterpPlayerYaw       ( *Var[4] 00000000 )
+    If  *Var[4]  ==  0000005A
+        Add   *Var[5]  00000028
+    Else
+        Sub   *Var[5]  00000028
+    EndIf
+    Call  UseSettingsFrom   ( .Cam:Default *Var[5] *Var[6] *Var[7] )
+    Call  SetPanTarget      ( .Cam:Default *Var[5] *Var[6] *Var[7] )
+    Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+    Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    If  *Var[0]  !=  .Partner:None % 0
+        Call  DisablePartnerAI  ( 00000000 )
+        Call  EnableNpcShadow   ( .Npc:Partner .False )
+        Call  SetNpcPos ( .Npc:Partner 00000000 FFFFFC18 00000000 )
+        Call  InterpNpcYaw      ( .Npc:Partner *Var[0] 00000000 )
+    EndIf
+    Wait  1`
+    Call  PlaySound ( 00000163 )
+    Thread
+        Wait  25`
+        Call  HidePlayerShadow  ( .False )
+    EndThread
+    Call  802D286C  ( 00000900 )
+    Call  802D2520  ( 00010002 00000005 00000003 00000001 00000001 00000000 )
+    Loop  00000028
+        Call  $Function_8024023C    ( *Fixed[1.0] )
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+    EndLoop
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    If  *Var[0]  !=  .Partner:None % 0
+        Thread
+            Call  GetPlayerPos      ( *Var[0] *Var[1] *Var[2] )
+            Sub   *Var[2]  00000003
+            Call  SetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+            Call  EnableNpcShadow   ( .Npc:Partner .True )
+            Call  EnablePartnerAI ( )
+        EndThread
+    EndIf
+    Wait  5`
+    Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+    Call  ModifyColliderFlags   ( 00000001 *Var[B] 7FFFFE00 )
+    Call  DisablePlayerInput    ( .False )
+    Call  DisablePlayerPhysics  ( .False )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+    Exec  *Var[A]
+    Return
+    End
+}
+
+#new:Script $Script_80243D74
+{
+    Call  $Function_80240034 ( )
+    If  *Var[0]  ==  00000000
+        Return
+    EndIf
+    Call  GetCurrentPartner ( *Var[0] )
+    If  *Var[0]  !=  00000000
+        Call  GetCurrentPartnerID   ( *Var[1] )
+        If  *Var[1]  !=  .Partner:Watt % 6
+            Return
+        Else
+            Call  802D2B6C ( )
+            Call  DisablePlayerInput    ( .True )
+        EndIf
+    Else
+        Call  DisablePlayerInput    ( .True )
+    EndIf
+    ExecWait  $Script_80243E50
+    Return
+    End
+}
+
+#new:Script $Script_80243E50
+{
+    Call  $Function_80240000 ( )
+    SetGroup  0000001B
+    Call  DisablePlayerPhysics  ( .True )
+    Call  HidePlayerShadow  ( .True )
+    Set   *Var[0]  *Var[A]
+    Call  $Function_802400F0 ( )
+    Call  PlayerMoveTo      ( *Var[1] *Var[3] 00000003 )
+    Set   *Var[0]  *Var[A]
+    Call  $Function_802400F0 ( )
+    Call  SetPlayerPos      ( *Var[1] *Var[2] *Var[3] )
+    Call  SetPlayerFlagBits ( 00200000 .True )
+    Call  $Function_802401D0 ( )
+    Call  InterpPlayerYaw   ( *Var[0] 00000000 )
+    Wait  2`
+    Call  SetPlayerFlagBits ( 00200000 .False )
+    Call  PlaySound ( 00000163 )
+    Call  GetPlayerPos      ( *Var[0] *Var[1] *Var[2] )
+    Thread
+        Wait  4`
+        Loop  00000028
+            Sub   *Var[1]  00000001
+            Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+            Wait  1`
+        EndLoop
+    EndThread
+    Call  802D286C  ( 00000800 )
+    Call  802D2520  ( 00010002 00000005 00000002 00000001 00000001 00000000 )
+    Wait  25`
+    ExecWait  *Var[C]
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024402C
+{
+    Call  802D249C  ( *Var[0] )
+    If  *Var[0]  ==  00000000
+        Return
+    EndIf
+    Call  GetPlayerActionState  ( *Var[0] )
+    If  *Var[0]  ==  .ActionState:Spin % 1A
+        Return
+    EndIf
+    Call  GetCurrentPartner ( *Var[0] )
+    If  *Var[0]  !=  .ActionState:Idle % 0
+        Call  GetCurrentPartnerID   ( *Var[1] )
+        If  *Var[1]  !=  .Partner:Watt % 6
+            Return
+        Else
+            Call  802D2B6C ( )
+            Call  DisablePlayerInput    ( .True )
+        EndIf
+    Else
+        Call  DisablePlayerInput    ( .True )
+    EndIf
+    SetGroup  0000001B
+    Call  $Function_80240000 ( )
+    Call  DisablePlayerPhysics  ( .True )
+    Call  ModifyColliderFlags   ( 00000000 *Var[B] 7FFFFE00 )
+    Set   *Var[0]  *Var[A]
+    Call  $Function_802400F0 ( )
+    Set   *Var[5]  *Var[1]
+    Set   *Var[6]  *Var[2]
+    Add   *Var[6]  00000002
+    Set   *Var[7]  *Var[3]
+    Set   *Var[8]  *Var[4]
+    Add   *Var[8]  000000B4
+    If  *Var[4]  >=  00000168
+        Sub   *Var[4]  00000168
+    EndIf
+    Call  InterpPlayerYaw       ( *Var[8] 00000001 )
+    Wait  1`
+    Call  PlaySound     ( 00000163 )
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Call  SetPlayerPos  ( *Var[0] *Var[6] *Var[7] )
+    Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
+    Call  802D286C      ( 00000800 )
+    Call  802D2520      ( 00010000 00000005 00000003 00000001 00000001 00000000 )
+    Thread
+        Wait  8`
+        Call  HidePlayerShadow  ( .True )
+    EndThread
+    Thread
+        Wait  3`
+        Loop  00000028
+            Call  $Function_8024023C    ( *Fixed[1.0] )
+            Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+            Wait  1`
+        EndLoop
+    EndThread
+    Wait  25`
+    ExecWait  *Var[C]
+    Return
+    End
+}
+
+#new:Script $Script_UpdateTexturePan_80244360
+{
+    SetGroup  00000000
+    If  *Var[5]  ==  00000001
+        If  *Var[6]  ==  00000001
+            If  *Var[7]  ==  00000001
+                If  *Var[8]  ==  00000001
+                    Call  $Function_802402E0 ( )
+                    Return
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+    Call  $Function_80240404 ( )
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802443FC
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_8024E1D0 00000000 ) % mac_04
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_80244458
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_8024E1D8 00000000 ) % mim_10
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802444B4
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_8024E1E0 00000003 ) % mac_01
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_80244510
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry3 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_8024E1E8 00000000 ) % mac_03
+    Wait  100`
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024456C
+{
+    Call  GotoMap   ( $ASCII_8024E1F0 00000003 ) % tik_06
+    Wait  100`
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024459C
+{
+    Call  GotoMap   ( $ASCII_8024E1F8 00000001 ) % tik_15
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_802445CC
+{
+    SetGroup  0000001B
+    Set   *Var[A]  *Var[0]
+    Set   *Var[B]  *Var[1]
+    Set   *Var[C]  *Var[2]
+    ExecWait  $Script_80243D74
+    Return
+    End
+}
+
+#new:Script $Script_80244624
+{
+    Bind  $Script_ExitWalk_802443FC .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Bind  $Script_ExitWalk_80244458 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Bind  $Script_ExitWalk_802444B4 .Trigger:FloorAbove ~Collider:deilin 00000001 00000000
+    Bind  $Script_ExitWalk_80244510 .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+    Set   *Var[0]  00000004
+    Set   *Var[1]  0000001F
+    Set   *Var[2]  $Script_8024456C
+    Bind  $Script_802445CC .Trigger:FloorTouch *Var[1] 00000001 00000000
+    Set   *Var[0]  00000005
+    Set   *Var[1]  00000031
+    Set   *Var[2]  $Script_8024459C
+    Bind  $Script_802445CC .Trigger:FloorTouch *Var[1] 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    If  *StoryProgress  ==  00000028
+        Set   *StoryProgress  00000029
+    EndIf
+    Set   *WorldMapLocation  .Location:ToadTown
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Set   *AreaFlag[016]  .False
+    Set   *AreaFlag[017]  .False
+    Set   *AreaFlag[018]  .False
+    Set   *AreaFlag[019]  .False
+    Set   *AreaFlag[01A]  .False
+    Set   *AreaFlag[01B]  .False
+    Set   *AreaFlag[01C]  .False
+    Set   *AreaFlag[01D]  .False
+    Set   *AreaFlag[01E]  .False
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            Call  MakeNpcs  ( 00000000 $NpcGroupList_8024E0B8 )
+        Case  <  FFFFFFCD
+            Call  MakeNpcs  ( 00000000 $NpcGroupList_8024E0D0 )
+        Case  <  FFFFFFF3
+            Call  MakeNpcs  ( 00000000 $NpcGroupList_8024E0B8 )
+        Case  <  FFFFFFFB
+            Call  MakeNpcs  ( 00000000 $NpcGroupList_8024E0F4 )
+        Default
+            Call  MakeNpcs  ( 00000000 $NpcGroupList_8024E0B8 )
+    EndSwitch
+    ExecWait  $Script_MakeEntities
+    Switch  *StoryProgress
+        Case  <  FFFFFF98
+            Call  EnableGroup   ( ~Model:st2 .False )
+            Call  EnableGroup   ( ~Model:st3 .False )
+        Case  <  FFFFFFB4
+            Call  EnableGroup   ( ~Model:st1 .False )
+            Call  EnableGroup   ( ~Model:st3 .False )
+            Call  ModifyColliderFlags   ( 00000000 ~Collider:st1 7FFFFE00 )
+        Default
+            Call  EnableGroup   ( ~Model:st1 .False )
+            Call  EnableGroup   ( ~Model:st2 .False )
+            Call  ModifyColliderFlags   ( 00000000 ~Collider:g47 7FFFFE00 )
+    EndSwitch
+    Call  EnableTexPanning  ( ~Model:hori .True )
+    Thread
+        Set   *Var[0]  00000001
+        Set   *Var[1]  00000064
+        Set   *Var[2]  00000028
+        Set   *Var[3]  000000C8
+        Set   *Var[4]  FFFFFFD8
+        Set   *Var[5]  00000001
+        Set   *Var[6]  00000001
+        Set   *Var[7]  00000001
+        Set   *Var[8]  00000001
+        Set   *Var[9]  00000000
+        Set   *Var[A]  00000000
+        Set   *Var[B]  00000000
+        Set   *Var[C]  00000000
+        Exec  $Script_UpdateTexturePan_80244360
+    EndThread
+    Exec  $Script_80244EC8
+    Exec  $Script_80245B14
+    Exec  $Script_802435C0
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  <=  ~Entry:Entry3
+        Set   *Var[0]  $Script_80244624
+        Exec  EnterWalk
+    Else
+        Set   *Var[A]  $Script_80244624
+        Exec  $Script_80243630
+    EndIf
+    Return
+    End
+}
+
+PADDING: 80244BAC to 80244BB0 (00004BAC to 00004BB0)
+00000000
+
+#new:Script $Script_OpenDoor_80244BB0
+{
+    Call  RotateModel   ( ~Model:c_door *Var[0] 00000000 FFFFFFFF 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_MoveWalls_80244BE0
+{
+    Set   *Var[1]  *Var[0]
+    Call  RotateModel   ( ~Model:ck1 *Var[1] 00000001 00000000 00000000 )
+    Call  RotateModel   ( ~Model:ck2 *Var[1] 00000001 00000000 00000000 )
+    Call  RotateModel   ( ~Model:ck3 *Var[1] 00000001 00000000 00000000 )
+    Call  RotateModel   ( ~Model:cy1 *Var[1] FFFFFFFF 00000000 00000000 )
+    Call  RotateModel   ( ~Model:cy2 *Var[1] FFFFFFFF 00000000 00000000 )
+    Call  RotateModel   ( ~Model:cy3 *Var[1] FFFFFFFF 00000000 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_ToggleVis_80244CC0
+{
+    Switch  *Var[0]
+        Case  ==  00000000
+            Call  SetGroupEnabled   ( ~Model:cook_in 00000001 )
+            Set   *MapFlag[0A]  .True
+        Case  ==  00000003
+            Call  SetGroupEnabled   ( ~Model:cook_in 00000000 )
+            Set   *MapFlag[0A]  .False
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_OpenDoor_80244D44
+{
+    Call  RotateModel   ( ~Model:sk_door *Var[0] 00000000 FFFFFFFF 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_MoveWalls_80244D74
+{
+    Set   *Var[1]  *Var[0]
+    Call  RotateModel   ( ~Model:sk1 *Var[1] 00000000 00000000 00000001 )
+    Call  RotateModel   ( ~Model:sk2 *Var[1] 00000000 00000000 00000001 )
+    Return
+    End
+}
+
+#new:Script $Script_ToggleVis_80244DD4
+{
+    Switch  *Var[0]
+        Case  ==  00000000
+            If  *Flag_MAC_01  ==  .False
+                Call  ShowMessageAtScreenPos    ( 001D016A 000000A0 00000028 ) % It won't open. It must be locked from the inside.
+                Set   *Var[0]  FFFFFFFF
+                Return
+            EndIf
+            Call  SetGroupEnabled   ( ~Model:souko_in 00000001 )
+        Case  ==  00000002
+            If  *Flag_MAC_01  ==  .False
+                Set   *Var[0]  FFFFFFFF
+                Return
+            EndIf
+        Case  ==  00000003
+            Call  SetGroupEnabled   ( ~Model:souko_in 00000000 )
+    EndSwitch
+    Return
+    End
+}
+
+#new:NpcList $NpcList_80244EBC
+{
+    00000000 FFFFFFFF
+}
+
+#new:NpcList $NpcList_80244EC4
+{
+    FFFFFFFF
+}
+
+#new:Script $Script_80244EC8
+{
+    Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_80244BB0 $Script_MoveWalls_80244BE0 00000000 $Script_ToggleVis_80244CC0 ~Collider:deilit1u ~Collider:deilit1 ~Model:cooking $NpcList_80244EBC )
+    Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_80244D44 $Script_MoveWalls_80244D74 00000000 $Script_ToggleVis_80244DD4 ~Collider:deilit2 ~Collider:deilit2u ~Model:souko $NpcList_80244EC4 )
+    Call  GetEntryID        ( *Var[0] )
+    If  *Var[0]  ==  ~Entry:Entry5
+        Set   *Var[0]  00000003
+        Exec  $Script_ToggleVis_80244CC0
+        Call  SetGroupEnabled   ( ~Model:souko_in 00000001 )
+        Call  $Function_802405F0 ( )
+        Set   *Var[0]  0000005A
+        Call  RotateModel       ( ~Model:sk1 *Var[0] 00000000 00000000 00000001 )
+        Call  RotateModel       ( ~Model:sk2 *Var[0] 00000000 00000000 00000001 )
+    Else
+        Set   *Var[0]  00000003
+        Exec  $Script_ToggleVis_80244CC0
+        Exec  $Script_ToggleVis_80244DD4
+    EndIf
+    Return
+    End
+}
+
+PADDING: 8024501C to 80245020 (0000501C to 00005020)
+00000000
+
+% Origin: HEURISTIC
+#new:Script $Script_SearchBush_80245020
+{
+    UseIntBuffer  *Var[0]
+    Get4Int  *Var[1] *Var[2] *Var[3] *Var[4]
+    Call  GetPlayerPos  ( *Var[5] *Var[F] *Var[7] )
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[1]  !=  00000000
+            Loop  00000005
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_80240720    ( *Var[3] *Fixed[0.1] 00000001 *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[3] .Sound:SearchBush 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_80240720    ( *Var[3] *Fixed[0.1] FFFFFFFF *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[1]
+            Get1Int  *Var[2]
+            Loop  *Var[2]
+                Get1Int  *Var[3]
+                Call  TranslateModel    ( *Var[3] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        If  *Var[2]  !=  00000000
+            UseIntBuffer  *Var[2]
+            Get1Int  *Var[3]
+            Loop  *Var[3]
+                Get1Int  *Var[4]
+                Get3Int  *Var[5] *Var[6] *Var[7]
+                Get3Int  *Var[8] *Var[9] *Var[A]
+                If  *Var[A]  ==  00000000
+                    Call  DropItemEntity    ( *Var[4] *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] )
+                Else
+                    Call  GetValueByRef ( *Var[A] *Var[B] )
+                    If  *Var[B]  ==  00000000
+                        Call  SetValueByRef     ( *Var[A] 00000001 )
+                        Call  DropItemEntity    ( *Var[4] *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] )
+                    EndIf
+                EndIf
+            EndLoop
+        EndIf
+    EndThread
+    Wait  15`
+    If  *Var[4]  !=  00000000
+        ExecWait  *Var[4]
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_ShakeTree_80245380
+{
+    SetTimescale  *Fixed[2.0]
+    UseIntBuffer  *Var[0]
+    Get4Int  *Var[1] *Var[2] *Var[3] *Var[4]
+    Get1Int  *Var[5]
+    Call  GetPlayerPos  ( *Var[6] *Var[F] *Var[8] )
+    Call  PlaySound     ( 00000165 )
+    Call  PlaySound     ( 00000166 )
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[1]  !=  00000000
+            Wait  1`
+            Loop  00000005
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_80240720    ( *Var[3] *Fixed[0.1] *Fixed[0.2] *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[3] 00000166 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[1]
+                Get1Int  *Var[2]
+                Loop  *Var[2]
+                    Get1Int  *Var[3]
+                    Call  $Function_80240720    ( *Var[3] *Fixed[0.1] *Fixed[-0.2] *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[1]
+            Get1Int  *Var[2]
+            Loop  *Var[2]
+                Get1Int  *Var[3]
+                Call  TranslateModel    ( *Var[3] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        Set   *Flag[00]  .False
+        If  *Var[2]  !=  00000000
+            Loop  00000005
+                UseIntBuffer  *Var[2]
+                Get1Int  *Var[3]
+                Loop  *Var[3]
+                    Get1Int  *Var[4]
+                    Call  $Function_80240720    ( *Var[4] *Fixed[0.1] *Fixed[0.2] *Var[F] 00000000 )
+                    If  *Flag[00]  ==  .False
+                        Set   *Flag[00]  .True
+                        Call  PlaySoundAtModel  ( *Var[4] 00000165 00000000 )
+                    EndIf
+                EndLoop
+                Wait  1`
+                UseIntBuffer  *Var[2]
+                Get1Int  *Var[3]
+                Loop  *Var[3]
+                    Get1Int  *Var[4]
+                    Call  $Function_80240720    ( *Var[4] *Fixed[0.1] *Fixed[-0.2] *Var[F] 00000000 )
+                EndLoop
+                Wait  1`
+            EndLoop
+            UseIntBuffer  *Var[2]
+            Get1Int  *Var[3]
+            Loop  *Var[3]
+                Get1Int  *Var[4]
+                Call  TranslateModel    ( *Var[4] 00000000 00000000 00000000 )
+            EndLoop
+            Wait  1`
+        EndIf
+    EndThread
+    Thread
+        If  *Var[3]  !=  00000000
+            UseIntBuffer  *Var[3]
+            Get1Int  *Var[4]
+            Loop  *Var[4]
+                Get1Int  *Var[5]
+                Get3Int  *Var[6] *Var[7] *Var[8]
+                Get3Int  *Var[9] *Var[A] *Var[B]
+                If  *Var[B]  ==  00000000
+                    Call  DropItemEntity    ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+                Else
+                    Call  GetValueByRef ( *Var[B] *Var[C] )
+                    If  *Var[C]  ==  00000000
+                        Call  SetValueByRef     ( *Var[B] 00000001 )
+                        Call  DropItemEntity    ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+                    EndIf
+                EndIf
+            EndLoop
+        EndIf
+    EndThread
+    Thread
+        If  *Var[4]  !=  00000000
+            UseIntBuffer  *Var[4]
+            Get1Int  *Var[5]
+            Loop  *Var[5]
+                Get3Int  *Var[6] *Var[7] *Var[8]
+                Call  PlayEffect    ( ~FX:DropLeaves:Random *Var[6] *Var[7] *Var[8] 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            EndLoop
+        EndIf
+    EndThread
+    If  *Var[5]  !=  00000000
+        ExecWait  *Var[5]
+    EndIf
+    Wait  15`
+    Return
+    End
+}
+
+#new:TreeModelList $TreeModelList_Tree1_Leaves
+{
+    00000001 ~Model:o417
+}
+
+#new:TreeModelList $TreeModelList_Tree1_Trunk
+{
+    00000001 ~Model:o213
+}
+
+#new:TreeEffectVectors $TreeEffectVectors_Tree1
+{
+    00000002
+    ~Vec3f:TreeFX_Tree1_0 %      83     130    -541
+    ~Vec3f:TreeFX_Tree1_1 %     123     130    -551
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree1
+{
+    $TreeModelList_Tree1_Leaves
+    $TreeModelList_Tree1_Trunk
+    00000000
+    $TreeEffectVectors_Tree1
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_802459C4
+{
+    ~BombPos:Bomb_802459C4 % 98.000000 20.000000 -531.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree2_Leaves
+{
+    00000001 ~Model:o115
+}
+
+#new:TreeModelList $TreeModelList_Tree2_Trunk
+{
+    00000001 ~Model:o423
+}
+
+#new:TreeEffectVectors $TreeEffectVectors_Tree2
+{
+    00000002
+    ~Vec3f:TreeFX_Tree2_0 %    -337     104    -198
+    ~Vec3f:TreeFX_Tree2_1 %    -297     104    -208
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree2
+{
+    $TreeModelList_Tree2_Leaves
+    $TreeModelList_Tree2_Trunk
+    00000000
+    $TreeEffectVectors_Tree2
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80245A14
+{
+    ~BombPos:Bomb_80245A14 % -323.000000 20.000000 -190.000000 0.000000
+}
+
+#new:TreeModelList $TreeModelList_Tree3_Leaves
+{
+    00000001 ~Model:o415
+}
+
+#new:TreeModelList $TreeModelList_Tree3_Trunk
+{
+    00000001 ~Model:o420
+}
+
+#new:TreeEffectVectors $TreeEffectVectors_Tree3
+{
+    00000002
+    ~Vec3f:TreeFX_Tree3_0 %     584     125     -70
+    ~Vec3f:TreeFX_Tree3_1 %     624     125     -80
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree3
+{
+    $TreeModelList_Tree3_Leaves
+    $TreeModelList_Tree3_Trunk
+    00000000
+    $TreeEffectVectors_Tree3
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80245A64
+{
+    ~BombPos:Bomb_80245A64 % 598.000000 0.000000 -67.000000 0.000000
+}
+
+#new:Unknown $???_80245A74
+{
+    00000001 00000073
+}
+
+#new:Unknown $???_80245A7C
+{
+    00000001 00000071
+}
+
+#new:Unknown $???_80245A84
+{
+    00000002 FFFFFD90 00000050 FFFFFF5A FFFFFDB8 00000050 FFFFFF50 $???_80245A74
+    $???_80245A7C 00000000 $???_80245A84 00000000 C4180000 41A00000 C31C0000 00000000
+}
+
+#new:TreeModelList $TreeModelList_Tree4_Leaves
+{
+    00000001 ~Model:o414
+}
+
+#new:TreeModelList $TreeModelList_Tree4_Trunk
+{
+    00000001 ~Model:o421
+}
+
+#new:TreeEffectVectors $TreeEffectVectors_Tree4
+{
+    00000002
+    ~Vec3f:TreeFX_Tree4_0 %     235      80     543
+    ~Vec3f:TreeFX_Tree4_1 %     275      80     533
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_Tree4
+{
+    $TreeModelList_Tree4_Leaves
+    $TreeModelList_Tree4_Trunk
+    00000000
+    $TreeEffectVectors_Tree4
+    00000000
+}
+
+#new:TriggerCoord $TriggerCoord_80245B04
+{
+    ~BombPos:Bomb_80245B04 % 351.000000 20.000000 555.000000 0.000000
+}
+
+#new:Script $Script_80245B14
+{
+    Set   *Var[0]  $ShakeTreeEvent_Tree1
+    Bind  $Script_ShakeTree_80245380 .Trigger:WallHammer ~Collider:o409 00000001 00000000
+    Bind  $Script_ShakeTree_80245380 .Trigger:PointBomb $TriggerCoord_802459C4 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree2
+    Bind  $Script_ShakeTree_80245380 .Trigger:WallHammer ~Collider:o361 00000001 00000000
+    Bind  $Script_ShakeTree_80245380 .Trigger:PointBomb $TriggerCoord_80245A14 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree3
+    Bind  $Script_ShakeTree_80245380 .Trigger:WallHammer ~Collider:o370 00000001 00000000
+    Bind  $Script_ShakeTree_80245380 .Trigger:PointBomb $TriggerCoord_80245A64 00000001 00000000
+    Set   *Var[0]  $ShakeTreeEvent_Tree4
+    Bind  $Script_ShakeTree_80245380 .Trigger:WallHammer ~Collider:o378 00000001 00000000
+    Bind  $Script_ShakeTree_80245380 .Trigger:PointBomb $TriggerCoord_80245B04 00000001 00000000
+    Return
+    End
+}
+
+PADDING: 80245C44 to 80245C50 (00005C44 to 00005C50)
+00000000 00000000 00000000
+
+#new:ItemList $ItemList_80245C50
+{
+    .Item:OddKey
+    00000000
+}
+
+#new:Script $Script_80245C58
+{
+    Call  802D6420 ( )
+    If  *Var[0]  ==  00000000
+        Call  ShowMessageAtScreenPos    ( 001D00D8 000000A0 00000028 ) % It's locked! You can't open it.
+        Call  802D6954 ( )
+        Return
+    EndIf
+    If  *Var[0]  ==  FFFFFFFF
+        Call  802D6954 ( )
+        Return
+    EndIf
+    Call  PlaySoundAt       ( 00000269 00000000 FFFFFE2A 0000001E FFFFFF65 )
+    Set   *Var[0]  *MapVar[0]
+    Call  $Function_802408F0 ( )
+    Wait  5`
+    Call  RemoveKeyItemAt   ( *Var[1] )
+    Set   *Flag_MAC_01  .True
+    Call  802D6954 ( )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_80245D60
+{
+    Call  DisablePlayerInput        ( .True )
+    Call  ShowMessageAtScreenPos    ( 001D016B 000000A0 00000028 ) % Private
+    Call  DisablePlayerInput        ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_80245DA8
+{
+    Call  DisablePlayerInput        ( .True )
+    Call  ShowMessageAtScreenPos    ( 001D0171 000000A0 00000028 ) %  North West Peach's Castle     East  Port          ...
+    Call  DisablePlayerInput        ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  ==  ~Entry:Entry5
+        If  *Flag_MAC_01  ==  .False
+            Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80245E20 80000000 )
+            Set   *MapVar[0]  *Var[0]
+            BindLock  $Script_80245C58 .Trigger:WallPressA 00004000 $ItemList_80245C50 00000000 00000001
+        EndIf
+    EndIf
+    Call  MakeItemEntity    ( .Item:OddKey ~Vec3d:Item80245E84 .ItemSpawnMode:Fixed_NeverVanish *Flag_MAC_02 )
+    Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity80245EA8 ~Model:o236 80000000 )
+    Call  AssignPanelFlag   ( *Flag_MAC_A7 )
+    Call  MakeEntity        ( .Entity:Signpost ~Vec4d:Entity80245EE0 80000000 )
+    Call  AssignScript      ( $Script_80245D60 )
+    Bind  $Script_80245DA8 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+    Return
+    End
+}
+
+#new:AISettings $AISettings_80245F40
+{
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_80245F70
+{
+    Call  DoBasicAI ( $AISettings_80245F40 )
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_80245F90
+{
+    00000000 001E0018 00000000 00000000 $Script_NpcAI_80245F70 00000000 00000000 00000000
+    00000000 00000000 00630010
+}
+
+MISSING: 80245FBC to 80245FE8 (00005FBC to 00005FE8)
+00000000 00170013 00000000 00000000 80245F70 00000000 00000000 00000000
+00000000 00000000 00630010
+
+% Origin: HEURISTIC
+#new:Unknown $???_80245FE8
+{
+    3FC00000 0000001E 0000001E 00000000 00000000 FFFFFFFF 00000000 00000000
+    00000000 00000000 00000000 00000001
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246018
+{
+    Call  $Function_802414C4    ( $???_80245FE8 )
+    Return
+    End
+}
+
+MISSING: 80246038 to 80246090 (00006038 to 00006090)
+00000000 001E0018 00000000 00000000 80246018 00000000 00000000 00000000
+00000000 00000000 00630010 00000000 00170013 00000000 00000000 80246018
+00000000 00000000 00000000 00000000 00000000 00630010
+
+#new:NpcSettings $NpcSettings_80246090
+{
+    00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+MISSING: 802460BC to 802460E8 (000060BC to 000060E8)
+00000000 00170013 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00630000
+
+#new:NpcSettings $NpcSettings_802460E8
+{
+    00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+#new:Script $Script_80246114
+{
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_80246124
+{
+    00000000 002A001A $Script_80246114 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+% Origin: HEURISTIC
+#new:Unknown $???_80246150
+{
+    00000000
+}
+
+#new:Script $Script_80246154
+{
+    Call  ShowGotItem   ( *Var[0] .True 00000000 )
+    Return
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246184
+{
+    Call  ShowGotItem   ( *Var[0] .True 00000010 )
+    Return
+    Return
+    End
+}
+
+% Origin: HINT
+#new:ByteTable $QuizAnswers
+{
+    02010102 02000200 02010002 01010002 00020100 00020100 02010102 02010101
+    00020202 02000101 02010201 02000001 01000102 01000202 01020002 02010101
+}
+
+% Origin: HINT
+#new:IntTable $QuizRequirements
+{
+    FFFFFF94 00000000
+    FFFFFFB4 0000000A
+    FFFFFFCA 00000014
+    FFFFFFF2 0000001E
+    00000006 00000025
+    00000027 0000002C
+    0000003A 00000034
+    00000058 0000003C
+    00000060 00000040
+    00000000 00000040
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246244
+{
+    Call  $Function_802422FC ( )
+    If  *Var[0]  <=  00000001
+        Call  GetNpcPos ( .Npc:Self *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  0000012C
+        Call  SetNpcJumpscale   ( .Npc:Self 00000001 )
+        Call  SetNpcAnimation   ( .Npc:Self 00AF000C )
+        Wait  40`
+        Call  SetNpcPos ( .Npc:Self 00000000 FFFFFC18 00000000 )
+    EndIf
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802462F4
+{
+    Call  $Function_802423A0    ( 00000000 *Array[0] )
+    Call  $Function_8024232C    ( 00000000 00000019 )
+    Call  GetPlayerPos      ( *Var[0] *Var[1] *Var[2] )
+    Call  SetPanTarget      ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Call  UseSettingsFrom   ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Call  GetCamType        ( .Cam:Default *Var[1] *Var[2] )
+    Call  SetCamType        ( .Cam:Default *Var[1] .False )
+    Call  GetCamDistance    ( .Cam:Default *Var[0] )
+    If  *Var[0]  >  00000000
+        SetF  *Var[0]  00000172
+    Else
+        SetF  *Var[0]  FFFFFE8E
+    EndIf
+    Call  SetCamDistance    ( .Cam:Default *Var[0] )
+    Call  GetCamPitch       ( .Cam:Default *Var[0] *Var[1] )
+    SetF  *Var[0]  *Fixed[13.0]
+    SetF  *Var[1]  *Fixed[-10.0]
+    Call  SetCamPitch       ( .Cam:Default *Var[0] *Var[1] )
+    Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246490
+{
+    Call  GetNpcPos ( 0000000C *Var[0] *Var[1] *Var[2] )
+    Add   *Var[1]  0000001E
+    Call  SetPanTarget      ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Call  GetCamDistance    ( .Cam:Default *Var[0] )
+    If  *Var[0]  >  00000000
+        SetF  *Var[0]  00000011
+    Else
+        SetF  *Var[0]  FFFFFFEF
+    EndIf
+    Call  SetCamDistance    ( .Cam:Default *Var[0] )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    Call  SetCamSpeed   ( .Cam:Default 00000001 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024658C
+{
+    Call  $Function_8024232C    ( 00000000 *Array[0] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802465C8
+{
+    Wait  20`
+    Call  $Function_80242440    ( *Array[1] *Array[3] 00000053 *Var[0] *Var[1] )
+    Thread
+        SetF  *Var[2]  00000000
+        Loop  0000003C
+            SetF  *Var[3]  *Var[0]
+            SetF  *Var[4]  *Var[1]
+            MulF  *Var[3]  *Var[2]
+            MulF  *Var[4]  *Var[2]
+            DivF  *Var[3]  0000003C
+            DivF  *Var[4]  0000003C
+            AddF  *Var[3]  *Array[1]
+            AddF  *Var[4]  *Array[3]
+            Call  SetPlayerPos  ( *Var[3] *Array[2] *Var[4] )
+            AddF  *Var[2]  00000001
+            Wait  1`
+        EndLoop
+        SetF  *Var[3]  *Var[0]
+        SetF  *Var[4]  *Var[1]
+        AddF  *Var[3]  *Array[1]
+        AddF  *Var[4]  *Array[3]
+        Call  SetPlayerPos  ( *Var[3] *Array[2] *Var[4] )
+    EndThread
+    Call  $Function_802425DC ( )
+    Call  802D2884  ( *Array[1] *Array[3] 00000000 )
+    Call  SetPlayerAnimation    ( 00010002 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246778
+{
+    Call  GetNpcPos ( .Npc:Partner *Var[A] *Var[B] *Var[C] )
+    Call  $Function_80242440    ( *Var[A] *Var[C] 0000006C *Var[0] *Var[1] )
+    SetF  *Var[5]  *Array[2]
+    SubF  *Var[5]  *Var[B]
+    Thread
+        Call  $Function_802426D0 ( )
+        SetF  *Var[3]  *Var[0]
+        SetF  *Var[4]  *Var[1]
+        SetF  *Var[6]  *Var[5]
+        AddF  *Var[3]  *Var[A]
+        AddF  *Var[4]  *Var[C]
+        AddF  *Var[6]  *Var[B]
+        Call  SetNpcPos ( .Npc:Partner *Var[3] *Var[6] *Var[4] )
+    EndThread
+    Call  $Function_80242640 ( )
+    Call  NpcFacePlayer     ( .Npc:Partner 00000000 )
+    Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802468B0
+{
+    Call  GetNpcPos ( 0000000C *Var[A] *Var[B] *Var[C] )
+    Call  $Function_80242440    ( *Var[A] *Var[C] FFFFFFBA *Var[0] *Var[1] )
+    Thread
+        SetF  *Var[2]  00000000
+        Loop  0000003C
+            SetF  *Var[3]  *Var[0]
+            SetF  *Var[4]  *Var[1]
+            MulF  *Var[3]  *Var[2]
+            MulF  *Var[4]  *Var[2]
+            DivF  *Var[3]  0000003C
+            DivF  *Var[4]  0000003C
+            AddF  *Var[3]  *Var[A]
+            AddF  *Var[4]  *Var[C]
+            Call  SetNpcPos ( 0000000C *Var[3] *Array[2] *Var[4] )
+            AddF  *Var[2]  00000001
+            Wait  1`
+        EndLoop
+    EndThread
+    Wait  60`
+    Call  NpcFacePlayer     ( 0000000C 00000000 )
+    Call  SetNpcAnimation   ( 0000000C 00AF0001 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246A1C
+{
+    Exec  $Script_802465C8
+    Exec  $Script_80246778
+    ExecWait  $Script_802468B0
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246A50
+{
+    Loop
+        Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+        Wait  20`
+    EndLoop
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246A90
+{
+    Call  SetPlayerAnimation    ( .PlayerAnim:Throw )
+    Wait  15`
+    Call  SetPlayerAnimation    ( 00010002 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80246ACC
+{
+    Loop
+        Call  SetPlayerAnimation    ( 00010002 )
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:BeforeJump )
+        Wait  2`
+        Call  SetPlayerAnimation    ( .PlayerAnim:MidairStill )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000003
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000002
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:Midair )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFE
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFD
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( 00010009 )
+        Wait  2`
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:BeforeJump )
+        Wait  2`
+        Call  SetPlayerAnimation    ( .PlayerAnim:MidairStill )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000003
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000002
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:Midair )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFE
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFD
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( 00010009 )
+        Wait  2`
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:BeforeJump )
+        Wait  2`
+        Call  SetPlayerAnimation    ( .PlayerAnim:MidairStill )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000003
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000002
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( .PlayerAnim:Midair )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  00000000
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFE
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Add   *Var[1]  FFFFFFFD
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  SetPlayerAnimation    ( 00010009 )
+        Wait  2`
+    EndLoop
+    Call  SetPlayerAnimation    ( 00010002 )
+    Call  SetPlayerPos  ( *Var[0] *Array[2] *Var[2] )
+    Wait  1`
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80247614
+{
+    Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+    Loop
+        Wait  1`
+    EndLoop
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80247654
+{
+    Thread
+        Call  $Function_80242440    ( *Array[1] *Array[3] 00000019 *Var[0] *Var[1] )
+        SetF  *Var[2]  *Array[1]
+        AddF  *Var[2]  *Var[0]
+        SetF  *Var[3]  *Array[3]
+        AddF  *Var[3]  *Var[1]
+        Call  SetNpcAnimation   ( .Npc:Partner 00000102 )
+        Call  NpcMoveTo ( .Npc:Partner *Var[2] *Var[3] 00000028 )
+        Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+    EndThread
+    Call  PlayerMoveTo  ( *Array[1] *Array[3] 00000028 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80247730
+{
+    Exec  $Script_80246ACC *Var[1]
+    Wait  60`
+    Kill  *Var[1]
+    Loop  00000005
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  2`
+    EndLoop
+    Wait  20`
+    ExecWait  $Script_80247654
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802477E0
+{
+    Exec  $Script_80247614 *Var[1]
+    Wait  60`
+    Loop  00000005
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  FFFFFFFF
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  2`
+    EndLoop
+    Wait  20`
+    Kill  *Var[1]
+    ExecWait  $Script_80247654
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80247890
+{
+    If  *CompletedQuizzes  >  0000003F
+        Set   *Var[0]  00000000
+        Return
+    EndIf
+    Call  GetPlayerPos  ( *Array[1] *Array[2] *Array[3] )
+    Call  NpcFacePlayer ( .Npc:Self 00000010 )
+    If  *CompletedQuizzes  ==  0000003F
+        Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000A ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+    Else
+        If  *Flag_Met_ChuckQuizmo  ==  .True
+            Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080009 ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+        Else
+            Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080008 ) % Kaaaa-wiiiizzz! Chuck Quizmo's the name, and quizz ...
+            Set   *Flag_Met_ChuckQuizmo  .True
+        EndIf
+    EndIf
+    Call  ShowChoice    ( 001E000D ) % Yes No
+    If  *Var[0]  ==  00000001
+        Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
+        ExecWait  $Script_80246244
+        Set   *Var[0]  00000000
+        Return
+    EndIf
+    Set   *Flag_Taking_Quiz  .True
+    Call  $Function_802418D8 ( )
+    Call  $Function_80241BEC ( )
+    Exec  $Script_802462F4
+    Call  DisablePartnerAI  ( 00000000 )
+    Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+    Call  SetNpcFlagBits    ( 0000000C 00000200 .False )
+    Call  SetNpcFlagBits    ( .Npc:Partner 00000148 .True )
+    Call  SetNpcFlagBits    ( 0000000C 00000100 .True )
+    Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+    Exec  $Script_80246A1C *Var[1]
+    Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000B ) % Then let's go to the question!
+    Call  PlaySound ( 00000089 )
+    Loop
+        DoesScriptExist  *Var[1] *Var[0]
+        If  *Var[0]  ==  00000000
+            BreakLoop
+        EndIf
+        Wait  1`
+    EndLoop
+    Call  $Function_80241F30 ( )
+    Loop  00000005
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Add   *Var[1]  00000001
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  2`
+    EndLoop
+    Set   *Var[0]  002C0000
+    Add   *Var[0]  *CompletedQuizzes
+    Call  SpeakToPlayer ( .Npc:Self 00AF0005 00AF0006 00000000 *Var[0] ) % variable string ID
+    Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+    Set   *Var[0]  002D0000
+    Add   *Var[0]  *CompletedQuizzes
+    Call  PlaySound     ( 0000008E )
+    Call  ShowChoice    ( *Var[0] ) % variable string ID
+    Kill  *Var[1]
+    Call  StopSound     ( 0000008E )
+    Exec  $Script_80246A90
+    Wait  15`
+    Call  PlaySound     ( 0000008D )
+    Call  $Function_80242230    ( *Var[0] )
+    Set   *Array[4]  00000000
+    Call  $Function_80242824 ( )
+    Wait  40`
+    Call  $Function_80241EAC ( )
+    Thread
+        Wait  110`
+        Call  CloseChoice ( )
+        Set   *Array[4]  00000000
+    EndThread
+    If  *Var[0]  ==  00000001
+        Call  SetNpcAnimation   ( 0000000C 00AF0007 )
+        Set   *Array[4]  00000001
+        Thread
+            Call  $Function_802421FC    ( 00000001 )
+            Wait  6`
+            Wait  6`
+            Wait  6`
+            Call  $Function_802421FC    ( 00000002 )
+        EndThread
+        Thread
+            Call  PlaySound ( 0000021C )
+            Wait  6`
+            Call  PlaySound ( 0000021C )
+            Wait  6`
+            Call  PlaySound ( 0000021C )
+            Wait  6`
+            Call  PlaySound ( 0000021C )
+        EndThread
+        Call  PlaySound ( 0000008A )
+        Call  $Function_802422C8 ( )
+        Thread
+            Wait  15`
+            Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+            Add   *Var[1]  00000032
+            Call  $Function_80242440    ( 00000000 00000000 00000053 *Var[0] *Var[2] )
+            Call  PlayEffect    ( ~FX:Steam:Ring *Var[0] *Var[1] *Var[2] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var[0] *Var[1] *Var[2] 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Wait  15`
+            Add   *Var[1]  FFFFFFFD
+            Call  $Function_80242440    ( 00000000 00000000 0000003A *Var[0] *Var[2] )
+            Call  PlayEffect    ( ~FX:Steam:Ring *Var[0] *Var[1] *Var[2] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var[0] *Var[1] *Var[2] 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Wait  15`
+            Add   *Var[1]  0000001E
+            Call  $Function_80242440    ( 00000000 00000000 0000005D *Var[0] *Var[2] )
+            Call  PlayEffect    ( ~FX:Steam:Ring *Var[0] *Var[1] *Var[2] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var[0] *Var[1] *Var[2] 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+            Wait  15`
+        EndThread
+        Wait  20`
+        Exec  $Script_80247730 *Var[1]
+        Add   *CompletedQuizzes  00000001
+        If  *CompletedQuizzes  >  0000003F
+            Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00080010 ) % Correct!! Congratulations! This is my last prize!  ...
+            Call  SetNpcAnimation   ( 0000000C 00AF0006 )
+            Loop
+                DoesScriptExist  *Var[1] *Var[0]
+                If  *Var[0]  ==  00000000
+                    BreakLoop
+                EndIf
+                Wait  1`
+            EndLoop
+            Call  SetNpcAnimation   ( 0000000C 00AF0005 )
+            Set   *Var[0]  0000015C
+            Set   *Var[1]  00000003
+            ExecWait  $Script_80246154
+            Call  AddStarPieces     ( 00000001 )
+            Call  $Function_802421FC    ( 0000000F )
+            Call  $Function_802422B0 ( )
+            Call  SetMessageValue   ( *CompletedQuizzes 00000000 )
+            Call  SpeakToPlayer     ( .Npc:Self 00AF0004 00AF0001 00000000 00080011 ) % You've managed to correctly answer all  questions. ...
+        Else
+            Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000E ) % Correct! Congratulations! Here's your Star Piece!
+            Call  SetNpcAnimation   ( 0000000C 00AF0006 )
+            Loop
+                DoesScriptExist  *Var[1] *Var[0]
+                If  *Var[0]  ==  00000000
+                    BreakLoop
+                EndIf
+                Wait  1`
+            EndLoop
+            Call  SetNpcAnimation   ( 0000000C 00AF0005 )
+            Set   *Var[0]  0000015C
+            Set   *Var[1]  00000001
+            ExecWait  $Script_80246154
+            Call  AddStarPieces     ( 00000001 )
+            Call  $Function_802421FC    ( 0000000F )
+            Call  $Function_802422B0 ( )
+            Call  SetMessageValue   ( *CompletedQuizzes 00000000 )
+            If  *CompletedQuizzes  ==  00000001
+                Call  SetMessageString  ( 8014C294 00000001 )
+            Else
+                Call  SetMessageString  ( 8014C290 00000001 )
+            EndIf
+            Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000F ) % You've correctly answered  question so far. Good l ...
+        EndIf
+        Set   *Var[0]  00000001
+    Else
+        Call  SetNpcAnimation   ( 0000000C 00AF0009 )
+        Set   *Array[4]  00000002
+        Call  PlaySound ( 0000021D )
+        Call  PlaySound ( 0000008B )
+        Exec  $Script_802477E0 *Var[1]
+        Call  GetPlayerPos      ( *Var[2] *Var[3] *Var[4] )
+        Call  PlayEffect        ( ~FX:DeadLeaves:Gust1 *Var[2] *Var[3] *Var[4] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+        Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000D ) % Oops! Tough luck, pal! Wrong answer! Better luck n ...
+        Call  SetNpcAnimation   ( 0000000C 00AF000A )
+        Loop
+            DoesScriptExist  *Var[1] *Var[0]
+            If  *Var[0]  ==  00000000
+                BreakLoop
+            EndIf
+            Wait  1`
+        EndLoop
+        Set   *Var[0]  00000000
+    EndIf
+    Call  $Function_80242230    ( FFFFFFFF )
+    Call  EnablePartnerAI ( )
+    Thread
+        Wait  30`
+        Call  PlaySound ( 0000008F )
+    EndThread
+    Thread
+        Wait  45`
+        Call  StopSound ( 00000089 )
+    EndThread
+    Call  $Function_802422E4 ( )
+    Call  $Function_80242148 ( )
+    ExecWait  $Script_80246244
+    Exec  $Script_8024658C
+    Call  $Function_80241D38 ( )
+    Call  $Function_802418EC ( )
+    Set   *Flag_Taking_Quiz  .False
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802485C0
+{
+    Call  $Function_802418FC ( )
+    If  *Var[0]  ==  00000000
+        Return
+    EndIf
+    Call  SetNpcFlagBits    ( .Npc:Self 01000000 .False )
+    Call  802CF208  ( FFFFFFFF 00AF0001 )
+    Call  $Function_80241B20 ( )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80248634
+{
+    UseArray  $End[8]
+    Set   *Flag_NPC_41  .True
+    Call  DisablePlayerPhysics  ( .True )
+    Call  SetPlayerFlagBits     ( 00400000 .True )
+    ExecWait  $Script_80247890
+    Call  DisablePlayerPhysics  ( .False )
+    Call  SetPlayerFlagBits     ( 00400000 .False )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802486B4
+{
+    Call  $Function_80241B6C ( )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:AISettings $AISettings_802486D0
+{
+    0.7 % move speed
+    30` % move time
+    20` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80248700
+{
+    Call  DoBasicAI ( $AISettings_802486D0 )
+    Return
+    End
+}
+
+MISSING: 80248720 to 80248778 (00008720 to 00008778)
+00AF0001 0023001C 802485C0 80248634 00000000 00000000 802486B4 00000000
+00000D01 00000000 00630000 00AF0001 0023001C 802485C0 80248634 80248700
+00000000 802486B4 00000000 00000C01 00000000 00630010
+
+#new:Unknown $???_80248778
+{
+    00000000
+}
+
+#new:Unknown $???_8024877C
+{
+    00000000
+}
+
+#new:Script $Script_80248780
+{
+    Set   *Var[9]  *Var[1]
+    Call  802D6420 ( )
+    Set   *Var[A]  *Var[0]
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+        Default
+            Call  RemoveKeyItemAt       ( *Var[1] )
+            Call  GetPlayerPos  ( *Var[3] *Var[4] *Var[5] )
+            Call  $Function_802428B0    ( *Var[3] *Var[4] *Var[5] )
+            ConstOR  *Var[0] 00050000
+            Call  MakeItemEntity        ( *Var[0] *Var[3] *Var[4] *Var[5] .ItemSpawnMode:Decoration 00000000 )
+            Call  SetPlayerAnimation    ( 00060005 )
+            Wait  30`
+            Call  SetPlayerAnimation    ( 00010002 )
+            Call  RemoveItemEntity      ( *Var[0] )
+    EndSwitch
+    Call  $Function_80242AD4    ( *Var[A] )
+    Call  802D6954 ( )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_802488C4
+{
+    Call  $Function_80242B0C    ( *Var[0] )
+    BindLock  $Script_80248780 00000010 00000000 $End[30] 00000000 00000001
+    Call  $Function_80242A80    ( *Var[0] )
+    Return
+    End
+}
+
+#new:Script $Script_80248914
+{
+    Set   *Var[9]  *Var[1]
+    Call  802D663C ( )
+    Set   *Var[A]  *Var[0]
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+        Default
+            Call  RemoveItemAt  ( *Var[1] )
+            Call  GetPlayerPos  ( *Var[3] *Var[4] *Var[5] )
+            Call  $Function_802428B0    ( *Var[3] *Var[4] *Var[5] )
+            Call  MakeItemEntity        ( *Var[0] *Var[3] *Var[4] *Var[5] .ItemSpawnMode:Decoration 00000000 )
+            Call  SetPlayerAnimation    ( 00060005 )
+            Wait  30`
+            Call  SetPlayerAnimation    ( 00010002 )
+            Call  RemoveItemEntity      ( *Var[0] )
+    EndSwitch
+    Call  $Function_80242AD4    ( *Var[A] )
+    Call  802D6954 ( )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_80248A48
+{
+    Call  $Function_80242BA8    ( *Var[0] )
+    BindLock  $Script_80248914 00000010 00000000 $End[1F8] 00000000 00000001
+    Call  $Function_80242A80    ( *Var[0] )
+    Return
+    End
+}
+
+#new:Unknown $???_80248A98
+{
+    0000008A 0000008C 0000008E 00000095 0000008B 00000080 000000AC 0000009D
+    0000009C 000000A4 000000A3 000000A2 00000094 0000009F 0000009E 000000A0
+    000000A5 000000A6 000000A7 000000A8 000000A9 000000AA 000000AB 000000AD
+    000000AE 000000AF 0000008D 000000A1 00000093 FFFFFFFF
+}
+
+#new:Unknown $???_80248B10
+{
+    00000000 000000C2 00000001 000000B6 00000001 000000B0 00000001 00000089
+    00000001 000000D6 00000001 000000C3 00000001 000000C7 00000004 0000009A
+    00000002 000000C0 00000001 000000C1 00000001 000000C9 00000001 000000D8
+    00000001 0000009B 00000001 000000D9 00000003 000000BE 00000001 000000D4
+    00000001 000000D5 00000001 000000B9 00000002 000000BD 00000001 000000CA
+    00000001 000000D7 00000001 000000DA 00000001 00000095 00000001 0000008B
+    00000004 0000008F 00000001 000000B7 00000001 000000B8 00000001 000000C4
+    00000001 000000C5 00000001 000000C6 00000002 000000BB 00000001 000000B2
+    00000001 000000B3 00000001 000000B4 00000001 000000BA 00000001 000000CC
+    00000004 00000082 00000001 000000CD 00000001 000000C8 00000002 000000BF
+    00000001 000000CF 00000003 000000BC 00000001 000000CE 00000001 000000D0
+    00000001 000000CB 00000001 000000D1 00000001 000000B1 00000001 000000B5
+    00000001 000000D3 00000004 00000080 00000002 000000D2 FFFFFFFF FFFFFFFF
+}
+
+#new:ByteTable $ByteTable_80248CB0
+{
+    01011A11 11020303 030C0C0C 0C000000 04050600 00090A27 00100000 00000000
+}
+
+#new:ByteTable $ByteTable_80248CD0
+{
+    01011A11 11020303 030C0C0C 0C0C0C0C 04050600 07090A27 00100103 1E000000
+}
+
+#new:ByteTable $ByteTable_80248CF0
+{
+    00111A1A 11110000 00131415 00000000 17171217 17191200 00120100 00FF001A
+    1A111200 00001B1C 1D000000 00161612 17161912 00001211 0000FFFF 001A1A1E
+    0000001F 20210000 00001616 1E171622 1E00001E 1A0000FF FFFF0000 12000000
+    1B1C1D00 00000016 16121716 22120000 121A0000 FFFFFFFF 00120000 001B1C1D
+    00000000 16161224 07231200 00121100 00FFFFFF FFFF0000 00000000 00000000
+    00120000 00002526 00000F01 0000FFFF FFFFFFFF 00000003 0C270C0C 0C0C000C
+    12000028 000C0012 000000FF FFFFFFFF FFFF000C 030C270C 0C0C0C00 0C000000
+    2A002700 00000000 FFFFFFFF FFFFFFFF 00030C27 0C0C0C0C 000C0000 002B0027
+    00000000 00FFFFFF FFFFFFFF FFFF000C 27030303 03000C00 00002C00 27000000
+    0000FFFF FFFFFFFF FFFFFFFF 00270C0C 0C0C000C 00000030 00270000 000000FF
+    FFFFFFFF FFFFFFFF FFFF0027 27272700 0C000000 2D002700 00000000 FFFFFFFF
+    FFFFFFFF FFFFFFFF 000C0C0C 00000000 002E0027 00000000 00FFFFFF FFFFFFFF
+    FFFFFFFF FFFF000C 0C001212 00180800 27000000 0000FFFF FFFFFFFF FFFFFFFF
+    FFFFFFFF 000C0012 12001808 00270000 000000FF FFFFFFFF FFFFFFFF FFFFFFFF
+    FFFF0000 12120018 08002700 00000000 FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+    00121200 12080000 00000000 00FFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFF002F
+    00003000 27000000 0000FFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 001E1200
+    12000012 000000FF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFF0031 00000000
+    1E000000 FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 00320B27 071E0000
+    00FFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFF0008 0D301200 0000FFFF
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 00000B12 000000FF FFFFFFFF
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFF0000 00000000 FFFFFFFF FFFFFFFF
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 00000000 00FFFFFF FFFFFFFF FFFFFFFF
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFF0000 0000FFFF FFFFFFFF FFFFFFFF FFFFFFFF
+    FFFFFFFF FFFFFFFF FFFFFFFF 000000FF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+    FFFFFFFF FFFFFFFF FFFF0000 FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+    FFFFFFFF FFFFFFFF 00000000
+}
+
+#new:Unknown $???_8024903C
+{
+    000000BF 0000008D 00000029 000000BF 000000A9 00000029 000000BF 000000AE
+    00000029 000000D5 000000C7 0000001E 000000D5 000000B6 00000012 000000D5
+    000000B9 0000001E 000000D5 000000B8 0000000E 000000A9 00000093 0000000E
+}
+
+#new:IntTable $IntTable_8024909C
+{
+    00000080 00000089 0000009B 0000008F 00000095 0000009A 0000008B 000000B6
+    000000B5 000000B0 000000C3 000000C7 000000C9 000000D8 000000D5 000000CA
+    000000BD 00000082 000000C8 000000B1 000000D3 000000C0 000000BF
+}
+
+#new:Script $Script_802490F8
+{
+    Call  SetNpcFlagBits    ( 00000000 00000100 .True )
+    Call  SetNpcAnimation   ( 00000000 00AA0002 )
+    Call  NpcMoveTo ( 00000000 FFFFFF46 FFFFFE83 00000014 )
+    Call  NpcMoveTo ( 00000000 FFFFFF24 FFFFFE57 0000001E )
+    Call  SetNpcAnimation   ( 00000000 00AA0007 )
+    Wait  10`
+    Call  SpeakToPlayer     ( 00000000 00AA0007 00AA0007 00000005 0004000E ) % Tra-la-la-la-la!
+    Wait  20`
+    Call  SetNpcAnimation   ( 00000000 00AA0008 )
+    Wait  30`
+    Call  SetNpcYaw ( 00000000 0000005A )
+    Call  SetNpcAnimation   ( 00000000 00AA0002 )
+    Call  NpcMoveTo ( 00000000 FFFFFF46 FFFFFE83 00000014 )
+    Call  NpcMoveTo ( 00000000 FFFFFF14 FFFFFEC2 00000014 )
+    Call  SetNpcAnimation   ( 00000000 00AA0001 )
+    Call  SetNpcFlagBits    ( 00000000 00000100 .False )
+    Return
+    End
+}
+
+#new:Unknown $???_80249264
+{
+    00000023 00000000
+}
+
+#new:Script $Script_8024926C
+{
+    If  *Flag_MAC_97  ==  .True
+        Call  $Function_80243088    ( *Var[0] )
+        If  *Var[0]  !=  00000000
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001A ) % Here's the Cake!
+            Set   *Var[0]  000000C1
+            Set   *Var[1]  00000000
+            ExecWait  $Script_80246154
+            Call  AddItem       ( .Item:Cake *Var[0] )
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001B ) % This is my most delicious Cake. One taste of it wo ...
+            Set   *StoryProgress  FFFFFFFD
+        Else
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001C ) % Oh, my... You're carrying too much. You can't poss ...
+            Set   *Flag_MAC_97  .True
+        EndIf
+        Return
+    EndIf
+    Call  SpeakToPlayer ( 00000000 00AA0004 00AA0006 00000000 00040017 ) % Oh...hello there, hon. Thank you for coming to vis ...
+    Set   *Var[0]  $???_80249264
+    Set   *Var[1]  00000000
+    ExecWait  $Script_802488C4
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0006 00000000 00040018 ) % But...you aren't going to give me back my Frying P ...
+        Default
+            Call  SpeakToPlayer ( 00000000 00AA0005 00AA0001 00000000 00040019 ) % Oh, Mario! My dear, dear Frying Pan! You saved it  ...
+            ExecWait  $Script_802490F8
+            Call  $Function_80243088    ( *Var[0] )
+            If  *Var[0]  !=  00000000
+                Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001A ) % Here's the Cake!
+                Set   *Var[0]  000000C1
+                Set   *Var[1]  00000000
+                ExecWait  $Script_80246154
+                Call  AddItem       ( .Item:Cake *Var[0] )
+                Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001B ) % This is my most delicious Cake. One taste of it wo ...
+                Set   *StoryProgress  FFFFFFFD
+            Else
+                Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001C ) % Oh, my... You're carrying too much. You can't poss ...
+                Set   *Flag_MAC_97  .True
+            EndIf
+    EndSwitch
+    Return
+    End
+}
+
+#new:Unknown $???_80249548
+{
+    00000029 00000000
+}
+
+#new:Script $Script_80249550
+{
+    If  *AreaFlag[001]  ==  .False
+        Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001D ) % Oh, my! Oh, good heavens!! That book you have! It  ...
+        Set   *AreaFlag[001]  .True
+    Else
+        Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001E ) % Oh, hello, hon. You know, I still wouldn't mind ha ...
+        Set   *AreaFlag[001]  .False
+    EndIf
+    Set   *Var[0]  $???_80249548
+    Set   *Var[1]  00000000
+    ExecWait  $Script_802488C4
+    Switch  *Var[0]
+        Case  ==  FFFFFFFF
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001F ) % Oh...OK. Why'd I get my hopes up...? It's your boo ...
+        Default
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040020 ) % Ooh! I can have it? Oh, how delightful! With this  ...
+            Set   *Flag_MAC_98  .True
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_80249684
+{
+    Call  DisablePlayerInput    ( .True )
+    If  *Flag_MAC_96  ==  .False
+        Set   *Flag_MAC_96  .True
+        Set   *AreaFlag[001]  .True
+        Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040000 ) % Oh my goodness, it's Mario! My name is Tayce T. I  ...
+    Else
+        If  *AreaFlag[001]  ==  .False
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040001 ) % Oh, it's Mario! Hi there! Would you like me to coo ...
+            Set   *AreaFlag[001]  .True
+        Else
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040002 ) % Yes, honey? Would you like me to cook you somethin ...
+        EndIf
+    EndIf
+    Call  $Function_80243040    ( *Var[0] )
+    If  *Var[0]  <=  00000000
+        Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 00040003 ) % Oh my. You don't have any ingredients for me. I ca ...
+        Goto  9
+    EndIf
+    Call  ShowChoice    ( 001E0010 ) % Yes No
+    If  *Var[0]  ==  00000001
+        Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 00040004 ) % Oh, that's too bad. I was so excited to show you m ...
+        Goto  9
+    EndIf
+    Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 00040005 ) % Which ingredient would you like me to use?
+    Label  1
+    Set   *Var[3]  00000000
+    Call  $Function_802430D0 ( )
+    Set   *Var[0]  $End[368]
+    Set   *Var[1]  00000000
+    ExecWait  $Script_80248A48
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040006 ) % You don't want me to cook?
+            Call  ShowChoice    ( 001E0009 ) % Don't Cook Cook
+            If  *Var[0]  ==  00000000
+                Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 00040004 ) % Oh, that's too bad. I was so excited to show you m ...
+                Goto  9
+            EndIf
+            Call  CloseMessage ( )
+            Set   *Var[3]  00000001
+        Default
+            Set   *Var[8]  *Var[0]
+            Call  AddItem   ( *Var[0] *Var[1] )
+    EndSwitch
+    If  *Var[3]  ==  00000001
+        Goto  1
+    EndIf
+    If  *Flag_MAC_98  ==  .False
+        Goto  5
+    EndIf
+    Call  $Function_80243040    ( *Var[0] )
+    If  *Var[0]  <  00000002
+        Goto  5
+    EndIf
+    Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040007 ) % Would you like me to use another ingredient?
+    Call  ShowChoice    ( 001E0010 ) % Yes No
+    Call  CloseMessage ( )
+    If  *Var[0]  ==  00000001
+        Goto  5
+    EndIf
+    Label  2
+    Call  RemoveItem    ( *Var[8] *Var[0] )
+    Set   *Var[3]  00000000
+    Call  $Function_802430D0 ( )
+    Set   *Var[0]  $End[368]
+    Set   *Var[1]  00000000
+    ExecWait  $Script_80248A48
+    Call  AddItem       ( *Var[8] *Var[1] )
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040008 ) % What's the matter, honey?
+            Call  ShowChoice    ( 001E0008 ) % Make with one Choose the second Stop
+            If  *Var[0]  ==  00000000
+                Call  CloseMessage ( )
+                Goto  5
+            EndIf
+            If  *Var[0]  ==  00000002
+                Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 00040004 ) % Oh, that's too bad. I was so excited to show you m ...
+                Goto  9
+            EndIf
+            Call  CloseMessage ( )
+            Set   *Var[3]  00000001
+        Default
+            Set   *Var[9]  *Var[0]
+            Call  AddItem   ( *Var[0] *Var[1] )
+            If  *Var[8]  ==  *Var[9]
+                Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040009 ) % This is the same kind as the first ingredient. Ple ...
+                Set   *Var[3]  00000001
+            EndIf
+    EndSwitch
+    If  *Var[3]  ==  00000001
+        Goto  2
+    EndIf
+    Set   *Var[0]  *Var[8]
+    Call  $Function_80241874    ( *Var[0] )
+    Call  SetMessageString  ( *Var[0] 00000000 )
+    Set   *Var[1]  *Var[9]
+    Call  $Function_80241874    ( *Var[1] )
+    Call  SetMessageString  ( *Var[1] 00000001 )
+    Call  SpeakToPlayer     ( 00000000 00AA0004 00AA0001 00000000 0004000B ) % Then I shall cook with  and .
+    Call  ShowChoice        ( 001E0010 ) % Yes No
+    If  *Var[0]  ==  00000001
+        Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 0004000C ) % Oh my. You don't want me to cook now? Well, come b ...
+        Goto  9
+    EndIf
+    Call  $Function_80242DBC    ( *Var[6] *Var[7] *Var[8] *Var[9] )
+    Call  RemoveItem        ( *Var[8] *Var[0] )
+    Call  RemoveItem        ( *Var[9] *Var[0] )
+    Goto  6
+    Label  5
+    Set   *Var[0]  *Var[8]
+    Call  $Function_80241874    ( *Var[0] )
+    Call  SetMessageString  ( *Var[0] 00000000 )
+    Call  SpeakToPlayer     ( 00000000 00AA0004 00AA0001 00000000 0004000A ) % Then I shall cook with .
+    Call  ShowChoice        ( 001E0010 ) % Yes No
+    If  *Var[0]  ==  00000001
+        Call  ContinueSpeech    ( 00000000 00AA0004 00AA0001 00000000 0004000C ) % Oh my. You don't want me to cook now? Well, come b ...
+        Goto  9
+    EndIf
+    Call  $Function_80242C44    ( *Var[6] *Var[7] *Var[8] *Flag_MAC_98 )
+    Call  RemoveItem    ( *Var[8] *Var[0] )
+    Label  6
+    Call  ContinueSpeech        ( 00000000 00AA0004 00AA0001 00000000 0004000D ) % I'll whip something special up just for you, honey ...
+    ExecWait  $Script_802490F8
+    Switch  *Var[7]
+        Case  ==  00000000
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040012 ) % Oh... I'm so sorry. This recipe didn't work out. O ...
+        Case  ==  00000002
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004000F ) % All done! It smells delicious!
+        Case  ==  00000003
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040010 ) % Oh, sweet success! This dish is one of my specialt ...
+        Case  ==  00000004
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040013 ) % OK, all finished! ...I don't exactly know what it  ...
+        Default
+            Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040011 ) % Here you are! This recipe's not too bad.
+    EndSwitch
+    Call  ContinueSpeech        ( 00000000 00AA0004 00AA0001 00000000 00040014 ) % Here, please!
+    Call  $Function_80242F60    ( *Var[6] )
+    Set   *Var[0]  *Var[6]
+    Set   *Var[1]  00000000
+    ExecWait  $Script_80246154
+    Call  AddItem   ( *Var[6] *Var[0] )
+    Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040015 ) % Come back anytime, hon. I look forward to it!
+    Label  9
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024A034
+{
+    If  *StoryProgress  >=  FFFFFFF3
+        If  *StoryProgress  <  FFFFFFFD
+            ExecWait  $Script_8024926C
+            Return
+        EndIf
+    EndIf
+    Call  FindKeyItem   ( .Item:Cookbook *Var[0] )
+    If  *Var[0]  ==  FFFFFFFF
+        ExecWait  $Script_80249684
+    Else
+        ExecWait  $Script_80249550
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024A0D4
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024A034 )
+    Call  InterpNpcYaw      ( .Npc:Self 0000002D 00000000 )
+    Call  SetNpcPos ( .Npc:Self FFFFFF14 00000014 FFFFFEC2 )
+    Call  SetNpcAnimation   ( .Npc:Self 00AA0001 )
+    If  *StoryProgress  >=  FFFFFFF3
+        If  *StoryProgress  <  FFFFFFFD
+            If  *Flag_MAC_97  !=  .True
+                Call  SetNpcAnimation   ( .Npc:Self 00AA0006 )
+                Return
+            EndIf
+        EndIf
+    EndIf
+    Set   *AreaFlag[001]  .False
+    Return
+    End
+}
+
+#new:Script $Script_8024A1B4
+{
+    Loop
+        Call  GetNpcPos ( .Npc:Partner *Var[3] *Var[4] *Var[5] )
+        Call  $Function_802431F4    ( *Var[3] *Var[4] *Var[5] )
+        Call  SetItemPos    ( *Var[0] *Var[3] *Var[4] *Var[5] )
+        Wait  1`
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_8024A234
+{
+    Set   *Var[9]  *Var[1]
+    Call  802D6420 ( )
+    Set   *Var[A]  *Var[0]
+    Switch  *Var[0]
+        Case  ==  00000000
+        Case  ==  FFFFFFFF
+        Default
+            Call  RemoveKeyItemAt   ( *Var[1] )
+            Call  DisablePartnerAI  ( 00000000 )
+            Call  GetNpcPos ( .Npc:Partner *Var[3] *Var[4] *Var[5] )
+            Call  $Function_802431F4    ( *Var[3] *Var[4] *Var[5] )
+            ConstOR  *Var[0] 00050000
+            Call  MakeItemEntity    ( *Var[0] *Var[3] *Var[4] *Var[5] .ItemSpawnMode:Decoration 00000000 )
+            Exec  $Script_8024A1B4 *Var[A]
+            Call  SetNpcAnimation   ( .Npc:Partner 00040002 )
+            Call  GetAngleBetweenNPCs   ( *Var[9] .Npc:Partner *Var[B] )
+            Call  GetNpcPos ( .Npc:Partner *Var[3] *Var[4] *Var[5] )
+            Call  GetNpcPos ( *Var[9] *Var[6] *Var[7] *Var[8] )
+            Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .True )
+            If  *Var[B]  <=  000000B4
+                Add   *Var[6]  00000014
+            Else
+                Add   *Var[6]  FFFFFFEC
+            EndIf
+            Add   *Var[7]  0000000A
+            Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.0] )
+            Call  NpcJump1  ( .Npc:Partner *Var[6] *Var[7] *Var[8] 00000014 )
+            Kill  *Var[A]
+            Call  RemoveItemEntity  ( *Var[0] )
+            Wait  20`
+            Call  GetNpcYaw ( .Npc:Partner *Var[A] )
+            Add   *Var[A]  000000B4
+            Call  InterpNpcYaw      ( .Npc:Partner *Var[A] 00000000 )
+            Wait  5`
+            Call  NpcJump1  ( .Npc:Partner *Var[3] *Var[4] *Var[5] 00000014 )
+            Call  SetNpcAnimation   ( .Npc:Partner 00040001 )
+            Call  NpcFaceNpc        ( .Npc:Partner *Var[9] 00000000 )
+            Wait  5`
+            Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .False )
+            Call  EnablePartnerAI ( )
+            Wait  5`
+    EndSwitch
+    Call  $Function_80242AD4    ( *Var[A] )
+    Call  802D6954 ( )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_8024A558
+{
+    Set   *Var[0]  *Var[B]
+    Set   *Var[1]  *Var[2]
+    Call  $Function_80242B0C    ( *Var[0] )
+    BindLock  $Script_8024A234 00000010 00000000 $End[30] 00000000 00000001
+    Call  $Function_80242A80    ( *Var[0] )
+    Return
+    End
+}
+
+#new:Script $Script_8024A5C8
+{
+    Set   *Var[C]  00000000
+    If  *StoryProgress  <  FFFFFFBA
+        Return
+    EndIf
+    Call  $Function_80243380 ( )
+    Call  GetCurrentPartnerID   ( *Var[0] )
+    Call  FindKeyItem   ( *Var[5] *Var[1] )
+    If  *Var[0]  ==  .Partner:Parakarry % 4
+        If  *Var[1]  !=  FFFFFFFF
+            Call  DisablePartnerAI  ( 00000000 )
+            Call  PlayerFaceNpc ( *Var[2] 00000000 )
+            Wait  1`
+            Call  GetNpcPos     ( *Var[2] *Var[D] *Var[0] *Var[E] )
+            Call  GetNpcPos     ( .Npc:Partner *Var[D] *Var[E] *Var[F] )
+            Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.0] )
+            Add   *Var[0]  0000000A
+            Call  NpcJump1      ( .Npc:Partner *Var[D] *Var[0] *Var[F] 0000000A )
+            Call  SpeakToNpc    ( .Npc:Partner 00040006 00040001 00000000 *Var[2] *Var[7] ) % variable string ID
+            Call  EnablePartnerAI ( )
+            ExecWait  $Script_8024A558
+            Switch  *Var[0]
+                Case  ==  FFFFFFFF
+                    Call  DisablePartnerAI  ( 00000000 )
+                    Wait  1`
+                    Call  SpeakToPlayer     ( .Npc:Partner 00040006 00040001 00000005 *Var[8] ) % variable string ID
+                    Call  EnablePartnerAI ( )
+                    Set   *Var[C]  00000001
+                Default
+                    Call  DisablePartnerAI  ( 00000000 )
+                    Wait  1`
+                    Call  SpeakToPlayer     ( .Npc:Partner 00040006 00040001 00000005 *Var[9] ) % variable string ID
+                    If  *Var[A]  !=  00000000
+                        Call  SpeakToPlayer ( *Var[2] *Var[3] *Var[4] 00000000 *Var[A] ) % variable string ID
+                    EndIf
+                    Call  EnablePartnerAI ( )
+                    If  *Var[6]  !=  00000000
+                        Set   *Var[0]  *Var[6]
+                        Set   *Var[1]  00000001
+                        ExecWait  $Script_80246154
+                        Call  AddKeyItem    ( *Var[6] )
+                    EndIf
+                    Set   *Var[C]  00000002
+            EndSwitch
+        EndIf
+    EndIf
+    Call  $Function_802433C4 ( )
+    Return
+    End
+}
+
+#new:Unknown $???_8024A8C0
+{
+    0000003C 00000000
+}
+
+#new:Script $Script_8024A8C8
+{
+    Call  $Function_80243104    ( 00000001 00AB0004 00AB0001 0000003C 00000000 00040036 00040037 00040038 00000000 $???_8024A8C0 )
+    ExecWait  $Script_8024A5C8
+    Return
+    End
+}
+
+#new:Script $Script_8024A918
+{
+    If  *Var[C]  ==  00000002
+        Call  SpeakToPlayer     ( 00000001 00AB0004 00AB0001 00000000 00040039 ) % I wonder who "Bootler" is. ... Ugh... Oh, no... No ...
+        Call  SetNpcAnimation   ( 00000001 00AB0006 )
+        Call  EndSpeech ( 00000001 00AB0006 00AB0006 00000000 )
+        Set   *Var[0]  0000015C
+        Set   *Var[1]  00000003
+        ExecWait  $Script_80246154
+        Call  AddStarPieces     ( 00000001 )
+        Call  SetNpcAnimation   ( 00000001 00AB0001 )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024A9E0
+{
+    Set   *Var[3]  00000000
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            Set   *Var[0]  00040021
+        Case  <  FFFFFFF1
+            Set   *Var[3]  00000001
+            Set   *Var[0]  0004002A
+            Set   *Var[1]  0004002B
+        Case  <  00000007
+            Set   *Var[0]  0004002C
+            Set   *Var[1]  0004002D
+        Case  <  00000027
+            Set   *Var[0]  0004002E
+            Set   *Var[1]  0004002F
+        Case  <  00000039
+            Set   *Var[0]  00040030
+            Set   *Var[1]  00040031
+        Case  <  00000059
+            Set   *Var[0]  00040032
+            Set   *Var[1]  00040033
+        Case  <  00000060
+            Set   *Var[0]  00040034
+            Set   *Var[1]  00040035
+    EndSwitch
+    Call  GetCurrentPartnerID   ( *Var[2] )
+    If  *Var[2]  ==  .Partner:Bow % 9
+        Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000000 *Var[1] ) % variable string ID
+    Else
+        If  *Var[3]  ==  00000000
+            Call  SpeakToPlayer ( 00000001 00AB0004 00AB0001 00000000 *Var[0] ) % variable string ID
+        Else
+            Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000000 *Var[0] ) % variable string ID
+        EndIf
+    EndIf
+    ExecWait  $Script_8024A8C8
+    ExecWait  $Script_8024A918
+    If  *Var[C]  !=  00000000
+        Return
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024AC30
+{
+    If  *StoryProgress  ==  FFFFFFCB
+        Call  SetNpcAnimation   ( .Npc:Self 00AB0006 )
+    Else
+        Call  SetNpcPos ( .Npc:Self 00000186 00000000 FFFFFFCE )
+    EndIf
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024A9E0 )
+    Return
+    End
+}
+
+#new:Script $Script_8024ACA4
+{
+    If  *Var[0]  ==  *Fixed[0.0]
+        Call  PlaySoundAtNpc    ( 00000009 .Sound:BooVanish 00000000 )
+        SetF  *Var[1]  *Fixed[24.0]
+    Else
+        Call  PlaySoundAtNpc    ( 00000009 .Sound:BooAppear 00000000 )
+        SetF  *Var[1]  *Fixed[-24.0]
+    EndIf
+    Loop  0000000A
+        AddF  *Var[0]  *Var[1]
+        Call  802CFD30  ( 00000009 00000007 *Var[0] 00000000 00000000 00000000 )
+        Wait  1`
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Idle_8024AD78
+{
+    Loop
+        Wait  1`
+        Set   *Var[0]  00000000
+        Call  GetPlayerPos  ( *Var[1] *Var[2] *Var[3] )
+        Switch  *Var[3]
+            Case  FFFFFFCC  to  0000002F
+                Add   *Var[0]  00000001
+        EndSwitch
+        If  *Var[1]  >  0000008C
+            Add   *Var[0]  00000001
+        EndIf
+        If  *Var[0]  ==  00000002
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  SetMusicTrack ( 00000000 .Song:BoosMansion 00000000 00000008 )
+    Call  DisablePlayerInput        ( .True )
+    Call  ShowMessageAtScreenPos    ( 00040022 00000190 00000064 ) % Aaaaaaaagh!!
+    Thread
+        Call  SetNpcPos     ( .Npc:Self 000001AE 0000003C FFFFFFD8 )
+        Call  SetNpcAnimation   ( 00000009 00BF0002 )
+        Call  SetNpcSpeed   ( .Npc:Self *Fixed[3.0] )
+        Call  PlaySoundAtNpc    ( .Npc:Self 00000293 00000000 )
+        Call  NpcMoveTo     ( .Npc:Self 00000244 FFFFFFD8 00000000 )
+        Call  SetNpcPos     ( .Npc:Self 00000000 FFFFFC18 00000000 )
+    EndThread
+    Call  UseSettingsFrom   ( .Cam:Default 000001AE 00000001 00000023 )
+    Call  SetPanTarget  ( .Cam:Default 000001AE 00000001 00000023 )
+    Call  SetCamDistance    ( .Cam:Default *Fixed[275.0] )
+    Call  SetCamPitch   ( .Cam:Default *Fixed[18.5] *Fixed[-10.5] )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    Call  SetPlayerSpeed    ( *Fixed[4.0] )
+    Call  PlayerMoveTo  ( 000001AE FFFFFFD8 00000000 )
+    Call  InterpPlayerYaw   ( 0000013B 00000000 )
+    Call  DisablePartnerAI  ( 00000000 )
+    Call  NpcMoveTo     ( .Npc:Partner 000001C7 FFFFFFD8 00000014 )
+    Call  InterpNpcYaw  ( .Npc:Partner 0000013B 00000000 )
+    Call  EnablePartnerAI ( )
+    Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000000 00040023 ) % Brrrrrrrr... Juh...Just now, a ghost passed right  ...
+    Call  ShowChoice    ( 001E0036 ) % Saw Didn't see
+    If  *Var[0]  ==  00000000
+        Set   *Var[1]  00040024
+    Else
+        Set   *Var[1]  00040025
+    EndIf
+    Call  ContinueSpeech    ( 00000001 00AB0006 00AB0006 00000000 *Var[1] ) % variable string ID
+    Wait  20`
+    SetF  *Var[0]  *Fixed[0.0]
+    Call  SetNpcAnimation   ( 00000009 00BF0009 )
+    Call  802CFD30      ( FFFFFFFF 00000007 00000000 00000000 00000000 00000000 )
+    Call  SetNpcYaw     ( .Npc:Self 0000010E )
+    Call  SetNpcPos     ( .Npc:Self 000001F4 00000032 0000001E )
+    ExecWait  $Script_8024ACA4
+    Wait  10`
+    Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000005 00040026 ) % Over there----!!!!!
+    ExecWait  $Script_8024ACA4
+    Call  InterpPlayerYaw   ( 0000005A 00000000 )
+    Call  InterpNpcYaw  ( .Npc:Partner 0000005A 00000000 )
+    Wait  25`
+    Call  PlaySoundAtPlayer ( 00000263 00000000 )
+    Call  ShowEmote     ( 00000000 .Emote:Question 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+    Wait  30`
+    Call  SetNpcScale   ( 00000009 *Fixed[2.0] *Fixed[2.0] *Fixed[2.0] )
+    Call  SetNpcYaw     ( .Npc:Self 0000005A )
+    Call  SetNpcPos     ( .Npc:Self 00000168 00000014 0000001E )
+    ExecWait  $Script_8024ACA4
+    Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000005 00040027 ) % No, no, the other way---!!!
+    ExecWait  $Script_8024ACA4
+    Call  InterpPlayerYaw   ( 0000010E 00000000 )
+    Call  InterpNpcYaw  ( .Npc:Partner 0000010E 00000000 )
+    Wait  25`
+    Call  PlaySoundAtPlayer ( 00000263 00000000 )
+    Call  ShowEmote     ( 00000000 .Emote:Question 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+    Wait  30`
+    Call  SetNpcAnimation   ( 00000009 00BF0002 )
+    Call  SetNpcScale   ( 00000009 *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+    Call  SetNpcPos     ( .Npc:Self 000001E0 00000046 0000000A )
+    ExecWait  $Script_8024ACA4
+    Call  PlaySoundAtNpc    ( .Npc:Self 00000293 00000000 )
+    Call  NpcFlyTo      ( .Npc:Self 00000226 00000028 0000000A 00000028 0000000A .Easing:Linear )
+    Call  SetNpcPos     ( .Npc:Self 00000000 FFFFFC18 00000000 )
+    Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000005 00040028 ) % It went into the forest!!!
+    Wait  10`
+    Call  InterpPlayerYaw   ( 0000005A 00000000 )
+    Call  InterpNpcYaw  ( .Npc:Partner 0000005A 00000000 )
+    Wait  25`
+    Call  PlaySoundAtPlayer ( 00000263 00000000 )
+    Call  ShowEmote     ( 00000000 .Emote:Question 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+    Wait  40`
+    Call  InterpPlayerYaw   ( 0000010E 00000000 )
+    Call  InterpNpcYaw  ( .Npc:Partner 0000010E 00000000 )
+    Call  SpeakToPlayer ( 00000001 00AB0006 00AB0006 00000000 00040029 ) % Ma... Mario, this madness has to end. Will you go  ...
+    Exec  $Script_8024E150
+    Set   *StoryProgress  FFFFFFCD
+    Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024B544
+{
+    If  *StoryProgress  ==  FFFFFFCB
+        Call  EnableNpcShadow   ( .Npc:Self .False )
+        Call  BindNpcIdle       ( .Npc:Self $Script_Idle_8024AD78 )
+    Else
+        Call  RemoveNpc ( .Npc:Self )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_8024B5AC
+{
+    Call  GetNpcPos ( 0000000B *Var[2] *Var[3] *Var[4] )
+    Add   *Var[3]  00000014
+    Call  MakeItemEntity    ( .Item:FryingPan *Var[2] *Var[3] *Var[4] .ItemSpawnMode:Decoration 00000000 )
+    Set   *Var[9]  *Var[0]
+    Wait  1`
+    Loop  00000046
+        Call  GetNpcPos     ( 0000000B *Var[2] *Var[3] *Var[4] )
+        Add   *Var[3]  00000014
+        Call  SetItemPos    ( *Var[9] *Var[2] *Var[3] *Var[4] )
+        Wait  1`
+    EndLoop
+    Call  RemoveItemEntity  ( *Var[9] )
+    Return
+    End
+}
+
+#new:Script $Script_8024B6A0
+{
+    Loop
+        Call  PlaySoundAtNpc    ( 0000000B B0000021 00000000 )
+        Wait  2`
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_8024B6E8
+{
+    Loop
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        If  *Var[0]  <  00000028
+            If  *Var[2]  <  000000B4
+                BreakLoop
+            EndIf
+        EndIf
+        Wait  1`
+    EndLoop
+    Call  DisablePlayerInput    ( .True )
+    Call  ShowMessageAtScreenPos    ( 00040016 000000A0 00000028 ) % Oh-oh-oh-oh-oh... NO! My favorite Frying Pan!
+    Call  SetCamProperties      ( .Cam:Default *Fixed[3.0] FFFFFF74 00000014 FFFFFF74 00000190 0000000F FFFFFFFA )
+    Call  SetNpcPos ( 0000000B FFFFFF38 00000014 FFFFFEFC )
+    Call  SetNpcAnimation       ( 0000000B 003B0004 )
+    Wait  10`
+    Exec  $Script_8024B5AC
+    Thread
+        Call  EnableGroup   ( ~Model:cook_in .True )
+        Call  PlaySoundAtCollider   ( ~Collider:deilit1u .Sound:BasicDoorOpen 00000000 )
+        Set   *Var[0]  00000000
+        Loop  0000000A
+            Add   *Var[0]  00000008
+            Call  RotateModel   ( ~Model:c_door *Var[0] 00000000 FFFFFFFF 00000000 )
+            Wait  1`
+        EndLoop
+        Wait  5`
+        Loop  0000000A
+            Add   *Var[0]  FFFFFFF8
+            Call  RotateModel   ( ~Model:c_door *Var[0] 00000000 FFFFFFFF 00000000 )
+            Wait  1`
+        EndLoop
+        Call  PlaySoundAtCollider   ( ~Collider:deilit1u .Sound:BasicDoorClose 00000000 )
+        Call  EnableGroup   ( ~Model:cook_in .False )
+    EndThread
+    Wait  5`
+    Call  PlaySoundAtNpc        ( 0000000B 0000203F 00000000 )
+    Exec  $Script_8024B6A0 *Var[A]
+    Call  SetNpcSpeed   ( 0000000B 00000008 )
+    Call  NpcMoveTo ( 0000000B FFFFFF74 FFFFFF10 00000000 )
+    Call  NpcMoveTo ( 0000000B FFFFFF74 FFFFFF74 00000000 )
+    Call  NpcJump0  ( 0000000B FFFFFF74 00000000 FFFFFF9C 00000000 )
+    Call  NpcMoveTo ( 0000000B FFFFFF42 FFFFFFEC 00000000 )
+    Call  NpcMoveTo ( 0000000B FFFFFEA2 FFFFFFEC 00000000 )
+    Kill  *Var[A]
+    Call  SetNpcPos ( 0000000B 00000000 FFFFFC18 00000000 )
+    Set   *StoryProgress  FFFFFFF4
+    Wait  10`
+    Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024BA68
+{
+    If  *StoryProgress  <  FFFFFFF4
+        Exec  $Script_8024B6E8
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024BA9C
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFF96
+            Set   *Var[0]  0004003A
+        Case  <  FFFFFF9C
+            Set   *Var[0]  0004003B
+        Case  <  FFFFFFB5
+            Set   *Var[0]  0004003C
+        Case  <  FFFFFFCB
+            If  *Flag_MAC_9A  ==  .False
+                Set   *Var[0]  0004003D
+            Else
+                Set   *Var[0]  0004003E
+            EndIf
+        Case  <  FFFFFFF1
+            Set   *Var[0]  0004003F
+        Case  <  00000007
+            If  *Flag_MAC_8B  ==  .False
+                Set   *Var[0]  00040040
+            Else
+                If  *Flag_MAC_88  ==  .False
+                    Set   *Var[0]  00040041
+                Else
+                    Set   *Var[0]  00040042
+                EndIf
+            EndIf
+        Case  <  0000000A
+            Set   *Var[0]  00040043
+        Case  <  00000027
+            Set   *Var[0]  00040044
+        Case  <  0000002B
+            Set   *Var[0]  00040045
+        Case  <  00000039
+            Set   *Var[0]  00040046
+        Case  <  0000003D
+            Set   *Var[0]  00040047
+        Case  <  00000059
+            Set   *Var[0]  00040048
+        Case  <  00000060
+            Set   *Var[0]  00040049
+    EndSwitch
+    Call  SpeakToPlayer ( 00000003 00830204 00830201 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Idle_8024BCDC
+{
+    Call  SetNpcPos     ( .Npc:Self 00000014 00000000 FFFFFDDA )
+    Call  SetNpcSpeed   ( .Npc:Self *Fixed[2.0] )
+    Loop
+        Call  SetNpcAnimation   ( .Npc:Self 00830202 )
+        Call  NpcMoveTo     ( .Npc:Self FFFFFFEC FFFFFDDA 00000000 )
+        Call  SetNpcAnimation   ( .Npc:Self 00830201 )
+        Call  InterpNpcYaw  ( .Npc:Self 0000005A 00000007 )
+        Wait  10`
+        Call  InterpNpcYaw  ( .Npc:Self 0000010E 00000007 )
+        Wait  30`
+        Call  SetNpcAnimation   ( .Npc:Self 00830202 )
+        Call  NpcMoveTo     ( .Npc:Self 00000014 FFFFFDDA 00000000 )
+        Call  SetNpcAnimation   ( .Npc:Self 00830201 )
+        Call  InterpNpcYaw  ( .Npc:Self 0000010E 00000007 )
+        Wait  10`
+        Call  InterpNpcYaw  ( .Npc:Self 0000005A 00000007 )
+        Wait  30`
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024BE48
+{
+    If  *StoryProgress  <  FFFFFFB4
+        Call  BindNpcIdle   ( .Npc:Self $Script_Idle_8024BCDC )
+    EndIf
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024BA9C )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024BE98
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            If  *Flag_MAC_9A  ==  .False
+                Set   *Var[0]  0004004A
+            Else
+                Set   *Var[0]  0004004B
+            EndIf
+        Case  <  FFFFFFF1
+            Set   *Var[0]  0004004C
+        Case  <  FFFFFFFD
+            Set   *Var[0]  0004004D
+        Case  <  00000007
+            Set   *Var[0]  0004004E
+        Case  <  00000059
+            If  *Flag_MAC_98  ==  .False
+                Set   *Var[0]  0004004F
+            Else
+                Switch  *StoryProgress
+                    Case  <  0000000A
+                        Set   *Var[0]  00040050
+                    Case  <  00000027
+                        Set   *Var[0]  00040051
+                    Case  <  0000002B
+                        Set   *Var[0]  00040052
+                    Case  <  00000039
+                        Set   *Var[0]  00040053
+                    Case  <  0000003D
+                        Set   *Var[0]  00040054
+                    Case  <  00000059
+                        Set   *Var[0]  00040055
+                EndSwitch
+            EndIf
+        Case  <  00000060
+            Set   *Var[0]  00040056
+    EndSwitch
+    Call  SpeakToPlayer ( 00000004 00840304 00840301 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024C090
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024BE98 )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024C0B4
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            If  *Flag_MAC_9A  ==  .False
+                Set   *Var[0]  00040057
+            Else
+                Set   *Var[0]  00040058
+            EndIf
+        Case  <  FFFFFFF1
+            Set   *Var[0]  00040059
+        Case  <  FFFFFFF3
+            Set   *Var[0]  0004005A
+        Case  <  FFFFFFFD
+            Set   *Var[0]  0004005B
+        Case  <  00000007
+            Set   *Var[0]  0004005C
+        Case  <  0000000A
+            Set   *Var[0]  0004005D
+        Case  <  00000027
+            Set   *Var[0]  0004005E
+        Case  <  0000002B
+            Set   *Var[0]  0004005F
+        Case  <  00000039
+            Set   *Var[0]  00040060
+        Case  <  0000003D
+            Set   *Var[0]  00040061
+        Case  <  00000059
+            Set   *Var[0]  00040062
+        Case  <  00000060
+            Set   *Var[0]  00040063
+    EndSwitch
+    Call  SpeakToPlayer ( 00000005 00830104 00830101 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024C278
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C0B4 )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024C29C
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            Set   *Var[0]  00040064
+        Case  <  FFFFFFF1
+            Set   *Var[0]  00040065
+        Case  <  00000007
+            Set   *Var[0]  00040066
+        Case  <  00000027
+            Set   *Var[0]  00040067
+        Case  <  00000039
+            Set   *Var[0]  00040068
+        Case  <  00000059
+            Set   *Var[0]  00040069
+        Case  <  00000060
+            Set   *Var[0]  0004006A
+    EndSwitch
+    Call  SpeakToPlayer ( 00000006 00860304 00860301 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024C3A4
+{
+    If  *StoryProgress  <  FFFFFFB5
+        Call  RemoveNpc ( .Npc:Self )
+    Else
+        Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C29C )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024C3F8
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            If  *Flag_MAC_9A  ==  .False
+                Set   *Var[0]  0004006B
+            Else
+                Set   *Var[0]  0004006C
+            EndIf
+        Case  <  FFFFFFF1
+            Set   *Var[0]  0004006D
+        Case  <  00000007
+            If  *Flag_MAC_9C  ==  .False
+                Set   *Var[0]  0004006E
+            Else
+                If  *Flag_MAC_9D  ==  .False
+                    Set   *Var[0]  0004006F
+                Else
+                    Set   *Var[0]  00040070
+                EndIf
+            EndIf
+        Case  <  0000000A
+            Set   *Var[0]  00040071
+        Case  <  00000027
+            Set   *Var[0]  00040072
+        Case  <  0000002B
+            Set   *Var[0]  00040073
+            Set   *Flag_MAC_90  .True
+        Case  <  00000039
+            Set   *Var[0]  00040074
+        Case  <  0000003D
+            Set   *Var[0]  00040075
+        Case  <  00000059
+            Set   *Var[0]  00040076
+        Case  <  00000060
+            Set   *Var[0]  00040077
+    EndSwitch
+    Call  SpeakToPlayer ( 00000007 00830304 00830301 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024C5F4
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C3F8 )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024C618
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFCB
+            If  *Flag_MAC_9A  ==  .False
+                Set   *Var[0]  00040078
+            Else
+                Set   *Var[0]  00040079
+            EndIf
+        Case  <  FFFFFFF1
+            Set   *Var[0]  0004007A
+        Case  <  FFFFFFF3
+            Set   *Var[0]  0004007B
+        Case  <  FFFFFFFD
+            Set   *Var[0]  0004007C
+        Case  <  00000007
+            Set   *Var[0]  0004007D
+        Case  <  0000000A
+            Set   *Var[0]  0004007E
+        Case  <  00000027
+            Set   *Var[0]  0004007F
+        Case  <  0000002B
+            Set   *Var[0]  00040080
+        Case  <  00000039
+            Set   *Var[0]  00040081
+        Case  <  0000003D
+            Set   *Var[0]  00040082
+        Case  <  00000059
+            Set   *Var[0]  00040083
+        Case  <  00000060
+            Set   *Var[0]  00040084
+    EndSwitch
+    Call  SpeakToPlayer ( 00000008 00830004 00830001 00000000 *Var[0] ) % variable string ID
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024C7DC
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C618 )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024C800
+{
+    If  *Flag_MAC_99  ==  .False
+        Call  SpeakToPlayer     ( .Npc:Self 00990007 00990007 00000000 00040085 ) % P... Pppppppppppppppppppp...
+        Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleSurface 00000000 )
+        Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MolePop 00000000 )
+        Call  SetNpcAnimation   ( .Npc:Self 00990005 )
+        Wait  45`
+        Call  SetNpcAnimation   ( .Npc:Self 00990002 )
+        Call  SetNpcCollisionSize   ( .Npc:Self 0000002D 0000001A )
+        Call  SpeakToPlayer     ( .Npc:Self 00990003 00990002 00000000 00040086 ) % PUFFFFF! Well, hello there. My name is Bub-ulb. I  ...
+        Set   *Var[0]  0000002B
+        Set   *Var[1]  00000001
+        ExecWait  $Script_80246154
+        Call  AddKeyItem        ( .Item:MagicalSeed1 )
+        Call  SpeakToPlayer     ( .Npc:Self 00990003 00990002 00000000 00040087 ) % That is a flower seed. If it's well cared for, a b ...
+        Set   *Flag_MAC_99  .True
+        Call  80045A58  ( 00000002 001A003C )
+    Else
+        Switch  *StoryProgress
+            Case  <  FFFFFFB5
+            Case  <  FFFFFFCA
+                Set   *Var[0]  00040088
+            Case  <  FFFFFFF1
+                Set   *Var[0]  00040089
+            Case  <  00000007
+                Set   *Var[0]  0004008A
+            Case  <  00000027
+                Set   *Var[0]  0004008B
+            Case  <  00000039
+                Set   *Var[0]  0004008C
+            Case  <  00000059
+                Set   *Var[0]  0004008D
+            Case  <  00000060
+                Set   *Var[0]  0004008E
+            Default
+                Set   *Var[0]  0004008E
+        EndSwitch
+        Call  SpeakToPlayer ( 00000002 00990003 00990002 00000000 *Var[0] ) % variable string ID
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024CA88
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C800 )
+    If  *Flag_MAC_99  ==  .False
+        Call  SetNpcCollisionSize   ( .Npc:Self 00000019 00000019 )
+        Call  SetNpcAnimation       ( .Npc:Self 00990007 )
+        Call  80045A58  ( 00000002 001A003B )
+    EndIf
+    Return
+    End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024CB04
+{
+    00AA0000 00AA0001 00AA0002 00AA0001 00AA0004 00AA0005 00AA0006 00AA0007
+    00AA0008 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024CB2C
+{
+    00990000 00990001 00990002 00990003 00990005 00990007 FFFFFFFF
+}
+
+#new:NpcGroup $NpcGroup_8024CB48
+{
+    00000000 $NpcSettings_80246090 ~Vec3f:NPC_8024CB48 % -217 20 -434
+    00002D09 $Script_Init_8024A0D4 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024CB48
+    ~AnimationTable:NPC_8024CB48 % .Sprite:TayceT
+    00000000 00000000 $ExtraAnimationList_8024CB04 001A0033 % She's Tayce T., by far the greatest cook around. T ...
+    %
+    % $NpcGroup_8024CB48[1F0]
+    00000001 $NpcSettings_80246090 ~Vec3f:NPC_8024CD38 % 389 0 -90
+    00002D09 $Script_Init_8024AC30 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024CD38
+    ~AnimationTable:NPC_8024CD38 % .Sprite:FiceT
+    00000000 00000000 00000000 001A0034 % This Toad guards the path to Forever Forest. He lo ...
+    %
+    % $NpcGroup_8024CB48[3E0]
+    00000002 $NpcSettings_80246124 ~Vec3f:NPC_8024CF28 % 150 20 500
+    00000801 $Script_Init_8024CA88 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024CF28
+    ~AnimationTable:NPC_8024CF28 % .Sprite:Bubulb
+    00000000 00000000 $ExtraAnimationList_8024CB2C 001A003C % Oh! A Bub-ulb. Talking flowers seem weird... Didn' ...
+    %
+    % $NpcGroup_8024CB48[5D0]
+    00000003 $NpcSettings_80245F90 ~Vec3f:NPC_8024D118 % 40 0 -60
+    00002D09 $Script_Init_8024BE48 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_8024D118
+    ~AnimationTable:NPC_8024D118 % .Sprite:Toad
+    00000000 00000000 00000000 001A0035 % This Toad is diligent and very hard working. He ha ...
+    %
+    % $NpcGroup_8024CB48[7C0]
+    00000004 $NpcSettings_80246090 ~Vec3f:NPC_8024D308 % -26 0 -220
+    00002D09 $Script_Init_8024C090 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_8024D308
+    ~AnimationTable:NPC_8024D308 % .Sprite:ThreeSisters
+    00000000 00000000 00000000 001A0036 % She worships Tayce T. because she really loves to  ...
+    %
+    % $NpcGroup_8024CB48[9B0]
+    00000005 $NpcSettings_80246090 ~Vec3f:NPC_8024D4F8 % -350 20 -140
+    00002D09 $Script_Init_8024C278 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024D4F8
+    ~AnimationTable:NPC_8024D4F8 % .Sprite:Toad
+    00000000 00000000 00000000 001A0037 % This Toad can't keep his mouth shut. He's an incur ...
+    %
+    % $NpcGroup_8024CB48[BA0]
+    00000006 $NpcSettings_80245F90 ~Vec3f:NPC_8024D6E8 % 180 20 -435
+    00002D09 $Script_Init_8024C3A4 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_8024D6E8
+    ~AnimationTable:NPC_8024D6E8 % .Sprite:ToadKid
+    00000000 00000000 00000000 001A0038 % He always talks about what he wants to be when he  ...
+    %
+    % $NpcGroup_8024CB48[D90]
+    00000007 $NpcSettings_80245F90 ~Vec3f:NPC_8024D8D8 % -160 0 25
+    00002D09 $Script_Init_8024C5F4 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024D8D8
+    ~AnimationTable:NPC_8024D8D8 % .Sprite:Toad
+    00000000 00000000 00000000 001A0039 % This Toad is pretty smart. I wonder where he gets  ...
+    %
+    % $NpcGroup_8024CB48[F80]
+    00000008 $NpcSettings_80246090 ~Vec3f:NPC_8024DAC8 % -80 0 300
+    00002D09 $Script_Init_8024C7DC 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_8024DAC8
+    ~AnimationTable:NPC_8024DAC8 % .Sprite:Toad
+    00000000 00000000 00000000 001A003A % This Toad is constantly running his mouth. When I' ...
+}
+
+#new:NpcGroup $NpcGroup_8024DCB8
+{
+    00000009 $NpcSettings_802460E8 ~Vec3f:NPC_8024DCB8 % 0 -1000 0
+    00000D09 $Script_Init_8024B544 00000000 00000000 00000000
+    ~NoDrops
+    ~Movement:NPC_8024DCB8
+    ~AnimationTable:NPC_8024DCB8 % .Sprite:Bootler
+    00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024DEA8
+{
+    003B0000 003B0001 003B0002 003B0003 003B0011 003B0002 003B0004 FFFFFFFF
+}
+
+#new:NpcGroup $NpcGroup_8024DEC8
+{
+    0000000B $NpcSettings_80246090 ~Vec3f:NPC_8024DEC8 % 0 -1000 0
+    00002F09 $Script_Init_8024BA68 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_8024DEC8
+    ~AnimationTable:NPC_8024DEC8 % .Sprite:ShyGuy
+    00000000 00000000 $ExtraAnimationList_8024DEA8 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_8024E0B8
+{
+    00000009 $NpcGroup_8024CB48 00000000
+    00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroupList_8024E0D0
+{
+    00000009 $NpcGroup_8024CB48 00000000
+    00000001 $NpcGroup_8024DCB8 00000000
+    00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroupList_8024E0F4
+{
+    00000001 $NpcGroup_8024DEC8 00000000
+    00000009 $NpcGroup_8024CB48 00000000
+    00000000 00000000 00000000
+}
+
+PADDING: 8024E118 to 8024E120 (0000E118 to 0000E120)
+00000000 00000000
+
+#new:Unknown $???_8024E120
+{
+    C3160000 C34D0000 42F00000 43160000 00000001 FAA2B58A
+}
+
+#new:Unknown $???_8024E138
+{
+    C3C80000 437A0000 42DC0000 43020000 00000004 FAA2B58B
+}
+
+#new:Script $Script_8024E150
+{
+    Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+    Call  802D5EE0      ( 00000000 )
+    Thread
+        Call  $Function_802433F0    ( $???_8024E120 )
+    EndThread
+    Thread
+        Call  $Function_802433F0    ( $???_8024E138 )
+    EndThread
+    Return
+    End
+}
+
+PADDING: 8024E1CC to 8024E1D0 (0000E1CC to 0000E1D0)
+00000000
+
+#new:ASCII $ASCII_8024E1D0
+{
+    "mac_04"
+}
+
+#new:ASCII $ASCII_8024E1D8
+{
+    "mim_10"
+}
+
+#new:ASCII $ASCII_8024E1E0
+{
+    "mac_01"
+}
+
+#new:ASCII $ASCII_8024E1E8
+{
+    "mac_03"
+}
+
+% Origin: HEURISTIC
+#new:ASCII $ASCII_8024E1F0
+{
+    "tik_06"
+}
+
+% Origin: HEURISTIC
+#new:ASCII $ASCII_8024E1F8
+{
+    "tik_15"
+}
+
+% Origin: HEURISTIC
+#new:ConstDouble $ConstDouble_8024E200
+{
+    32767.000000d
+}
+
+% Origin: HEURISTIC
+#new:ConstDouble $ConstDouble_8024E208
+{
+    32767.000000d
+}
+
+% Origin: HEURISTIC
+#new:JumpTable $JumpTable_8024E210
+{
+    $Function_802414C4[1E4] $Function_802414C4[1F4] $Function_802414C4[20C] $Function_802414C4[21C]
+    $Function_802414C4[234] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[24C] $Function_802414C4[25C]
+    $Function_802414C4[274] $Function_802414C4[284] $Function_802414C4[29C] $Function_802414C4[2B4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4]
+    $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2D4] $Function_802414C4[2CC]
+}
+
+% Origin: HINT
+#new:IntTable $RecipesDiscovedIDs
+{
+    000000B0 000000B1 000000B2 000000B3 000000B4 000000B5 000000B6 000000B7
+    000000B8 000000B9 000000BA 000000BD 000000BB 000000BE 000000BF 000000BC
+    000000C0 000000C1 000000C2 000000C3 000000C4 000000C5 000000C6 000000C7
+    000000C8 000000C9 000000CA 000000CB 000000CC 000000CD 000000CE 000000CF
+    000000D0 000000D1 000000D2 000000D3 000000D4 000000D5 000000D6 000000D7
+    000000D8 000000D9 000000DA 00000089 0000009A 0000009B 00000097 00000095
+    0000008B 0000008F 00000082 00000080
+}
+
+% Origin: HINT
+#new:IntTable $RecipesDiscovedFlags
+{
+    F8405CB6 F8405CB7 F8405CB8 F8405CB9 F8405CBA F8405CBB F8405CBC F8405CBD
+    F8405CBE F8405CBF F8405CC0 F8405CC1 F8405CC2 F8405CC3 F8405CC4 F8405CC5
+    F8405CC6 F8405CC7 F8405CC8 F8405CC9 F8405CCA F8405CCB F8405CCC F8405CCD
+    F8405CCE F8405CCF F8405CD0 F8405CD1 F8405CD2 F8405CD3 F8405CD4 F8405CD5
+    F8405CD6 F8405CD7 F8405CD8 F8405CD9 F8405CDA F8405CDB F8405CDC F8405CDD
+    F8405CDE F8405CDF F8405CE0 F8405CE1 F8405CE2 F8405CE3 F8405CE4 F8405CE5
+    F8405CE6 F8405CE7 F8405CE8 F8405CE9
+}
+

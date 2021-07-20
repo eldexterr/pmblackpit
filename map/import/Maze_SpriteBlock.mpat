@@ -1,0 +1,449 @@
+% This file have the code for the sprite blocks on mze_03/04/05 (Maze Map #5/9/13)
+
+#new:Script $Script_SpawnSpriteBlock
+{
+    Call  ParentColliderToModel ( ~Collider:Cube1 ~Model:CubeModel )
+    Switch *Dungeon_MapID % get offset and invisible block flag
+        Case == 5 % mze_03
+            Set *Var[4] 0
+            Set *Var[6] *Flag_Maze_HiddenBlock5
+        Case == 9 % mze_04
+            Set *Var[4] C
+            Set *Var[6] *Flag_Maze_HiddenBlock9
+        Case == 13` % mze_05
+            Set *Var[4] 18
+            Set *Var[6] *Flag_Maze_HiddenBlock13
+    EndSwitch
+    Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] *Var[4] .False ) % get x
+    Add   *Var[4] 4
+    Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[2] *Var[4] .False ) % get y
+    Add   *Var[4] 4
+    Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[3] *Var[4] .False ) % get z
+    If *Var[6] == .False % *Flag_Maze_HiddenBlockXX
+        Call  MakeEntity 	    ( .Entity:HiddenYellowBlock *Var[1] *Var[2] *Var[3] 0 .Item:Coin 80000000 )
+        Switch *Dungeon_MapID % get offset and invisible block flag
+            Case == 5 % mze_03
+                Call  AssignBlockFlag   ( *Flag_Maze_HiddenBlock5 )
+            Case == 9 % mze_04
+                Call  AssignBlockFlag   ( *Flag_Maze_HiddenBlock9 )
+            Case == 13` % mze_05
+                Call  AssignBlockFlag   ( *Flag_Maze_HiddenBlock13 )
+        EndSwitch
+    Else
+        Add     *Var[2] 28`
+        Call    TranslateGroup ( ~Model:Cube1 *Var[1] *Var[2] *Var[3] )
+        Call    UpdateColliderTransform ( ~Collider:Cube1 )
+    EndIf
+    % Bind Sprite Cube's trigger and load his sprite
+    Bind   $Script_SwapSprites  .Trigger:CeilingTouch ~Collider:Cube1 00000001 00000000
+    % Load Current Sprite
+    % Disable all Sprites
+    Call    EnableModel ( ~Model:Mushroom .False )
+    Call    EnableModel ( ~Model:Fireflower .False )
+    Call    EnableModel ( ~Model:Star .False )
+    Call    EnableModel ( ~Model:Leaf .False )
+    Call    EnableModel ( ~Model:Feather .False )
+    Switch *Dungeon_MapID % get offset
+        Case == 5 % mze_03
+            Set *Var[4] 6
+        Case == 9 % mze_04
+            Set *Var[4] 5
+        Case == 13` % mze_05
+            Set *Var[4] 4
+    EndSwitch
+    Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] *Var[4] .False ) % mze_03 / Map #5 current sprite
+    Switch *Var[0]
+        Case == 0 % Mushroom
+            Call    EnableModel ( ~Model:Mushroom .True )
+        Case == 1 % Fire Flower
+            Call    EnableModel ( ~Model:Fireflower .True )
+        Case == 2 % Star
+            Call    EnableModel ( ~Model:Star .True )
+        Case == 3 % Leaf
+            Call    EnableModel ( ~Model:Leaf .True )
+        Case == 4 % Feather
+            Call    EnableModel ( ~Model:Feather .True )
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_SwapSprites
+{
+    Switch *Dungeon_MapID % get offset
+        Case == 5 % mze_03
+            Set *Var[4] 6
+        Case == 9 % mze_04
+            Set *Var[4] 5
+        Case == 13` % mze_05
+            Set *Var[4] 4
+    EndSwitch
+    % Disable all Sprites
+    Call    EnableModel ( ~Model:Mushroom .False )
+    Call    EnableModel ( ~Model:Fireflower .False )
+    Call    EnableModel ( ~Model:Star .False )
+    Call    EnableModel ( ~Model:Leaf .False )
+    Call    EnableModel ( ~Model:Feather .False )
+    Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] *Var[4] .False ) % mze_03 / Map #5 current sprite
+    Add     *Var[0] 1
+    If *Var[0] >= 5
+        Set *Var[0] 0
+    EndIf
+    Call    $WriteAddress ( $Maze_ChestData_Special1 0 *Var[0] *Var[4] .False ) % save new sprite
+    Switch *Var[0]
+        Case == 0 % Mushroom
+            Call    EnableModel ( ~Model:Mushroom .True )
+        Case == 1 % Fire Flower
+            Call    EnableModel ( ~Model:Fireflower .True )
+        Case == 2 % Star
+            Call    EnableModel ( ~Model:Star .True )
+        Case == 3 % Leaf
+            Call    EnableModel ( ~Model:Leaf .True )
+        Case == 4 % Feather
+            Call    EnableModel ( ~Model:Feather .True )
+    EndSwitch
+    Call    PlaySound ( 007D )
+    Return
+    End
+}
+
+% You can't assign scripts to invisible blocks entities
+% So keep tracking if the block's flag becomes true
+#new:Script $Script_TrackInvisibleBlock
+{
+    Switch *Dungeon_MapID % get offset and invisible block flag
+        Case == 5 % mze_03
+            Set *Var[6] *Flag_Maze_HiddenBlock5
+        Case == 9 % mze_04
+            Set *Var[6] *Flag_Maze_HiddenBlock9
+        Case == 13` % mze_05
+            Set *Var[6] *Flag_Maze_HiddenBlock13
+    EndSwitch
+    If *Var[6] == .False
+        Loop
+            Switch *Dungeon_MapID % get offset and invisible block flag
+                Case == 5 % mze_03
+                        Set *Var[6] *Flag_Maze_HiddenBlock5
+                Case == 9 % mze_04
+                    Set *Var[6] *Flag_Maze_HiddenBlock9
+                Case == 13` % mze_05
+                    Set *Var[6] *Flag_Maze_HiddenBlock13
+            EndSwitch
+            If *Var[6] == .True
+                Set *Var[9] 3 % entity ID % btw the solid block is actually a new entity
+                Set *Var[4] $VectorList_HideBlock % new pos
+                ExecWait $Script_Rogue_SetEntityPos % from globals/patch/RoguelikeMain.patch
+                Call	PlaySoundAtPlayer	( 0241 .Default ) % Focus
+                % Get Coords
+                Switch *Dungeon_MapID % get offset
+                    Case == 5 % mze_03
+                        Set *Var[6] 0
+                    Case == 9 % mze_04
+                        Set *Var[6] C
+                    Case == 13` % mze_05
+                        Set *Var[6] 18
+                EndSwitch
+                Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] *Var[6] .False ) % get x
+                Add     *Var[6] 4
+                Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[2] *Var[6] .False ) % get y
+                Add     *Var[6] 4
+                Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[3] *Var[6] .False ) % get z
+                Set     *Var[4] *Var[2]
+                Add     *Var[2] 8   % star FX
+                Add     *Var[4] 28` % sprite cube
+                Call    TranslateGroup ( ~Model:Cube1 *Var[1] *Var[4] *Var[3] ) % mode cube
+                Call    UpdateColliderTransform ( ~Collider:Cube1 )
+                Call    PlayEffect   ( ~FX:Sparkles:Star *Var[1] *Var[2] *Var[3] 20` )
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndIf
+Return
+End
+}
+
+#new:VectorList $VectorList_HideBlock
+{
+-900.000000 0.000000 0.000000
+-900.000000 1.000000 0.000000
+-900.000000 2.000000 0.000000 % Spawn Coords
+}
+
+% Texture Panning
+#new:Script $Script_EnableTexPanning
+{
+    Call     EnableTexPanning 	( ~Model:Mushroom .True )
+    Call     EnableTexPanning 	( ~Model:Fireflower .True )
+    Call     EnableTexPanning 	( ~Model:Star .True )
+    Call     EnableTexPanning 	( ~Model:Leaf .True )
+    Call     EnableTexPanning 	( ~Model:Feather .True )
+	Thread
+		Set  *Var[0]  .Default % panner id
+		Set  *Var[1]  6000` 	% x scroll
+		Set  *Var[2]  0         % y scroll
+		Set  *Var[3]  0 	    % x scroll (aux)
+		Set  *Var[4]  0 	    % y scroll (aux)
+		Set  *Var[5]  10 
+		Set  *Var[6]  .True
+		Set  *Var[7]  .False 
+		Set  *Var[8]  .False 
+		Set  *Var[9]  .False 
+		Set  *Var[A]  .False 
+		Set  *Var[B]  .False 
+		Set  *Var[C]  .False 
+		Exec     $Script_80244A70 
+    EndThread
+	Return
+	End
+}
+
+#new:Script $Script_80244A70
+{
+	SetGroup 0
+	If  *Var[5]  ==  .True
+		If  *Var[6]  ==  .True 
+			If  *Var[7]  ==  .True 
+				If  *Var[8]  ==  .True 
+					Call     $Function_802402E0
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call     $Function_80240404
+	Return
+	End
+}
+   
+#new:Function $Function_80240404
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 70 (S0)
+   18:  SW        R0, 74 (S0)
+   1C:  SW        R0, 78 (S0)
+   20:  SW        R0, 7C (S0)
+        .o24
+   24:  LW        V0, 70 (S0)
+   28:  BNE       V0, R0, .o64
+   2C:  NOP
+   30:  LW        V1, A8 (S0)
+   34:  LW        V0, 88 (S0)
+   38:  ADDU      V1, V1, V0
+   3C:  BGEZ      V1, .o50
+   40:  SW        V1, A8 (S0)
+   44:  LUI       V0, 2
+   48:  BEQ       R0, R0, .o60
+   4C:  ADDU      V0, V1, V0
+        .o50
+   50:  LUI       A0, 2
+   54:  SLT       V0, A0, V1
+   58:  BEQ       V0, R0, .o64
+   5C:  SUBU      V0, V1, A0
+        .o60
+   60:  SW        V0, A8 (S0)
+        .o64
+   64:  LW        V0, 74 (S0)
+   68:  BNE       V0, R0, .oA4
+   6C:  NOP
+   70:  LW        V1, AC (S0)
+   74:  LW        V0, 8C (S0)
+   78:  ADDU      V1, V1, V0
+   7C:  BGEZ      V1, .o90
+   80:  SW        V1, AC (S0)
+   84:  LUI       V0, 2
+   88:  BEQ       R0, R0, .oA0
+   8C:  ADDU      V0, V1, V0
+        .o90
+   90:  LUI       A0, 2
+   94:  SLT       V0, A0, V1
+   98:  BEQ       V0, R0, .oA4
+   9C:  SUBU      V0, V1, A0
+        .oA0
+   A0:  SW        V0, AC (S0)
+        .oA4
+   A4:  LW        V0, 78 (S0)
+   A8:  BNE       V0, R0, .oE4
+   AC:  NOP
+   B0:  LW        V1, B0 (S0)
+   B4:  LW        V0, 90 (S0)
+   B8:  ADDU      V1, V1, V0
+   BC:  BGEZ      V1, .oD0
+   C0:  SW        V1, B0 (S0)
+   C4:  LUI       V0, 2
+   C8:  BEQ       R0, R0, .oE0
+   CC:  ADDU      V0, V1, V0
+        .oD0
+   D0:  LUI       A0, 2
+   D4:  SLT       V0, A0, V1
+   D8:  BEQ       V0, R0, .oE4
+   DC:  SUBU      V0, V1, A0
+        .oE0
+   E0:  SW        V0, B0 (S0)
+        .oE4
+   E4:  LW        V0, 7C (S0)
+   E8:  BNE       V0, R0, .o124
+   EC:  NOP
+   F0:  LW        V1, B4 (S0)
+   F4:  LW        V0, 94 (S0)
+   F8:  ADDU      V1, V1, V0
+   FC:  BGEZ      V1, .o110
+  100:  SW        V1, B4 (S0)
+  104:  LUI       V0, 2
+  108:  BEQ       R0, R0, .o120
+  10C:  ADDU      V0, V1, V0
+        .o110
+  110:  LUI       A0, 2
+  114:  SLT       V0, A0, V1
+  118:  BEQ       V0, R0, .o124
+  11C:  SUBU      V0, V1, A0
+        .o120
+  120:  SW        V0, B4 (S0)
+        .o124
+  124:  LW        A0, 84 (S0)
+  128:  JAL       8011BC1C
+  12C:  LW        A1, A8 (S0)
+  130:  LW        A0, 84 (S0)
+  134:  JAL       8011BC34
+  138:  LW        A1, AC (S0)
+  13C:  LW        A0, 84 (S0)
+  140:  JAL       8011BC4C
+  144:  LW        A1, B0 (S0)
+  148:  LW        A0, 84 (S0)
+  14C:  JAL       8011BC64
+  150:  LW        A1, B4 (S0)
+  154:  LW        V0, 70 (S0)
+  158:  LW        V1, 78 (S0)
+  15C:  LW        A0, 98 (S0)
+  160:  ADDIU     V0, V0, 1
+  164:  SW        V0, 70 (S0)
+  168:  LW        V0, 74 (S0)
+  16C:  ADDIU     V1, V1, 1
+  170:  SW        V1, 78 (S0)
+  174:  LW        V1, 70 (S0)
+  178:  ADDIU     V0, V0, 1
+  17C:  SW        V0, 74 (S0)
+  180:  LW        V0, 7C (S0)
+  184:  SLT       V1, V1, A0
+  188:  ADDIU     V0, V0, 1
+  18C:  BNE       V1, R0, .o198
+  190:  SW        V0, 7C (S0)
+  194:  SW        R0, 70 (S0)
+        .o198
+  198:  LW        V0, 74 (S0)
+  19C:  LW        V1, 9C (S0)
+  1A0:  SLT       V0, V0, V1
+  1A4:  BEQL      V0, R0, .o1AC
+  1A8:  SW        R0, 74 (S0)
+        .o1AC
+  1AC:  LW        V0, 78 (S0)
+  1B0:  LW        V1, A0 (S0)
+  1B4:  SLT       V0, V0, V1
+  1B8:  BEQL      V0, R0, .o1C0
+  1BC:  SW        R0, 78 (S0)
+        .o1C0
+  1C0:  LW        V0, 7C (S0)
+  1C4:  LW        V1, A4 (S0)
+  1C8:  SLT       V0, V0, V1
+  1CC:  BEQL      V0, R0, .o1D4
+  1D0:  SW        R0, 7C (S0)
+        .o1D4
+  1D4:  LW        RA, 14 (SP)
+  1D8:  LW        S0, 10 (SP)
+  1DC:  DADDU     V0, R0, R0
+  1E0:  JR        RA
+  1E4:  ADDIU     SP, SP, 18
+}
+   
+#new:Function $Function_802402E0
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  SW        RA, 14 (SP)
+   10:  LW        V1, A8 (S0)
+   14:  LW        V0, 88 (S0)
+   18:  ADDU      V1, V1, V0
+   1C:  BGEZ      V1, .o30
+   20:  SW        V1, A8 (S0)
+   24:  LUI       V0, 2
+   28:  BEQ       R0, R0, .o40
+   2C:  ADDU      V0, V1, V0
+        .o30
+   30:  LUI       A0, 2
+   34:  SLT       V0, A0, V1
+   38:  BEQ       V0, R0, .o44
+   3C:  SUBU      V0, V1, A0
+        .o40
+   40:  SW        V0, A8 (S0)
+        .o44
+   44:  LW        V1, AC (S0)
+   48:  LW        V0, 8C (S0)
+   4C:  ADDU      V1, V1, V0
+   50:  BGEZ      V1, .o64
+   54:  SW        V1, AC (S0)
+   58:  LUI       V0, 2
+   5C:  BEQ       R0, R0, .o74
+   60:  ADDU      V0, V1, V0
+        .o64
+   64:  LUI       A0, 2
+   68:  SLT       V0, A0, V1
+   6C:  BEQ       V0, R0, .o78
+   70:  SUBU      V0, V1, A0
+        .o74
+   74:  SW        V0, AC (S0)
+        .o78
+   78:  LW        V1, B0 (S0)
+   7C:  LW        V0, 90 (S0)
+   80:  ADDU      V1, V1, V0
+   84:  BGEZ      V1, .o98
+   88:  SW        V1, B0 (S0)
+   8C:  LUI       V0, 2
+   90:  BEQ       R0, R0, .oA8
+   94:  ADDU      V0, V1, V0
+        .o98
+   98:  LUI       A0, 2
+   9C:  SLT       V0, A0, V1
+   A0:  BEQ       V0, R0, .oAC
+   A4:  SUBU      V0, V1, A0
+        .oA8
+   A8:  SW        V0, B0 (S0)
+        .oAC
+   AC:  LW        V1, B4 (S0)
+   B0:  LW        V0, 94 (S0)
+   B4:  ADDU      V1, V1, V0
+   B8:  BGEZ      V1, .oCC
+   BC:  SW        V1, B4 (S0)
+   C0:  LUI       V0, 2
+   C4:  BEQ       R0, R0, .oDC
+   C8:  ADDU      V0, V1, V0
+        .oCC
+   CC:  LUI       A0, 2
+   D0:  SLT       V0, A0, V1
+   D4:  BEQ       V0, R0, .oE0
+   D8:  SUBU      V0, V1, A0
+        .oDC
+   DC:  SW        V0, B4 (S0)
+        .oE0
+   E0:  LW        A0, 84 (S0)
+   E4:  JAL       8011BC1C
+   E8:  LW        A1, A8 (S0)
+   EC:  LW        A0, 84 (S0)
+   F0:  JAL       8011BC34
+   F4:  LW        A1, AC (S0)
+   F8:  LW        A0, 84 (S0)
+   FC:  JAL       8011BC4C
+  100:  LW        A1, B0 (S0)
+  104:  LW        A0, 84 (S0)
+  108:  JAL       8011BC64
+  10C:  LW        A1, B4 (S0)
+  110:  LW        RA, 14 (SP)
+  114:  LW        S0, 10 (SP)
+  118:  DADDU     V0, R0, R0
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 18
+}

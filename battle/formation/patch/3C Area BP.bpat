@@ -1,0 +1,191 @@
+% This file have Black Pit's formations 1 to 5
+
+% ====================================================
+% Formations
+% ====================================================
+
+% Enemies
+#import 3C_GoombaKingBP.bpat
+#import 3C_BlackGoomba.bpat
+#import 3C_NinjakoopaBP.bpat
+#import 3C_TutankoopaBP.bpat
+#import 30_NegativeChomp.bpat
+#import 3C_TubbaBlubbaBP.bpat
+#import 3C_TubbasHeartBP.bpat
+#import 3C_BigLanternGhostBP.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000003 $Formation_KingGoombaBP   $Stage_BlackPit 00000000 % 0
+00000000 00000004 $Formation_KoopaBrosBP    $Stage_BlackPit 00000000 % 1
+00000000 00000001 $Formation_TutanKoopaBP  	$Stage_BlackPit 00000000 % 2
+00000000 00000002 $Formation_TubblaBP   	$Stage_BlackPit 00000000 % 3
+00000000 00000001 $Formation_LanternGuyBP   $Stage_BlackPit 00000000 % 4
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_KingGoombaBP
+{
+$3C_GoombaKingBP 	$Vector3D_GoombaKing 0000000A 00000000 00000000 00000000 00000000
+$3C_BlackGoomba 	$Vector3D_BlackGoomba1 0000000A 00000000 00000000 00000000 00000000
+$3C_BlackGoomba 	$Vector3D_BlackGoomba2 0000000A 00000000 00000000 00000000 00000000
+}
+
+#new:Vector3D $Vector3D_GoombaKing
+{ 10` 0` 10` }
+
+#new:Vector3D $Vector3D_BlackGoomba1
+{ 70` 0` 30` }
+
+#new:Vector3D $Vector3D_BlackGoomba2
+{ 125` 0` 20` }
+
+#new:Formation $Formation_KoopaBrosBP
+{
+$3C_NinjakoopaBP_1 	00000000 00000002 00000000 00000000 00000000 00000000
+$3C_NinjakoopaBP_2 	00000001 00000001 00000000 00000000 00000000 00000000
+$3C_NinjakoopaBP_3 	00000002 00000000 00000000 00000000 00000000 00000000
+$3C_NinjakoopaBP_4 	00000003 00000003 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_TutanKoopaBP
+{
+$3C_TutankoopaBP 	$Vector3D_Tutankoopa 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Vector3D $Vector3D_Tutankoopa
+{ 97` 70` 17` }
+
+#new:Formation $Formation_TubblaBP
+{
+$3C_TubbaBlubbaBP 	00000002 00000000 00000000 00000000 00000000 00000000
+$3C_TubbasHeartBP 	00000000 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_LanternGuyBP
+{
+$3C_BigLanternGhostBP 	00000002 00000000 00000000 00000000 00000000 00000000
+}
+
+% ====================================================
+% Stages
+% ====================================================
+
+#new:StageTable $StageTable 
+{
+"bp_02" $Stage_BlackPit
+00000000 00000000 
+}
+
+#new:Stage $Stage_BlackPit
+{
+"tik_tex"
+"bp_bt01_shape"
+"bp_bt01_hit"
+$Script_BeforeBattle_BlackPit
+$Script_AfterBattle_BlackPit
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $Script_BeforeBattle_BlackPit
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % Black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	% Disable General's Guy Tank or Tutankoopa platform
+	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
+	If *Var[0] != 3D00 % general guy's formation
+		Call	EnableGroup ( 40 .False ) % ~Model:sensya
+	EndIf
+	If *Var[0] != 3C02 % tutankoopa's formation
+		Call	EnableGroup ( 10 .False ) % ~Model:tutankoopa
+	EndIf
+	ExecWait	$Script_SetNumber
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_BlackPit
+{
+	% Player died?
+	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False ) % read current hp
+	If	*Var[0] == .False
+		Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
+		Call    GotoMap ( "bp_01" 4 )
+	EndIf
+	Return
+	End
+}
+
+#define .Model_I 18
+#define .Model_V 19
+#define .Model_X 1A
+#define .Model_II 100
+#define .Model_III 101
+
+% Set current number by reading the formation ID
+#new:Script $Script_SetNumber
+{
+	Call	EnableGroup ( 1B .False ) % disable all numbers
+	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
+	Switch *Var[0]
+		Case == 3C00 % 1
+			Call	EnableModel ( .Model_I .True )
+		Case == 3C01 % 2
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_I -10` 0 0 )
+			Call	TranslateModel ( .Model_II 10` 0 0 )
+		Case == 3C02 % 3
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_II -18` 0 0 )
+			Call	TranslateModel ( .Model_III 18` 0 0 )
+		Case == 3C03 % 4
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_V .True )
+			Call	TranslateModel ( .Model_I -15` 0 0 )
+			Call	TranslateModel ( .Model_V 15` 0 0 )
+		Case == 3C04 % 5
+			Call	EnableModel ( .Model_V .True )
+		Case == 3D00 % 6
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	TranslateModel ( .Model_V -15` 0 0 )
+			Call	TranslateModel ( .Model_I 15` 0 0 )
+		Case == 3D01 % 7
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_V -29` 0 0 )
+			Call	TranslateModel ( .Model_II 18` 0 0 )
+		Case == 3E00 % 8
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_V -37` 0 0 )
+			Call	TranslateModel ( .Model_I 8` 0 0 )
+			Call	TranslateModel ( .Model_II -8` 0 0 )
+			Call	TranslateModel ( .Model_III 24` 0 0 )
+		Case == 3F00 % 9
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_X .True )
+			Call	TranslateModel ( .Model_I -16` 0 0 )
+			Call	TranslateModel ( .Model_X 13` 0 0 )
+		Case == 4000 % 10
+			Call	EnableModel ( .Model_X .True )
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle
+{
+	Return
+	End
+}

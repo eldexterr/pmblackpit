@@ -1,0 +1,748 @@
+#define .Anim:Idle    00320601
+#define .Anim:Walking 00320605
+#define .Anim:Running 00320607
+#define .Anim:Hurt    00320609
+#define .Anim:Dash    0032060D
+#define .Anim:Sad     00320610
+#define .Anim:Dizzy   00320611
+#define .Anim:LOL     00320612
+#define .Anim:Sigh    00320613
+#define .Sprite:Coin    2
+
+#new:Actor $33_BanditBoss
+{
+% stats
+[Index]       DBb 
+[Level]       0`b 
+[MaxHP]       50`b 
+[Coins]       1`b 
+[Flags]       00000004 % Hide Shadow
+[StatusTable] $StatusTable_BanditBoss
+% ai
+[PartsCount]   2`s 
+[PartsTable] $PartsTable_BanditBoss 
+[Script]      $Script_Init_BanditBoss 
+% move effectiveness
+[Escape]       0`b 
+[Item]         0`b 
+[AirLift]      0`b 
+[Hurricane]    0`b % Bow's "Spook" as well
+[UpAndAway]    0`b 
+[PowerBounce]  65`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         26`b  32`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  25`b % dx dy
+[StatusIcon]   10`b  25`b % dx dy
+}
+
+#new:IdleAnimations $IdleAnimations_BanditBoss
+{
+.Status:Normal    .Anim:Idle
+.Status:Stone     00320600
+.Status:Sleep     .Anim:Sad
+.Status:Poison    .Anim:Idle
+.Status:Stop      00320600
+.Status:Static    .Anim:Idle
+.Status:Paralyze  00320600
+.Status:Dizzy     00320611
+.Status:Fear      00320611
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_BanditBoss2
+{
+.Status:Normal    00320602
+.Status:Stone     00320604
+.Status:Sleep     .Anim:Sad
+.Status:Poison    00320602
+.Status:Stop      00320604
+.Status:Static    00320602
+.Status:Paralyze  00320604
+.Status:Dizzy     00320611
+.Status:Fear      00320611
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_Coin
+{
+.Status:Normal    00320614
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_BanditBoss
+{
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:StatusTable $StatusTable_BanditBoss
+{
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep      70`
+.Status:Poison     20`
+.Status:Frozen    100`
+.Status:Dizzy      90`
+.Status:Fear       50`
+.Status:Static     30`
+.Status:Paralyze  100`
+.Status:Shrink     90`
+.Status:Stop      100`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   1`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_BanditBoss
+{
+00800000 01000000 FE1C00FF $IdleAnimations_BanditBoss $DefenseTable_BanditBoss 00000000 00000000 00F40000 00000000 
+00020001 02001E00 000000FF $IdleAnimations_Coin $DefenseTable_BanditBoss 00000000 00000000 00000000 00000000 
+}
+
+#new:PartsTable $PartsTable_Coin
+{
+00020000 02000000 000000FF $IdleAnimations_Coin $DefenseTable_BanditBoss 00000000 00000000 00000000 00000000 
+}
+
+#new:Actor $Actor_Coin
+{
+% stats
+[Index]        13b 
+[Level]         9`b 
+[MaxHP]         5`b 
+[Coins]         1`b 
+[Flags]       00600000 
+[StatusTable] $StatusTable_BanditBoss
+% ai
+[PartsCount]   1`s 
+[PartsTable] $PartsTable_Coin 
+[Script]      $Script_Init_Coin 
+% move effectiveness
+[Escape]       40`b 
+[Item]         90`b 
+[AirLift]      90`b 
+[Hurricane]    90`b % Bow's "Spook" as well
+[UpAndAway]    95`b 
+[PowerBounce]  80`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         26`b  32`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  25`b % dx dy
+[StatusIcon]   10`b  25`b % dx dy
+}
+
+#new:Vector3D $CoinPos
+{
+0` -1000` 0`
+}
+
+#new:SpecialFormation $SpecialFormation_Coin
+{
+$Actor_Coin $CoinPos 00000000 00000000 00000000 00000000 00000000 
+}
+
+#new:Script $Script_Init_BanditBoss
+{
+    Call     BindTakeTurn 	    ( .Actor:Self $Script_TakeTurn_BanditBoss )
+    Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_BanditBoss )
+    Call     SetActorVar 	    ( .Actor:Self .Default .Default )
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_Coin
+{
+    Return
+    End
+}
+
+#new:Script $Script_Init_Coin
+{
+    Call     BindTakeTurn 	( .Actor:Self $Script_HandleEvent_Coin )
+    Call     BindIdle    	( .Actor:Self $Script_HandleEvent_Coin )
+    Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_Coin )
+    Return
+    End
+}
+
+/%#new:Script $Script_CoinReturn % unused
+{
+    0:  Call     GetActorVar 	( .Actor:Self .Default *Var[0] )
+   18:  Switch  *Var[0] 
+   24:  	Case  ==  00000000 
+   30:  	Case  ==  00000001 
+   3C:  		Call     SetActorVar 	( .Actor:Self 00000000 00000000 )
+   54:  		Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_BanditBoss )
+   6C:  		Call     SetPartFlagBits 	( .Actor:Self .Sprite:Coin 00100000 .False )
+   88:  		Call     SummonEnemy 	( $SpecialFormation_Coin 00000000 )
+   9C:  		Set  *Var[A]  *Var[0] 
+   AC:  		Call     GetPartOffset 	( .Actor:Self 00000002 *Var[1] *Var[2] *Var[3] )
+   CC:  		Call     SetActorPos 	( *Var[A] *Var[1] *Var[2] *Var[3] )
+   E8:  		Call     SetPartFlagBits 	( .Actor:Self 00000002 00000001 .True )
+  104:  		Call     GetActorVar 	( .Actor:Self 00000001 *Var[0] )
+  11C:  		Call     SetActorVar 	( *Var[A] 00000001 *Var[0] )
+  134:  		Call     SetActorJumpGravity 	( *Var[A] *Fixed[1.0] )
+  148:  		Call     RandInt     	( 00000168 *Var[0] )
+  15C:  		Call     GetActorPos 	( .Actor:Self *Var[1] *Var[2] *Var[3] )
+  178:  		Add  *Var[2]  0000001E 
+  188:  		Call     SetActorPos 	( *Var[A] *Var[1] *Var[2] *Var[3] )
+  1A4:  		Call     SetActorSounds ( *Var[A] 00000002 00000000 00000000 )
+  1C0:  		Call     AddVectorPolar ( *Var[1] *Var[3] *Fixed[40.0] *Var[0] )
+  1DC:  		Call     SetGoalPos 	( *Var[A] *Var[1] 00000000 *Var[3] )
+  1F8:  		Call     JumpToGoal  	( *Var[A] 00000014 00000000 00000001 00000000 )
+  218:  		Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  22C:  		Call     AddVectorPolar ( *Var[1] *Var[3] *Fixed[20.0] *Var[0] )
+  248:  		Call     SetGoalPos 	( *Var[A] *Var[1] 00000000 *Var[3] )
+  264:  		Call     JumpToGoal  	( *Var[A] 0000000A 00000000 00000001 00000000 )
+  284:  		Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  298:  		Call     AddVectorPolar ( *Var[1] *Var[3] *Fixed[10.0] *Var[0] )
+  2B4:  		Call     SetGoalPos 	( *Var[A] *Var[1] 00000000 *Var[3] )
+  2D0:  		Call     JumpToGoal  	( *Var[A] 00000005 00000000 00000001 00000000 )
+  2F0:  		Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  304:  		Loop     
+  310:  			Call     GetBattleFlags ( *Var[1] )
+  320:  			If  *Var[1]  &  00080000 
+  330:  				BreakLoop
+  338:  			EndIf
+  340:  			If  *Var[1]  !&  00000100 
+  350:  				BreakLoop
+  358:  			EndIf
+  360:  			Wait     00000001 
+  36C:  		EndLoop
+  374:  		Wait     0000000F 
+  380:  		Call     SetActorJumpGravity 	( *Var[A] *Fixed[1.0] )
+  394:  		Call     SetActorSpeed 	( *Var[A] *Fixed[6.0] )
+  3A8:  		Set  *Var[0]  FFFFFFBA 
+  3B8:  		Set  *Var[1]  00000000 
+  3C8:  		Set  *Var[2]  0000000A 
+  3D8:  		Label    00000005 
+  3E4:  		Call     GetActorPos 	( *Var[A] *Var[3] *Var[4] *Var[5] )
+  400:  		If  *Var[3]  ==  *Var[0] 
+  410:  			Goto     0000000A 
+  41C:  		EndIf
+  424:  		If  *Var[3]  <  *Var[0] 
+  434:  			Set  *Var[4]  *Var[0] 
+  444:  			Sub  *Var[4]  *Var[3] 
+  454:  			If  *Var[4]  <  0000001E 
+  464:  				Call     SetGoalPos 	( *Var[A] *Var[0] *Var[1] *Var[2] )
+  480:  				Call     JumpToGoal  	( *Var[A] 00000005 00000000 00000001 00000000 )
+  4A0:  				Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  4B4:  			Else
+  4BC:  				Set  *Var[4]  *Var[3] 
+  4CC:  				Add  *Var[3]  0000001E 
+  4DC:  				Call     SetGoalPos 	( *Var[A] *Var[3] *Var[1] *Var[2] )
+  4F8:  				Call     JumpToGoal  	( *Var[A] 00000000 00000000 00000001 00000000 )
+  518:  				Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  52C:  			EndIf
+  534:  		Else
+  53C:  			Set  *Var[4]  *Var[3] 
+  54C:  			Sub  *Var[4]  *Var[0] 
+  55C:  			If  *Var[4]  <  0000001E 
+  56C:  				Call     SetGoalPos 	( *Var[A] *Var[0] *Var[1] *Var[2] )
+  588:  				Call     JumpToGoal  	( *Var[A] 00000005 00000000 00000001 00000000 )
+  5A8:  				Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  5BC:  			Else
+  5C4:  				Sub  *Var[3]  0000001E 
+  5D4:  				Call     SetGoalPos 	( *Var[A] *Var[3] *Var[1] *Var[2] )
+  5F0:  				Call     JumpToGoal  	( *Var[A] 00000000 00000000 00000001 00000000 )
+  610:  				Call     PlaySoundAtActor 	( *Var[A] 00000212 )
+  624:  			EndIf
+  62C:  		EndIf
+  634:  		Goto     00000005 
+  640:  		Label    0000000A 
+  64C:  		Call     EnableActorBlur 	( *Var[A] 00000001 )
+  660:  		Call     SetTargetActor ( *Var[A] .Actor:Player )
+  674:  		Call     SetGoalToTarget 	( *Var[A] )
+  684:  		Call     JumpToGoal  	( *Var[A] 0000000F 00000000 00000000 00000000 )
+  6A4:  		Call     GetGoalPos  	( *Var[A] *Var[0] *Var[1] *Var[2] )
+  6C0:  		Call     PlayEffect  	( ~FX:SmallGoldSparkle *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  704:  		Call     PlaySoundAtActor 	( *Var[A] 00000211 )
+  718:  		Call     GetActorVar 	( *Var[A] 00000001 *Var[0] )
+  730:  		Call     AddCoin     	( *Var[0] )
+  740:  		Call     RemoveActor 	( *Var[A] )
+  750:  EndSwitch
+  758:  Return
+  760:  End
+}%/
+
+#new:Script $Script_HandleEvent_BanditBoss
+{
+    0:  UseArray $End[0] 
+    C:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   20:  Call     EnableIdleScript 	( .Actor:Self .False )
+   34:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
+   48:  Switch  *Var[0] 
+   54:  	Case  ==  .Event:HitCombo % 9
+   %60:  		Exec     $Script_CoinReturn *Array[0] 
+   70:  		SetConst  *Var[0]  00000001 
+   80:  		SetConst  *Var[1]  .Anim:Hurt 
+   90:  		ExecWait DoNormalHit 
+   9C:  		Loop     
+   A8:  			DoesScriptExist *Array[0] *Var[0] 
+   B8:  			If  *Var[0]  ==  00000000 
+   C8:  				BreakLoop
+   D0:  			EndIf
+   D8:  			Wait     00000001 
+   E4:  		EndLoop
+   EC:  	CaseOR  ==  .Event:Hit % A
+   F8:  	CaseOR  ==  00000011 % 11
+  %104:  		Exec     $Script_CoinReturn *Array[0] 
+  114:  		SetConst  *Var[0]  00000001 
+  124:  		SetConst  *Var[1]  .Anim:Hurt 
+  134:  		ExecWait DoNormalHit 
+  140:  		Loop     
+  14C:  			DoesScriptExist *Array[0] *Var[0] 
+  15C:  			If  *Var[0]  ==  00000000 
+  16C:  				BreakLoop
+  174:  			EndIf
+  17C:  			Wait     00000001 
+  188:  		EndLoop
+  190:  	EndCaseGroup
+  198:  	Case  ==  .Event:BurnHit % E
+  %1A4:  		Exec     $Script_CoinReturn *Array[0] 
+  1B4:  		SetConst  *Var[0]  00000001 
+  1C4:  		SetConst  *Var[1]  0032060A 
+  1D4:  		SetConst  *Var[2]  0032060B 
+  1E4:  		ExecWait DoBurnHit 
+  1F0:  		Loop     
+  1FC:  			DoesScriptExist *Array[0] *Var[0] 
+  20C:  			If  *Var[0]  ==  00000000 
+  21C:  				BreakLoop
+  224:  			EndIf
+  22C:  			Wait     00000001 
+  238:  		EndLoop
+  31C:  	Case  ==  .Event:MultibounceHit % B
+  %328:  		Exec     $Script_CoinReturn *Array[0] 
+  338:  		SetConst  *Var[0]  00000001 
+  348:  		SetConst  *Var[1]  .Anim:Hurt 
+  358:  		ExecWait DoSpinSmashHit 
+  364:  		Loop     
+  370:  			DoesScriptExist *Array[0] *Var[0] 
+  380:  			If  *Var[0]  ==  00000000 
+  390:  				BreakLoop
+  398:  			EndIf
+  3A0:  			Wait     00000001 
+  3AC:  		EndLoop
+            CaseOR  ==  .Event:Death % 20
+            CaseOR  ==  .Event:ShockDeath % 26
+            CaseOR  ==  .Event:BurnDeath % 24
+            CaseOR  ==  .Event:MultibounceDeath % 21
+            CaseOR  ==  00000025 % 25
+                Call    ClearStatusEffects ( .Actor:Self )
+                Call	SetAnimation ( .Actor:Self 1 .Anim:Dizzy )
+                Wait    30`
+                Call    SetActorFlagBits 	( .Actor:Self 00400000 .True ) % Finish Fight
+                Return
+            EndCaseGroup
+  480:  	Case  ==  .Event:ShockHit % 2F
+  48C:  		SetConst  *Var[0]  00000001 
+  49C:  		SetConst  *Var[1]  .Anim:Hurt 
+  4AC:  		ExecWait DoShockHit 
+  4B8:  		SetConst  *Var[0]  00000001 
+  4C8:  		SetConst  *Var[1]  .Anim:Hurt 
+  4D8:  		ExecWait DoJumpBack 
+  4E4:  		SetConst  *Var[0]  00000001 
+  4F4:  		SetConst  *Var[1]  .Anim:Running 
+  504:  		ExecWait DoReturnHome 
+  510:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.6005859] )
+  524:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+  5B0:  	CaseOR  ==  00000017 % 17
+  5BC:  	CaseOR  ==  .Event:Immune % 19
+  5C8:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  5D4:  		Call     GetActorVar 	( .Actor:Self .Default *Var[0] )
+  5EC:  		Switch  *Var[0] 
+  5F8:  			Case  ==  00000000 
+  604:  				SetConst  *Var[1]  .Anim:Idle 
+  614:  			Case  ==  00000001 
+  620:  				SetConst  *Var[1]  00320602 
+  630:  		EndSwitch
+  638:  		SetConst  *Var[0]  00000001 
+  648:  		ExecWait DoImmune 
+  654:  	EndCaseGroup
+  748:  	Case  ==  .Event:RecoverStatus % 31
+  754:  		SetConst  *Var[0]  00000001 
+  764:  		SetConst  *Var[1]  .Anim:Idle 
+  774:  		ExecWait DoRecover 
+  780:  	Case  ==  .Event:ScareAway % 39
+  %78C:  		Exec     $Script_CoinReturn *Array[0] 
+  79C:  		SetConst  *Var[0]  00000001 
+  7AC:  		SetConst  *Var[1]  .Anim:Running 
+  7BC:  		SetConst  *Var[2]  .Anim:Hurt 
+  7CC:  		ExecWait DoScareAway 
+  7D8:  		Loop     
+  7E4:  			DoesScriptExist *Array[0] *Var[0] 
+  7F4:  			If  *Var[0]  ==  00000000 
+  804:  				BreakLoop
+  80C:  			EndIf
+  814:  			Wait     00000001 
+  820:  		EndLoop
+  828:  		Return
+  830:  	Case  ==  .Event:BeginAirLift % 3A
+  %83C:  		Exec     $Script_CoinReturn *Array[0] 
+  84C:  		SetConst  *Var[0]  00000001 
+  85C:  		SetConst  *Var[1]  .Anim:Hurt 
+  86C:  		ExecWait DoAirLift 
+  878:  		Loop     
+  884:  			DoesScriptExist *Array[0] *Var[0] 
+  894:  			If  *Var[0]  ==  00000000 
+  8A4:  				BreakLoop
+  8AC:  			EndIf
+  8B4:  			Wait     00000001 
+  8C0:  		EndLoop
+  8C8:  	Case  ==  .Event:BlowAway % 16
+  8D4:  		SetConst  *Var[0]  00000001 
+  8E4:  		SetConst  *Var[1]  .Anim:Hurt 
+  8F4:  		SetConst  *Var[2]  00040000 
+  904:  		ExecWait DoBlowAway 
+  910:  		Return
+  918:  	Default
+  920:  EndSwitch
+  928:  Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Idle )
+  940:  Call     EnableIdleScript 	( .Actor:Self .True )
+  954:  Call     UseIdleAnimation 	( .Actor:Self .True )
+  968:  Return
+  970:  End
+}
+
+#define .Lunges 3
+#define .AtkID 4
+
+#new:Script $Script_TakeTurn_BanditBoss
+{
+    Call     UseIdleAnimation 	( .Actor:Self .False )
+    Call     EnableIdleScript 	( .Actor:Self .False )
+    % Check if is time to increase his offensive
+    Call GetActorHP ( .Actor:Self *Var[0] )
+    If  *Var[0] <= 25`
+        Call GetActorAttackBoost ( .Actor:Self *Var[0] ) 
+        % The bandit is already boosted?
+        If *Var[0]  == .False
+            % boost attack by 1
+            Thread
+                Wait     10` 
+                Call     PlaySoundAtActor 	( .Actor:Self 02DD )
+                Wait     10`
+                Call     PlaySoundAtActor 	( .Actor:Self .Sound:PowerUp )
+            EndThread
+            Thread
+                Call	8026BF48 ( .True )
+                Call	BoostAttack  ( .Actor:Self 1 )
+                Call	8026BF48 ( .False )
+            EndThread
+            Call    SetAnimation ( .Actor:Self 1 .Anim:Running )
+            Wait    50`
+            Call    SetAnimation ( .Actor:Self 1 .Anim:Idle )
+            Call     EnableIdleScript 	( .Actor:Self .True )
+            Call     UseIdleAnimation 	( .Actor:Self .True )
+            Return
+        EndIf
+    EndIf
+    Call     SetActorVar ( .Actor:Self .Lunges .Default ) % Lunges Count
+    Call     SetActorVar ( .Actor:Self .AtkID .Default ) % Attack ID
+    % Get Current Attack
+    Call     RandInt ( 2 *Var[0] )
+    Switch *Var[0]
+        Case == 0
+            Call SetActorVar ( .Actor:Self .AtkID 0 ) % 5 lunges
+        Case == 1
+            Call SetActorVar ( .Actor:Self .AtkID 1 ) % 5 lunges, the bandit laught before attacking
+        Case == 2
+            Call SetActorVar ( .Actor:Self .AtkID 2 ) % 5 lunges, the bandit do a little jump before attacking
+    EndSwitch
+    Call     SetTargetActor ( .Actor:Self .Actor:Player )
+    Call     GetActorVar 	( .Actor:Self .Default *Var[0] )
+    If  *Var[0]  ==  1
+        Call     SetActorYaw 	( .Actor:Self 000000B4 )
+        Call     SetAnimation 	( .Actor:Self 00000001 00320608 )
+        Wait     30`
+        Call     SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
+        Call     SetGoalPos 	( .Actor:Self 0000012C 00000000 00000000 )
+        Call     RunToGoal   	( .Actor:Self 00000000 .False )
+        Call     SetBattleFlagBits 	( 00040000 .True )
+        Call     8027D32C ( -127` )
+        Call     RemoveActor 	( .Actor:Self )
+        Return
+    EndIf
+    Call     UseCamPreset 	( 0000003F )
+    Call     BattleCamTargetActor ( .Actor:Self )
+    Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
+    Call     GetBattlePhase ( *Var[0] )
+    If  *Var[0]  ==  .Phase:FirstStrike % 1
+        Call     SetGoalToTarget 	( .Actor:Self )
+        Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+        Add  *Var[0]  00000032 
+        Set  *Var[1]  .Default
+        Call     SetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Else
+        Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Running )
+        Call     SetGoalToTarget 	( .Actor:Self )
+        Call     AddGoalPos 	( .Actor:Self 00000032 00000000 00000000 )
+        Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+        Call     RunToGoal   	( .Actor:Self 00000000 .False )
+        Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Idle )
+        Wait     6
+    EndIf
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[2.0] )
+    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Walking )
+    Call     SetGoalToTarget 	( .Actor:Self )
+    Call     AddGoalPos 	( .Actor:Self 00000023 00000000 00000000 )
+    Call     RunToGoal   	( .Actor:Self 00000000 .False )
+    %Call     PlaySoundAtActor 	( .Actor:Self 000020C2 )
+    Call     SetActorSounds ( FFFFFF81 00000000 00000000 00000000 )
+    Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+    Switch  *Var[0] 
+        CaseOR  ==  .HitResult:Miss % 6
+        CaseOR  ==  .HitResult:Lucky % 5
+            Set  *Var[A]  *Var[0] 
+            Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Dash )
+            Call     SetGoalToTarget 	( .Actor:Self )
+            Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+            Call     RunToGoal   	( .Actor:Self 00000000 .False )
+            Call     ResetAllActorSounds ( FFFFFF81 )
+            Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+            Call     SetActorJumpGravity 	( .Actor:Self *Fixed[0.5] )
+            Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Sub  *Var[0]  30`
+            Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call     JumpToGoal  	( .Actor:Self 00000008 00000000 00000001 00000000 )
+            Sub  *Var[0]  20`
+            Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call     JumpToGoal  	( .Actor:Self 00000008 00000000 00000001 00000000 )
+            Wait     5
+            If  *Var[A]  ==  5
+                Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
+            EndIf
+            Wait     5 
+            Call     UseCamPreset 	( 00000002 )
+            Call     YieldTurn
+            Call     SetActorYaw 	( .Actor:Self 000000B4 )
+            Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+            Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Running )
+            Call     SetGoalToHome 	( .Actor:Self )
+            Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+            Call     RunToGoal   	( .Actor:Self 00000000 .False )
+            Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Idle )
+            Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
+            Call     SetActorYaw 	( .Actor:Self 00000000 )
+            Call     EnableIdleScript 	( .Actor:Self .True )
+            Call     UseIdleAnimation 	( .Actor:Self .True )
+            Return
+        EndCaseGroup
+    EndSwitch
+    %  Get hint to give to the player for the current attack
+    Call     GetActorVar ( .Actor:Self .AtkID *Var[1] )
+    Switch *Var[1]
+        Case == 0
+            Wait     18`
+            Call     PlaySoundAtActor 	( .Actor:Self 20C2 )
+            Wait     7
+            Call     PlaySoundAtActor 	( .Actor:Self 02C1 ) % run sfx
+        Case == 1  % the bandit laught before attacking
+            Call     SetAnimation 	( .Actor:Self 00000001 .Anim:LOL )
+            Wait     18`
+            Call     PlaySoundAtActor 	( .Actor:Self 02C1 ) % run sfx
+            Wait     7
+        Case == 2 % the bandit do a little jump before attacking
+            Call     PlaySoundAtActor 	( .Actor:Self 20CA )
+            Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.8007812] )
+            Call     GetActorPos    ( .Actor:Self *Var[A] *Var[B] *Var[C] )
+            Sub     *Var[A] 10`
+            Call     SetGoalPos 	( .Actor:Self *Var[A] *Var[B] *Var[C] )
+            Call     JumpToGoal  	( .Actor:Self 5 .False .True .False )
+            Wait     18`
+            Call     PlaySoundAtActor 	( .Actor:Self 02C1 ) % run sfx
+            Wait     7
+    EndSwitch
+    Label   LungeStart
+    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Dash )
+    Call     SetGoalToTarget 	( .Actor:Self )
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+    Call     RunToGoal   	( .Actor:Self 00000000 .False )
+    Call     ResetAllActorSounds ( -127` )
+    Wait     2
+    Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 00000002 00000020 )
+    Switch  *Var[0] 
+        CaseOR  ==  0
+        CaseOR  ==  2
+            Call     GetLastDamage 	( .Actor:Player *Var[0] )
+            If  *Var[0]  <=  0
+                Call    SetActorVar ( .Actor:Self 2 1 )
+                Set  *Var[0]  1
+                Wait    1
+                Goto    0000000A 
+            EndIf
+            Call     GetBattleFlags ( *Var[0] )
+            If  *Var[0]  &  80000000 
+                Call    SetActorVar ( .Actor:Self 2 1 )
+                Set  *Var[0]  1
+                Wait    1
+                Goto     0000000A 
+            EndIf
+            Call     GetStatusFlags ( .Actor:Self *Var[0] )
+            If  *Var[0]  &  00080000 
+                Call    SetActorVar ( .Actor:Self 2 0 )
+                Set  *Var[0]  0
+                Wait    1
+                Goto     0000000A 
+            EndIf
+            Call     GetStatusFlags ( .Actor:Player *Var[0] )
+            If  *Var[0]  &  00100000 
+                Call    SetActorVar ( .Actor:Self 2 0 )
+                Set  *Var[0]  0
+                Wait    1
+                Goto     0000000A 
+            EndIf
+            Call     AddCoin     	( 0 )
+            Switch  *Var[0] 
+                Case  ==  0  % If the player don't have any coins don't substract
+                    Call     SetActorVar 	( .Actor:Self 00000001 00000000 )
+                    Set  *Var[0]  2
+                    %Set  *Var[0]  1
+                Case  >   0  % Sub 2 coins
+                    Call     SetActorVar 	( .Actor:Self 00000001 2 )
+                    Set  *Var[0]  2
+                /%Case  >=  10`  % If the player have 10 or more coins substract 10 % vanilla code
+                    Call     SetActorVar 	( .Actor:Self 00000001 0000000A )
+                    Set  *Var[0]  2%/
+            EndSwitch
+            Label    0000000A 
+            Switch  *Var[0] 
+                Case  ==  0
+                    Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Add  *Var[0]  30`
+                    Set  *Var[1]  .Default
+                    Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.8007812] )
+                    Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Call     JumpToGoal  	( .Actor:Self 0000000A 00000000 00000001 00000000 )
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Idle )
+                    Wait     20`
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Running )
+                /%Case  ==  1 % If the player have 0 coins or guarded succesfully % vanilla code
+                    Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Add  *Var[0]  30` 
+                    Set  *Var[1]  0
+                    Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.8007812] )
+                    Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+                    Call     JumpToGoal  	( .Actor:Self 0000000A 00000000 00000001 00000000 )
+                    Call     SetAnimation 	( .Actor:Self 00000001 0032060E )
+                    Wait     20`
+                    Call     PlaySoundAtActor 	( .Actor:Self 020C3 )
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Sad )
+                    Wait     20`
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Running )%/
+                Default % Sub Coins
+                    Call     SetGoalToTarget 	( .Actor:Self )
+                    Call     GetGoalPos  	( .Actor:Self *Var[A] *Var[B] *Var[C] )
+                    Add  *Var[A]  30`
+                    Set  *Var[B]  0
+                    Call     GetActorVar 	( .Actor:Self 1 *Var[0] )
+                    Mul  *Var[0]  -1` 
+                    % Check if any coins will be substracted
+                    Call     GetActorVar 	( .Actor:Self 1 *Var[3] )
+                    If  *Var[3] != .False
+                        % Check If mario blocked that attack
+                        Call    GetActorVar ( .Actor:Self 2 *Var[3] )
+                        If  *Var[3] != 1
+                            Call     AddCoin     	( *Var[0] )
+                            Thread
+                                Call     SetPartFlagBits 	( .Actor:Self .Sprite:Coin 00100000 .True )
+                                Call     SetPartFlagBits 	( .Actor:Self .Sprite:Coin 00000001 .False )
+                                Call     GetActorPos 	    ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+                                Call     SetPartPos 	    ( .Actor:Self .Sprite:Coin *Var[0] *Var[1] *Var[2] )
+                                Call     SetPartJumpGravity ( .Actor:Self .Sprite:Coin *Fixed[1.0] )
+                                % Do RNG jump for the coin
+                                Set     *Var[A] *Var[0] % set coin final jump X pos as mario's x coords
+                                Call    RandInt ( 40` *Var[1] )
+                                Call    RandInt ( 1 *Var[0] )
+                                % On what direction the coin will go? - X Pos
+                                If *Var[0] == 1
+                                    Add     *Var[A] *Var[1]
+                                Else
+                                    Sub     *Var[A] *Var[1]
+                                EndIf
+                                % On what direction the coin will go? - Y Pos
+                                Add     *Var[B]  200`
+                                Call     JumpPartTo 	    ( .Actor:Self .Sprite:Coin *Var[A] *Var[B] *Var[C] 30` .False )
+                            %    Call     SetPartFlagBits 	( .Actor:Self .Sprite:Coin 00100000 .False ) % to stuck the coin in bandit's head?
+                            EndThread
+                            Thread
+                                Call     GetActorVar 	( .Actor:Self 00000001 *Var[0] )
+                                Call     PlaySoundAtActor 	( .Actor:Self 0212 )
+                                Wait     1
+                            EndThread
+                        EndIf
+                    EndIf
+                    Call    SetActorVar ( .Actor:Self 2 .Default )
+                    Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.8007812] )
+                    Call     SetGoalPos 	( .Actor:Self *Var[A] *Var[B] *Var[C] )
+                    % Get the current velocity to do on the back jump
+                    Call     GetActorVar ( .Actor:Self .AtkID *Var[1] )
+                    Switch *Var[1]
+                        Case == 0 % 5 Lunges
+                            Set *Var[1] 5
+                        Case == 1 % 5 lunges, the bandit laught before attacking
+                            Call     GetActorVar ( .Actor:Self .Lunges *Var[2] )
+                            Switch *Var[2]
+                                CaseOR == 1
+                                CaseOR == 3
+                                    Call    PlaySoundAtActor ( .Actor:Self 20CA )
+                                    Set *Var[1] 10`
+                                EndCaseGroup
+                                Default
+                                    Set *Var[1] 5
+                            EndSwitch
+                        Case == 2 % % 5 lunges, the bandit do a little jump before attacking
+                            Call     GetActorVar ( .Actor:Self .Lunges *Var[2] )
+                            Switch *Var[2]
+                                Case == 2
+                                    Call    PlaySoundAtActor ( .Actor:Self 20CA )
+                                    Set *Var[1] 10`
+                                Default
+                                    Set *Var[1] 5
+                            EndSwitch
+                    EndSwitch
+                    Call     JumpToGoal  	( .Actor:Self *Var[1] .False .True .False ) % use this to handle how fast the attacks will be
+                    % Don't do the carrying coin animation
+                    /%Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_BanditBoss2 )
+                    Call     SetAnimation 	( .Actor:Self 00000001 0032060E )
+                    Call     SetActorVar 	( .Actor:Self 00000000 00000001 )
+                    Wait     7 
+                    Call     SetAnimation 	( .Actor:Self 00000001 0032060F )
+                    Wait     20`
+                    Call     SetAnimation 	( .Actor:Self 00000001 00320608 )%/
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Idle )
+                    Wait     1
+                    Call     SetAnimation 	( .Actor:Self 00000001 .Anim:Running )
+            EndSwitch
+            Call    GetActorVar ( .Actor:Self .Lunges *Var[0] )
+            Add     *Var[0] 1
+            Call    SetActorVar ( .Actor:Self .Lunges *Var[0] )
+            % The bandit has attacked 5 times?
+            If      *Var[0] < 5
+                Wait    1
+                Goto    LungeStart
+            EndIf
+            Call     UseCamPreset 	( 00000002 )
+            Call     YieldTurn
+            Call     SetGoalToHome 	( .Actor:Self )
+            Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+            Call     RunToGoal   	( .Actor:Self 00000000 .False )
+        EndCaseGroup
+    EndSwitch
+    Call     EnableIdleScript 	( .Actor:Self .True )
+    Call     UseIdleAnimation 	( .Actor:Self .True )
+    Return
+    End
+}
+

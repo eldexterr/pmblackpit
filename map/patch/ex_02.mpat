@@ -1,0 +1,442 @@
+
+/%
+In this example map, we're going to look at event handling.
+We'll set up various triggers and switches, show how they
+are connected to scripts, and how they can interact with
+one another to build more complex levels.
+%/
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000004 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW % -475.0    0.0    0.0   90.0
+~Vec4f:EntryE %  475.0    0.0    0.0  270.0
+~Vec4f:EntryN %    0.0    0.0 -475.0  180.0
+~Vec4f:EntryS %    0.0    0.0  475.0    0.0
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	LIA		A0, 800B0CF0
+	LIA		A1, "sbk_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:Script_Main $Script_Main
+{
+	% Boiler plate
+	Set      *WorldMapLocation 0000000A
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 )
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )
+	% Let's change the music
+	Call     SetMusicTrack    	( 00000000 00000018 00000000 00000008 )
+	% Prepare exits
+	Set      *Var[0] $Script_MakeExits 
+	Exec     EnterWalk 
+	% Create entities
+	ExecWait $Script_MakeEntities 
+	% Now for the triggers
+	Bind     $Script_TriggerA .Trigger:FloorPressA ~Collider:TriggerA 00000001 00000000 
+	Bind     $Script_TriggerB .Trigger:FloorTouch ~Collider:TriggerB 00000001 00000000 
+	Bind     $Script_TriggerC .Trigger:FloorAbove ~Collider:TriggerC 00000001 00000000
+	Bind     $Script_TriggerD .Trigger:FloorJump  ~Collider:TriggerD 00000001 00000000 
+	Bind     $Script_TriggerE .Trigger:CeilingTouch ~Collider:TriggerE 00000001 00000000 
+	Bind     $Script_TriggerE .Trigger:WallTouch  ~Collider:TriggerF 00000001 00000000
+	Bind     $Script_TriggerE .Trigger:WallPush   ~Collider:TriggerG 00000001 00000000
+	Bind     $Script_TriggerE .Trigger:WallPressA ~Collider:TriggerH 00000001 00000000
+	Bind     $Script_TriggerE .Trigger:WallHammer ~Collider:TriggerI 00000001 00000000
+	Bind     $Script_TriggerJ .Trigger:PointBomb  $Coord_TriggerJ 00000001 00000000
+	Call     ModifyColliderFlags ( 00000003 ~Collider:Lava_Trigger 00000002 )
+	Thread
+		Call     ResetFromLava 	( $Demo_LavaResetList )
+	EndThread
+	Return
+	End
+}
+
+#new:TriggerCoord $Coord_TriggerJ
+{
+~Vec3f:BombPos 0.000000
+}
+
+#new:LavaResetList $Demo_LavaResetList
+{
+~Collider:Lava_N ~Vec3f:LavaResetN
+~Collider:Lava_E ~Vec3f:LavaResetE
+~Collider:Lava_S ~Vec3f:LavaResetS
+~Collider:Lava_W ~Vec3f:LavaResetW
+FFFFFFFF 00000000 00000000 00000000
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignA 80000000 )
+	Call     AssignScript 	( $Script_ReadSignA )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignB 80000000 )
+	Call     AssignScript 	( $Script_ReadSignB )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignC 80000000 )
+	Call     AssignScript 	( $Script_ReadSignC )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignD 80000000 )
+	Call     AssignScript 	( $Script_ReadSignD )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignE 80000000 )
+	Call     AssignScript 	( $Script_ReadSignE )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignF 80000000 )
+	Call     AssignScript 	( $Script_ReadSignF )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignG 80000000 )
+	Call     AssignScript 	( $Script_ReadSignG )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignH 80000000 )
+	Call     AssignScript 	( $Script_ReadSignH )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignI 80000000 )
+	Call     AssignScript 	( $Script_ReadSignI )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignJ 80000000 )
+	Call     AssignScript 	( $Script_ReadSignJ )
+	Return
+	End
+}
+
+#new:Script $Script_ReadSignA
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignA 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignB
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignB 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignC
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignC 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignD
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignD 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignE
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignE 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+#new:Script $Script_ReadSignF
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignF 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignG
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignG 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignH
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignH 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignI
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignI 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_ReadSignJ
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $String_SignJ 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+% Here is a trigger that cannot be reused due to an infinite loop.
+#new:Script $Script_TriggerA
+{
+	Call	EnableModel		( ~Model:TriggerA_Outline .False )
+	Call	PlaySound		( 0000000B )
+	Set   	*Var[6]	 0
+	Loop
+		Call	RotateModel	( ~Model:RotA_Block *Var[6] 0 1 0 )
+		Add		*Var[6]	 1
+		Wait	1
+	EndLoop
+ 	Return
+	End
+}
+
+% A trigger cannot be reactivated until its script returns. Meanwhile,
+% I disable the outline to indicate that it is inactive.
+#new:Script $Script_TriggerB
+{
+	Call	EnableModel		( ~Model:TriggerB_Outline .False )
+	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+	Call	PlayEffect  	( ~FX:Lightning ~Vec3d:ThunderOrigin *Var[0] 0 *Var[2] 1` 20` 0 0 0 0 )
+	Call    PlaySound 		( 0000020A )
+	Call	ShakeCam		( 0 0 10` *Fixed[1.5])
+	Wait	40
+	Call	EnableModel		( ~Model:TriggerB_Outline .True )
+ 	Return
+	End
+}
+
+#new:Script $Script_TriggerC
+{
+	Call	EnableModel		( ~Model:TriggerC_Outline .False )
+	Call    PlayEffect  	( ~FX:TextPopup:Nice ~Vec3d:NicePosition 0` 20` 0 0 0 0 0 0 0 )
+	Call	PlaySound		( 0000000C )
+	Wait	40
+	Call	EnableModel		( ~Model:TriggerC_Outline .True )
+ 	Return
+	End
+}
+
+#new:Script $Script_TriggerD
+{
+	Call	EnableModel		( ~Model:TriggerD_Outline .False )
+	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+	Call    PlayEffect  	( ~FX:FireFlower *Var[0] 0 *Var[2] 0 0 0 0 0 0 0 0 0 )
+	Call	PlaySound		( 0000000F )
+	Wait	40
+	Call	EnableModel		( ~Model:TriggerD_Outline .True )
+ 	Return
+	End
+}
+	
+#new:Script $Script_TriggerE
+{
+	Call	EnableModel		( ~Model:TriggerE_Outline .False )
+	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1]		40`
+	Call    PlayEffect  	( ~FX:LensFlare:Rotating *Var[0] *Var[1] *Var[2] 20` 0 0 0 0 0 0 0 0 )
+	Call	PlaySound		( 00000010 )
+	Wait	40
+	Call	EnableModel		( ~Model:TriggerE_Outline .True )
+ 	Return
+	End
+}
+	
+#new:Script $Script_TriggerJ
+{
+	Call	EnableModel		( ~Model:TriggerJ_Outline .False )
+	Call    PlayEffect  	( ~FX:RedImpact:Normal ~Vec3d:BombPos *Fixed[1.5] 40` 0 0 0 0 0 0 0 )
+	Call	PlaySound		( 00000010 )
+	Wait	40
+	Call	EnableModel		( ~Model:TriggerJ_Outline .True )
+ 	Return
+	End
+}
+	
+%%
+% Create exits.
+%%
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_ExitW 00080000 ~Collider:deiliw 00000001 00000000 
+	Bind     $Script_ExitE 00080000 ~Collider:deilie 00000001 00000000 
+	Bind     $Script_ExitN 00080000 ~Collider:deilin 00000001 00000000 
+	Bind     $Script_ExitS 00080000 ~Collider:deilis 00000001 00000000 
+	Return
+	End
+}
+
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000000 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_01" 00000001 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000001 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_03" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitN
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000002 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_02" 00000003 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitS
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000003 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_02" 00000002 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This map showcases different types
+of event triggers. Why don't you
+give each of them a try?
+[WAIT][END]
+}
+
+#string $String_SignA
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Stand on the trigger and press
+[PushColor][Color:10][A][PopColor] to activate it.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignB
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF][Down:04]This trigger is activated when you
+stand on it. It will remain inactive
+until its script is finished.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignC
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]This trigger is activated when you
+pass over it. Try jumping to the
+floating platform without touching
+the trigger itself.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignD
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+This trigger is activated when you
+jump off it.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignE
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+This trigger is activated when you
+hit it from underneath.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignF
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Touching the wall activates this
+trigger.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignG
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Push against the wall to activate
+this trigger.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignH
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Press [PushColor][Color:10][A][PopColor]near the wall
+to activate this trigger.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignI
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Hit this trigger with your hammer
+to activate it.
+[DelayOn][WAIT][END]
+}
+
+#string $String_SignJ
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+Have Bombette blast within the
+circle to activate this trigger.
+[DelayOn][WAIT][END]
+}

@@ -1,0 +1,136 @@
+@$Script_8024FD70
+{
+Call	$Function_SetModData
+Call	$Function_Set_ProgressionFlags % Disable the "Saving/Using an Item/Battling for 1st Time" tutorials
+/%% ONLY ON THE DEMO BUILT %%
+Call    $AddOneBadge
+Call    GotoMap ( "dmo_00" 0 )%/
+/%% ONLY ON DEVELOPER BUILTS %%
+ExecWait $BypassIntro
+Call    GotoMap ( "pt_00" 1 )
+Return%/
+/%% ONLY ON THE BETA VERSION %%
+% Used for mistar to say you need to wait
+% for that final version on floor 100.
+Set     *Flag_EarlyBuild .True%/
+Call    GotoMap ( "pre_03" 5 )
+Return
+End
+}
+
+% Add one badge to mario's inventory to being able
+% to see the badge tabs on the pause menu
+#new:Function $AddOneBadge
+{
+ADDIU   T0, R0, 0121 % Power Jump
+SAH     T0, 8010F344 % 1st Badge Slot
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+#new:Script $BypassIntro
+% Disable all tutorials dialogs and unlock a few things
+{
+    Set *Flag_Intro .True
+    Set *Flag_MeetingAtLobby .True
+    % Tutorials
+    Set *Flag_Fishmael_1stTime_Talk .True
+    Set *Flag_Fishmael_1stTime_CardCompletelyLost .True
+    Set *Flag_Fishmael_1stTime_CoinsLosted .True
+    Set *Flag_Oaklie_1stTime .True
+    Set *Flag_Died_1stTime .True
+    % Info Learned
+    Set *Flag_QuickSwapping_Learned .True
+    Set *Flag_BadgeLists_Learned .True
+    Set *Flag_NormalInfoLearned .True
+    Set *Flag_RoguelikeInfoLearned .True   
+    % Partners Unlocked
+    Set *Flag_Goombario .True
+    Set *Flag_Kooper .True
+    Set *Flag_Bombette .True
+    Set *Flag_Parakarry .True
+    Set *Flag_Bow .True
+    Set *Flag_Watt .True
+    Set *Flag_Sushie .True
+    Set *Flag_Lakilester .True
+    Set *GameByte[000] 81  % to being able to pause the game
+    % Unlock all Partners
+    Call $WriteAddress ( 8010F2AC 0 .True 0 .False ) % Goombario
+    Call $WriteAddress ( 8010F2B4 0 .True 0 .False ) % Koooper
+    Call $WriteAddress ( 8010F2BC 0 .True 0 .False ) % Bombette
+    Call $WriteAddress ( 8010F2C4 0 .True 0 .False ) % Parakarry
+    Call $WriteAddress ( 8010F2EC 0 .True 0 .False ) % Bow
+    Call $WriteAddress ( 8010F2D4 0 .True 0 .False ) % Watt
+    Call $WriteAddress ( 8010F2DC 0 .True 0 .False ) % Sushie
+    Call $WriteAddress ( 8010F2E4 0 .True 0 .False ) % Lakilester
+    % Pull out Goombario
+    Call $RespawnPartner  ( 1 )
+    % Aument Mario's Stats
+    Call $WriteAddress ( 8010F293 0 30` 0 .False ) % Max HP 1
+    Call $WriteAddress ( 8010F294 0 30` 0 .False ) % Max HP 2
+    Call $WriteAddress ( 8010F296 0 30` 0 .False ) % Max FP 1
+    Call $WriteAddress ( 8010F297 0 30` 0 .False ) % Max FP 2
+    Call $WriteAddress ( 8010F298 0 30` 0 .False ) % BP Points
+    Call $WriteAddress ( 8010F290 0 1 0 .False ) % Super Boots
+    Call AddCoin ( 200` ) % add some coins
+    % Unlock all Star Spirits
+    Call $WriteAddress ( 8010F51E 0 7 0 .False ) % Star Spirits
+    % Debit Card
+    Call AddKeyItem    ( 007B )
+    % Enable the debugging info and tools
+    Set *Flag_Debugger .True
+    Return
+    End
+}
+
+% debugging purposes
+#new:Function $RespawnPartner
+{
+	PUSH	RA
+	LW      V0, C (A0)
+    JAL     ~Func:get_variable
+   	LW      A1, 0 (V0)
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA
+   	ADDIU   V0, R0, 2
+   	JR      RA
+	NOP
+}
+
+#new:Function $Function_Set_ProgressionFlags
+{
+%Progression Flags
+ADDIU 	T0, R0, 80
+SAB 	T0, 800DBC78 % Saving for 1st Time Flag % bit7 
+ADDIU 	T0, R0,  2
+SAB 	T0, 800DBC7F % Getting an item for 1st time Flag % bit1
+SAB 	T0, 803570E0 % Fighting with Goombario for 1st time Flag % bit1
+ADDIU   T0, R0, 1 
+SAB     T0, 8010F29A % Action Commands
+JR 		RA
+ADDIU	V0, R0, 2
+}
+
+% Prepare all data used on the Mod when you start a new file
+#new:Function $Function_SetModData
+{
+% Nuke Data - ModFlags and ModBytes
+%% BYTES %%
+LIO		T0, 80356001 % 1st byte
+LIO		T1, 803561FF % Last Byte
+.Loop1
+SB		R0, 0 (T0)
+BNE		T0, T1, .Loop1
+ADDIU	T0, T0, 1
+%% FLAGS %%
+LIO		T0, 80357000 % 1st Flag's Byte
+LIO		T1, 803570FF % Last Byte
+.Loop2
+SB		R0, 0 (T0)
+BNE		T0, T1, .Loop2
+ADDIU	T0, T0, 1
+JR	RA
+NOP
+}

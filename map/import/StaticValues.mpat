@@ -1,0 +1,140 @@
+	%% This file handle all the values from the sign at the main lobby
+	
+	% Save the Deepest Level reached in the pit
+	#new:Function $DeepestLevel
+{
+	PUSH 	RA, A0, A1, A2, A3, V0, V1, S0, S1
+	% Get Current Mode
+	LIO 	A1, *Flag_Mode_Rogue
+	JAL 	~Func:get_variable
+	RESERVED
+	COPY	S1, V0
+	BEQ		V0, R0, .LoadClassic
+	NOP
+	.LoadRogue
+	LIO 	A1, *HighestFloor_Rogue
+	JAL 	~Func:get_variable
+	RESERVED
+	BEQ		R0, R0, .LoadMapID
+	COPY	S0, V0
+	.LoadClassic
+	LIO 	A1, *HighestFloor_Classic
+	JAL 	~Func:get_variable
+	RESERVED
+	COPY	S0, V0
+	.LoadMapID
+	LIO 	A1, *PitMapID
+	JAL 	~Func:get_variable
+	RESERVED
+	COPY	A1, S0 % copy highest floor
+	COPY	A2, V0 % copy current floor
+	SLT 	A3, A1, A2 % Check if DeepestLevel is lower than Pit MapID
+	BNE 	A3, R0, .SaveValue % If was lower store the new highscore
+	NOP
+	BEQ 	R0, R0, .End		% If wasn´t lower just finish the function
+	NOP
+	.SaveValue
+	% Read current mode
+	BNE		S1, R0, .SaveRogue
+	NOP
+	.SaveClassic
+	LIO 	A1, *HighestFloor_Classic
+	JAL 	~Func:set_variable
+	RESERVED
+	BEQ		R0, R0, .End
+	NOP
+	.SaveRogue
+	LIO 	A1, *HighestFloor_Rogue
+	JAL 	~Func:set_variable
+	RESERVED
+	.End
+	POP 	RA, A0, A1, A2, A3, V0, V1, S0, S1
+	JR 		RA
+	ORI		V0, R0, 2
+}
+	
+	% Save the total of levels reached on the entire game
+	#new:Function $TotalLevels_Sign
+{
+	PUSH 	ra, a1, a2, a3, v0, v1
+	LIO 	A1, *Flag_Mode_Rogue
+	JAL 	~Func:get_variable
+	RESERVED
+	BNE		V0, R0, .Roguelike
+	NOP
+	.Classic
+	LAHU 	t0, 8010F2A8 % Load TotalLevels in t0
+	ADDIU 	t0, t0, 1	 % Add 1 to t0
+	% check if you reached the maximum amount
+	ORI		T1, R0, EA5F % 59999`
+	SLTU	T1, T0, T1
+	BNE		T1, R0, .Save1
+	NOP
+	% Set Highest to 59'999
+	ORI		T0, R0, EA5F % 59999`
+	.Save1
+	SAH 	T0, 8010F2A8 % Store the new value in TotalLevels
+	BEQ		R0, R0, .CheckChallenges
+	NOP
+	.Roguelike
+	LAHU 	t0, 803560D8 % Rogue_TotalFloors(16-bit) == GameByte[0D8] == 803560D8
+	ADDIU 	t0, t0, 1
+	% check if you reached the maximum amount
+	ORI		T1, R0, EA5F % 59999`
+	SLTU	T1, T0, T1
+	BNE		T1, R0, .Save2
+	NOP
+	% Set Highest to 59'999
+	ORI 	T0, R0, EA5F % 59999`
+	.Save2
+	SAH 	T0, 803560D8
+	% Check Challenges
+	.CheckChallenges
+	LAHU	T0, 8010F2A8 % Total floors (classic)
+	LAHU	T1, 803560D8 % Total floors (rogue)
+	ADDU	T0, T0, T1 % sum both
+	SLTIU	t1, t0, 1000`
+	BNE		T1, R0, .BypassChallenge
+	NOP
+	ADDIU 	A2, R0, 1
+	LIO 	A1, *Flag_Cheev_Global_23
+	JAL 	~Func:set_variable
+	RESERVED
+	.BypassChallenge
+	POP 	ra, a1, a2, a3, v0, v1
+	JR 		RA
+	ADDIU 	v0, r0, 2
+}
+	
+	% Save the total of levels reached on this playthrough
+#new:Function $TotalLevels_CurrentPlaythrough
+{
+	LAH 	t0, $TotalFloors
+	ADDIU 	t0, t0, 1
+	SAH 	t0, $TotalFloors
+	JR 		RA
+	ADDIU 	v0, r0, 2
+}
+	
+#new:Function $LoadHighscores
+{
+	PUSH 	RA, A0, A1, A2, A3, V1
+	LIO 	A1, *HighestFloor_Classic
+	JAL 	~Func:get_variable
+	RESERVED
+	POP 	RA, A0, A1, A2, A3, V1
+	% It has a double push/pop because i dunno why the hell the game crash when
+	% running the JAL below...!
+	PUSH 	RA, A0, A1, A2, A3, V0, V1
+	COPY	A2, V0 % save highest level
+	LIO 	A1, *Var[0]
+	JAL 	~Func:set_variable
+	RESERVED
+	LAHU 	A2, 8010F2A8 % Load TotalLevels
+	LIO 	A1, *Var[2]
+	JAL 	~Func:set_variable
+	RESERVED
+	POP 	RA, A0, A1, A2, A3, V0, V1
+	JR 		RA
+	ORI 	V0, R0, 2
+}

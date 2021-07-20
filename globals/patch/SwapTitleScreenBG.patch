@@ -1,0 +1,177 @@
+% This file swap the title screen background after you beated the mod.
+% And also recolor a save file if this one has game cleared data.
+
+@Hook 12454 % 80037054
+{
+/% Load save data
+% The game load all save data until you press start
+so right now I need to load all files manually
+%/
+PUSH    RA, S0, V0, V1, A0, A1, A2, A3
+CLEAR   S0 % S0 = Loop Counter
+% A0 = Save Slot (0-3)
+CLEAR   A0
+.Loop
+JAL     ~Func:fio_load_game
+NOP
+ADDIU   S0, S0, 1
+ORI     T0, R0, 4 % Amount of loops
+BNE     S0, T0, .Loop
+COPY    A0, S0
+POP     RA, S0, V0, V1, A0, A1, A2, A3
+/% All files has been loaded now check if the mod
+has been finished on any of the files before.
+
+Slot Header Struct:
+[00036EB2] [03][00][01][21 F7F7F7F7  F7F7F7][00]
+[Total Time][Star Spirits][Unused?][Level][Slot Name][Unused = Mod Beated Byte Flag] <---
+
+Mod Beated Byte Flag Addresses
+800779D3 - Slot 1
+800779EB - Slot 2
+80077A03 - Slot 3
+80077A1B - Slot 4
+%/
+LIO     A0, $ASCII_fla_bg % new background
+LABU    T0, 800779D3 % Slot 1 Flag
+BNE     T0, R0, .LoadBG
+NOP
+LABU    T0, 800779EB % Slot 2 Flag
+BNE     T0, R0, .LoadBG
+NOP
+LABU    T0, 80077A03 % Slot 3 Flag
+BNE     T0, R0, .LoadBG
+NOP
+LABU    T0, 80077A1B % Slot 4 Flag
+BNE     T0, R0, .LoadBG
+NOP
+% hasn't been beated, just load the default bg
+LIO     A0, $ASCII_title_bg
+.LoadBG
+JAL     ~Func:load_map_bg
+NOP
+J       80037060
+NOP
+}
+
+#new:ASCII $ASCII_title_bg
+{ "title_bg" }
+
+#new:ASCII $ASCII_fla_bg
+{ "fla_bg" }
+
+/%
+Save File
+What bytes get saved from the header?
+[XXXXXXXX] [XX][XX][XX][XX XXXXXXXX  XXXXXX][XX]
+[XXXXXXXX] [XXXXXXXX]
+XX=Byte Saved (All bytes basically)
+
+[XXXXXXXX] [XX][00][XX][00 00000000  000000][00] % get saved an also overwrite this bytes in RAM
+XX=Byte Overwrited
+%========================
+Delete File
+What bytes get nuked from the header?
+[XXXXXXXX] [XX][00][XX][XX XXXXXXXX  XXXXXX][00]
+XX=Byte Nuked
+%========================
+Copy File
+What bytes get copied from the header?
+[XXXXXXXX] [XX][XX][XX][XX XXXXXXXX  XXXXXX][XX]
+[XXXXXXXX] [XXXXXXXX]
+XX=Byte Copied
+%========================
+New File
+
+%/
+
+/% Recolor a Save File if this one has game cleared data
+% O=96
+
+8024A09B = Cursor Pos
+00-03=Save Files
+
+8024C097 = File about to by Copied
+8024A09C = Current Mode % 04=Copy to which File
+%/
+@Hook 8E8B4 % 800F5404
+{
+% Copying a save file
+% Check if the game has been cleared in the slot
+% about to be copied.
+LABU    T6, 80074094 % game state
+BNE     T6, R0, .End
+NOP
+LABU    T6, 8024A09C % Current Mode
+ORI     V0, R0, 4 % Copying a save file
+BNE     T6, V0, .CheckCursorPos
+NOP
+LABU    T6, 8024C097 % File about to be copied
+BEQ     R0, R0, .UseFileAboutToBeCopied
+RESERVED
+% Check if the game has been cleared in the current slot
+% the cursor is in.
+.CheckCursorPos
+LABU    T6, 8024A09B % Cursor Pos
+.UseFileAboutToBeCopied
+BNE     T6, R0, .CheckSlot2
+NOP
+ORI     V0, R0, 96 % O - ASCII Character
+LABU    T6, 800779D2 % Slot 1 - Game Beated Byte
+BEQ     T6, V0, .RecolorBoxes
+NOP
+BEQ     R0, R0, .LoadDefaultColors
+NOP
+.CheckSlot2
+ORI     V0, R0, 1
+BNE     T6, V0, .CheckSlot3
+NOP
+ORI     V0, R0, 96 % O - ASCII Character
+LABU    T6, 800779EA % Slot 2 - Game Beated Byte
+BEQ     T6, V0, .RecolorBoxes
+NOP
+.CheckSlot3
+ORI     V0, R0, 2
+BNE     T6, V0, .CheckSlot4
+NOP
+ORI     V0, R0, 96 % O - ASCII Character
+LABU    T6, 80077A02 % Slot 3 - Game Beated Byte
+BEQ     T6, V0, .RecolorBoxes
+NOP
+.CheckSlot4
+ORI     V0, R0, 3
+BNE     T6, V0, .LoadDefaultColors
+NOP
+ORI     V0, R0, 96 % O - ASCII Character
+LABU    T6, 80077A1A % Slot 4 - Game Beated Byte
+BNE     T6, V0, .LoadDefaultColors
+NOP
+.RecolorBoxes
+ % Box 1
+LIO     T6, FFFFFFFF % Color 1 - RGBAlpha
+SAW     T6, 8024BE10
+LIO     T6, ACA9C7FF % Color 2 - RGBAlpha
+SAW     T6, 8024BE14
+% Box 2
+LIO     T6, 806CFFFF % Color 1 - RGBAlpha
+SAW     T6, 8024BE80
+LIO     T6, 1A4292FF % Color 2 - RGBAlpha
+SAW     T6, 8024BE84
+BEQ     R0, R0, .End
+NOP
+.LoadDefaultColors
+ % Box 1
+LIO     T6, FFFFFFFF % Color 1 - RGBAlpha
+SAW     T6, 8024BE10
+LIO     T6, C8C8AAFF % Color 2 - RGBAlpha
+SAW     T6, 8024BE14
+% Box 2
+LIO     T6, FFEE6AFF % Color 1 - RGBAlpha
+SAW     T6, 8024BE80
+LIO     T6, 92641AFF % Color 2 - RGBAlpha
+SAW     T6, 8024BE84
+.End
+LBU	    T6, 0030 (S4)
+J       800F540C
+LBU	    V0, 0033 (S4)
+}

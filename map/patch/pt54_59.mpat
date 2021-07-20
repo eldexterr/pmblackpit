@@ -1,0 +1,109 @@
+#import PitMain.mpat 			% Load each floor whole code
+
+#new:Script_Main $Script_Main
+{
+    Call SetSpriteShading  ( FFFFFFFF )
+    Call SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call SetCamEnabled       ( .Cam:Default .True )
+    Call SetCamLeadPlayer       ( .Cam:Default .False )
+    ExecWait $Script_Main2_Wait % used to adding new functions to run on the main, without needing to modify each map's main script
+	Exec 	 $Script_Main2_Exec % same as above but using exec
+    Return
+	End
+}
+    
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups
+{
+% AABBCCCC - SectionIndex, FormationIndex, StageIndex
+00000001 $NpcGroup_Enemy1 32180002	% 2xCrazee Dayzee & Bzzap
+/%00000001 $NpcGroup_Enemy2 32190002	% Crazee Dayzee & 2xPutrid Piranha
+00000001 $NpcGroup_Enemy3 321A0002	% 3xCrazee Dayzee
+% Enemy 4-6 are used only when playing on Hard Mode
+00000001 $NpcGroup_Enemy4 3A180002	% 2xCrazee Dayzee & Bzzap
+00000001 $NpcGroup_Enemy5 3A190002	% Crazee Dayzee & 2xPutrid Piranha
+00000001 $NpcGroup_Enemy6 3A1A0002	% 3xCrazee Dayzee%/
+00000001 $NpcGroup_Mover  00000000
+00000001 $NpcGroup_BanditMover 37010000%
+00000002 $NpcGroup_MoneyBag  00000000%
+% Roguelike
+00000001 $NpcGroup_Spring1 30090000
+00000001 $NpcGroup_Spring2 301B0000
+00000001 $NpcGroup_Spring3 31090000
+00000001 $NpcGroup_Spring4 311B0000
+00000001 $NpcGroup_Spring5 320C0000
+00000001 $NpcGroup_Spring6 32180002
+00000001 $NpcGroup_Spring7 33000002
+00000001 $NpcGroup_Spring8 34090002
+00000001 $NpcGroup_Spring9 35030003
+00000001 $NpcGroup_Spring10 36060003
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup1
+{
+00000001 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroup7
+{
+00000001 00000000 00000000
+}
+
+%%
+% Enemies
+%%
+
+#new:NpcGroup $NpcGroup_Enemy1 %Gloomba
+{
+00000000 $NpcSettings_Enemy1 ~Vec3f:Enemy1
+00000C00 $Script_Init_EnemyNPC 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:6:HoneySyrup:4
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Vec3d:Enemy2 000000FF 00000014 FFFF8001 00000001 % defines the wandering volume 
+~Vec3d:Enemy2 00000078 00000082 FFFF8001 00000000 % defines the detection volume
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000
+% animations
+00480001 00480002 00480003 00480003 00480001 00480001 00480008 00480008 
+00480006 00480007 00480001 00480001 00480001 00480001 00480001 00480001 
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Enemy1
+{
+00000000 00140017 00000000 00000000 $Script_EnemyAI 80077F70
+00000000 00000000 00050000 
+}
+
+	#new:Script $Script_EnemyAI
+{
+	Call     DoBasicAI   	( $AISettings_Enemy )
+	Return
+	End
+}
+	
+	#new:AISettings $AISettings_Enemy
+{
+    1.0 % move speed
+    500` % move time
+    10` % wait time
+   50.0 % alert radius
+   30.0
+    3`
+    3.5 % chase speed
+    40`
+    3`
+  100.0 % chase radius
+   30.0
+    1`
+}

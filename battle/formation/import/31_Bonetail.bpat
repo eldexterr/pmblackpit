@@ -1,0 +1,762 @@
+% Bonetail Script and Animations by elDexter
+% Sprites by DMZapp
+
+#define .Anim_Idle					00EE0001
+#define .Anim_Breath_PreWhiteBlue	00EE0002
+#define .Anim_Breath_PrePurple		00EE0003
+#define .Anim_Chomp					00EE0004
+#define .Anim_Stomp_Init			00EE0005
+#define .Anim_Stomp_LiftLeg	 		00EE0006
+#define .Anim_Stomp_DownLeg 		00EE0007
+#define .Anim_Stomp_GoToHome1 		00EE0008
+#define .Anim_Stomp_GoToHome2 		00EE0009
+#define .Anim_Stomp_GoToHome3 		00EE000A
+#define .Anim_Stomp_RightLeg1 		00EE000B
+#define .Anim_Stomp_RightLeg2 		00EE000C
+#define .Anim_Breath_Green_Up 		00EE000D
+#define .Anim_Breath_Green_Down 	00EE000E
+#define .Anim_Breath_GoingUp		00EE000F
+#define .Anim_Breath_GoingDown		00EE0010
+#define .Anim_Breath_OpeningMouth 	00EE0011
+#define .Anim_Breath_Flame 			00EE0012
+#define .Anim_Breath_ClosingMouth 	00EE0013
+#define .Anim_Hurt_Head 			00EE0014
+#define .Anim_Hurt_HeadAndFeet 		00EE0015
+#define .Anim_Talk 					00EE0016
+#define .Anim_Death_Shaking 		00EE0017
+#define .Anim_Death_Static 			00EE0018
+#define .Anim_Death_Final 			00EE0019
+
+#define .Status_Player_Static 2000
+
+#new:Actor $31_Bonetail
+{
+% stats
+[Index]         D9b 
+[Level]         201`b 
+[MaxHP]         200`b 
+[Coins]         0`b 
+[Flags]       00000004 % Hide Shadow
+[StatusTable] $StatusTable_Bonetail 
+% ai
+[PartsCount]   4`s 
+[PartsTable] $PartsTable_Bonetail 
+[Script]      $Script_Init_Bonetail 
+% move effectiveness
+[Escape]       0`b 
+[Item]         0`b 
+[AirLift]      0`b 
+[Hurricane]    0`b % Bow's "Spook" as well
+[UpAndAway]    0`b 
+[PowerBounce]  65`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         26`b  70`b % width height
+[HealthBar]    15`b  -15`b % dx dy
+[StatusTurn]   35`b  70`b % dx dy
+[StatusIcon]   35`b  70`b % dx dy
+}
+
+#new:StatusTable $StatusTable_Bonetail
+{
+.Status:Normal            0`
+.Status:Sleep             0`
+.Status:Poison            0`
+.Status:Frozen            0`
+.Status:Dizzy             0`
+.Status:Static            0`
+.Status:Paralyze          0`
+.Status:Shrink            0`
+.Status:Stop              0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Bonetail
+{
+%===============
+% Part 1 - Whole Body Sprite
+00120000 % Flags % 00120000 = Can't be targeted at all, and doesn't get flipped in the air when using kooper FP attacks
+1b  % PartID
+00b % XPos
+00b % YPos
+00b % ZPos
+C0b % Cursor XPos
+45b % Cursor YPos
+00b % ?
+FFb % Opacity
+$IdleAnimations_Bonetail
+$DefenseTable_Bonetail
+00000000 00000002 % ???
+FDb  % Cursor(Type2) X Pos (used in some partners moves)
+F6b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+.False % Overwrite Part's name
+%===============
+% Part 2 - Head
+00000001 % 00000001 = Invisible / 01000A00 = Make a cursor Y offset of 10` to make the head not being able to be hammered
+2b  % PartID
+00b % XPos
+10`b % YPos
+00b % ZPos
+C0b % Cursor XPos
+45b % Cursor YPos
+00b % ?
+FFb % Opacity
+$IdleAnimations_Bonetail
+$DefenseTable_Bonetail
+00000000 00000002 % ???
+FDb  % Cursor(Type2) X Pos (used in some partners moves)
+F6b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+.False % Overwrite Part's name
+%===============
+% Part 3 - Feet
+00800001 % 00800001 = Invisible and can be targeted by multi target attacks
+3b  % PartID
+00b % XPos
+00b % YPos
+00b % ZPos
+24b % Cursor XPos
+F0b % Cursor YPos
+00b % ?
+00b % Opacity
+00000000 % idleAnimations
+$DefenseTable_Bonetail
+00000000 00000002 % ???
+00b  % Cursor(Type2) X Pos (used in some partners moves)
+00b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+.False % Overwrite Part's name
+%===============
+% Part 4 - Right Leg % Used just on the Stomp animation
+00020001 % flags
+4b  % PartID
+00b % XPos
+00b % YPos
+00b % ZPos
+C0b % Cursor XPos
+45b % Cursor YPos
+00b % ?
+FFb % Opacity
+$IdleAnimations_Bonetail
+$DefenseTable_Bonetail
+00000000 00000002 % ???
+FDb  % Cursor(Type2) X Pos (used in some partners moves)
+F6b  % Cursor(Type2) Y Pos
+00b  % ?
+00b  % ?
+.False % Overwrite Part's name
+}
+
+#new:IdleAnimations $IdleAnimations_Bonetail
+{
+.Status:Normal    .Anim_Idle
+.Status:Stone     .Anim_Idle
+.Status:Sleep     .Anim_Idle
+.Status:Poison    .Anim_Idle
+.Status:Stop      .Anim_Idle
+.Status:Static    .Anim_Idle
+.Status:Paralyze  .Anim_Idle
+.Status:Dizzy     .Anim_Idle
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_Bonetail
+{
+.Element:Normal  2
+.Element:Fire	 2
+.Element:Water	 2
+.Element:Ice	 2
+.Element:Mystery 2
+.Element:Magic	 2
+.Element:Hammer	 2
+.Element:Jump	 2
+.Element:Cosmic	 2
+.Element:Blast	 2
+.Element:Shock	 2
+.Element:Quake	 2
+.Element:Throw	 2
+.Element:End
+}
+
+#new:Script $Script_Init_Bonetail
+{
+	Call	SetActorScale 			( .Actor:Self *Fixed[2.4] *Fixed[2.4] *Fixed[2.4] )
+	Call	BindTakeTurn			( .Actor:Self $Script_TakeTurn_Bonetail )
+	Call	BindHandleEvent			( .Actor:Self $Script_HandleEvent_Bonetail )
+	Call	HPBarToHome				( .Actor:Self )
+	Return
+	End
+}
+
+#new:Script $Script_HandleEvent_Bonetail
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+	Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call     GetLastEvent 	( .Actor:Self *Var[0] )
+	Switch  *Var[0] 
+		CaseOR  ==  .Event:HitCombo
+		CaseOR  ==  .Event:Hit
+		CaseOR  ==  .Event:MultibounceHit
+			/%SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim_Hurt_Head 
+			ExecWait DoNormalHit %/
+			ExecWait $GetSprite
+		EndCaseGroup
+		Case  ==  .Event:BurnHit
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim_Hurt_Head 
+			SetConst  *Var[2]  .Anim_Idle 
+			ExecWait DoBurnHit 
+		CaseOR  ==  00000017
+		CaseOR  ==  .Event:Immune
+		CaseOR  ==  .Event:AirLiftFailed
+		CaseOR  ==  .Event:BurnTaunt
+		CaseOR  ==  .Event:ScareAway
+		CaseOR  ==  .Event:BeginAirLift
+		CaseOR  ==  .Event:BlowAway
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim_Idle 
+			ExecWait DoImmune 
+		EndCaseGroup
+		CaseOR  ==  .Event:Death
+		CaseOR  ==  .Event:ShockDeath
+		CaseOR  ==  .Event:BurnDeath
+		CaseOR  ==  .Event:MultibounceDeath
+		CaseOR  ==  .Event:BurnDeath
+			Call SetAnimation ( .Actor:Self 1 .Anim_Hurt_Head )
+			Wait 25`
+			ExecWait $Script_DoDeath
+			Return
+		EndCaseGroup
+		Case  ==  .Event:RecoverStatus
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim_Idle 
+			ExecWait DoRecover
+		Default
+	EndSwitch
+	Call     EnableIdleScript 	( .Actor:Self 1 )
+	Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+	
+	#new:Script $GetSprite
+{
+	% Don't use the default hit script, just use the hurting animation without moving the sprite
+	Call $Function_GetCurrentTurn ( *Var[0] )
+	If *Var[0] == 1 % Mario
+		Call GetActorPos  ( .Actor:Player *Var[3] .False .False )
+	Else % Partner
+		Call GetActorPos  ( .Actor:Partner *Var[3] .False .False )
+	EndIf
+	If *Var[3] > 40` % Use Mario/Partner coordinates to know which sprite they're attacking
+		Call SetAnimation ( .Actor:Self 1 .Anim_Hurt_HeadAndFeet )
+	Else
+		Call SetAnimation ( .Actor:Self 1 .Anim_Hurt_Head )
+	EndIf
+	Wait 25`
+	Return
+	End
+}
+	
+	/%	
+	800DC077 - Remaining Turns (Battle)
+	Bit0=Mario won the battle!
+	Bit1=Turn used - Mario
+	Bit2=Turn used - Partner
+	Bit3=Using his turn - Mario
+	Bit4=Using his turn - Partner
+	%/
+	
+	#new:Function $Function_GetCurrentTurn
+{
+	PUSH	RA, V0, A1, A2
+	LABU 	T0, 800DC077 % Remaining Turns (Battle)
+	SLL		T0, T0, 28` % Use Bit3 - Mario is using his turn
+	SRL 	T0, T0, 31`
+	ADDIU	T1, R0, 1	% Set Bool value
+	BEQL	T0, T1, .Finish
+	ADDI	A2, R0, 1 % Is Mario's turn
+	BNEL	T0, T1, .Finish	
+	ADDI	A2, R0, 2 % Is Partner's turn
+	.Finish
+	LIO 	A1, FE363C80 % Var0
+	JAL 	~Func:set_variable
+	NOP
+	POP		RA, V0, A1, A2
+	JR		RA
+	NOP
+}
+	
+#new:Script $Script_DoDeath
+{
+Call    ActorSpeak  ( $String_Bonetail_Beated .Actor:Self 00000001 .Anim_Hurt_Head .Anim_Hurt_Head )
+Thread
+	Loop 20`
+		Call	PlaySoundAtActor ( .Actor:Self 20DD ) % Dry Bones shaking
+		Wait 2
+		If *Var[0] == 1
+			BreakLoop
+		EndIf
+	EndLoop
+EndThread
+Call	SetAnimation ( .Actor:Self 1 .Anim_Death_Shaking )
+Wait	40`
+SetConst *Var[0] 1
+Call	SetAnimation ( .Actor:Self 1 .Anim_Death_Static )
+Wait	10`
+Call	PlaySoundAtActor ( .Actor:Self 02D2 ) % Dry Bones death
+Call	SetAnimation ( .Actor:Self 1 .Anim_Death_Final )
+Thread
+	Wait	3
+	Call    ShakeCam     ( 1 0 10` *Fixed[3.0] )
+EndThread
+Call     DropStarPoints 	( .Actor:Self )
+Call     PlaySoundAtActor 	( .Actor:Self .Sound:Death )
+Wait	15`
+Call    SetActorFlagBits 	( .Actor:Self 00400000 .True ) % Finish Fight
+Return
+End
+}
+
+#new:Script $Script_TakeTurn_Bonetail
+{
+Call     RandInt     	( 100` *Var[2] ) % Get Attack to use
+Switch	*Var[2]
+	Case > 40` % 60% chance
+		Set *Var[0] 2 % Breath
+	Case > 20` % 20% chance 
+		Set *Var[0] 1 % Chomp
+	Case >= 0` % 20% chance 
+		Set *Var[0] 0 % Stomp
+EndSwitch
+/% Check if Mario HP is below 8, to just kill him (Scrapped)
+Call	 GetPlayerHP	( *Var[1] )
+If *Var[1] < 8
+	Set *Var[0] 2 % Load Breath Attack
+	Goto LoadAttack
+EndIf%/
+% Check if is time to heal
+Call     GetActorHP  	( .Actor:Self *Var[1] )
+If *Var[1] < 100` % If Bonetail HP is below 100
+	Call	RandInt ( 100` *Var[1] )
+	If *Var[1] <= 30` % 30% chance to heal
+		Call	GetActorVar		( .Actor:Self 1 *Var[1] )
+		If *Var[1] == 0 % Bonetail can heal only once
+			Set *Var[0] 3 % Use Heal
+			Add *Var[1] 1 % Add 1 to the heal counter
+			Call SetActorVar ( .Actor:Self 1 *Var[1] )
+		EndIf
+	EndIf
+EndIf
+Label LoadAttack
+%Set	*Var[0] 0 % Always use the same attack, testing purposes
+% Which Attack?
+Switch *Var[0]
+	Case == 0
+		ExecWait $Script_Attack_Chomp
+	Case == 1
+		ExecWait $Script_Attack_Stomp
+	Case == 2
+		ExecWait $Script_Attack_Breath
+	Case == 3
+		ExecWait $Script_Attack_Heal
+EndSwitch
+Return
+End
+}
+
+#new:Script $Script_Attack_Chomp
+{
+	% Go to player
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call     PlaySoundAtActor ( .Actor:Self 20DE ) % Piranha Plant Bite SoundFX
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Chomp )
+	Wait	 15`
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+	Switch  *Var[0] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			If *Var[0] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[0] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Wait 14`
+			Goto ReturnHome
+	EndSwitch
+	% Damage Mario
+	Call     EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 00000008 00000020 ) % 0000FFFF = Invulnerable to Zap Tap
+	Wait     7
+	% Return home
+	Label 	 ReturnHome
+	Call     SetAnimation 	( .Actor:Self 1 .Anim_Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+	
+	#new:Script $Script_Attack_Stomp
+{
+	% Go to player
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	Wait     3
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_Init )
+	Thread
+		Wait 20`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[0.4] )
+	EndThread
+	Wait	 30`
+	Call     SetPartFlagBits 	( .Actor:Self 00000004 00000001 .False ) % Make the Right Leg Visible
+	Call     SetAnimation 	  ( .Actor:Self 00000004 .Anim_Stomp_RightLeg1 )
+	Thread
+		Wait 10`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[0.4] )
+	EndThread
+	Wait	 30`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_LiftLeg )
+	Wait	 25`
+	Call     PlaySoundAtActor 	( .Actor:Self 000020EA )
+	Call     GetActorPos  		( .Actor:Player *Var[0] *Var[1] *Var[2] )
+	Call     PlayEffect  		( ~FX:ShockWave:White *Var[0] *Var[1] *Var[2] )
+	Thread % Shake Cam
+		Call     StartRumble  ( 1 )
+		Call     ShakeCam  ( 1 0 10` *Fixed[3.0] )
+	EndThread
+	Thread
+		% Damage Mario
+		Wait	2
+		Call     EnemyTestTarget ( .Actor:Self *Var[0] 0 0 0 0 )
+		Switch  *Var[0] 
+			CaseOR  ==  .HitResult:Miss
+			CaseOR  ==  .HitResult:Lucky
+				If *Var[0] == .HitResult:Lucky
+					Call EnemyTestTarget  ( .Actor:Self *Var[0] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+				EndIf
+				Wait 14`
+				Goto ReturnHome
+		EndSwitch
+		Call    EnemyDamageTarget 	  ( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 00000008 00000020 ) % 0000FFFF = Invulnerable to Zap Tap
+		Call    80269EAC ( 23` ) % This command make Mario flat, looks like is an animation command for Mario when he receive damage, the int is the Animation ID
+	EndThread
+	Label	 ReturnHome
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_DownLeg )
+	Wait	 15`
+	Thread
+		Wait 6`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[0.4] )
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_GoToHome1 )
+	Wait	 15`
+	Thread
+		Wait 15`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[0.4] )
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 00000004 .Anim_Stomp_RightLeg2 )
+	Wait	 15`
+	Thread
+		Wait 15`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[0.4] )
+	EndThread
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_GoToHome2 )
+	Wait	 30`
+	Thread
+		Wait 10`
+		Call     PlaySoundAtActor 	( .Actor:Self 20EA ) % Step
+		Call     StartRumble ( 1 )
+		Call     ShakeCam    		( 1 0 5 *Fixed[1.0] )
+	EndThread
+	Call     SetPartFlagBits 	( .Actor:Self 00000004 00000001 .True ) % Make the Right Leg Invisible once again
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Stomp_GoToHome3 )
+	Wait	 15`
+	Call     SetAnimation 	( .Actor:Self 1 .Anim_Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+	
+#new:Script $Script_Attack_Breath
+{
+	% Go to player
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     SetTargetActor   ( .Actor:Self .Actor:Player )
+	Call     SetGoalToTarget  ( .Actor:Self )
+	Call     BattleCamTargetActor   ( .Actor:Self )
+	% Which Breath?
+	Call     RandInt     	( 3 *Var[0] )
+	%Set		*Var[0] 2 % Always use the same breath, testing purposes
+	Call	 SetActorVar	( .Actor:Self 0 *Var[0] )
+	Switch	*Var[0]
+		Case == 1
+			Set  *FireBreathColor 1 % green
+			Goto GreenBreath % Dizzy
+		Case == 2
+			Set  *FireBreathColor 2 % purple
+			Goto PurpleBreath % Shrunk
+		CaseOR == 0
+		CaseOR == 3
+			If *Var[0] == 0
+				Set  *FireBreathColor 3 % blue
+			Else
+				Set  *FireBreathColor 4 % white
+			EndIf
+			Goto WhiteBlueBreath % Sleep and Frozen % The White and Blue Breaths use the same animations
+	EndSwitch
+	% Animations
+	Label GreenBreath % Dizzy
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Green_Up )
+	Wait	 36`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Green_Down )
+	Wait	 10`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_OpeningMouth )
+	Wait	 4
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Flame )
+	Goto	 FireFlame
+	Label 	 PurpleBreath % Shrunk
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_PrePurple )
+	Wait	 17`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Green_Up )
+	Wait	 36`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Green_Down )
+	Wait	 10`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_OpeningMouth )
+	Wait	 4
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Flame )
+	Goto	 FireFlame
+	Label    WhiteBlueBreath % Sleep & Frozen
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_PreWhiteBlue )
+	Wait	 27`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_GoingUp )
+	Wait	 24`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_GoingDown )
+	Wait	 10`
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_OpeningMouth )
+	Wait	 4
+	Call     SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_Flame )
+	Goto	 FireFlame
+	% Firing Flame
+	Label	 FireFlame
+	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Sub  	 *Var[0]  30`
+	Add  	 *Var[1]  20` 
+	Call     SetGoalToTarget 	( .Actor:Self )
+	Call     GetGoalPos  		( .Actor:Self *Var[3] *Var[4] *Var[5] )
+	Sub  	 *Var[3]  40` 
+	Set  	 *Var[4]  20` 
+	Thread
+		Call     PlaySound   	( 03BD )
+		Wait     30`
+		Call     PlaySound   	( 07BD )
+	EndThread
+	Call     PlayEffect  	( ~FX:FireBreath:Large *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] 20` 1 12` ) % Start-XYZ End-XYZ Duration ? Size
+	Call     UseCamPreset 	( 2 )
+	Call     MoveBattleCamOver 	( 100` )
+	Wait     13`
+	% Read ActorVar 0 and trigger the status
+	% Damage Mario % Pierce Mario's Defense
+	Call	$Function_GetMarioDefense ( *Var[1] )
+	Set 	*Var[0] 8 % Attack Damage
+	Add		*Var[0] *Var[1] % Add Mario defense to Attack Damage
+	Call	 GetActorVar ( .Actor:Self 0 *Var[2] )
+	% Check if Mario already had an stat
+	Call	 GetStatusFlags ( .Actor:Player *Var[3] )
+	%Call	 $LoadVar3
+	If *Var[3] == .Status_Player_Static % If the player have Zap Tap or used a Volt Shroom
+		Goto ByPassStaticStatus
+	EndIf
+	If *Var[3] != 0 % If the player already had an stat beside Static
+		Set *Var[2] 4
+	EndIf
+	Label ByPassStaticStatus
+	Call     EnemyTestTarget ( .Actor:Self *Var[3] 0 0 0 0 )
+	Switch  *Var[3] 
+		CaseOR  ==  .HitResult:Miss
+		CaseOR  ==  .HitResult:Lucky
+			%Set *Var[2] 4 % Use statusless breath
+			If *Var[3] == .HitResult:Lucky
+				Call EnemyTestTarget  ( .Actor:Self *Var[0] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+			EndIf
+			Wait 14`
+			Goto End
+	EndSwitch
+	Switch *Var[2]
+		Case == 0
+			Goto Sleep
+		Case == 1
+			Goto Dizzy
+		Case == 2
+			Goto Shrunk
+		Case == 3
+			Goto Frozen
+		Case == 4
+			Goto Statusless % If the player already had an status use this one
+	EndSwitch
+	Label Sleep
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80001264 *Var[0] 00000020 ) % 80001264 = ?AAABCC (AAA= StatusFlagID, B=Turns, CC= % to be succesful (64=100%))
+	Goto End
+	Label Dizzy
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80040264 *Var[0] 00000020 )
+	Goto End
+	Label Shrunk
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80080264 *Var[0] 00000020 )
+	Goto End
+	Label Frozen
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80004264 *Var[0] 00000020 )
+	Goto End
+	Label Statusless
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 *Var[0] 00000020 )
+	Label End
+	Wait    15`
+	Call    SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_ClosingMouth )
+	Wait	7
+	% Return home
+	Set 	 *FireBreathColor .Default % orange
+	Call     SetAnimation 	( .Actor:Self 1 .Anim_Idle )
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+	
+	#new:Function $LoadVar3 % Used to know the actual value from GetStatusFlags
+{
+	PUSH RA, V0, A1
+	LIO a1, FE363C83
+	JAL ~Func:get_variable 
+	NOP
+	SH		  T0, 1 (SP) % Crasher
+	POP RA, V0, A1
+	JR RA
+	NOP
+}
+	
+#new:Function $Function_GetMarioDefense
+{
+	PUSH  RA, S4, V0, A1, A2
+	.CheckWaterBlock
+	% Check if Mario have Sushie's Water Block Activated
+	ADDIU  A2, R0, 0 % Set A2 as 0
+	LAB   T0, 800DC10D %Water Block: Remaining Turns
+	BNEL  T0, R0, .CheckDefensePlus % If Turns isn't equal to 0, add 1 to A2
+	ADDI  A2, A2, 1
+	.CheckDefensePlus
+	% Check if Mario have the following Badges
+	JAL   $IsBadgeEquiped % Save a bolean value in S4
+	ADDIU S4, R0, 00FB % Badge ID
+	BNEL  S4, R0, .CheckPDownDUp
+	ADDI  A2, A2, 1
+	.CheckPDownDUp
+	JAL   $IsBadgeEquiped % Save a bolean value in S4
+	ADDIU S4, R0, 0116 % Badge ID
+	BNEL  S4, R0, .SetVar
+	ADDI  A2, A2, 1
+	% Damage Dodge doesn't boost Mario's defense so was removed
+	/%.CheckDamageDodgeA
+	JAL   $IsBadgeEquiped % Save a bolean value in S4
+	ADDIU S4, R0, 0130 % Badge ID
+	BNEL  S4, R0, .CheckDamageDodgeB
+	ADDI  A2, A2, 1
+	.CheckDamageDodgeB
+	JAL   $IsBadgeEquiped % Save a bolean value in S4
+	ADDIU S4, R0, 013A % Badge ID
+	BNEL  S4, R0, .SetVar
+	ADDI  A2, A2, 1%/
+	% Save *Var[1]
+	.SetVar
+	LIO  A1, *Var[1]
+	JAL  ~Func:set_variable
+	RESERVED
+	POP  RA, S4, V0, A1, A2
+	JR	 RA
+	NOP
+}
+	
+	#new:Function $IsBadgeEquiped
+{
+	PUSH	S1, S2, S3
+	.Init
+	LIO		S2, 8010F498	% position in list
+	ADDIU	S3, S2, 78		% end of list
+	.Loop
+	LH		S1, 0 (S2)
+	BEQL	S4, S1, .End
+	ADDIU	S4, R0, 1 % return true
+	BNE		S2, S3, .Loop
+	ADDIU	S2, S2, 2
+	ADDIU	S4, R0, 0 % return false
+	.End
+	POP		S1, S2, S3
+	JR		RA
+	NOP
+}
+	
+#new:Script $Script_Attack_Heal
+{
+	Call     UseIdleAnimation ( .Actor:Self .False )
+	Call     EnableIdleScript ( .Actor:Self 0 )
+	Call     ActorSpeak  	( $String_Bonetail_Heal .Actor:Self 00000001 .Anim_Talk .Anim_Idle )
+	Thread
+		Wait     5
+		Call     PlaySoundAtActor 	( .Actor:Self 206D )
+		Call     PlaySoundAtActor 	( .Actor:Self 0214 )
+		Wait     1E 
+		Call     PlaySoundAtActor 	( .Actor:Self 025C )
+	EndThread
+	Thread
+		Call     8026BF48 	( .True )
+		Call     HealActor  ( .Actor:Self 20` 0 )
+		Call     8026BF48 	( .False )
+	EndThread
+	Call	 EnableIdleScript  ( .Actor:Self 1 )
+	Call	 UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+	
+#string $String_Bonetail_Heal
+{
+[STYLE:RIGHT][StartFX:Jitter]
+AROOOOOOOOOOOOOOO!
+
+[WAIT][END]
+}
+
+#string $String_Bonetail_Beated
+{
+[STYLE:RIGHT][StartFX:Jitter]
+Arooorooo.......rooooo.....
+
+[WAIT][END]
+}

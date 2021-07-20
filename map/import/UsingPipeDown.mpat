@@ -1,0 +1,199 @@
+#new:Script $Script_TrackPlayer
+{
+     % Don't track inputs when the pipe is moving
+     If *MapFlag[22] == .True % is Flag_PipeSpawning
+          Return
+     EndIf
+     Call     $Function_TrackInput
+	If  *Var[0]  ==  0
+		Return
+	EndIf
+	Call     GetCurrentPartner ( *Var[0] )
+	If  *Var[0]  !=  0
+		Call     GetCurrentPartnerID 	( *Var[1] )
+		If  *Var[1]  !=  .Partner:Watt % 6
+			Return
+		Else
+			Call     802D2B6C
+			Call     DisablePlayerInput 	( .True )
+		EndIf
+	Else
+		Call     DisablePlayerInput 	( .True )
+	EndIf
+     Unbind
+	ExecWait $Script_PipeAnimation 
+	Return
+	End
+}
+   
+#new:Script $Script_PipeAnimation
+{
+	Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos ( )
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos ( )
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation ( )
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 163 ) % Pipe sound
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Thread
+		Wait     4
+		Loop     40` 
+			Sub  *Var[1]  1
+			Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Wait     1
+		EndLoop
+	EndThread
+	Call      802D286C ( 00000800 )
+	Call      802D2520 ( 00010002 00000005 00000002 00000001 00000001 00000000 )
+	Wait      25`
+	Exec      $GoToNextLevel %% from MapLoader.mpat
+	Return
+	End
+}
+  
+#new:Function $Function_SetAnimation
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       ~Func:clamp_angle
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}
+  
+#new:Function $Function_GetColliderPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+   
+#new:Function $Function_TrackInput
+{
+    0:  LAH       V1, 8015A552
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  DADDU     S0, A0, R0
+   14:  SW        RA, 14 (SP)
+   18:  LW        V0, B0 (S0)
+   1C:  BEQ       V1, V0, .o2C
+   20:  ADDIU     V0, R0, 2
+   24:  BEQ       R0, R0, .oAC
+   28:  SW        R0, 84 (S0)
+        .o2C
+   2C:  LAW       V1, 8007419C
+   34:  LB        V0, 40 (V1)
+   38:  LB        A3, 44 (V1)
+   3C:  BLTZL     V0, .o44
+   40:  SUBU      V0, R0, V0
+        .o44
+   44:  BNE       V0, R0, .o54
+   48:  NOP
+   4C:  BEQL      A3, R0, .oAC
+   50:  DADDU     V0, R0, R0
+        .o54
+   54:  MTC1      V0, F4
+   58:  NOP
+   5C:  CVT.S.W   F4, F4
+   60:  MFC1      A2, F4
+   64:  MTC1      A3, F4
+   68:  NOP
+   6C:  CVT.S.W   F4, F4
+   70:  MTC1      R0, F12
+   74:  MFC1      A3, F4
+   78:  JAL       ~Func:atan2
+   7C:  MOV.S     F14, F12
+   80:  LIF       F2, 60.0
+   88:  NOP
+   8C:  C.LT.S    F0, F2
+   90:  NOP
+   94:  BC1F      .oA8
+   98:  ADDIU     V0, R0, 1
+   9C:  SW        V0, 84 (S0)
+   A0:  BEQ       R0, R0, .oAC
+   A4:  ADDIU     V0, R0, 2
+        .oA8
+   A8:  DADDU     V0, R0, R0
+        .oAC
+   AC:  LW        RA, 14 (SP)
+   B0:  LW        S0, 10 (SP)
+   B4:  JR        RA
+   B8:  ADDIU     SP, SP, 18
+}

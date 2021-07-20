@@ -1,0 +1,292 @@
+% Dimentio's Battle Script and Animations by elDexter
+% Sprites made by CyberShadow and Retriver II
+
+/% This ones are already defined in Dimentio1.bpat
+#define .Anim:Ground:Idle	        00F00001
+#define .Anim:Fly:Idle	            00F00002
+#define .Anim:Ground:Attack1:1	    00F00003
+#define .Anim:Ground:Attack1:2	    00F00004
+#define .Anim:Ground:Attack1:3	    00F00005
+#define .Anim:Fly:Attack1:1	        00F00006
+#define .Anim:Fly:Attack1:2	        00F00007
+#define .Anim:Fly:Attack1:3	        00F00008
+#define .Anim:Fly:Attack2:1	        00F00009
+#define .Anim:Fly:Attack2:2	        00F0000A
+#define .Anim:Fly:Attack2:3	        00F0000B
+#define .Anim:Fly:Attack2:4	        00F0000C
+#define .Anim:Ground:Disappear:Out  00F0000D
+#define .Anim:Ground:Disappear:In   00F0000E
+#define .Anim:Fly:Disappear:Out     00F0000F
+#define .Anim:Fly:Disappear:In      00F00010
+#define .Anim:GroundToFly           00F00011
+#define .Anim:FlyToGround           00F00012
+#define .Anim:Ground:Hurt          	00F00013
+#define .Anim:Fly:Hurt              00F00014
+#define .Anim:Ground:Talk           00F00015
+#define .Anim:Fly:Talk              00F00016
+#define .Anim:Ground:Tired:1        00F00017
+#define .Anim:Ground:Tired:2        00F00018
+#define .Anim:Ground:Tired:Talk     00F00019
+#define .Anim:Fly:Tired             00F0001A
+#define .Anim:Projectile:1          00F0001B
+#define .Anim:Projectile:2          00F0001C%/
+
+#new:Actor $37_Dimentio3
+{
+% stats
+[Index]       F5b 
+[Level]       0`b 
+[MaxHP]       170`b
+[Coins]       0`b 
+[Flags]       00000004 % Hide Shadow
+[StatusTable] $StatusTable_Dimentio3 
+% ai
+[PartsCount]   1`s 
+[PartsTable]  $PartsTable_Dimentio3 
+[Script]      $Script_Init_Dimentio3 
+% move effectiveness
+[Escape]       0`b 
+[Item]         0`b 
+[AirLift]      0`b 
+[Hurricane]    0`b % Bow's "Spook" as well
+[UpAndAway]    0`b 
+[PowerBounce]  60`b 
+[SpinSmash]    4`b % weight (0-4)
+% ui positions
+[Size]         35`b  45`b % width height
+[HealthBar]    3`b   3`b % dx dy
+[StatusTurn]   10`b  30`b % dx dy
+[StatusIcon]   10`b  30`b % dx dy
+}
+
+#new:StatusTable $StatusTable_Dimentio3
+{
+.Status:Normal      	 0`
+.Status:Default     	 0`
+.Status:Sleep       	 0`
+.Status:Poison      	 0`
+.Status:Frozen      	 0`
+.Status:Dizzy       	 0`
+.Status:Fear        	 0`
+.Status:Static      	 0`
+.Status:Paralyze    	 0`
+.Status:Shrink      	 0`
+.Status:Stop        	 0`
+.Status:DefaultTurnMod   0`
+.Status:SleepTurnMod    -1`
+.Status:PoisonTurnMod    0`
+.Status:FrozenTurnMod    0`
+.Status:DizzyTurnMod    -1`
+.Status:FearTurnMod      0`
+.Status:StaticTurnMod    0`
+.Status:ParalyzeTurnMod -1`
+.Status:ShrinkTurnMod   -1`
+.Status:StopTurnMod     -2`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Dimentio3
+{
+00802000 % Flags
+1b  % PartID
+0b  % XPos
+0b  % YPos
+0b  % ZPos
+0b  % CursorXPos
+32`b % CursorYPos
+0b  % Unknown
+FFb % Opacity
+$IdleAnimations_Dimentio3_Charge
+$DefenseTable_Dimentio3
+00000000 00000002 FDF60000 00000000 % ????
+}
+
+#new:IdleAnimations $IdleAnimations_Dimentio3_Ground
+{
+.Status:Normal    .Anim:Ground:Idle
+.Status:Stone     00F00000
+.Status:Sleep     00F00000
+.Status:Poison    00F00000
+.Status:Stop      00F00000
+.Status:Static    00F00000
+.Status:Paralyze  00F00000
+.Status:Dizzy     00F00000
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_Dimentio3_Fly
+{
+.Status:Normal    .Anim:Fly:Idle
+.Status:Stone     .Anim:Fly:Tired
+.Status:Sleep     .Anim:Fly:Tired
+.Status:Poison    .Anim:Fly:Tired
+.Status:Stop      .Anim:Fly:Tired
+.Status:Static    .Anim:Fly:Tired
+.Status:Paralyze  .Anim:Fly:Tired
+.Status:Dizzy     .Anim:Fly:Tired
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_Dimentio3_Charge
+{
+.Status:Normal    .Anim:Fly:Attack2:2
+.Status:Stone     .Anim:Fly:Tired
+.Status:Sleep     .Anim:Fly:Tired
+.Status:Poison    .Anim:Fly:Tired
+.Status:Stop      .Anim:Fly:Tired
+.Status:Static    .Anim:Fly:Tired
+.Status:Paralyze  .Anim:Fly:Tired
+.Status:Dizzy     .Anim:Fly:Tired
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_Dimentio3
+{
+.Element:Normal  2
+.Element:Fire	 2
+.Element:Water	 2
+.Element:Ice	 2
+.Element:Mystery 2
+.Element:Magic	 2
+.Element:Hammer	 2
+.Element:Jump	 2
+.Element:Cosmic	 2
+.Element:Blast	 2
+.Element:Shock	 2
+.Element:Quake	 2
+.Element:Throw	 2
+.Element:End
+}
+
+#new:Script $Script_Init_Dimentio3
+{
+	Call    $WriteAddress ( 8010F292 0 1 .False .False ) % Set Mario's Health as 1
+	Call	$Function_SyncStatsMenu
+	Call    $WriteAddress ( 800DC0E0 2 .False .False .False ) % Disable all commands
+    Set     *Flag_FinalBattle .True % enable the new command for mario
+    Call    PlaySound ( 0207 ) % charge sfx
+	Call	BindTakeTurn			( .Actor:Self $Script_TakeTurn_Dimentio3 )
+	Call	BindHandleEvent			( .Actor:Self $Script_HandleEvent_Dimentio3 )
+	Call    BindIdle    			( .Actor:Self $Script_Idle_Dimentio3 )
+	Call	HPBarToHome				( .Actor:Self )
+	Return
+	End
+}
+
+% set displayed values to real values
+#new:Function $Function_SyncStatsMenu
+{
+	PUSH      RA
+	JAL       ~Func:sync_status_menu
+	NOP
+	POP       RA
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+% Show the energy particles when dimentio is charging his attack
+#new:Script $Script_Idle_Dimentio3
+{
+	Loop
+        Call	GetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+        Add		*Var[0] 0 	 % x
+        Add		*Var[1] 20`  % y
+        Add		*Var[2] -17` % z
+        Call    PlayEffect  	( ~FX:GatherEnergyPink *Var[0] *Var[1] *Var[2] 5 19` 0 0 0 0 0 0 0 )
+        Wait 	9
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_HandleEvent_Dimentio3
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+	Call     EnableIdleScript 	( .Actor:Self 0 )
+	Call     GetLastEvent 	( .Actor:Self *Var[0] )
+	Switch  *Var[0] 
+		CaseOR  ==  .Event:HitCombo
+		CaseOR  ==  .Event:Hit
+		CaseOR  ==  .Event:MultibounceHit
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Fly:Hurt
+			ExecWait DoNormalHit
+		EndCaseGroup
+		Case  ==  .Event:BurnHit
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Fly:Hurt 
+			SetConst  *Var[2]  .Anim:Fly:Idle
+			ExecWait DoBurnHit 
+		CaseOR  ==  00000017
+		CaseOR  ==  .Event:Immune
+		CaseOR  ==  .Event:AirLiftFailed
+		CaseOR  ==  .Event:BurnTaunt
+		CaseOR  ==  .Event:ScareAway
+		CaseOR  ==  .Event:BeginAirLift
+		CaseOR  ==  .Event:BlowAway
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Fly:Idle
+			ExecWait DoImmune 
+		EndCaseGroup
+		CaseOR  ==  .Event:Death
+		CaseOR  ==  .Event:ShockDeath
+		CaseOR  ==  .Event:BurnDeath
+		CaseOR  ==  .Event:MultibounceDeath
+		CaseOR  ==  .Event:BurnDeath
+            ExecWait $Script_Dimentio3_EndFight
+			Return
+		EndCaseGroup
+		Case  ==  .Event:RecoverStatus
+			SetConst  *Var[0]  00000001 
+			SetConst  *Var[1]  .Anim:Fly:Idle
+			ExecWait DoRecover
+		Default
+	EndSwitch
+	Call     EnableIdleScript 	( .Actor:Self 1 )
+	Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Script $Script_Dimentio3_EndFight
+{
+	Call	SetAnimation ( .Actor:Self 1 .Anim:Fly:Tired )
+	Wait	30`
+	Call	GetActorPos ( .Actor:Player .False *Var[1] .False )
+	Call	GetActorPos ( .Actor:Self *Var[0] .False *Var[2] )
+	Call	SetPartFlagBits ( .Actor:Self 1 00120000 .True )
+	Call    SetPartMoveSpeed   	( .Actor:Self 1 *Fixed[2.0] )
+	Call    SetPartJumpGravity 	( .Actor:Self 1 *Fixed[0.10058594] )
+	Call	FlyPartTo 	( .Actor:Self 1 *Var[0] *Var[1] *Var[2] 0 10` .Easing:Linear )
+	Call	SetAnimation ( .Actor:Self 1 .Anim:FlyToGround )
+	Wait	5
+	Call	SetAnimation ( .Actor:Self 1 .Anim:Ground:Tired:1 )
+	Wait	13`
+	Call	SetAnimation ( .Actor:Self 1 .Anim:Ground:Tired:2 )
+	Wait	10`
+	Call	ActorSpeak ( $String_Dimentio3_EndFight1 .Actor:Self 1 .Anim:Ground:Tired:Talk .Anim:Ground:Tired:2 )
+	Wait	15`
+	Call    SetActorFlagBits 	( .Actor:Self 00400000 .True ) % Finish Fight
+	Return
+	End
+}
+
+#string $String_Dimentio3_EndFight1
+{
+[STYLE:RIGHT][...]
+...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+...I must say, both of you are
+stronger than I though...
+[WAIT][NEXT][...]
+Hehe...
+[WAIT][END]
+}
+
+#new:Script $Script_TakeTurn_Dimentio3
+{
+Return
+End
+}

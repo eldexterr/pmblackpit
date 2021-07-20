@@ -1,0 +1,2273 @@
+%% This patch cover mostly all the code used in all chests maps, to easily modify all maps at the same time
+
+% Importing all other functions
+#import FallingDownPipe.mpat	%Load Mario's animation when is entering the Map from an up pipe
+#import UsingPipeDown.mpat		%Load Mario's animation when is leaving the Map using a Pipe with a Vertical Exit
+#import MapLoader.mpat			%Load the next map to go, the Mover use a diferent one at SetSpawns.mpat
+#import SignStringLoader.mpat	%Load the sign string and the map tattles
+#import GetBadge.mpat			%Handle how the GiantChest work
+#import CoinChest.mpat			%Handle how the GiantChest will work after Mario got all badges
+#import Rowf.mpat				%Handle what Rowf Inventory to load and his prices
+#import PartnerChest.mpat		%Handle when and who partner put in the chest, file moved to globals/patch
+
+#define .Npc_Oaklie A % NpcID
+#define .Npc_Rippo B
+#define .Npc_Dupli C
+#define .Npc_DarkToad D
+#define .Cancel 2
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000
+$Script_Main $EntryList 00000003 00000000
+00000000 00000000 00000000 00000000
+00000000 00000000 80200000 $Function_GetTattle2 % loaded from SignStringLoader.mpat
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH RA, A0, A1
+LIA  	A0, 800B0CF0
+LIA  	A1, "tik_tex" 
+JAL  	~Func:sprintf
+RESERVED
+CLEAR	V0
+JPOP 	RA, A0, A1
+NOP
+}
+
+#new:Script_Main $Script_Main
+{
+	% Main Script
+	Call SetSpriteShading  ( FFFFFFFF )
+    Call SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call SetCamEnabled       ( .Cam:Default .True )
+	Call SetCamLeadPlayer       ( .Cam:Default .False )
+	If *Flag_Mode_Rogue == .True
+		If *PitMapID == 0 % Roguelike (Hard/Very-Hard) Floor Zero
+			Set		 *PitFlag .True
+			Set  *Flag_LockInputs_GiantChest .True % lock player inputs at the moment he open a giant chest
+			ExecWait $GetBadge
+			ExecWait $Script_MakeEntities
+			Exec	 $CommingDownPipe
+			Exec     $Script_MakeExits
+			Exec	 $Script_SetPipesPosition % Enable/Disable Pipes blue or green
+			Call 	 MakeNpcs		( 0 $NpcGroups_FloorZero )
+			If *MapVar[2] == 12 % If Sushie is inside the chest
+				Exec $Script_EnableWaterTexture
+			Else
+				Call     EnableModel 	( ~Model:water .False )
+			EndIf
+			% Set Rowf pos
+			ExecWait $Script_SetInventoryPrices
+			Call     SetNpcPos   	( 9 -426` -12` 93` )
+			If *Flag_RogueHard_1stTime == .False
+				Exec	$Script_RoguelikeHard_FloorZero_1stTime
+			EndIf
+			% Roguelike Helpers % Toad, Rippo and Dupli
+			Call	ModifyColliderFlags ( .False ~Collider:item1 7FFFFE00 )
+			Call	ModifyColliderFlags ( .False ~Collider:item2 7FFFFE00 )
+			Call	ModifyColliderFlags ( .False ~Collider:item3 7FFFFE00 )
+			Return
+		EndIf
+		% Check if the player is in the end of a demo build
+		If *PitMapID == 50`
+			If *Flag_Demo == .True
+				ExecWait $Script_MakeEntities_Demo
+				Exec	 $CommingDownPipe
+				Exec     $Script_MakeExits
+				Exec	 $Script_SetPipesPosition % Enable/Disable Pipes blue or green
+				Call     EnableModel 	( ~Model:water .False )
+				Call	 FadeOutMusic	   ( .Cam:Default 1 ) % Stop Music
+				Return
+			Else
+				Set *Flag_Cheev_Rogue_03 .True % Challenge Completed
+			EndIf
+		EndIf
+	EndIf
+	Set  *Flag_LockInputs_GiantChest .True % lock player inputs at the moment he open a giant chest
+	ExecWait $GetBadge
+	ExecWait $Script_MakeEntities
+	Exec	 $CommingDownPipe
+    Exec     $Script_MakeExits
+	Exec	 $Script_SetPipesPosition % Enable/Disable Pipes blue or green
+	Call 	 MakeNpcs		( 0 $NpcGroups )
+	%% Check if Mario is fully upgraded, if yes, don't spawn oaklie
+	Call 	$ReadAddress ( 8010F291 0 *Var[3] .False .False ) % load hammer
+	Set		*Var[2] *Var[3]
+	Call 	$ReadAddress ( 8010F290 0 *Var[3] .False .False ) % load boots
+	Add		*Var[2] *Var[3]
+	Call	$Function_GetPartnersUpgrades % save in var3
+	Add		*Var[2] *Var[3]
+	% Don't Spawn Oaklie in Roguelike
+	If *Flag_Mode_Rogue == .False
+		If	*Var[2] != 20` % Mario and Partners are fully upgraded?
+			% The game prologue has already ended?
+			If *Flag_MeetingAtLobby == .True
+				Call	 SetNpcPos		( .Npc_Oaklie -689` -12` 25` )
+			EndIf
+		EndIf
+	EndIf
+	Call     RandInt     	( 100` *MapVar[3] )
+	If *MapVar[3] <= FF % 28` % 25% chance to spawn
+		%This one is for Black Rowf % Scrapped NPC
+		If *MapVar[3] <= -1 % 3% chance to spawn
+			Call     SetNpcPos   	( 0000000A -436` -12` 125` )
+			Call	 NpcFacePlayer 	( 3 1 )
+		Else
+		%This one is for the normal Rowf
+			% The game prologue has already ended?
+			If *Flag_MeetingAtLobby == .True
+				Call     RandInt     	( 8 *MapVar[4] ) % Get Inventory
+				ExecWait $Script_SetInventoryPrices
+				Call     SetNpcPos   	( 9 -426` -12` 93` )
+			EndIf
+		EndIf
+	EndIf
+	If *MapVar[2] == 12 % If Sushie is inside the chest
+		Exec $Script_EnableWaterTexture
+	Else
+		Call     EnableModel 	( ~Model:water .False )
+	EndIf
+	% Roguelike Helpers % Toad, Rippo and Dupli
+	Call	ModifyColliderFlags ( .False ~Collider:item1 7FFFFE00 )
+	Call	ModifyColliderFlags ( .False ~Collider:item2 7FFFFE00 )
+	Call	ModifyColliderFlags ( .False ~Collider:item3 7FFFFE00 )
+	%Set *Flag_Mode_Rogue .True % testing
+	If	*Flag_Mode_Rogue == .True
+		Call	RandInt ( 100` *Var[0] )
+		%Set *Var[0] 59` % testing
+		Switch *Var[0]
+			Case < 60` % 60% chances to spawn Toad
+				ExecWait $Script_Reward_Badges_CheckOnlyMediumANDHight
+        		If *Var[1] < 40` % All Badges or only 1 left (so it needs to appear on the chest not with toad)
+					Call	SetNpcPos		( .Npc_DarkToad -689` -12` 25` )
+					Exec 	$Script_Init_Toad
+				Else
+					% Check if Rippo can be spawned instead
+					ExecWait $Script_CheckHPFPCap
+					If *Var[4] == .True
+						% Check if Dupli can be Spawned instead
+						If	*Dupli_Floors == 0
+							Call	 SetNpcPos		( .Npc_Dupli -689` -12` 25` )
+						Else
+							% Any helper can't be currently spawned
+							Return
+						EndIf
+					Else
+						% spawn rippo
+						Call	 SetNpcPos		( .Npc_Rippo -689` -12` 25` )
+					EndIf
+				EndIf
+			Case < 85` % 25% chances to spawn Rippo
+				% Check if the player have a stat to the max
+				ExecWait $Script_CheckHPFPCap
+				If *Var[4] == .True
+					% Check if Dupli can be Spawned instead
+					If	*Dupli_Floors == 0
+						Call	 SetNpcPos		( .Npc_Dupli -689` -12` 25` )
+					Else
+						% Check if Toad can be spawned instead
+						ExecWait $Script_Reward_Badges_CheckOnlyMediumANDHight
+						If *Var[1] < 40` % All Badges or only 1 left (so it needs to appear on the chest not with toad)
+							Call	SetNpcPos		( .Npc_DarkToad -689` -12` 25` )
+							Exec 	$Script_Init_Toad
+						Else
+							% Any helper can't be currently spawned
+							Return
+						EndIf
+					EndIf
+				Else % spawn rippo
+					Call	 SetNpcPos		( .Npc_Rippo -689` -12` 25` )
+				EndIf
+			Case < 101` % 15% chances to spawn Dupli
+				If	*Dupli_Floors == 0
+					Call	 SetNpcPos		( .Npc_Dupli -689` -12` 25` )
+				Else % If the player have the x2 boost check if Rippo can be spawned instead
+					% Check if the player have a stat to the max
+					ExecWait $Script_CheckHPFPCap
+					If *Var[4] == .True
+						% Check if Toad can be spawned instead
+						ExecWait $Script_Reward_Badges_CheckOnlyMediumANDHight
+						If *Var[1] < 40` % All Badges or only 1 left (so it needs to appear on the chest not with toad)
+							Call	SetNpcPos		( .Npc_DarkToad -689` -12` 25` )
+							Exec 	$Script_Init_Toad
+						Else
+							% Any helper can't be currently spawned
+							Return
+						EndIf
+					Else
+						% Spawn Rippo
+						Call	 SetNpcPos		( .Npc_Rippo -689` -12` 25` )
+					EndIf
+				EndIf
+		EndSwitch
+	EndIf
+	/% Always spawn an NPC
+	Call	 SetNpcPos		( C -689` -12` 25` ) % testing purposes%/
+	Return
+    End
+}
+
+% Is the first time starting a Rogue run on hard or very hard difficulties
+#new:Script $Script_RoguelikeHard_FloorZero_1stTime
+{
+	Call	DisablePlayerInput ( .True )
+	Wait	70` % wait until the player falls from the pipe
+    Call    ShowMessageAtScreenPos ( $String_FloorZero_FirsTime A0 28 )
+	Set		*Flag_RogueHard_1stTime .True
+	Call    DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#string $String_FloorZero_FirsTime
+{
+[STYLE:INSPECT][...]
+When playing on Roguelike on [PushColor][Color:07]Hard[PopColor]
+or [PushColor][Color:07]Very Hard[PopColor] Difficulties you will
+start at [PushColor][Color:07]Floor Zero[PopColor].
+[WAIT][NEXT][...]
+Here you will be granted with [PushColor][Color:07]one
+partner from the Chest[PopColor] and [PushColor][Color:07]one
+Badge from Rowf[PopColor].
+[WAIT][NEXT][...]
+Depending on what difficulty you
+are, is [PushColor][Color:07]how good Rowf's badges
+will be[PopColor].
+[WAIT][END]
+}
+
+
+% *out = var4 = Player have a stat to the max (bool)
+#new:Script $Script_CheckHPFPCap
+{
+	Call 	 $ReadAddress 		( 8010F293 0 *Var[0] .False .False ) % Max HP
+	Call 	 $ReadAddress 		( 8010F296 0 *Var[1] .False .False ) % Max FP
+	Set	*Var[4] .False
+	If *Var[0] >= 75` % HP cap
+		Set *Var[4] .True
+	EndIf
+	If *Var[1] >= 75` % FP cap
+		Set *Var[4] .True
+	EndIf
+	Set *Var[4] .False % Set always as false, at the end I change it and Reppo can always spawn
+	Return
+	End
+}
+
+#new:Function $Function_GetPartnersUnlocked
+{
+PUSH	RA, V0, A1, A2, A3
+LAB 	A2, 8010F2AC % Goombario
+LAB 	A3, 8010F2B4 % Kooper
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2BC % Bombette
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2C4 % Parakarry
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2EC % Bow
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2D4 % Watt
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2DC % Sushie
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2D4 % Lakilester
+ADDU	A2, A2, A3
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2, A3
+JR 		RA
+NOP
+}
+
+#new:Function $Function_GetPartnersUpgrades
+{
+PUSH	RA, V0, A1, A2, A3
+LABU 	A2, 8010F2AD % Goombario
+LABU 	A3, 8010F2B5 % Kooper
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2BD % Bombette
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2C5 % Parakarry
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2ED % Bow
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2D5 % Watt
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2DD % Sushie
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2E5 % Lakilester
+ADDU	A2, A2, A3
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2, A3
+JR 		RA
+NOP
+}
+	
+	#new:Script $Script_EnableWaterTexture
+{
+	Call     EnableModel 	( ~Model:water .True )
+	Call     EnableTexPanning 	( ~Model:water .True )
+	Thread
+		Set  *Var[0]  1		% panner id
+		Set  *Var[1]  0 	% x scroll
+		Set  *Var[2]  0 	% y scroll
+		Set  *Var[3]  0 	% x scroll (aux)
+		Set  *Var[4]  78	% y scroll (aux)
+		Set  *Var[5]  .False 
+		Set  *Var[6]  .True
+		Set  *Var[7]  .False 
+		Set  *Var[8]  .False 
+		Set  *Var[9]  .False 
+		Set  *Var[A]  .False 
+		Set  *Var[B]  .False 
+		Set  *Var[C]  .False 
+		Exec     $Script_80244A70 
+		EndThread
+	Return
+	End
+}
+
+	#new:Script $Script_80244A70
+{
+	SetGroup 0
+	If  *Var[5]  ==  .True
+		If  *Var[6]  ==  .True 
+			If  *Var[7]  ==  .True 
+				If  *Var[8]  ==  .True 
+					Call     $Function_802402E0
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call     $Function_80240404
+	Return
+	End
+}
+   
+#new:Function $Function_80240404
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 70 (S0)
+   18:  SW        R0, 74 (S0)
+   1C:  SW        R0, 78 (S0)
+   20:  SW        R0, 7C (S0)
+        .o24
+   24:  LW        V0, 70 (S0)
+   28:  BNE       V0, R0, .o64
+   2C:  NOP
+   30:  LW        V1, A8 (S0)
+   34:  LW        V0, 88 (S0)
+   38:  ADDU      V1, V1, V0
+   3C:  BGEZ      V1, .o50
+   40:  SW        V1, A8 (S0)
+   44:  LUI       V0, 2
+   48:  BEQ       R0, R0, .o60
+   4C:  ADDU      V0, V1, V0
+        .o50
+   50:  LUI       A0, 2
+   54:  SLT       V0, A0, V1
+   58:  BEQ       V0, R0, .o64
+   5C:  SUBU      V0, V1, A0
+        .o60
+   60:  SW        V0, A8 (S0)
+        .o64
+   64:  LW        V0, 74 (S0)
+   68:  BNE       V0, R0, .oA4
+   6C:  NOP
+   70:  LW        V1, AC (S0)
+   74:  LW        V0, 8C (S0)
+   78:  ADDU      V1, V1, V0
+   7C:  BGEZ      V1, .o90
+   80:  SW        V1, AC (S0)
+   84:  LUI       V0, 2
+   88:  BEQ       R0, R0, .oA0
+   8C:  ADDU      V0, V1, V0
+        .o90
+   90:  LUI       A0, 2
+   94:  SLT       V0, A0, V1
+   98:  BEQ       V0, R0, .oA4
+   9C:  SUBU      V0, V1, A0
+        .oA0
+   A0:  SW        V0, AC (S0)
+        .oA4
+   A4:  LW        V0, 78 (S0)
+   A8:  BNE       V0, R0, .oE4
+   AC:  NOP
+   B0:  LW        V1, B0 (S0)
+   B4:  LW        V0, 90 (S0)
+   B8:  ADDU      V1, V1, V0
+   BC:  BGEZ      V1, .oD0
+   C0:  SW        V1, B0 (S0)
+   C4:  LUI       V0, 2
+   C8:  BEQ       R0, R0, .oE0
+   CC:  ADDU      V0, V1, V0
+        .oD0
+   D0:  LUI       A0, 2
+   D4:  SLT       V0, A0, V1
+   D8:  BEQ       V0, R0, .oE4
+   DC:  SUBU      V0, V1, A0
+        .oE0
+   E0:  SW        V0, B0 (S0)
+        .oE4
+   E4:  LW        V0, 7C (S0)
+   E8:  BNE       V0, R0, .o124
+   EC:  NOP
+   F0:  LW        V1, B4 (S0)
+   F4:  LW        V0, 94 (S0)
+   F8:  ADDU      V1, V1, V0
+   FC:  BGEZ      V1, .o110
+  100:  SW        V1, B4 (S0)
+  104:  LUI       V0, 2
+  108:  BEQ       R0, R0, .o120
+  10C:  ADDU      V0, V1, V0
+        .o110
+  110:  LUI       A0, 2
+  114:  SLT       V0, A0, V1
+  118:  BEQ       V0, R0, .o124
+  11C:  SUBU      V0, V1, A0
+        .o120
+  120:  SW        V0, B4 (S0)
+        .o124
+  124:  LW        A0, 84 (S0)
+  128:  JAL       8011BC1C
+  12C:  LW        A1, A8 (S0)
+  130:  LW        A0, 84 (S0)
+  134:  JAL       8011BC34
+  138:  LW        A1, AC (S0)
+  13C:  LW        A0, 84 (S0)
+  140:  JAL       8011BC4C
+  144:  LW        A1, B0 (S0)
+  148:  LW        A0, 84 (S0)
+  14C:  JAL       8011BC64
+  150:  LW        A1, B4 (S0)
+  154:  LW        V0, 70 (S0)
+  158:  LW        V1, 78 (S0)
+  15C:  LW        A0, 98 (S0)
+  160:  ADDIU     V0, V0, 1
+  164:  SW        V0, 70 (S0)
+  168:  LW        V0, 74 (S0)
+  16C:  ADDIU     V1, V1, 1
+  170:  SW        V1, 78 (S0)
+  174:  LW        V1, 70 (S0)
+  178:  ADDIU     V0, V0, 1
+  17C:  SW        V0, 74 (S0)
+  180:  LW        V0, 7C (S0)
+  184:  SLT       V1, V1, A0
+  188:  ADDIU     V0, V0, 1
+  18C:  BNE       V1, R0, .o198
+  190:  SW        V0, 7C (S0)
+  194:  SW        R0, 70 (S0)
+        .o198
+  198:  LW        V0, 74 (S0)
+  19C:  LW        V1, 9C (S0)
+  1A0:  SLT       V0, V0, V1
+  1A4:  BEQL      V0, R0, .o1AC
+  1A8:  SW        R0, 74 (S0)
+        .o1AC
+  1AC:  LW        V0, 78 (S0)
+  1B0:  LW        V1, A0 (S0)
+  1B4:  SLT       V0, V0, V1
+  1B8:  BEQL      V0, R0, .o1C0
+  1BC:  SW        R0, 78 (S0)
+        .o1C0
+  1C0:  LW        V0, 7C (S0)
+  1C4:  LW        V1, A4 (S0)
+  1C8:  SLT       V0, V0, V1
+  1CC:  BEQL      V0, R0, .o1D4
+  1D0:  SW        R0, 7C (S0)
+        .o1D4
+  1D4:  LW        RA, 14 (SP)
+  1D8:  LW        S0, 10 (SP)
+  1DC:  DADDU     V0, R0, R0
+  1E0:  JR        RA
+  1E4:  ADDIU     SP, SP, 18
+}
+   
+#new:Function $Function_802402E0
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  SW        RA, 14 (SP)
+   10:  LW        V1, A8 (S0)
+   14:  LW        V0, 88 (S0)
+   18:  ADDU      V1, V1, V0
+   1C:  BGEZ      V1, .o30
+   20:  SW        V1, A8 (S0)
+   24:  LUI       V0, 2
+   28:  BEQ       R0, R0, .o40
+   2C:  ADDU      V0, V1, V0
+        .o30
+   30:  LUI       A0, 2
+   34:  SLT       V0, A0, V1
+   38:  BEQ       V0, R0, .o44
+   3C:  SUBU      V0, V1, A0
+        .o40
+   40:  SW        V0, A8 (S0)
+        .o44
+   44:  LW        V1, AC (S0)
+   48:  LW        V0, 8C (S0)
+   4C:  ADDU      V1, V1, V0
+   50:  BGEZ      V1, .o64
+   54:  SW        V1, AC (S0)
+   58:  LUI       V0, 2
+   5C:  BEQ       R0, R0, .o74
+   60:  ADDU      V0, V1, V0
+        .o64
+   64:  LUI       A0, 2
+   68:  SLT       V0, A0, V1
+   6C:  BEQ       V0, R0, .o78
+   70:  SUBU      V0, V1, A0
+        .o74
+   74:  SW        V0, AC (S0)
+        .o78
+   78:  LW        V1, B0 (S0)
+   7C:  LW        V0, 90 (S0)
+   80:  ADDU      V1, V1, V0
+   84:  BGEZ      V1, .o98
+   88:  SW        V1, B0 (S0)
+   8C:  LUI       V0, 2
+   90:  BEQ       R0, R0, .oA8
+   94:  ADDU      V0, V1, V0
+        .o98
+   98:  LUI       A0, 2
+   9C:  SLT       V0, A0, V1
+   A0:  BEQ       V0, R0, .oAC
+   A4:  SUBU      V0, V1, A0
+        .oA8
+   A8:  SW        V0, B0 (S0)
+        .oAC
+   AC:  LW        V1, B4 (S0)
+   B0:  LW        V0, 94 (S0)
+   B4:  ADDU      V1, V1, V0
+   B8:  BGEZ      V1, .oCC
+   BC:  SW        V1, B4 (S0)
+   C0:  LUI       V0, 2
+   C4:  BEQ       R0, R0, .oDC
+   C8:  ADDU      V0, V1, V0
+        .oCC
+   CC:  LUI       A0, 2
+   D0:  SLT       V0, A0, V1
+   D4:  BEQ       V0, R0, .oE0
+   D8:  SUBU      V0, V1, A0
+        .oDC
+   DC:  SW        V0, B4 (S0)
+        .oE0
+   E0:  LW        A0, 84 (S0)
+   E4:  JAL       8011BC1C
+   E8:  LW        A1, A8 (S0)
+   EC:  LW        A0, 84 (S0)
+   F0:  JAL       8011BC34
+   F4:  LW        A1, AC (S0)
+   F8:  LW        A0, 84 (S0)
+   FC:  JAL       8011BC4C
+  100:  LW        A1, B0 (S0)
+  104:  LW        A0, 84 (S0)
+  108:  JAL       8011BC64
+  10C:  LW        A1, B4 (S0)
+  110:  LW        RA, 14 (SP)
+  114:  LW        S0, 10 (SP)
+  118:  DADDU     V0, R0, R0
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 18
+}
+
+% Set Pipes
+#new:Script $Script_SetPipesPosition
+{
+	% Disable bottom pipe collisions
+	Call     ModifyColliderFlags 	( .False 5 7FFFFE00 ) % Bool ColliderID ?
+    Call     ModifyColliderFlags 	( .False 6 7FFFFE00 ) % Bool ColliderID ?
+	%
+	Call     EnableModel 	( A .False ) % ModelID Boolean % Green Bottom Pipe
+	Call     EnableModel 	( B .False ) % ModelID Boolean % Blue Bottom Pipe
+	If *Flag_Mode_Rogue == .True
+		Call     EnableModel 	( 3 .False ) % ModelID Boolean % Green Top Pipe
+	Else
+		Call     EnableModel 	( 4 .False ) % ModelID Boolean % Blue Top Pipe
+	EndIf
+	Return
+	End
+}
+	
+#new:Script $Script_MakeEntities
+{
+	If	*MapFlag[1] != .True % If is the first time arriving to that chest floor don't spawn the switch until Mario open the chest
+		Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+		Call     AssignScript	( $PipeSpawning )
+	EndIf
+	Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe 70000000 )
+	Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:Chest0 80000000 )
+	Switch *MapVar[5]
+		Case == 1 % Tier S
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_HPDrain
+				Case == 1
+					Call AssignFlag      *Flag_DamageDodgeA
+				Case == 2
+					Call AssignFlag      *Flag_DamageDodgeB
+				Case == 3
+					Call AssignFlag      *Flag_LastStand
+				Case == 4
+					Call AssignFlag      *Flag_PowerBounce
+				Case == 5
+					Call AssignFlag      *Flag_MegaRush
+				Case == 6
+					Call AssignFlag      *Flag_AllorNothing				
+			EndSwitch
+		Case == 2 % Tier A
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_PUpDDown
+				Case == 1
+					Call AssignFlag      *Flag_DDownJump
+				Case == 2
+					Call AssignFlag      *Flag_PowerRush
+				Case == 3
+					Call AssignFlag      *Flag_DoubleDip
+				Case == 4
+					Call AssignFlag      *Flag_PowerQuake
+				Case == 5
+					Call AssignFlag      *Flag_QuakeHammer
+				Case == 6
+					Call AssignFlag      *Flag_QuickChange
+			EndSwitch
+		Case == 3 % Tier B
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_PowerPlusA
+				Case == 1
+					Call AssignFlag      *Flag_PowerPlusB
+				Case == 2
+					Call AssignFlag      *Flag_PDownDUp
+				Case == 3
+					Call AssignFlag      *Flag_DefendPlus
+				Case == 4
+					Call AssignFlag      *Flag_CloseCall
+				Case == 5
+					Call AssignFlag      *Flag_FlowerFinder
+				Case == 6
+					Call AssignFlag      *Flag_HeartFinder
+				Case == 7
+					Call AssignFlag      *Flag_FlowerSaverA
+				Case == 8
+					Call AssignFlag      *Flag_FlowerSaverB
+				Case == 9
+					Call AssignFlag      *Flag_PowerJump
+				Case == A
+					Call AssignFlag      *Flag_DizzyAttack
+				Case == B
+					Call AssignFlag      *Flag_Multibounce
+			EndSwitch
+		Case == 4 % Tier C
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_ZapTap
+				Case == 1
+					Call AssignFlag      *Flag_DodgeMaster
+				Case == 2
+					Call AssignFlag      *Flag_HappyFlowerA
+				Case == 3
+					Call AssignFlag      *Flag_HappyFlowerB
+				Case == 4
+					Call AssignFlag      *Flag_DeepFocusA
+				Case == 5
+					Call AssignFlag      *Flag_DeepFocusB
+				Case == 6
+					Call AssignFlag      *Flag_DeepFocusC
+				Case == 7
+					Call AssignFlag      *Flag_JumpCharge
+				Case == 8
+					Call AssignFlag      *Flag_SJumpChg
+				Case == 9
+					Call AssignFlag      *Flag_FeelingFine
+				Case == A
+					Call AssignFlag      *Flag_IcePower
+			EndSwitch
+		Case == 5 % Tier D
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_HappyHeartA
+				Case == 1
+					Call AssignFlag      *Flag_HappyHeartB
+				Case == 2
+					Call AssignFlag      *Flag_FireShield
+				Case == 3
+					Call AssignFlag      *Flag_GroupFocus
+				Case == 4
+					Call AssignFlag      *Flag_ShrinkStomp
+				Case == 5
+					Call AssignFlag      *Flag_TripleDip
+				Case == 6
+					Call AssignFlag      *Flag_MegaQuake
+				Case == 7
+					Call AssignFlag      *Flag_DizzyStomp
+				Case == 8
+					Call AssignFlag      *Flag_SleepStomp
+			EndSwitch
+		Case == 6 % Tier E
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_PowerSmash
+				Case == 1
+					Call AssignFlag      *Flag_DDownPound
+				Case == 2
+					Call AssignFlag      *Flag_SpikeShield
+				Case == 3
+					Call AssignFlag      *Flag_SmashCharge
+				Case == 4
+					Call AssignFlag      *Flag_Refund
+				Case == 5
+					Call AssignFlag      *Flag_MegaJump
+				Case == 6
+					Call AssignFlag      *Flag_MegaSmash
+			EndSwitch
+		Case == 7 % Tier F
+			Switch *MapVar[2]
+				Case == 0
+					Call AssignFlag      *Flag_Hammer_Throw
+				Case == 1
+					Call AssignFlag      *Flag_Pretty_Lucky
+				Case == 2
+					Call AssignFlag      *Flag_Chill_Out
+				Case == 3
+					Call AssignFlag      *Flag_Money_Money
+				Case == 4
+					Call AssignFlag      *Flag_PayOff
+				Case == 5
+					Call AssignFlag      *Flag_Spin_Smash
+				Case == 6
+					Call AssignFlag      *Flag_Runaway_Pay
+				Case == 7
+					Call AssignFlag      *Flag_SSmashChg
+				Case == 8
+					Call AssignFlag      *Flag_Peekaboo
+				Case == 9
+					Call AssignFlag      *Flag_LuckyDay
+				Case == A
+					Call AssignFlag      *Flag_SlowGo
+				%%Partners%%
+				Case == B 
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Goombario2
+					Else
+						Call AssignFlag      *Flag_Goombario
+					EndIf
+				Case == C
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Kooper2
+					Else
+						Call AssignFlag      *Flag_Kooper
+					EndIf
+				Case == D 
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Bombette2
+					Else
+						Call AssignFlag      *Flag_Bombette
+					EndIf
+				Case == E 
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Parakarry2
+					Else
+						Call AssignFlag      *Flag_Parakarry
+					EndIf
+				Case == F 
+					Call AssignFlag      *Flag_StrangeSack
+				Case == 10
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Bow2
+					Else
+						Call AssignFlag      *Flag_Bow
+					EndIf
+				Case == 11
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Watt2
+					Else
+						Call AssignFlag      *Flag_Watt
+					EndIf
+				Case == 12
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Sushie2
+					Else
+						Call AssignFlag      *Flag_Sushie
+					EndIf
+				Case == 13
+					If *Flag_Mode_Rogue == .True
+						Call AssignFlag      *Flag_Lakilester2
+					Else
+						Call AssignFlag      *Flag_Lakilester
+					EndIf
+				%%Misc%%
+				Case == FD
+					Call AssignFlag      *Flag_Roguelike_Badges
+				Case == FE
+					Call AssignFlag      *Flag_Coins1
+				Case == FF
+					Call AssignFlag      *Flag_Coins2
+			EndSwitch
+	EndSwitch
+	Call     AssignScript 	( $Script_UseChest )
+	% Animate the chest if a partner is inside the chest
+	If *MapVar[5] == 7
+		If *MapVar[2] >= B
+			If *MapVar[2] < FD
+				%Exec $Script_ChestAnimation
+				If *MapVar[2] != F % Isn't Strange Sack
+					Exec $Script_StretchChest
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignA 80000000 )
+	Call     AssignScript 	( $Script_ReadSign ) %% Loaded from SignStringLoader.mpat
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignB 80000000 )
+	Call     AssignScript 	( $Script_ReadSignExit )
+	Return
+	End
+}
+
+% Chest Animation - when a Partner is inside the chest, made by Rain :)
+#new:Script $Script_ChestAnimation
+{
+Wait 10` % when the map boots the chest state is as open for a few frames, so wait a little bit
+% The chest got opened?
+Call $Function_GetChestState ( 1 *Var[0] ) % Entity ID *out
+If *Var[0] == .True % Opened
+    Return
+EndIf
+%
+Exec $Script_StretchChest
+Wait 21`
+%Exec $Script_MoveChest
+Exec $Script_RotateChest
+Return
+End
+}
+
+#new:Script $Script_StretchChest
+{
+Call $GetEntityPointer ( 1 *Var[0] )
+Loop
+    Loop 5
+        Call $GetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[1] *Fixed[0.015]
+        Call $SetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+    Wait 3
+    %
+    Loop 5
+        Call $GetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[1] *Fixed[-0.015]
+        Call $SetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+	Wait 48`
+	% The chest got opened?
+	Call $Function_GetChestState ( 1 *Var[3] ) % EntityID *out
+	Wait 1
+	If *Var[3] == .True % Opened
+		Set *MapFlag[1] .True
+        Return
+    EndIf
+	Loop 5
+        Call $GetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[0.015]
+        Call $SetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+    Wait 3
+    %
+    Loop 5
+        Call $GetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[-0.015]
+        Call $SetEntityScaling ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+	Wait 48`
+	% The chest got opened?
+	Call $Function_GetChestState ( 1 *Var[3] ) % EntityID *out
+	Wait 1
+	If *Var[3] == .True % Opened
+		Set *MapFlag[1] .True
+        Return
+    EndIf
+EndLoop
+Return
+End
+}
+
+#new:Script $Script_RotateChest
+{
+Loop
+    Loop 1
+        Call $GetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[2] *Fixed[2.0]
+        Call $SetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+    Wait 2
+    %
+    Loop 1
+        Call $GetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[2] *Fixed[-2.0]
+        Call $SetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+	Loop 1
+        Call $GetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[2.0]
+        Call $SetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+    Wait 2
+    %
+    Loop 1
+        Call $GetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[-2.0]
+        Call $SetEntityRotation ( 1 *Var[0] *Var[1] *Var[2] )
+        Wait 1
+    EndLoop
+	Wait 51`
+	% The chest got opened?
+    Call $Function_GetChestState ( 1 *Var[0] ) % Entity ID *out
+	If *Var[0] == .True % Opened
+        Return
+    EndIf
+EndLoop
+Return
+End
+}
+
+% entityID *out (ChestOpened Bool)
+#new:Function $Function_GetChestState
+{
+PUSH	RA, S0, S1, S2
+COPY	S2, A0 % PUSH A0
+LW    	S0, C (A0)
+JAL   	~Func:get_variable
+LW    	A1, 0 (S0) % load ID from arg1
+JAL		~Func:get_entity_by_index
+COPY    A0, V0
+COPY	A0, S2 % POP A0
+% v0=Entity Pointer
+COPY	S1, V0
+LW		A2, 40 (S1) % EntityPointer(+40) > Chest's Top data
+LW		A2, 8 (A2) % Top Data(+8) > Top's Rotation
+% Check if the chest is opened
+BEQ		A2, R0, .Closed
+NOP
+.Opened
+BEQ		R0, R0, .SetVar
+ORI		A2, R0, 1
+.Closed
+ORI		A2, R0, 0
+% Write Var
+.SetVar
+JAL 	~Func:set_variable
+LW    	A1, 4 (S0) % Load *var from arg2
+POP		RA, S0, S1, S2
+JR		RA
+ORI		V0, R0, 2
+}
+
+#new:Script $Script_MoveChest
+{
+Loop
+    Loop 1
+        Call $GetEntityPos ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[3.0]
+        Call $SetEntityPos ( 1 *Var[0] *Var[1] *Var[2])
+		AddF *Var[2] *Fixed[3.0]
+        Call $SetEntityPos ( 1 *Var[0] *Var[1] *Var[2])
+        Wait 1
+    EndLoop
+	Wait 2
+    %
+    Loop 1
+        Call $GetEntityPos ( 1 *Var[0] *Var[1] *Var[2] ) %entity index ID, var0, var1, var2
+        AddF *Var[0] *Fixed[-3.0]
+        Call $SetEntityPos ( 1 *Var[0] *Var[1] *Var[2])
+		AddF *Var[2] *Fixed[-3.0]
+        Call $SetEntityPos ( 1 *Var[0] *Var[1] *Var[2])
+        Wait 1
+    EndLoop
+	Wait 57`
+EndLoop
+Return
+End
+}
+
+/%#new:Function $Function_GetGlobalFlag % unused
+{
+	PUSH	RA, A0, A1, A2, S0
+	LW      S0, C (A0) % load Arguments pointer
+    % Get Argument 1
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0) % get argument 1
+	COPY	A0, V0 
+	% Get Global Flag Bool
+	JAL		~Func:get_global_flag
+	NOP
+	POP 	RA, A0, A1, A2, S0
+	%========================
+	PUSH	RA, S0, S1
+	LW      S0, C (A0) % load Arguments pointer
+	COPY	S1, V0 % Save Flag Bool
+	% Save Var
+	% Get Argument 2
+	COPY	A2, S1 % var bool
+	LW      A1, 4 (S0) % get argument 2 / var
+	JAL     ~Func:set_variable
+    NOP
+	POP		RA, S0, S1
+	JR		RA
+	ORI		V0, R0, 2
+}%/
+
+% When you arrive in floor 50 in the demo
+#new:Script $Script_MakeEntities_Demo
+{
+	Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Chest0 80000000 )
+	Call     AssignScript	( $Script_EndDemo )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignA 80000000 )
+	Call     AssignScript 	( $Script_ReadSign ) %% Loaded from SignStringLoader.mpat
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignB 80000000 )
+	Call     AssignScript 	( $Script_ReadSignExit_Demo )
+	Return
+	End
+}
+
+	#new:Script $Script_EndDemo
+{
+	Call	DisablePlayerInput ( .True )
+	% Check if the player got a better time to beat the Pit
+	Call	$Function_SaveBetterTotalTime
+	% Open Final Results
+	Call 	PlaySound ( C9 )
+	Set		*PitFlag .False 			  % To stop tracking all values
+	Set		*ShowFinalResultValues .True  % The box's code is at MiscHooks.patch
+	Return
+	End
+}
+
+	#new:Function $Function_SaveBetterTotalTime
+{
+	% Get current best time
+	PUSH	RA, V0, A1, A2, S0, S1, S2, S3
+	LIO 	A1, *BestTimeRogue_HH
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S0, V0
+	LIO 	A1, *BestTimeRogue_MM
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S1, V0
+	LIO 	A1, *BestTimeRogue_SS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S2, V0
+	LIO 	A1, *BestTimeRogue_MS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S3, V0
+	% Put all bytes in to one single word
+	SLL		S0, S0, 18 % Hours 	 % Move 24-bits
+	SLL		S1, S1, 10 % Minutes % Move 16-bits
+	SLL		S2, S2, 8  % Seconds % Move 8-bits
+	% Get final word
+	ADDU	S0, S0, S1
+	ADDU	S0, S0, S2
+	ADDU	S0, S0, S3 % Best Timer is in S0 now
+	% Check if the timer is equal to 0
+	BNE		S0, R0, .CompareTimers
+	NOP
+	% If is it means is the 1st time the player beated the pit
+	% set the timer as FFFFFFFF
+	LUI		S0, FFFF
+	ORI		S0, S0, FFFF
+	% Compare Timers
+	.CompareTimers
+	LAW		T1, $Timer_Total
+	SLTU	T0, T1, S0
+	BEQ		T0, R0, .End % If current timer wasn't lower
+	NOP
+	% Save new timer
+	% Get each byte individually
+	LIO		T0, $Timer_Total % save address in t0
+	LABU	S0, $Timer_Total % hours
+	LBU		S1, 1 (T0) %  minutes
+	LBU		S2, 2 (T0) %  seconds
+	LBU		S3, 3 (T0) %  milliseconds
+	LIO 	A1, *BestTimeRogue_HH
+	JAL 	~Func:set_variable
+	COPY	A2, S0
+	LIO 	A1, *BestTimeRogue_MM
+	JAL 	~Func:set_variable
+	COPY	A2, S1
+	LIO 	A1, *BestTimeRogue_SS
+	JAL 	~Func:set_variable
+	COPY	A2, S2
+	LIO 	A1, *BestTimeRogue_MS
+	JAL 	~Func:set_variable
+	COPY	A2, S3
+	.End
+	POP		RA, V0, A1, A2, S0, S1, S2, S3
+	JR 		RA
+	NOP
+}
+	
+	#new:Script $Script_ReadSignExit
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignStringExit 000000A0 00000028 ) % 001D0182
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+	#new:Script $Script_ReadSignExit_Demo
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignStringExit_Demo 000000A0 00000028 ) % 001D0182
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#new:Script $Script_UseChest
+{
+	Set	 *Flag_LockInputs_GiantChest .False
+	If *MapVar[6] == 1 % If the player have just saved a partner
+		Goto Start
+	EndIf
+	% Move Player to the center of the chest
+	Call PlayerMoveTo ( -536` 1 12` ) % ~Vec3d:Pos_OpenChest
+	Call InterpPlayerYaw ( -90` 0 )
+	If *MapVar[5] == 7
+		Switch *MapVar[2]
+			Case == B % Goombario
+				Call     SetNpcVar   	( 00000001 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == C % Kooper
+				Call     SetNpcVar   	( 00000002 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == D % Bombette
+				Call     SetNpcVar   	( 00000003 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == E % Parakarry
+				Call     SetNpcVar   	( 00000004 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == F % Strange Sack
+				Set  *Var[B]  1  % To add it as a Key Item
+				Set  *Var[A]  54 % Item ID
+				Call $SetSackFlag
+				Call DisablePlayerInput ( .True )
+				ExecWait $Script_OpenChest
+				Set	*Flag_Cheev_Classic_09 .True % Challenge Completed
+				Call SetPlayerAnimation ( 00010028 )
+				Call PlaySoundAtPlayer 	( 0262 .Default )
+				Call ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+				Wait 15
+				ExecWait $GetBadge
+				ExecWait $Script_UseChest
+				Call DisablePlayerInput ( .False )
+				Return
+			Case == 10 % Bow
+				Call     SetNpcVar   	( 00000005 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == 11 % Watt
+				Call     SetNpcVar   	( 00000006 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == 12 % Sushie
+				Call     SetNpcVar   	( 00000007 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == 13 % Lakilester
+				Call     SetNpcVar   	( 00000008 00000000 00000001 )
+				Set *MapVar[6] 1 % To track if the Chest is already open
+				Return
+			Case == FD % Roguelike Mode
+				Set		*Flag_Roguelike_Badges .False
+			Case > FD
+				ExecWait $CoinChest %% loaded from CoinChest.mpat
+				Return
+		EndSwitch
+	EndIf
+	Label Start
+  	Set  *Var[A]  *MapVar[1]
+	Set  *Var[B]  2
+	ExecWait $Script_OpenChest
+	% Activate the Blue Switch if Mario just got a partner
+	If *MapFlag[1] == .True
+		% The game prologue has already ended?
+		If *Flag_MeetingAtLobby == .True
+			Set		*Var[0] -607` % x
+			Set		*Var[1] -11`  % y
+			Set		*Var[2] 66`   % z
+			Call     PlayEffect 	( ~FX:BigSmokePuff *Var[0] *Var[1] *Var[2] ) % ~Vec3d:Switch
+			Call     PlaySound  	( .Sound:SmokeBurst )
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignScript	( $PipeSpawning )
+			Set		*MapFlag[1] .False
+		Else
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			Call	SetPlayerAnimation ( .PlayerAnim:Thinking )
+			Wait	10`
+			Call	ShowMessageAtScreenPos ( $String_GoBack A0 28 )
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		EndIf
+	EndIf
+	Call DisablePlayerInput ( .False )
+   	Return
+   	End
+}
+
+#string $String_GoBack
+{
+[STYLE:INSPECT][...]
+Hmm... I think I have been in
+the Pit enough.
+[WAIT][NEXT][...]
+I should go back with Cheato.
+[WAIT][END]
+}
+   
+#new:Function $SetSackFlag % This function set an address as a flag for the strange sack
+{
+   ADDIU	T0, R0, 1
+   SAB		T0, 8010F2AE
+   JR		RA
+   NOP
+}
+   
+   #string $StrangeSackBadge
+{
+	[STYLE:CENTER][...]
+	Mmm... It looks like there is
+	something more in the chest Mario.
+	[WAIT][END]
+}
+   
+#string $CoinsString
+{
+[STYLE:CENTER][...]
+Well... [PAUSE:0A]it looks like you have
+opened all treasure chests.
+[WAIT][NEXT][...]
+But I still don't want the fun
+to be finished, so take this...[PAUSE:10]
+[WAIT][NEXT][...]
+Have fun [HEART]!
+[WAIT][END]
+}
+	
+#new:Script $Script_OpenChest
+{
+	Set  *Var[0]  *Var[A] 
+	If  *Var[A]  !=  .False
+		ExecWait $Script_GetItem 
+	EndIf
+	If *Flag_Mode_Rogue == .True
+		If *MapVar[2] != E % Isn't Parakarry
+			Call	$Function_ActivateBadge2 % Activate the current badge automatically, used on Roguelike
+		EndIf
+		If *Flag_Mode_Rogue == .True
+			If *MapVar[2] == FD % Partnerless Chest
+				% Set Badge's flag as true
+				Call	$Function_SaveFlag % read from MapVar9
+			EndIf
+		EndIf
+		Goto BypassAddingBadge
+	EndIf
+	Switch  *Var[B]
+		Case  ==  0
+			Call     AddItem     	( *Var[A] *Var[0] )
+		Case  ==  1 
+			Call     AddKeyItem  	( *Var[A] )
+		Case  ==  2 
+			Call     AddBadge    	( *Var[A] *Var[0] )
+			ExecWait $Script_CheckBadgeFlags % Check the player have all Badges his supposed to have, if not give the badge to him
+	EndSwitch
+	Add *BadgeList 1 % Add one badge to the badge counter from the Main Lobby sign
+	Switch *BadgeList % Challenge Completed
+		Case >= 62`
+			Set	*Flag_Cheev_Classic_07 .True
+			Set	*Flag_Cheev_Classic_06 .True
+			Set	*Flag_Cheev_Classic_05 .True
+			Set	*Flag_Cheev_Classic_04 .True
+		Case >= 40`
+			Set	*Flag_Cheev_Classic_06 .True
+			Set	*Flag_Cheev_Classic_05 .True
+			Set	*Flag_Cheev_Classic_04 .True
+		Case >= 20`
+			Set	*Flag_Cheev_Classic_05 .True
+			Set	*Flag_Cheev_Classic_04 .True
+		Case >= 5
+			Set	*Flag_Cheev_Classic_04 .True
+	EndSwitch
+	Label	BypassAddingBadge
+	%Call     $EnableInputs % This function was used for the old GiantChest script
+	Return
+	End
+}
+   
+	
+	#new:Script $Script_GetItem
+{
+	SetGroup 0
+	Call     802D5830 ( 00000002 )
+	Call     ShowGotItem 	( *Var[0] 00000000 00000000 )
+	Call     802D5830 ( 00000000 )
+	Return
+	End
+}
+	
+#new:Script $CommingDownPipe
+{
+    C:  SetGroup 0000001B 
+	Set *Var[A] 0`                        % entry index
+ 	Set *Var[B] ~Collider:col1        % pipe collider id
+	ExecWait $FallingDownPipe
+	Return
+	End	
+}
+	
+	% Pipe Spawning
+   #new:Script $PipeSpawning
+{
+   If *Flag_Mode_Rogue == 1
+		Set *Var[3] B % If Player is on Roguelike use Model ID #11/B (Blue Pipe)
+	Else
+		Set *Var[3] A % If Player isn't on Roguelike use Model ID #10/A instead (Green Pipe)
+	EndIf
+	Call	ParentColliderToModel 	( 5 *Var[3] ) % ColliderID ModelID
+	Call	ParentColliderToModel 	( 6 *Var[3] ) % ColliderID ModelID
+	Call 	DisablePlayerInput   ( .True )
+	Call 	EnableModel 	( *Var[3] .True )
+	Call 	MakeLerp		( 50` 0` 30` .Easing:CosInOut )
+	Call 	PlaySound   	( 208E ) % Pipe Spawning Sound
+	Label	2
+	Call	UpdateLerp
+	Set		*Var[2]  0
+	Sub		*Var[2]  *Var[0]
+	Call	TranslateModel	( *Var[3] 0 *Var[2] 0 ) % ModelID XYZ Offset
+	Call	UpdateColliderTransform	( 5 ) % ColliderID 
+	Call	UpdateColliderTransform	( 6 ) % ColliderID 
+	Call    ModifyColliderFlags 	( .True 5 7FFFFE00 ) % True/False ColliderID ??? 
+	Call    ModifyColliderFlags 	( .True 6 7FFFFE00 ) % True/False ColliderID ???
+	Wait	1 
+	If	*Var[1] ==  1 
+		Goto	2
+	EndIf
+	Wait	1 
+	Call DisablePlayerInput   ( .False )
+	Return
+	End
+}
+  
+%%
+% Exits
+%%
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0 .Trigger:WallPush ~Collider:col2 00000001 00000000  
+	Bind     $Script_Exit1 .Trigger:FloorTouch ~Collider:col1 00000001 00000000  
+	Return
+	End
+}
+	
+#new:Script $Script_Exit1
+{
+	SetGroup 1B
+	Set  *Var[A]  1 % Entry ID
+	Set  *Var[B] ~Collider:col1
+	ExecWait $Script_TrackPlayer 
+	Return
+	End  
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 1B
+	Set *Var[A] 2  % entry index
+ 	Set *Var[B] ~Collider:col2
+	ExecWait $PipeAnimationX 
+	Return
+	End
+}
+
+#new:Script $Script_Rogue_GiveTotalCoins
+{
+	Call  	ShowMessageAtScreenPos  ( $String_Rogue_CoinsGained_Success2 000000A0 00000028 )
+	Call 	$ReadAddress ( 8010F2AA 1 *Var[0] .False .False ) % load Total Gained Coins in actual Pit playthrough
+	If *Var[0] == .False
+		Return
+	EndIf
+	Set		*Var[A] *Var[0]
+	% show bank's coin box
+	Set	*BankTextBoxPosition 1
+	Set	*TalkingToFishmael .True
+	Wait 10`
+	% save coins
+	Call 	$ReadAddress  ( 8010F2AA 1 *Var[0] .False .False ) % load total coins
+	Call 	$ReadAddress  ( 803560DC 2 *Var[1] .False .False ) % load bank account
+	Add		*Var[1] *Var[0]
+	SetTimescale *Fixed[15.0]
+	Loop
+		Call 	$ReadAddress  ( 803560DC 2 *Var[2] .False .False ) % load bank account
+		Add		*Var[2] 1
+		% Bank Account Cap
+		If	*Var[2] > 9999999` % 9,999,999 / 0098967F
+			BreakLoop
+		EndIf
+		Call 	$WriteAddress ( 803560DC 2 *Var[2] .False .False ) % save bank account
+		Call	PlaySound ( 0211 ) % coin
+		If *Var[2] == *Var[1]
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	SetTimescale *Fixed[1.0] % Back to Normal
+	Call $ReadAddress ( 803560DC 2 *Var[1] .False .False ) % load bank account
+	% Check Challenges
+	Switch *Var[1]
+		Case >= 40000`
+			Set *Flag_Cheev_Global_13 .True
+			Set *Flag_Cheev_Global_12 .True
+			Set *Flag_Cheev_Global_11 .True
+		Case >= 10000`
+			Set *Flag_Cheev_Global_12 .True
+			Set *Flag_Cheev_Global_11 .True
+		Case >= 1000`
+			Set *Flag_Cheev_Global_11 .True
+	EndSwitch
+	Call	SetMessageValue ( *Var[A] 1 )
+	Call  	ShowMessageAtScreenPos  ( $String_Rogue_CoinsAdded 000000A0 00000028 )
+	% close bank's coin box
+	Call 	$WriteAddress ( $BoxAnimation_State  2 2 .False .False )
+	Call 	$WriteAddress ( $BoxAnimation_Offset 2 7 .False .False )
+	Wait	10`
+	Return
+	End
+}
+
+#string $String_Rogue_CoinsGained_Success2
+{
+[STYLE:INSPECT][...]
+You left the Roguelike Pit
+succesfully.
+[WAIT][NEXT][...]
+All the coins you got from battles
+will get added to your bank
+account.
+[WAIT][END]
+}
+	
+	#new:Script $PipeAnimationX
+{
+    0:  Call     802D249C ( *Var[0] )
+   10:  If  *Var[0]  ==  00000000 
+   20:  	Return
+   28:  EndIf
+   30:  Call     GetPlayerActionState ( *Var[0] )
+   40:  If  *Var[0]  ==  0000001A 
+   50:  	Return
+   58:  EndIf
+   60:  Call     GetCurrentPartner ( *Var[0] )
+   70:  If  *Var[0]  !=  .False
+   80:  	Call     GetCurrentPartnerID 	( *Var[1] )
+   90:  	If  *Var[1]  !=  .Partner:Watt % 6 
+   A0:  		Return
+   A8:  	Else
+   B0:  		Call     802D2B6C
+   BC:  		Call     DisablePlayerInput 	( .True )
+   CC:  	EndIf
+   D4:  Else
+   DC:  	Call     DisablePlayerInput 	( .True )
+   EC:  EndIf
+		% Roguelike - Give the total gained coins on this playthrough
+		If	*Flag_Mode_Rogue == .True
+			If *PitMapID != 0
+				Exec     $Script_Rogue_GiveTotalCoins *Var[0]
+				Loop     
+					DoesScriptExist *Var[0] *Var[5] 
+					If  *Var[5]  ==  .False
+						BreakLoop
+					EndIf
+					Wait     1
+				EndLoop
+			EndIf
+		EndIf
+   F4:  SetGroup 0000001B 
+  100:  Call     $Function_80240000 ( )
+  10C:  Call     DisablePlayerPhysics 	( .True )
+  11C:  Call     ModifyColliderFlags 	( 00000000 *Var[B] 7FFFFE00 )
+  134:  Set  *Var[0]  *Var[A] 
+  144:  Call     $Function_802400F0
+  150:  Set  *Var[5]  *Var[1] 
+  160:  Set  *Var[6]  *Var[2] 
+  170:  Add  *Var[6]  00000002 
+  180:  Set  *Var[7]  *Var[3] 
+  190:  Set  *Var[8]  *Var[4] 
+  1A0:  Add  *Var[8]  000000B4 
+  1B0:  If  *Var[4]  >=  00000168 
+  1C0:  	Sub  *Var[4]  00000168 
+  1D0:  EndIf
+  1D8:  Call     InterpPlayerYaw 	( *Var[8] 00000001 )
+  1EC:  Wait     00000001 
+		Call	 DisablePartnerAI	( 1 )
+  1F8:  Call     PlaySound   	( 0163 )
+  208:  Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  220:  Call     SetPlayerPos 	( *Var[0] *Var[6] *Var[7] )
+  238:  Call     SetPlayerAnimation 	( .PlayerAnim:StandStill )
+  248:  Call     802D286C ( 00000800 )
+  258:  Call     802D2520 ( 00010000 00000005 00000003 00000001 00000001 00000000 )
+  27C:  Thread
+  284:  	Wait     8
+  290:  	Call     HidePlayerShadow 	( .True )
+  2A0:  EndThread
+  % Animate moving down into the pipe
+	Thread
+		Call GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Wait 4
+		Loop 64`
+			% Decrement Mario's Y pos each frame
+			Add  *Var[0] 1
+			Call SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+			Wait 1
+		EndLoop
+	EndThread
+  	Wait	25`
+	If *Flag_Demo == .True
+		Call GotoMap ( "dmo_00" 2 )
+	Else
+		Call GotoMap ( "pt_00" 3 )
+	EndIf
+  	Return
+  	End
+}
+  
+  #new:Function $Function_802400F0
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+   
+   #new:Function $Function_80240000
+{
+    0:  LAW       V0, 800F7B30
+    8:  LW        V1, 4 (V0)
+    C:  LUI       A0, 10
+   10:  OR        V1, V1, A0
+   14:  SW        V1, 4 (V0)
+   18:  JR        RA
+   1C:  ADDIU     V0, R0, 2
+}
+	
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups_FloorZero
+{
+00000008 $NpcGroup_Partners 00000000
+00000001 $NpcGroup_Rowf 00000000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroups
+{
+00000008 $NpcGroup_Partners 00000000
+00000001 $NpcGroup_Rowf 00000000
+00000001 $NpcGroup_Oaklie 00000000
+% Roguelike
+00000001 $NpcGroup_Rippo 00000000
+00000001 $NpcGroup_Dupli 00000000
+00000001 $NpcGroup_Toad 00000000
+%00000001 $NpcGroup_BlackRowf 3A010002 % unused - cut content
+00000000 00000000 00000000
+}
+
+%%
+%Partner
+%% 
+ 
+%%
+% Goombario
+%%
+
+#new:NpcGroup $NpcGroup_Partners
+{
+00000001 $Partner_Settings ~Vec3f:GoombarioSpawn
+00002809 $Init_NPC 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00010001 00010001 00010001 00010001 00010004 00010004 00010008 00010008 
+00010008 00010009 00010001 00010001 00010001 00010001 00010001 00010001 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Kooper
+%%
+00000002 $Partner_Settings ~Vec3f:KooperSpawn
+00C40B09 $Init_NPC 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00020003 00020006 00020006 00020009 0002000A 0002000B 0002000D 0002000D
+00020010 00020010 00020010 00020010 00020010 00020010 00020010 00020010 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Bombette
+%%
+00000003 $Partner_Settings ~Vec3f:BombetteSpawn
+00000D01 $Init_NPC 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00030009 00030009 00030009 00030009 00030009 00030009 00030009 00030009 
+00030009 00030009 00030009 00030009 00030009 00030009 00030009 00030009 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Parakarry
+%
+00000004 $Partner_Settings ~Vec3f:ParakarrySpawn
+00200D09 $Init_NPC 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00040001 00040002 00040003 00040003 00040001 00040001 00040000 00040000 
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Bow
+%%
+00000005 $Partner_Settings ~Vec3f:BowSpawn
+00000801 $Init_NPC 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Watt
+%%
+00000006 $Partner_Settings ~Vec3f:WattSpawn
+00000D09 $Init_NPC 00000001 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Sushie
+%%
+00000007 $Partner_Settings ~Vec3f:SushieSpawn
+00400F09 $Init_NPC 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00000000 00000000 00000000 00000000 % no tattle string
+%%
+%Lakilester
+%%
+%#new:NpcGroup $NpcGroup_Partners
+00000008 $Partner_Settings ~Vec3f:LakilesterSpawn
+00040F05 $Init_NPC 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00000000 00000000 00000000 00000000 % no tattle string%/
+}
+  
+%%
+% Rowf
+%%
+
+#new:NpcGroup $NpcGroup_Rowf
+{
+00000009 $Rowf_Settings ~Vec3f:RowfSpawn
+00002D09 $InitShopper 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 
+00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 00A70009 
+00000000 00000000 00000000 $ShopperTattle % tattle string
+}
+
+#new:NpcSettings $Rowf_Settings
+{
+00000000 00280018 00000000 00000000 $Script_AI_Rowf 00000000
+00000000 00000000 00000000 00000000 00630000
+}
+
+#new:Script $Script_AI_Rowf
+{
+	SetGroup 2
+	Call	SetNpcSpeed	( .Npc:Self *Fixed[0.3] )
+	Call	GetNpcPos	( .Npc:Self *Var[A] *Var[B] *Var[C] )
+	Set		*Var[D] *Var[A]
+	Sub		*Var[D] 10`
+	Loop
+		Call	SetNpcAnimation 	( .Npc:Self 00A70009 )
+		Wait	15` 
+		Call	SetNpcAnimation 	( .Npc:Self 00A7000A )
+		Call	NpcMoveTo   		( .Npc:Self *Var[D] *Var[C] 0 )
+		Call	SetNpcAnimation 	( .Npc:Self 00A70009 )
+		Wait	15`
+		Call	SetNpcAnimation 	( .Npc:Self 00A7000A )
+		Call	NpcMoveTo   		( .Npc:Self *Var[A] *Var[C] 0 )
+	EndLoop
+	Return
+	End
+}
+
+
+#new:Script $InitShopper
+{
+   	Call     BindNpcInteract 	( .Npc:Self $ShopperInteraction )
+   	Return
+   	End
+}
+
+
+#new:Script $GotItem
+{
+    Call     ShowGotItem 	( *Var[0] 00000001 00000000 )
+   	Return
+   	End
+}
+
+%%
+% Oaklie
+%%
+#new:NpcGroup $NpcGroup_Oaklie
+{
+0000000A $BlankSettings ~Vec3f:NPC_Oaklie
+00A40D01 $Script_Init_Oaklie_ChestFloor 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00000000 00000000 00000000 $Tattle_Oaklie
+}
+
+#string $Tattle_Oaklie
+{
+[STYLE:TATTLE][...]
+He is Oaklie, he will help in
+making us stronger in exchange
+for some coins.
+[WAIT][NEXT][...]
+However, if you require any of his
+other services you will need to talk
+to him in the main Lobby.
+[WAIT][END]
+}
+
+
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_Oaklie_ChestFloor
+{
+	Return
+	End
+}
+
+%%
+% Rippo
+%%
+#new:NpcGroup $NpcGroup_Rippo
+{
+0000000B $BlankSettings ~Vec3f:NPC_Oaklie
+00A40D01 $Script_Init_Rippo 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 
+00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 00A60001 
+00000000 00000000 00000000 $Tattle_Rippo
+}
+
+#string $Tattle_Rippo
+{
+[STYLE:TATTLE][...]
+[Func_2B]He is Rippo he can upgrade
+your HP or FP levels.
+[WAIT][NEXT][...]
+Just bear in mind the other one will
+get decreased too.
+[WAIT][END]
+}
+
+#new:Script $Script_Init_Rippo
+{
+Call     BindNpcInteract	( .Npc:Self $Script_Interact_Rippo )
+Return
+End
+}
+
+%%
+% Dupli
+%%
+#new:NpcGroup $NpcGroup_Dupli
+{
+0000000C $BlankSettings ~Vec3f:NPC_Oaklie
+00A40D01 $Script_Init_Dupli 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 
+004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 004E0002 
+00000000 00000000 00000000 $Tattle_Dupli
+}
+
+#string $Tattle_Dupli
+{
+[STYLE:TATTLE][...]
+[Func_2B]He is Dupli.
+He can give you the chance
+to get x2 coins on your next
+battles.
+[WAIT][NEXT][...]
+For a specific amount of
+floors, just keep in mind,
+Action Commands will get
+disabled on that time.
+[WAIT][NEXT][...]
+Maybe this can be a good
+time to farm coins.
+[WAIT][NEXT][...]
+This can be useful for a
+lot of other things besides
+just the Roguelike Pit.
+[WAIT][END]
+}
+
+#new:Script $Script_Init_Dupli
+{
+Call     BindNpcInteract	( .Npc:Self $Script_Interact_Dupli )
+Return
+End
+}
+
+%%
+% Toad
+%%
+#new:NpcGroup $NpcGroup_Toad
+{
+0000000D $BlankSettings ~Vec3f:NPC_Oaklie
+00A40D01 00000000 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00650001 00650001 00650001 00650001 00650001 00650001 00650001 00650001 
+00650001 00650001 00650001 00650001 00650001 00650001 00650001 00650001 
+00000000 00000000 00000000 00000000
+}
+
+%%
+% Black Rowf % Unused
+%%
+
+/%#new:NpcGroup $NpcGroup_BlackRowf
+0000000A $BRowf_Settings {Vec3f:BRowfSpawn}
+00002D01 00000000 00000000 00000000 0000005A 
+{NoItems} {NoHP} {NoFP} {NoCoinBonus} {NoMovement}
+00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 
+00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 00A7000E 
+00000000 00000000 00000000 $BRowfTattle % tattle string
+
+#new:NpcSettings $BRowf_Settings
+00000000 00280018 00000000 
+$Init_BRowf
+00000000 00000000 00000000 
+00000000 00000000 00630000
+	
+	#new:Script $Init_BRowf
+   90:  Call     SpeakToPlayer 	( .Npc:Self 00A70010 00A7000E 00000000 $Init-BRowf ) % variable string ID
+   B0:  Label    00000000 
+   BC:  Call     ShowCoinCounter 	( .True )
+   CC:  Call     ShowChoice  	( 001E0001 ) % Buy Don't buy 
+   DC:  If  *Var[0]  !=  00000000 
+   EC:  	Call     ShowCoinCounter 	( .False )
+			Call     ContinueSpeech 	( .Npc:Self 00A70010 00A7000E 00000000 $No-BRowf ) 
+  11C:  	Return
+  124:  EndIf
+  12C:  Call     $LoadCoins_BRowf ( *Var[0] )
+  13C:  If  *Var[0]  ==  00000000 
+  14C:  	Call     ShowCoinCounter 	( .False )
+  15C:  	Call     ContinueSpeech 	( .Npc:Self 00A70010 00A7000E 00000000 $NoMoney-BRowf ) 
+  17C:  	Return
+  184:  EndIf
+		Call     AddCoin     	( -40` )
+						Call     $InventoryAvailability ( )
+  2D8:  		If  *Var[0]  <=  00000000 
+  2F8:  			Call     ContinueSpeech 	( .Npc:Self 00A70010 00A7000E 00000000 $NoInventory-BRowf ) 
+					Call     AddCoin     	( 40` )
+					Call     ShowCoinCounter 	( .False )
+  318:  			Return
+  320:  		EndIf
+		Call     ContinueSpeech 	( .Npc:Self 00A70010 00A7000E 00000000 $Init2-BRowf )
+		WaitSeconds  1
+		Call     SpeakToPlayer 	( .Npc:Self 00A70010 00A7000E 00000000 $Init3-BRowf )
+		Call     RandInt     	( 100` *MapVar[4] ) % This Rowf use RNG porcentages like the Badge Chest
+%		%%1%%
+  1A8:  If  *MapVar[4]  >= 95` % 5% chance
+  1D0:  		Call     ShowCoinCounter 	( .False )
+  1FC:  		Set  *Var[0]  B4 % Item 1 - Jelly Ultra
+  21C:  		ExecWait $GetItem_BRowf 
+		Else
+%		%%2%%
+			If *MapVar[4]  >= 80` % 15% chance 
+  254:  		Call     ShowCoinCounter 	( .False )
+				Call 	 RandInt ( 1 *Var[0] ) % 50% chance
+				Switch *Var[0]
+					Case == 0
+			280:  		Set  *Var[0]  8E % Item 2-1 - Ultra Shroom
+					Case == 1
+			280:  		Set  *Var[0]  A2 % Item 2-2 - Jammin Jelly
+				EndSwitch
+  2A0:  		ExecWait $GetItem_BRowf 
+			Else
+%		%%3%%
+				If *MapVar[4]  >= 55` % 25% chance 
+				Call     $InventoryAvailability ( )
+  254:  		Call     ShowCoinCounter 	( .False )
+  280:  		Set  *Var[0]  8A % Item 3 - Mushroom
+  2A0:  		ExecWait $GetItem_BRowf 
+				Else
+%		%%4%%
+					If *MapVar[4]  >= 0` % 55% chance 
+				Call     $InventoryAvailability ( )
+  254:  		Call     ShowCoinCounter 	( .False )
+  280:  		Set  *Var[0]  8D % Item 4 - Dried Shroom
+  2A0:  		ExecWait $GetItem_BRowf 
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+  3D4:  Call     SpeakToPlayer 	( .Npc:Self 00A70010 00A7000E 00000000 $Bye-BRowf ) 
+  3F4:  Goto     00000000 
+  400:  Return
+  408:  End
+  
+  #string $Init-BRowf
+[STYLE:RIGHT][...]
+Hey, you wanna buy something?
+I have the rarest items for the
+best prices.
+{Func_04}[END]
+
+#string $Init2-BRowf
+[NEXT][...]
+Let me see what I have here...
+[WAIT][END]
+
+#string $Init3-BRowf
+[STYLE:RIGHT][...]
+Got it!
+[WAIT][END]
+
+#string $NoMoney-BRowf
+[NEXT][...]
+Hold on! You don't have enough
+money, pal.
+[WAIT][END]
+
+#string $No-BRowf
+[NEXT][...]
+[END]
+
+#string $NoInventory-BRowf
+[NEXT][...]
+Hold on! You don't have enough
+space, in your inventory, pal.
+[WAIT][END]
+
+#string $Bye-BRowf
+[STYLE:RIGHT][...]
+Thanks pal, want to give
+it another try? Maybe you will
+have a better luck this time.
+{Func_04}[END]
+
+#string $BRowfTattle
+[STYLE:TATTLE][...]
+That's is Rowf, the
+mearchant? I guess maybe he
+wanted a new style?
+[WAIT][NEXT][...]
+It looks like he just sell one
+random item from his backpack
+but it looks like almost everything
+[WAIT][NEXT][...]
+is just garbage, I would not
+risk my money, if I would be
+you Mario.
+[WAIT][END]
+  
+	
+	#new:Script $GetItem_BRowf
+    0:  Call     ShowGotItem 	( *Var[0] 00000001 00000000 )
+		Call     AddItem     	( *Var[0] *Var[B] )
+   18:  Return
+   00:  Return
+   28:  End
+	
+#new:Function $LoadCoins_BRowf
+    0:  LAH       A2, 8010F29C
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        RA, 10 (SP)
+   10:  LW        V0, C (A0)
+   14:  SLTI      A2, A2, 28
+   18:  LW        A1, 0 (V0)
+   1C:  JAL       {Func:set_variable}
+   20:  XORI      A2, A2, 1
+   24:  LW        RA, 10 (SP)
+   28:  ADDIU     V0, R0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18%/
+
+%%   
+%Funtions   
+%%
+
+#new:Function $EnableInputs
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:get_entity_by_index
+    C:  LW        A0, 84 (A0)
+   10:  LW        A0, 40 (V0)
+   14:  ADDIU     V1, R0, 1
+   18:  SB        V1, 30 (A0)
+   1C:  LW        RA, 10 (SP)
+   20:  ADDIU     V0, R0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+#string $SignStringExit
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+[UP] Return to Entrance[DelayOn][WAIT][END]
+}
+
+#string $SignStringExit_Demo
+{
+[DelayOff][STYLE:SIGN][...]
+You have finished the demo
+congratulations!
+[WAIT][NEXT][...]
+I hope you had fun!
+[WAIT][NEXT][...]
+In the meantime, you can
+try to get better times!
+[WAIT][NEXT][...]
+If you have any suggestion
+remember to contact me on
+Discord :)
+[WAIT][NEXT][...]
+You can find more info on the
+1st Sign of the Main Lobby.
+[WAIT][NEXT][...]
+Launch Date: 2020 Q4
+[DelayOn][WAIT][END]
+}
+
+#string $ShopperWelcome
+{
+[STYLE:RIGHT][...]
+Hey hey [StartFX:Shrinking]HEY-YO![EndFX:Shrinking] I've got [StartFX:Shrinking]ALL[EndFX:Shrinking]
+the hottest new products
+right here. Look no further!
+[WAIT][NEXT][...]
+You got the fevered look of
+a man with a mind for goods!
+Wanna buy something?
+[Func_04][END]
+}
+
+#string $ShopperAccepted
+{
+[NEXT][...]
+What do you want?[WAIT][END]
+}
+
+#string $ShopperCancel
+{
+[NEXT][...]
+Ahh... Did you change your mind?
+[PAUSE:0A][...]
+You're an indecisive guy!
+[WAIT][END]
+}
+
+#string $ShopperBye1
+{
+[STYLE:RIGHT][...]
+[NEXT][...]
+Oh, not interested, my man?
+That's too bad, seriously...
+[PAUSE:0A][...]
+It's all hot...[PAUSE:05]I mean rare...[PAUSE:05][StartFX:Shrinking]stuff![EndFX:Shrinking]
+[WAIT][NEXT][...]
+And you never know when
+you're gonna wish you had
+some of this gear, my man...
+[WAIT][END]
+}
+
+#string $ShopperBye2
+{
+[NEXT][...]
+Oh, not interested, my man?
+That's too bad, seriously...
+[PAUSE:0A][...]
+It's all hot...[PAUSE:05]I mean rare...[PAUSE:05][StartFX:Shrinking]stuff![EndFX:Shrinking]
+[WAIT][NEXT][...]
+And you never know when
+you're gonna wish you had
+some of this gear, my man...
+[WAIT][END]
+}
+
+
+#string $ShopperBuying
+{
+[STYLE:RIGHT][...]
+That's my man, right there!
+You've got an eye for quality,
+and that's no lie!
+[WAIT][NEXT][...]
+That [Var:00] is goin
+for a low price of [Var:01] coins!
+Wanna buy it?
+[Func_04][END]
+}
+
+#string $AfterBuying
+{
+[STYLE:RIGHT][...]
+Thank you [StartFX:Shrinking]SO[EndFX:Shrinking] very much!
+And I've still got oodles
+of super-hot items for you!
+[WAIT][NEXT][...]
+Wanna see?
+[Func_04][END]
+}
+
+#string $Rowf_NoSpace
+{
+[NEXT][...]
+Oh, this is unfortunate...
+[PAUSE:0A][...]
+You have too much stuff!
+[WAIT][NEXT][...]
+Try coming back after you
+get rid of some items.
+[WAIT][END]
+}
+
+#string $NoCoins
+{
+[NEXT][...]
+[PAUSE:0A][...]
+Whoa whoa whoa [StartFX:Shrinking]WHOA![EndFX:Shrinking]
+You don't have any coins,
+[PAUSE:0A][...]
+my man.[WAIT][END]
+}
+
+#string $ShopperTattle
+{
+[STYLE:TATTLE][...]
+That's Rowf, the
+merchant. I guess he sells his
+wares here, too.
+[WAIT][NEXT][...]
+But...it looks like his stuff
+gets more expensive the
+deeper he is in the pit
+[WAIT][NEXT][...]
+I'm happy to be able to shop
+here and all, but sheesh...
+Well, it's your money.
+[WAIT][END]
+}
+
+#string $CloseDialogBubble
+{
+[NEXT][...]
+[END]
+}

@@ -1,0 +1,336 @@
+% This file has all global data used for the stylish mechanic
+
+% Display "Super" and add SP to the player
+%
+% writes in vars0-8
+%
+% [!] VarA = Don't give SP (bool)
+#new:Script:Battle $Script_DoStylishFX
+{
+    Set     *Flag_Cheev_Global_26 .True
+    Exec    $Script_Cheev_Global_28
+    % Get Badges Equipped
+    Call    $Function_GetFocusBadges ( *Var[7] *Var[8] ) % DeepFocus  GroupFocus
+    % var7 = Amount of DeepFocus Equipped
+    % var8 = GroupFocus bool
+    %Call    PlaySoundAtActor  ( .Actor:Self 0241 ) % focus
+    If *Flag_DisableFanfare == .False
+        Call	PlaySound		( 008A ) % Fan Fare
+    EndIf
+    Call    GetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Set     *Var[4] *Var[0] % copy x cords in var4
+    Set     *Var[3] *Var[2] % copy z cords in var3
+    Sub		*Var[4] 20` % "super" x pos
+    Sub		*Var[3] 5   % "super" z pos
+    Add		*Var[1] 20` % star fx y pos
+    Call    $ReadAddress   ( $Data_Inputs 0 *Var[5] 2 .False ) % Load Amount of Stylish made on this move
+    Switch *Var[5]
+        Case <= 1 % Nice
+            Call    PlayEffect  	( ~FX:TextPopup:Nice *Var[4] *Var[1] *Var[3] 7 20` )
+        Case == 2 % Good
+            Call    PlayEffect  	( ~FX:TextPopup:Good *Var[4] *Var[1] *Var[3] 7 20` )
+        Case >= 3 % Super
+            Call    PlayEffect  	( ~FX:TextPopup:Super *Var[4] *Var[1] *Var[3] 7 20` )
+    EndSwitch
+    % Sound
+    Switch  *Var[5]
+        Case <= 1
+            Call	PlaySound ( 0251 )
+        Case == 2
+            Call	PlaySound ( 0252 )
+        Case == 3
+            Call	PlaySound ( 0253 )
+        Case == 4
+            Call	PlaySound ( 0254 )
+        Case == 5
+            Call	PlaySound ( 0255 )
+        Case == 6
+            Call	PlaySound ( 0256 )
+        Case >= 7
+            Call	PlaySound ( 0257 )
+    EndSwitch
+    % Show Star FX?
+    % Check if this move gave enough SP already
+    If *Var[A] == .True
+        Return
+    EndIf
+    Call    $ReadAddress   ( 8010F51E 0 *Var[3] .False .False ) % Load Star Spirits Rescued
+    If *Var[3] != 0 % Don't show if the player doesn't even have any Star Spirit rescued
+        Call $ReadAddress ( 8010F520 1 *Var[4] .False .False ) % Load Star Power (2 Bytes)
+        Set  *Var[5] *Var[4]
+        % Get amount of SP to give
+        % var7 = Amount of DeepFocus Equipped
+        % var8 = GroupFocus bool
+        Call  GetOwnerID    ( *Var[9] )
+        If  *Var[9]  ==  .Actor:Player % 0
+            Set *Var[6] 10
+            Add *Var[7] 1
+            Mul *Var[6] *Var[7]
+            Add *Var[4] *Var[6]
+        Else % Partner
+            If *Var[8] == .True
+                Add *Var[4] 30
+            Else
+                Add *Var[4] 10
+            EndIf
+        EndIf
+        % Check if the player will get max sp
+        /%
+        Var[3] = Star Spirits
+        Var[4] = Star Power (New value to save)
+        Var[5] = Star Power
+        %/
+        Switch *Var[3] % star spirits
+            Case == 1
+                If *Var[4] >= 100
+                    Set *Var[4] 100
+                EndIf
+            Case == 2
+                If *Var[4] >= 200
+                    Set *Var[4] 200
+                EndIf
+            Case == 3
+                If *Var[4] >= 300
+                    Set *Var[4] 300
+                EndIf
+            Case == 4
+                If *Var[4] >= 400
+                    Set *Var[4] 400
+                EndIf
+            Case == 5
+                If *Var[4] >= 500
+                    Set *Var[4] 500
+                EndIf
+            Case == 6
+                If *Var[4] >= 600
+                    Set *Var[4] 600
+                EndIf
+            Case == 7
+                If *Var[4] >= 700
+                    Set *Var[4] 700
+                EndIf
+        EndSwitch
+        % Add Star Power
+        If *Var[4] != *Var[5] % only show the fx if the player actually got more sp
+            Call    PlayEffect  	( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+        EndIf
+        Call    $WriteAddress ( 8010F520 1 *Var[4] .False .False ) % save star power
+    EndIf
+    % Total Stylish Made counter
+    Call    $ReadAddress ( 80356147 0 *Var[0] .False .False ) % load *TotalStylishMoves
+    If *Var[0] != FF
+        If *Flag_StylishTutorial == .False
+            Add     *Var[0] 1
+            Call    $WriteAddress ( 80356147 0 *Var[0] .False .False )
+            If *Var[0] == 250`
+                Set *Flag_Cheev_Global_27 .True
+            EndIf
+        EndIf
+    EndIf
+    Return
+    End
+}
+
+% TRACK A BUTTON
+% Save a bool as true if the input got pressed at any time
+/%
+Why not just using ReadBitFlag? to track the A button?
+
+Can be done in this approach too, but i have found some frames
+always get lost when you track when using scripting
+
+I think is good to use when isn't really crucial stuff, like
+when skipping a cutscene for example, but I think for this
+will be better to track all inputs perfectly.
+%/
+#new:Script:Battle $Script_InitTracker
+{
+% Init Tracker
+% Nuke All tracker Data* , Except Input Bool and Stylish Moves landed in a row counter
+Call $WriteAddress ( $Data_Inputs 0 0 1 .False )
+Call $WriteAddress ( $Data_Inputs 0 0 3 .False )
+Call $WriteAddress ( $Data_Inputs 2 0 4 .False )
+% Set Data to Track
+Call $WriteAddress ( $Data_Inputs 0 80 1 .False ) % 80 = A button
+Call $WriteAddress ( $Data_Inputs 2 80074036 4 .False ) % Track one time inputs
+Set *TrackInput .True % start tracker
+Return
+End
+}
+
+% Nuke ALL data related to the tracker
+#new:Script:Battle $Script_NukeTracker
+{
+Set  *TrackInput .False
+Call $WriteAddress ( $Data_Inputs 2 0 0 .False )
+Call $WriteAddress ( $Data_Inputs 2 0 4 .False )
+Return
+End
+}
+
+% Timing Tutor Badge - Show some particles when the player can do an stylish move
+% [!] Writes in Vars 0,1,2
+#new:Script:Battle $Script_TimingTutor
+{
+Set *Var[0] 012D % Badge ID
+ExecWait $IsBadgeEquipped_Script
+% The player is in the stylish tutorial?
+If *Flag_StylishTutorial == .True
+    Set *Var[0] .True % always show the ! bubbles
+EndIf
+If *Var[0] == .True % Badge Equipped
+    Call    GetActorPos ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 18`
+    Call    PlayEffect  ( ~FX:EmoteIcon:Exclaim 0 *Var[0] *Var[1] *Var[2] 16` 85` 3 ) % npcID, dX/dY/dZ, radius, pitch, duration
+    %Call    PlayEffect  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 2 ) % X/Y/Z, emitter radius, emitter height, num particles
+EndIf
+Return
+End
+}
+
+% Call  $Function_GetFocusBadges ( DeepFocusAmount GroupFocusAmount )
+#new:Function $Function_GetFocusBadges
+{
+    PUSH    RA, S0, S1, S2, S3
+    % Load and save args in S1 and S2
+    LW      S0, C (A0)
+    LW      S1, 0 (S0) % load arg1
+    LW      S2, 4 (S0) % load arg2
+    LIO     T0, 8010F498 % badge inventory - start
+    LIO     T4, 8010F512 % badge inventory - end
+    ORI     T1, R0, 0129 % .Item:DeepFocus1
+    ORI     T3, R0, 0 % Deep focus amount
+    .ReadNextSlot1
+    LHU     T2, 0 (T0)
+    BEQL    T1, T2, .DeepFocus2
+    ADDIU   T3, T3, 1
+    % check next slot
+    ADDIU   T0, T0, 2
+    % Is the last slot?
+    BNE     T0, T4, .ReadNextSlot1
+    NOP
+    .DeepFocus2
+    ORI     T1, R0, 0132 % .Item:DeepFocus2
+    LIO     T0, 8010F498 % badge inventory - start
+    .ReadNextSlot2
+    LHU     T2, 0 (T0)
+    BEQL    T1, T2, .DeepFocus3
+    ADDIU   T3, T3, 1
+    % check next slot
+    ADDIU   T0, T0, 2
+    % Is the last slot?
+    BNE     T0, T4, .ReadNextSlot2
+    NOP
+    .DeepFocus3
+    ORI     T1, R0, 0133 % .Item:DeepFocus3
+    LIO     T0, 8010F498 % badge inventory - start
+    .ReadNextSlot3
+    LHU     T2, 0 (T0)
+    BEQL    T1, T2, .GroupFocus
+    ADDIU   T3, T3, 1
+    % check next slot
+    ADDIU   T0, T0, 2
+    % Is the last slot?
+    BNE     T0, T4, .ReadNextSlot3
+    NOP
+    .GroupFocus
+    ORI     T1, R0, 0143 % .Item:GroupFocus
+    LIO     T0, 8010F498 % badge inventory - start
+    CLEAR   T5
+    .ReadNextSlot4
+    LHU     T2, 0 (T0)
+    BEQL    T1, T2, .SaveOut
+    ADDIU   T5, R0, 1
+    % check next slot
+    ADDIU   T0, T0, 2
+    % Is the last slot?
+    BNE     T0, T4, .ReadNextSlot4
+    NOP
+    .SaveOut
+    % S1 = arg1
+    % S2 = arg2
+    % T3 = Deep Focus Amount
+    % T5 = Group Focus Amount
+    COPY    S3, T5 % push T5
+    % save *out 1
+    COPY    A1, S1
+    JAL     ~Func:set_variable
+    COPY    A2, T3
+    % save *out 2
+    COPY    A1, S2
+    JAL     ~Func:set_variable
+    COPY    A2, S3
+    POP     RA, S0, S1, S2, S3
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Script $Script_Cheev_Global_28
+{
+    % Check if is time to set this challenge as completed
+    Set *Var[0] *Flag_Stylish_Mario_Jump
+    Add *Var[0] *Flag_Stylish_Mario_Multibounce
+    Add *Var[0] *Flag_Stylish_Mario_PowerBounce
+    Add *Var[0] *Flag_Stylish_Mario_SleepStomp
+    Add *Var[0] *Flag_Stylish_Mario_DizzyStomp
+    Add *Var[0] *Flag_Stylish_Mario_JumpCharge
+    Add *Var[0] *Flag_Stylish_Mario_SuperJumpCharge
+    Add *Var[0] *Flag_Stylish_Mario_PowerJump
+    Add *Var[0] *Flag_Stylish_Mario_MegaJump
+    Add *Var[0] *Flag_Stylish_Mario_DDownJump
+    Add *Var[0] *Flag_Stylish_Mario_ShrinkJump
+    Add *Var[0] *Flag_Stylish_Mario_Hammer
+    Add *Var[0] *Flag_Stylish_Mario_SpinSmash
+    Add *Var[0] *Flag_Stylish_Mario_DDownPound
+    Add *Var[0] *Flag_Stylish_Mario_HammerThrow
+    Add *Var[0] *Flag_Stylish_Mario_SmashCharge
+    Add *Var[0] *Flag_Stylish_Mario_SuperSmashCharge
+    Add *Var[0] *Flag_Stylish_Mario_QuakeHammer
+    Add *Var[0] *Flag_Stylish_Mario_PowerQuake
+    Add *Var[0] *Flag_Stylish_Mario_MegaQuake
+    Add *Var[0] *Flag_Stylish_Mario_PowerSmash
+    Add *Var[0] *Flag_Stylish_Mario_MegaSmash
+    % Partners
+    Add *Var[0] *Flag_Stylish_Partner_Goombario_Headbonk
+    Add *Var[0] *Flag_Stylish_Partner_Goombario_Tattle
+    Add *Var[0] *Flag_Stylish_Partner_Goombario_Charge
+    Add *Var[0] *Flag_Stylish_Partner_Goombario_Multibonk
+    Add *Var[0] *Flag_Stylish_Partner_Kooper_ShellToss
+    Add *Var[0] *Flag_Stylish_Partner_Kooper_PowerShell
+    Add *Var[0] *Flag_Stylish_Partner_Kooper_DizzyShell
+    Add *Var[0] *Flag_Stylish_Partner_Kooper_FireShell
+    Add *Var[0] *Flag_Stylish_Partner_Bombette_BodySlam
+    Add *Var[0] *Flag_Stylish_Partner_Bombette_Bomb
+    Add *Var[0] *Flag_Stylish_Partner_Bombette_PowerBomb
+    Add *Var[0] *Flag_Stylish_Partner_Bombette_MegaBomb
+    Add *Var[0] *Flag_Stylish_Partner_Parakarry_SkyDive
+    Add *Var[0] *Flag_Stylish_Partner_Parakarry_ShellShot
+    Add *Var[0] *Flag_Stylish_Partner_Parakarry_AirLift
+    Add *Var[0] *Flag_Stylish_Partner_Parakarry_AirRaid
+    Add *Var[0] *Flag_Stylish_Partner_Bow_Smack
+    Add *Var[0] *Flag_Stylish_Partner_Bow_OuttaSight
+    Add *Var[0] *Flag_Stylish_Partner_Bow_Spook
+    Add *Var[0] *Flag_Stylish_Partner_Bow_FanSmack
+    Add *Var[0] *Flag_Stylish_Partner_Watt_ElectroDash
+    Add *Var[0] *Flag_Stylish_Partner_Watt_PowerShock
+    Add *Var[0] *Flag_Stylish_Partner_Watt_TurboCharge
+    Add *Var[0] *Flag_Stylish_Partner_Watt_MegaShock
+    Add *Var[0] *Flag_Stylish_Partner_Sushie_BellyFlop
+    Add *Var[0] *Flag_Stylish_Partner_Sushie_Squirt
+    Add *Var[0] *Flag_Stylish_Partner_Sushie_WaterBlock
+    Add *Var[0] *Flag_Stylish_Partner_Sushie_TidalWave
+    Add *Var[0] *Flag_Stylish_Partner_Lakilester_SpinyFlip
+    Add *Var[0] *Flag_Stylish_Partner_Lakilester_SpinySurge
+    Add *Var[0] *Flag_Stylish_Partner_Lakilester_CloudNine
+    Add *Var[0] *Flag_Stylish_Partner_Lakilester_Hurricane
+    If *Var[0] == 54`
+        Set *Flag_Cheev_Global_28 .True
+    EndIf
+    Return
+    End
+}
+
+#export $Script_DoStylishFX
+#export $Script_InitTracker
+#export $Script_NukeTracker
+#export $Script_TimingTutor

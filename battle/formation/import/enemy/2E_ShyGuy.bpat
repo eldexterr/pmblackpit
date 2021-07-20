@@ -1,0 +1,166 @@
+% Automatically dumped from section 2E
+
+#new:Actor $2E_ShyGuy {
+% stats
+[Index]        AEb 
+[Level]         0`b 
+[MaxHP]        10`b 
+[Coins]         0`b 
+[Flags]       00040004 
+[StatusTable] $StatusTable_8023100C_2E 
+% ai
+[PartsCount]    9`s 
+[PartsTable]  $PartsTable_802310B8_2E 
+[Script]      $Script_Init_80231280_2E 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]  80`b 
+[SpinSmash]     4`b % weight (0-4)
+% ui positions
+[Size]         30`b  30`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  20`b % dx dy
+[StatusIcon]   10`b  20`b % dx dy
+}
+
+#new:DefenseTable $DefenseTable_80231000_2E {
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:StatusTable $StatusTable_8023100C_2E {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep       0`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       0`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    0`
+.Status:Shrink      0`
+.Status:Stop        0`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_802310B8_2E {
+00820001 01000000 001800FF 00000000 $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 02000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 03000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 04000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 05000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 06000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 07000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 08000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+00120000 09000000 001800FF $IdleAnimations_80231224_2E $DefenseTable_80231000_2E 00000000 00000000 00000000 00000000 
+}
+
+#new:IdleAnimations $IdleAnimations_80231224_2E {
+.Status:Normal    00780001
+.Status:Stone     00780000
+.Status:Sleep     00780000
+.Status:Poison    00780001
+.Status:Stop      00780000
+.Status:Static    00780000
+.Status:Paralyze  00780000
+.Status:Paralyze  00780000
+.Status:Dizzy     00780001
+.Status:Dizzy     00780001
+.Status:Fear      00780000
+.Status:End
+}
+
+#new:Script $Script_Init_80231280_2E {
+    Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8023173C_2E )
+    Call  BindIdle  ( .Actor:Self $Script_Idle_802315EC_2E )
+    Call  BindHandleEvent       ( .Actor:Self $Script_HandleEvent_8023172C_2E )
+    Call  SetPartMovementVar    ( .Actor:Self 00000002 00000000 00000000 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000002 00000001 FFFFFFF6 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000003 00000000 0000000A )
+    Call  SetPartMovementVar    ( .Actor:Self 00000003 00000001 FFFFFFE2 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000004 00000000 0000000A )
+    Call  SetPartMovementVar    ( .Actor:Self 00000004 00000001 0000000A )
+    Call  SetPartMovementVar    ( .Actor:Self 00000005 00000000 00000014 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000005 00000001 FFFFFFF6 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000006 00000000 0000001E )
+    Call  SetPartMovementVar    ( .Actor:Self 00000006 00000001 0000000A )
+    Call  SetPartMovementVar    ( .Actor:Self 00000007 00000000 0000001E )
+    Call  SetPartMovementVar    ( .Actor:Self 00000007 00000001 FFFFFFE2 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000008 00000000 00000028 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000008 00000001 FFFFFFF6 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000009 00000000 00000032 )
+    Call  SetPartMovementVar    ( .Actor:Self 00000009 00000001 0000000A )
+    Set   *Var[0]  00000002 
+    Loop  00000008 
+        Call  SetPartPos    ( .Actor:Self *Var[0] 000000B9 00000000 0000002F )
+        Add   *Var[0]  00000001 
+    EndLoop
+    Call  ForceHomePos  ( .Actor:Self 00000014 00000000 FFFFFFF6 )
+    Call  HPBarToHome   ( .Actor:Self )
+    Set   *Var[0]  00000002 
+    Set   *Var[1]  00780003 
+    Set   *Var[4]  *Fixed[4.0] 
+    Set   *Var[5]  00000005 
+    Loop  00000008 
+        Thread
+            Call  GetPartMovementVar    ( .Actor:Self *Var[0] 00000000 *Var[2] )
+            Call  GetPartMovementVar    ( .Actor:Self *Var[0] 00000001 *Var[3] )
+            Set   *Var[5]  00000014 
+            ExecWait  $Script_80231620_2E 
+            Call  SetAnimation  ( .Actor:Self *Var[0] 00780001 )
+        EndThread
+        Add   *Var[0]  00000001 
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Idle_802315EC_2E {
+    Label  0
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_80231620_2E {
+    Call  GetPartOffset ( .Actor:Self *Var[0] *Var[6] 00000000 *Var[7] )
+    If  *Var[6]  <  *Var[2] 
+        Call  SetPartYaw    ( .Actor:Self *Var[0] 000000B4 )
+    Else
+        Call  SetPartYaw    ( .Actor:Self *Var[0] 00000000 )
+    EndIf
+    Call  GetDist2D ( *Var[9] *Var[6] *Var[7] *Var[2] *Var[3] )
+    If  *Var[9]  >=  *Var[4] 
+        Call  SetAnimation      ( .Actor:Self *Var[0] *Var[1] )
+        Call  SetPartMoveSpeed  ( .Actor:Self *Var[0] *Var[4] )
+        Call  RunPartTo ( .Actor:Self *Var[0] *Var[2] 00000000 *Var[3] *Var[5] )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_8023172C_2E {
+    Return
+    End
+}
+
+#new:Script $Script_TakeTurn_8023173C_2E {
+    Return
+    End
+}
+

@@ -1,0 +1,246 @@
+% This Script is the same as the one on SetSpawns.mpat, this one just use
+% a diferent method to handle NPC spawning, this Script is used just in a
+% few floors when I got some problems using the other method
+#new:Script $SetSpawnsSpecial
+{
+	Set .SpawningMethod .Special
+	/% Developer Code - To always Spawn a Mover %/
+	/%ExecWait	$Script_LoadMoverType
+	Set 		*MoverID 1 % Load a Mover in Specific (0=Normal/1=Bandit)
+	Exec	 	$Script_AddCoins
+	Exec		$Script_SpawnMover_Special
+	Return
+	%/
+	% Movers are disabled in the demo build and Roguelike Mode
+	SwitchConst .True
+		CaseOR == *Flag_Demo
+		CaseOR == *Flag_Mode_Rogue
+			ExecWait	$Script_Set_SpecialFormation
+			Return
+		EndCaseGroup
+	EndSwitch
+	If *Flag_Goombario == .False % If the player is still in the intro, don't spawn a mover
+		ExecWait	$Script_Set_SpecialFormation
+		Return
+	EndIf
+	If *MoverCounter == 0
+		ExecWait	$Script_SetMover_Special
+		Exec		$Script_CheckBanditStatus2 % Track if is time to start the Bandit Battle
+	Else % Use an Enemy instead of a Mover
+		Sub  *MoverCounter 1
+		ExecWait	$Script_Set_SpecialFormation
+	EndIf
+	Return
+	End
+}
+	
+#new:Script $Script_SetMover_Special
+{
+	ExecWait $Script_LoadOdds
+	Call $Function_Load_MapID ( *Var[1] )
+	If *Var[1] == 1 % Level 1
+		If .SpawningMethod == .Normal
+			ExecWait $Script_Set_Formation
+			Return
+		Else
+			ExecWait $Script_Set_SpecialFormation
+			Return
+		EndIf
+	EndIf
+	ExecWait $Script_LoadMoverType
+	Switch *BanditState
+		CaseOR == 2
+		CaseOR == 3
+			% Don't spawn a sack if the bandit spawned in the same floor you lost your coins when you're about to fight agaisnt him
+		EndCaseGroup
+		Default
+			Exec	 $Script_AddCoins % Check if Mario lost his coins on the current map to spawn the Sack too % from TrackBattle.mpat
+	EndSwitch
+	Exec	 $Script_SpawnMover_Special
+	Return
+	End
+}
+	
+#new:Script $Script_SpawnMover_Special
+{
+	Switch *MoverID
+		Case == 0 % Normal Mover
+			Call	 MakeNpcs		( 1 $NpcGroup7 )
+			Call     SetNpcPos   	( 6 -640` -13` 34` ) % Mover
+			Call	 NpcFacePlayer 	( 6 1 )
+		Case == 1 % Bandit Mover
+			Call	 MakeNpcs		( 1 $NpcGroup7 )
+			Call     SetNpcPos   	( 7 -640` -13` 34` ) % Bandit Mover
+			Call	 NpcFacePlayer 	( 7 1 )
+	EndSwitch
+	% 2 Switches will get spawned, the movers need the switch to be spawned before but
+	% Roguelike need to spawn the entites after the NPCs, so is what it is ¯\_(ツ)_/¯
+	ExecWait $Script_MakeEntities
+	ExecWait $SwitchPath
+	Return
+	End
+}
+	
+#new:Script $Script_Set_SpecialFormation
+{
+	Call	MakeNpcs ( 1 $NpcGroup1 )
+	% To load Random Enemy Formation
+	Call  	RandInt	( 2 *Var[0] )
+	If *Flag_Goombario == .False % If the player doesn't have goombario always use formation 1
+		Set *Var[0] 0
+	EndIf
+	% 1st 10 floors in roguelike always use formation #1
+	If	*Flag_Mode_Rogue == .True
+		If *PitMapID < 10`
+			Set *Var[0] 0
+		EndIf
+	EndIf
+	% On swoopula floor's don't spawn any of cealing formations on roguelike
+	If *Flag_Mode_Rogue == .True
+		Switch *PitMapID
+			CaseOR == 73`
+			CaseOR == 78`
+				Set *Var[0] 0
+			EndCaseGroup
+		EndSwitch
+	EndIf
+	%Set		*Var[0] 2	% Load always this Formation, for testing purposes
+	Call	$Function_OverwriteBattleID % from SetSpawns.mpat
+	% Set the Y coordinates for the enemy
+	Switch *PitMapID
+		CaseOR == 3`
+		CaseOR == 5`
+		CaseOR == 8`
+		CaseOR == 14`
+		CaseOR == 19`
+		CaseOR == 23`
+		CaseOR == 28`
+		CaseOR == 32`
+		CaseOR == 33`
+		CaseOR == 37`
+		CaseOR == 38`
+		CaseOR == 73`
+		CaseOR == 78`
+			Set		*Var[0] 43`	 % Flying NPC
+		EndCaseGroup
+		/%CaseOR == 14`
+		CaseOR == 19`
+		CaseOR == 73`
+		CaseOR == 78`
+			Set		*Var[0] 184` % Swoopula/Swoopers levels
+		EndCaseGroup%/
+		CaseOR == 51`
+		CaseOR == 56`
+		CaseOR == 63`
+		CaseOR == 68`
+		CaseOR == 75`
+			Set		*Var[0] -3` % LavaBubble/Ember & Ruff Puff
+		EndCaseGroup
+		/%CaseOR == 61`
+		CaseOR == 66`
+			Set		*Var[0] 70` % Lakitus
+		EndCaseGroup%/
+		Default
+			Set		*Var[0] -15` % Grounded NPC
+	EndSwitch
+	Switch	*PitMapID
+		% Tubblas/Lakitus Levels
+		CaseOR == 25`
+		CaseOR == 61`
+		CaseOR == 66`
+		CaseOR == 71`	% Is actually Gulpit but use the same script as Tubbla
+		CaseOR == 74`
+		CaseOR == 76`	% Is actually Gulpit but use the same script as Tubbla
+		CaseOR == 79`
+			Set	*MapVar[8] 0 % If player is at those Levels, set Var to 0 to set position just to NPC#0
+		EndCaseGroup
+		% Piranhas Levels
+		CaseOR == 21`
+		CaseOR == 26`
+		CaseOR == 42`
+		CaseOR == 47`
+		CaseOR == 52`
+		CaseOR == 57`
+		CaseOR == 64`
+		CaseOR == 69`
+			Set	*MapVar[8] 6 % If player is at those levels, set Var to 6 to set position just to NPC#6
+		EndCaseGroup
+		% Hammer Bros
+		%CaseOR == 35` % Removed because was crashing the game, I dunno way
+		CaseOR == 82`
+		CaseOR == 87`
+			Set	*MapVar[8] 32
+		EndCaseGroup
+		% Dry Bones Levels
+		CaseOR == 84`
+		CaseOR == 89`
+			Set	*MapVar[8] 0
+		EndCaseGroup
+	EndSwitch
+	Call    RandInt		( 17` *Var[F] )		% Random Spawn Point for the Enemy
+	/%%%	Developer Testing Code %%%
+	% Set the Enemy Spawn point to a specific location, depending on Mario Current Coints amount
+	ExecWait	$Script_SetSpawnPosition%/
+	ExecWait $Script_SetNPCPos	% from SetSpawns.mpat
+	Return
+	End
+}
+	
+	#new:Function $Function_LoadCoinsInToVar1
+{
+	PUSH 	A1, A2, V0, RA
+	LAH		A2, 8010F29C % Coins
+	LIO 	A1, *Var[1]
+	JAL 	~Func:set_variable 
+	RESERVED
+	POP 	A1, A2, V0, RA
+	JR		RA
+	NOP
+}
+	
+/%%% Developer Testing Code %%%
+% Set the Enemy Spawn point to a specific location, depending on Mario Current Coints amount%/
+#new:Script	$Script_SetSpawnPosition
+{
+	Call	$Function_LoadCoinsInToVar1
+	Switch	*Var[1]
+		Case == 0
+			Set		*Var[F]	0
+		Case == 1
+			Set		*Var[F]	1
+		Case == 2
+			Set		*Var[F]	2
+		Case == 3
+			Set		*Var[F]	3
+		Case == 4
+			Set		*Var[F]	4
+		Case == 5
+			Set		*Var[F]	5
+		Case == 6
+			Set		*Var[F]	6
+		Case == 7
+			Set		*Var[F]	7
+		Case == 8
+			Set		*Var[F]	8
+		Case == 9
+			Set		*Var[F]	9
+		Case == 10`
+			Set		*Var[F]	10`
+		Case == 11`
+			Set		*Var[F]	11`
+		Case == 12`
+			Set		*Var[F]	12`
+		Case == 13`
+			Set		*Var[F]	13`
+		Case == 14`
+			Set		*Var[F]	14`
+		Case == 15`
+			Set		*Var[F]	15`
+		Case == 16`
+			Set		*Var[F]	16`
+		Case == 17`
+			Set		*Var[F]	17`
+	EndSwitch
+	Return
+	End
+}

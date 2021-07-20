@@ -1,0 +1,2599 @@
+%% This patch cover mostly all code used in each pit map, to easily modify all maps at the same time
+%% Everything except for the Main Script and each enemy code, those are unique on each map .mpat file
+
+% Importing all other functions
+#import FallingDownPipe.mpat	%Load Mario script when he is arriving to a Map from a top pipe
+#import SetSpawns.mpat			%Set the Spawns coordinates for the Enemy and the Movers
+#import SetSpawnsSpecial.mpat	%A diferent method for spawning NPCs inside the pit, used in some levels
+#import TrackBattle.mpat		%Track and run the appropriate script if Mario was defeated/run-away/died from an enemy
+#import UsingPipeDown.mpat		%Load the script when Mario is about to use a pipe with a vertical exit
+#import MapLoader.mpat			%Load the next map to go, the Mover use a diferent one at SetSpawns.mpat
+#import SignStringLoader.mpat	%Load the sign string
+#import RoguelikeMode.mpat		%All code related to Roguelike
+
+#define .ChosenOption *Var[3]
+#define .Npc_Bandit 7
+% Partners: Talking | Idle - Animamtions
+#define .Goombario_Talking 	00010008
+#define .Goombario_Idle 	00010001
+#define .Kooper_Talking 	0002000D
+#define .Kooper_Idle 		00020003
+#define .Bombette_Talking 	0003000E
+#define .Bombette_Idle 		00030003
+#define .Parakarry_Talking 	00040006
+#define .Parakarry_Idle 	00040001
+#define .Bow_Talking 		00050004
+#define .Bow_Idle 			00050001
+#define .Watt_Talking 		00060004
+#define .Watt_Idle 			00060001
+#define .Sushie_Talking		00070004
+#define .Sushie_Idle 		00070001
+#define .Lakilester_Talking	00080009
+#define .Lakilester_Idle	00080001
+% Numbers
+#define .Number_Left *Var[2]
+#define .Number_Right *Var[3]
+#define .Number_0 21
+#define .Number_1 22
+#define .Number_2 23
+#define .Number_3 24
+#define .Number_4 25
+#define .Number_5 26
+#define .Number_6 27
+#define .Number_7 28
+#define .Number_8 29
+#define .Number_9 2A
+#define .Number_Extra FF
+#define .Number_Pos_Left  -7` % Left Digit
+#define .Number_Pos_Right  4  % Right Digit
+% Misc
+#define .Collider_Floor 0
+#define .Collider_PipeBody 6
+#define .Flag_PipeSpawning *MapFlag[22]
+% Events
+#define .Model:Events D7
+#define .Model:Events:Chill D4
+#define .Model:Events:Burn D5
+#define .Model:Events:Rain D6
+
+% Header
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000
+$Script_Main $EntryList 00000005 00000000		% $Main $EntryList EntryAmmount 0
+00000000 00000000 00000000 00000000
+00000000 00000000 80200000 $Function_GetTattle1 % 0 0 Background $Tattle % loaded from SignStringLoader.mpat
+}
+
+% Main2
+#new:Script $Script_Main2_Wait
+{
+Call	GetEntryID ( *Var[0] )
+If *Var[0] > 1 % Used only on the game ending
+	Exec $Script_Cutscene_Ruby_Init
+	Wait 5
+	Return
+EndIf
+% Disable Mario's Physics, on roguelike the map take longer to loads
+% so when the screen is still black you can hear how mario fall to the ground
+Call     DisablePlayerPhysics 	( .True )
+% Spawn NPCs
+Call    RandInt	( 200` *MapVar[0] ) % Use to spawn a Mover instead of an Enemy
+Call  	$Function_ResetEnemiesFlag % To always spawn an enemy if you arrive on any floor
+ExecWait $Script_SpawnNPCs
+ExecWait $Script_MakeEntities
+% Roguelike Mode Functions
+Call 	EnableGroup ( .Model_Group_Roguelike .False )  % Disable all Rogue Geometry
+Exec 	$Script_DisableColliders_Roguelike				% Disable all Rogue Colliders % from RoguelikeMode.mpat
+% Check if Roguelike is True
+If *Flag_Mode_Rogue == .True
+	ExecWait	$Script_Roguelike_GetSpawnAmount % from RoguelikeMode.mpat
+EndIf
+Return
+End
+}
+
+#new:Script $Script_Main2_Exec
+{
+Call	GetEntryID ( *Var[0] )
+If *Var[0] > 1 % Used only on the game ending
+	Return
+EndIf
+Exec    $Script_MakeExits
+Exec	$Script_SetPipesPosition % Enable/Disable Pipes blue or green
+Exec 	$CommingDownPipe
+Exec	$Script_DisableNumbers % disable the models from the numbers on the top pipe
+If	*Flag_FloorNumber == .False
+	Bind    $Script_ReadSign .Trigger:WallPressA .Collider_Sign 00000001 00000000 
+Else
+	Call	EnableModel ( .Model_Sign .False )
+	Exec	$Script_SetFloorNumbers
+EndIf
+% restart events stuff
+Call EnableGroup ( .Model:Events .False )
+Set	*Flag_Event .False
+% If the current mode is classic
+If *Flag_Mode_Classic == .Default
+	If *PitMapID == 1
+		If *BanditState == 1
+			Exec	$Script_CheckBanditStatus1 % Check if Mario has just used the Option 2 from a Bandit
+			Return
+		EndIf
+	EndIf
+	% Check Events
+	Exec $Script_TrackEvents
+Else % Roguelike
+	% Check Events
+	Exec $Script_TrackEvents
+EndIf
+% Check if a Mover spawned
+Set *Var[1] .False
+Call	GetNpcPos ( 6 0 *Var[0] 0 )
+If *Var[0] > -100` % Mover non-spawned Y pos
+	Set *Var[1] .True
+EndIf
+Call	GetNpcPos ( 7 0 *Var[0] 0 )
+If *Var[0] > -100` % Mover non-spawned Y pos
+	Set *Var[1] .True
+EndIf
+If *Var[1] == .False % If a Mover didn't spawned
+	Exec $Script_FloorEnemy_Idle
+EndIf
+Return
+End
+}
+
+#new:Script $Script_TrackEvents
+{
+	If *EventCount == 0 % If there isn't any events left to trigger finish
+		Return
+	EndIf
+	% Mario have at least one partner?
+	Call	GetCurrentPartnerID ( *Var[0] )
+	If *Var[0] == .Partner:Empty
+		Return
+	EndIf
+	% This floors will get an Event?
+	Call	RandInt ( 100` *Var[0] )
+	%Set *Var[0] 0 % testing
+	If	*Var[0] >= 10` % / 10% Chance to activate an Event
+		Return
+	EndIf
+	% Getting the Event to Load
+	Call	RandInt ( 100` *Var[0] )
+	%Set 	*Var[0] 65` % testing
+	Switch *Var[0]
+		Case >= 65` % Chill / 35% chance
+			Set *EventToLoad 3
+			Set *LastEvent	 3
+		Case >= 10` % Burn / 55% chance
+			Set *EventToLoad 2
+			Set	*LastEvent	 2
+		Case >= 0 % Rain / 10% chance
+			Set *EventToLoad 1
+			Set *LastEvent	 1
+	EndSwitch
+	Sub *EventCount  1
+	Set	*Flag_Event .True % Turn on the event on this floor
+	Switch *EventToLoad
+		Case == 1 % Rain
+			Call EnableModel ( .Model:Events:Rain .True )
+		Case == 2 % Burn
+			Call EnableModel ( .Model:Events:Burn .True )
+		Case == 3 % Chill
+			Call EnableModel ( .Model:Events:Chill .True )
+	EndSwitch
+	% Is the 1st time having an event?
+	% Mario have at least one partner?
+	Call	GetCurrentPartnerID 	( *Var[0] )
+	If *Var[0] == .False
+		Wait 1
+		Goto MarioIsPartnerless
+	EndIf
+	If *Flag_Event_FirstTime == .False
+		Call	DisablePlayerInput ( .True )
+		SetGroup 0
+		SuspendAll .True
+		Wait	 70`
+		Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Add		*Var[1] 10`
+		ExecWait $Script_ZoomIn_Camera_X
+		Exec	$Script_Cutscene_Event *Var[B]
+		Exec	$SkipCutscene_Event
+		Loop
+			DoesScriptExist ( *Var[B] *Var[0] )
+			If *Var[0] == .False
+				BreakLoop
+			EndIf
+			Wait 1
+		EndLoop
+		Set 	*Flag_Skip .False
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data		
+		% resume all
+		Call	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+		Set 	*Flag_Event_FirstTime .True
+		Call	DisablePlayerInput ( .False )
+		Call    EnablePartnerAI
+		ResumeAll .True
+	EndIf
+	Label	MarioIsPartnerless
+	Set		*Flag_Cheev_Global_21 .True
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Event
+{
+	Wait	10`
+	Call	DisablePartnerAI ( 0 )
+	% move partner a little bit to the left
+	Set *Var[0] 1
+	Set *Var[1] .False
+	ExecWait $SetPartnerAnimation
+	Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Sub		*Var[0] 35` % x
+	Add		*Var[1] 10` % y
+	Call	IsCurrentPartnerFlying ( *Var[3] )
+	If *Var[3] == .False
+		Call 	NpcFlyTo ( .Npc:Partner *Var[0] *Var[1] *Var[2] 15` 0 .Easing:Linear )
+	Else
+		Call	NpcMoveTo ( .Npc:Partner *Var[0] *Var[2] 15` )
+	EndIf
+	% do !
+	Set *Var[0] 0
+	Set *Var[1] 1
+	ExecWait $SetPartnerAnimation
+	% partner talks
+	Set	*Var[0] $String_Partner_Event_1
+	Set	*Var[1] 00000000
+	ExecWait $SpeakPartnerToPlayer
+	% mario says yes
+	Set *Var[0] .PlayerAnim:NodYes
+	Set *Var[1] .False
+	Set *Var[2] 35`
+	ExecWait $SetPlayerAnimation
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Event
+{
+    Set *Flag_Skip .True
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+            % Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			Call	EnablePartnerAI
+            Kill	*Var[B]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+            Thread % Fade Screen Brightness
+                SetF	*Var[0] *Fixed[25.0] % speed
+                SetF	*Var[1] *Fixed[5.0]  % fully bright
+                ExecWait $Script_FadeScreenIn
+            EndThread
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+            BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+% reads var0-2 as x, y and z
+#new:Script $Script_ZoomIn_Camera_X
+{
+	Call     UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call     SetCamSpeed 		( .Cam:Default *Fixed[10.0] )				% Speed to Zoom to Target
+	Call     SetCamDistance 	( .Cam:Default 300` )						% Cam Zoom
+	Call     SetCamPosB  		( .Cam:Default -500` -500` )				% Set Cam Cordinates, you need to set this manually
+	Call     SetPanTarget 		( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call     PanToTarget 		( .Cam:Default 00000000 00000001 )
+	Return
+	End
+}
+
+#string $String_Partner_Event_1
+{
+[STYLE:RIGHT][...]
+Hey Mario, I can feel something
+different regarding this floor.
+[WAIT][NEXT][...]
+Sometimes a special [PushColor][Color:19]event[PopColor]
+can happen on a floor.
+[WAIT][NEXT][...]
+An event can make a floor
+[PushColor][Color:19]easier[PopColor] for us...
+[WAIT][NEXT][...]
+...or the [PushColor][Color:19]opposite[PopColor].
+[WAIT][NEXT][...]
+So remember to always be on
+guard Mario.
+[WAIT][END]
+}
+
+#define .Npc_RubyK 0
+#define .Npc_Koopa 1
+#define .Npc_Bzzap 2
+%
+#define .Npc_Spirit1 3
+#define .Npc_Spirit2 4
+#define .Npc_Spirit3 5
+#define .Npc_Spirit4 6
+#define .Npc_Spirit5 7
+#define .Npc_Spirit6 8
+
+#new:Script $Script_Cutscene_Ruby_Init
+{
+	% Hide Player
+	Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+	Call    HidePlayerShadow ( .True )
+	Call	DisablePlayerPhysics ( .True )
+	Call	SetPlayerPos ( 0 1000` 0 )
+    % Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	% Spawn Npcs
+	Call	MakeNpcs ( 0 $NpcGroupList_RubyCS )
+	% misc stuff
+	Call 	EnableGroup ( .Model:Events .False )
+	Call 	EnableGroup ( .Model_Group_Roguelike .False )
+	Exec 	$Script_DisableColliders_Roguelike
+	Exec	$Script_SetPipesPosition % Enable/Disable Pipes blue or green
+	Exec	$Script_DisableNumbers % disable the models from the numbers on the top pipe
+	% set npc pos
+	Call	GetEntryID ( *Var[0] )
+	Switch *Var[0]
+		Case == 2 % Koopatroopa
+			Set		*Var[7] .Npc_Koopa
+			Call	SetNpcPos ( *Var[7] -609` -12` 89` )
+		Case == 3 % Bzzap
+			Set		*Var[7] .Npc_Bzzap
+			Call	SetNpcPos ( *Var[7] -464` 12` 68` )
+		Case == 4
+			Exec 	$Script_Cutscene_Ruby2
+			Return
+	EndSwitch
+	Call    GetNpcPos ( *Var[7] *Var[0] *Var[1] *Var[2] )
+	% Set camera pos
+	Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call    SetCamSpeed 	( .Cam:Default *Fixed[50.0] )				% Speed to Pan to Target
+	Call    SetCamDistance  ( .Cam:Default 350` )						% Cam Zoom
+	%Call    SetCamPosB  	( .Cam:Default -200` -800` )				% Set Cam Cordinates
+	Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call    PanToTarget 	( .Cam:Default .Easing:Linear 00000001 )
+	% set ruby king pos
+	Call    GetNpcPos ( *Var[7] *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 45` % y
+	Call    SetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Call    802CFD30 ( .Npc_RubyK 7 7F .False .False .False ) % set alpha
+	% Ruby king fly around
+	Call	SetNpcSpeed ( .Npc_RubyK *Fixed[3.0] )
+	Call	SetNpcAnimation ( .Npc_RubyK 007F1519 ) % O_O!
+	Thread
+		Loop
+			Call	GetNpcPos ( *Var[7] *Var[0] *Var[1] *Var[2] )
+			Add		*Var[0] -50` % x
+			Add		*Var[1] 45` % y
+			Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 0 10` .Easing:Linear )
+			%
+			Call	GetNpcPos ( *Var[7] *Var[0] *Var[1] *Var[2] )
+			Add		*Var[0] 50` % x
+			Add		*Var[1] 45` % y
+			Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 0 -10` .Easing:Linear )
+		EndLoop
+	EndThread
+	Wait	40`
+	% everyone !
+	Call    PlaySoundAtNpc 	( *Var[7] 0262 .Default ) % !
+	Call    ShowEmote   	( *Var[7] .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Wait	30`
+	Switch *Var[7]
+		Case == .Npc_Koopa
+			Set		*PitMapID 53` % to load the green floors
+			Call	GotoMap ( "pt53_58" 3 )
+		Case == .Npc_Bzzap
+			Set		*PitMapID 85` % to load the blue floors
+			Call	GotoMap ( "pt_85" 4 )
+	EndSwitch	
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Ruby2
+{
+	Call	SetNpcPos ( .Npc_RubyK ~Vec3d:Entry1 )
+	Call	SetNpcAnimation ( .Npc_RubyK 007F1509 ) % idle
+	Call    802CFD30 ( .Npc_RubyK 7 0 .False .False .False ) % set alpha
+	% Set camera pos
+	Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call    SetCamSpeed 	( .Cam:Default *Fixed[50.0] )				% Speed to Pan to Target
+	Call    SetCamDistance  ( .Cam:Default 350` )						% Cam Zoom
+	%Call    SetCamPosB  	( .Cam:Default -200` -800` )				% Set Cam Cordinates
+	Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call    PanToTarget 	( .Cam:Default .Easing:Linear 00000001 )
+	Thread % unfade npc
+		Set	*Var[0] 0
+		Loop
+			Add		*Var[0] 12`
+			If	*Var[0] >= 7F
+				Call    802CFD30 ( .Npc_RubyK 7 7F .False .False .False ) % set alpha
+				BreakLoop
+			EndIf
+			Call    802CFD30 ( .Npc_RubyK 7 *Var[0] .False .False .False ) % set alpha
+			Wait	1
+		EndLoop
+	EndThread
+	Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] -15` % y
+	Call	SetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 15` % y
+	Call 	NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+	Exec	$Script_Cutscene_Ending_5 % globals/patch/chpt2_cs.patch
+	Return
+	End
+}
+
+#new:NpcGroupList $NpcGroupList_RubyCS
+{
+00000009 $NpcGroup_RubyCS 00000000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_RubyCS
+{
+% Npc_RubyKing
+00000000 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+00000000 00000000 00000000 00000000
+% Npc_Koopatroopa
+00000001 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00290104 00290104 00290104 00290104 00290104 00290104 0029010B 0029010B 
+00290107 00290106 00290108 00290104 00290104 00290104 00290104 00290104 
+00000000 00000000 00000000 00000000
+% Npc_Bzzap
+00000002 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+004B0002 004B0002 004B0003 004B0003 004B0001 004B0002 004B0006 004B0006 
+004B0004 004B0002 004B0001 004B0001 004B0001 004B0001 004B0001 004B0001 
+00000000 00000000 00000000 00000000
+% Npc_Spirit1
+00000003 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit2
+00000004 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit3
+00000005 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit4
+00000006 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit5
+00000007 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit6
+00000008 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_SpawnNPCs
+{
+Switch *PitMapID
+	CaseOR == 5`	% Mario is at the following Levels?
+	CaseOR == 21`
+	CaseOR == 25`
+	CaseOR == 26`
+	CaseOR == 35`
+	CaseOR == 42`
+	CaseOR == 47`
+	CaseOR == 52`
+	CaseOR == 53`
+	CaseOR == 57`
+	CaseOR == 58`
+	CaseOR == 61`
+	CaseOR == 64`
+	CaseOR == 66`
+	CaseOR == 69`
+	CaseOR == 71`
+	CaseOR == 74`
+	CaseOR == 76`
+	CaseOR == 79`
+	CaseOR == 82`
+	CaseOR == 84`
+	CaseOR == 87`
+	CaseOR == 89`
+		ExecWait	$SetSpawnsSpecial		% Use this spawning method
+	EndCaseGroup
+	Default
+	  Call	MakeNpcs ( 1 $NpcGroups )
+	  ExecWait	$SetSpawns	%Set the Spawn conditions for the Enemy and the Mover
+EndSwitch
+Return
+End
+}
+
+#new:Function $Function_ResetEnemiesFlag
+{
+% The Pit has 49 unique enemies Floors
+% Each map use 12 Words (48 Bytes) so to clean all the Pit Maps
+% 12 * 49 = 588 (24C) Words to nuke (0_0)
+ADDIU T1, R0, 0 % loop Counter
+LIO   T0, 800B0FF0 % 1st Word (Map ID #1)
+.Loop
+SW    R0, 0 (T0)
+ADDIU T0, T0, 4 % move to next word
+ADDIU T1, T1, 1 % loop counter
+ADDIU T2, R0, 24C % total loops to do
+BNE   T1, T2, .Loop
+NOP
+JR    RA
+ADDIU V0, R0, 2
+}
+
+% Entry List
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % 0
+~Vec4f:Entry1 % 1
+% Used only on the ending of the game
+0.0 0.0 0.0 0.0 % ~Vec4f:Entry2_RubyCutscene1 % 2
+0.0 0.0 0.0 0.0 % ~Vec4f:Entry2_RubyCutscene2 % 3
+0.0 0.0 0.0 0.0 % ~Vec4f:Entry2_RubyCutscene3 % 4
+}
+
+% Init
+#new:Function_Init $Function_Init
+{
+PUSH ra, a0, a1, t0, t1
+% Loading Textures
+LIA a0, 800B0CF0 % Current Map Texture Pack
+LIA a1, "tik_tex"
+JAL ~Func:sprintf
+NOP
+% Loading Collition
+LIA a0, 800D91E0 % Current Map Hit/Collitions
+LIA a1, "pt1_6_hit"
+JAL ~Func:sprintf
+NOP
+% Loading Geometry
+LAB t0, 8035601A % Pit MapID
+% The player is in a floor below 80?
+SLTI t1, t0, 80`
+BNE t1, r0, .Shape2 % Isn't true Mario isn't in a floor below 80?
+NOP
+LIA a1, "pt81_86_shape"
+BEQ r0, r0, .End
+NOP
+.Shape2
+% The player is in a floor below 50?
+SLTI t1, t0, 50`
+BNE t1, r0, .Shape1 % Isn't true Mario isn't in a floor below 50?
+NOP
+LIA a1, "pt51_56_shape"
+BEQ r0, r0, .End
+NOP
+% Indeed the player is in a floor below 50
+.Shape1
+LIA a1, "pt1_6_shape"
+.End
+LIA a0, 800D9230 % Current Map Geometry
+JAL ~Func:sprintf
+NOP
+DADDU v0, r0, r0
+JPOP ra, a0, a1, t0, t1
+NOP
+}
+	
+	
+%%%% NPCs %%%%%%
+% Mover
+%%
+	
+#new:NpcGroup $NpcGroup_Mover
+{
+00000006 $BlankSettings ~Vec3f:MoverSpawn
+00A40D01 $Script_Init_Mover 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 
+00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 00BC0003 
+00000000 00000000 00000000 $Mover_Tattle % tattle string
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_Mover
+{
+	Call     BindNpcInteract	( .Npc:Self $Interact_Mover )
+	Return
+	End
+}
+
+#new:Script $Interact_Mover
+{
+	Call	SetMessageValue ( *PitMapID 2 )
+	Set		*Var[2] *PitMapID
+	Call    SpeakToPlayer     ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverStart ) %Start Dialog
+    Call    ShowCoinCounter     ( .True )
+    Call    ShowChoice    ( $Mover_Options ) % Choise List
+	Switch *Var[0]
+		CaseOR == 0 
+		CaseOR == 2
+			Set *MapVar[1] *Var[0]
+			Set *Var[2] -50` % This one is the quantity to exctract from Mario's money
+			Set *Var[0] 50` % This one is to track if mario have enought coins
+		EndCaseGroup
+		Case == 1
+			Set *MapVar[1] *Var[0]
+			Set *Var[2] -100`
+			Set *Var[0] 100`
+		Case == 3
+			Call    ShowCoinCounter     ( .False )
+			Call    ContinueSpeech    ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverCancel ) % If Mario Press 'B' the dialog is closed
+		Return
+	EndSwitch
+	Call     $LoadCoinsMover
+	If  *Var[1]  ==  0
+		Call     ShowCoinCounter     ( .False )
+		Call     ContinueSpeech     ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverNoCoins ) % Mario doesn't have enough coins
+		Return
+	EndIf
+	Call    AddCoin     ( *Var[2] )
+	Call    ShowCoinCounter     ( .False )
+	Call    ContinueSpeech    ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverEnd ) % Call GotoMap
+	If	*Flag_Mode_Rogue == .True % Roguelike - Give the total gained coins on this playthrough
+		ExecWait $Script_Rogue_GiveTotalCoins
+	EndIf
+	Set		*Flag_Cheev_Classic_10 .True % Challenge Completed
+	Add		*MoversUsedAmount 1
+	If		*MoversUsedAmount >= 10`
+		Set		*Flag_Cheev_Classic_11 .True % Challenge Completed
+	EndIf
+	Call	GetCurrentPartnerID ( *Var[0] )
+	If	*Var[0] != 0
+		Call     $DispawnPartner ( *Var[A] ) %This Function make your partner dispawn
+	EndIf
+	Thread
+		Wait	135`
+		Set		*Flag_TidalWave_Mover .True
+		Call	PlayEffect ( ~FX:Underwater 0 0 0 0 0 0 1000` ) % arg7 = time
+	EndThread
+	Exec	$Script_MoverWarpAnimation *Var[B]
+	Exec	$SkipCutscene_MoverWarpAnimation
+	Loop
+		DoesScriptExist ( *Var[B] *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Set 	*Flag_Skip .False
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Call 	PlaySound            ( 00DC )
+	Thread
+		Wait 	38`
+		Set		*Flag_TidalWave_Mover .False
+	EndThread
+	Jump 	$LoadMap
+    Return
+    End
+}
+	
+	#new:Script $Script_MoverWarpAnimation
+{
+	Set	*Var[0] *Fixed[0.0]
+	Loop
+		AddF	*Var[0]  *Fixed[0.2]
+		% This function is mostly to make graphics effects in Mario
+		Call     802D2520 ( .Npc:Player 4 0 *Var[0] 0 0 ) % NpcID FXtoLoad DistortionX DistortionY ? ?
+		% This function is mostly to make graphics effects in npcs
+		Call     802CFD30 ( .Npc:Self 4	0 *Var[0] 0 0 ) % NpcID FXtoLoad DistortionX DistortionY ? ?
+		Wait	3`
+		If	*Var[0] == *Fixed[12.0]
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_MoverWarpAnimation
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Kill	*Var[B]
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+	
+%%
+%Bandit Mover
+%%
+#new:NpcGroup $NpcGroup_BanditMover
+{
+00000007 $BlankSettings ~Vec3f:BanditMoverSpawn
+00A40D01 $Script_Init_BanditMover 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 
+009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 009C0001 
+00000000 00000000 00000000 $BanditMover_Tattle % tattle string
+}
+
+	#new:Script $Script_Init_BanditMover
+{
+	Call     BindNpcInteract	( .Npc:Self $Interact_BanditMover )
+	Call     BindNpcDefeat 		( .Npc:Self $Script_TrackOutcome_Bandit )
+	Call	 BindNpcIdle 		( .Npc:Self $Script_Bandit_StartBattle )
+	Return
+	End
+}
+
+#new:Script $Script_Bandit_StartBattle
+{
+	Loop
+		Call    GetSelfVar ( .Default *Var[0] )
+		If *Var[0] == .True
+			Call    DisablePlayerInput ( .False )
+			ResumeOthers .True
+			Call    SetSelfVar ( .Default .False )
+			Call 	StartBossBattle    ( .Song:SpecialBattle )
+		EndIf
+		Wait    1
+	EndLoop
+	Return
+	End
+}
+
+	#new:Script $Interact_BanditMover
+{
+	Call	GetNpcVar ( .Npc:Self 1 *Var[0] )
+	% After you defeated the bandit
+	If		*Var[0] == .True
+		Call     SpeakToPlayer     ( .Npc:Self 009C000E 009C0001 00000000 $String_Bandit_Defeated10 )
+		Return
+	EndIf
+	Call	SetMessageValue ( *PitMapID 2 )
+	Set		*Var[2] *PitMapID
+	Call     SpeakToPlayer     ( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverStart ) %Start Dialog
+	Call     ShowCoinCounter     ( .True )
+	If	*BanditState == 4 % bandit sidequest completed
+		Call    ShowChoice    ( $BanditMover_Options2 )
+	Else
+		Call    ShowChoice    ( $BanditMover_Options ) % Choise List
+	EndIf
+    Switch *Var[0]
+            CaseOR == 0 
+			CaseOR == 2
+				Set *MapVar[1] *Var[0]
+                Set *Var[2] -50` % This one is the quantity to extract from Mario's money
+                Set *Var[0] 50` % This one is the amount to track if mario have enought coins
+				Set .ChosenOption 0
+			EndCaseGroup
+            Case == 1
+				Set *MapVar[1] *Var[0]
+                Set *Var[2] -100`
+                Set *Var[0] 100`
+				Set .ChosenOption 1
+            Case == 3
+				Call    ShowCoinCounter     ( .False )
+				Call	ContinueSpeech    ( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverCancel ) % If Mario Press 'B' the dialog is closed
+				Return
+            EndSwitch
+            Call     $LoadCoinsMover ( )
+            If  *Var[1]  ==  0
+                Call     ShowCoinCounter     ( .False )
+                Call     ContinueSpeech     ( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverNoCoins ) % Mario doesn't have enough coins
+                Return
+            EndIf
+			Call    ContinueSpeech    	  ( .Npc:Self 009C000E 009C0001 00000000 $CloseDialogBubble )
+			If .ChosenOption == 1 % If Mario choosen Bandit Option 2
+				If *BanditState == 0
+					Call GetCurrentPartnerID ( *Var[0] )
+					If	*Var[0] != 0 % If Mario has a partner, warn Mario
+						Call    ShowCoinCounter	( .False )
+						ExecWait $Script_Warning_Mario
+						If *Var[3] == 10` % If Mario declined, just close everything
+							Return
+						EndIf
+						Set *Var[2] -100` % Amount to substract from Mario
+						Call    ShowCoinCounter	( .True )
+					EndIf
+					Set *BanditState 1
+				EndIf
+			EndIf
+			Set	*Flag_Cheev_Classic_10 .True % Challenge Completed
+			Add	*MoversUsedAmount 1
+			If	*MoversUsedAmount >= 10`
+				Set		*Flag_Cheev_Classic_11 .True % Challenge Completed
+			EndIf
+            Call    AddCoin			( *Var[2] )
+            Call    ShowCoinCounter	( .False )
+            Call    SpeakToPlayer    	( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverEnd ) % Call GotoMap
+			Call 	PlaySound		( 20C3 )
+            Jump 	$LoadMapBandit
+    Return
+    End
+}
+
+	#new:Script	$Script_Warning_Mario % Mario's partner warn mario about using the mover, used just if he selected option 1
+{
+	Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 10`
+	ExecWait $Script_ZoomIn_Camera_X
+	Call    DisablePartnerAI 	( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 $String_Warning1 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 $String_Warning1 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 $String_Warning1 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 $String_Warning1 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 0 $String_Warning1 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 0 $String_Warning1 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 $String_Warning1 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 $String_Warning1 )
+	EndSwitch
+	Call    EnablePartnerAI
+	Call	ShowChoice 	 	( $String_List_NoYes )
+	If *Var[0] == 0 % Mario declined
+		Call	 ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+		Jump 	$Script_NoThanks_Bandit
+	Else
+		Call    ContinueSpeech    	  ( .Npc:Self 009C000E 009C0001 00000000 $CloseDialogBubble )
+		Wait	10`
+		ExecWait $Script_ZoomIn_Camera_2
+		Call    DisablePartnerAI 	( .False )
+		Call	GetCurrentPartnerID ( *Var[0] )
+		Switch  *Var[0]
+			Case == 1 % Goombario
+				Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 $String_Warning2 )
+			Case == 2 % Kooper
+				Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 $String_Warning2 )
+			Case == 3 % Bombette
+				Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 $String_Warning2 )
+			Case == 4 % Parakarry
+				Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 $String_Warning2 )
+			Case == 9 % Bow
+				Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 0 $String_Warning2 )
+			Case == 6 % Watt
+				Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 0 $String_Warning2 )
+			Case == 7 % Sushie
+				Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 $String_Warning2 )
+			Case == 8 % Lakilester
+				Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 $String_Warning2 )
+		EndSwitch
+		Call    EnablePartnerAI
+		Call	ShowChoice	 ( $String_List_NoYes )
+		If *Var[0] == 0 % Mario declined
+			Call	 	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+			Jump 	$Script_NoThanks_Bandit
+		EndIf
+	EndIf
+	Call	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+	Call    DisablePartnerAI 	( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	ContinueSpeech		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 $String_Whatever )
+		Case == 2 % Kooper
+			Call	ContinueSpeech		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 $String_Whatever )
+		Case == 3 % Bombette
+			Call	ContinueSpeech		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 $String_Whatever )
+		Case == 4 % Parakarry
+			Call	ContinueSpeech		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 $String_Whatever )
+		Case == 9 % Bow
+			Call	ContinueSpeech		( .Npc:Partner .Bow_Talking .Bow_Idle 0 $String_Whatever )
+		Case == 6 % Watt
+			Call	ContinueSpeech		( .Npc:Partner .Watt_Talking .Watt_Idle 0 $String_Whatever )
+		Case == 7 % Sushie
+			Call	ContinueSpeech		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 $String_Whatever )
+		Case == 8 % Lakilester
+			Call	ContinueSpeech		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 $String_Whatever )
+	EndSwitch
+	Call    EnablePartnerAI
+	Return
+	End
+}
+	
+	#new:Script $Script_NoThanks_Bandit % When Mario declined Bandit's services
+{
+	Call    DisablePartnerAI 	( .False )
+	Call    ContinueSpeech    ( .Npc:Self 009C000E 009C0001 00000000 $CloseDialogBubble ) % Close current dialog bubble
+	Call    ShowCoinCounter     ( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_NoThanks )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_NoThanks )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_NoThanks )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_NoThanks )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_NoThanks )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_NoThanks )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_NoThanks )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_NoThanks )
+	EndSwitch
+	Call    EnablePartnerAI
+	Call	SpeakToPlayer		( .Npc:Self 009C000E 009C0001 00000000 $String_Okay )
+	Set		*Var[3]	 10` % Used to close the entire Bandit Script
+	Return
+	End
+}
+	
+	#new:Script $Script_ZoomIn_Camera
+{
+	Call     GetNpcPos 			( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+	Call     UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call     SetCamSpeed 		( .Cam:Default *Fixed[10.0] )				% Speed to Zoom to Target
+	Call     SetCamDistance 	( .Cam:Default 300` )						% Cam Zoom
+	Call     SetCamPosB  		( .Cam:Default -500` -500` )				% Set Cam Cordinates, you need to set this manually
+	Call     SetPanTarget 		( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call     PanToTarget 		( .Cam:Default 00000000 00000001 )
+	Return
+	End
+}
+	
+	#new:Script $Script_ZoomIn_Camera_2
+{
+	Call     GetNpcPos 			( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+	Call     UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call     SetCamSpeed 		( .Cam:Default *Fixed[10.0] )				% Speed to Zoom to Target
+	Call     SetCamDistance 	( .Cam:Default 180` )						% Cam Zoom
+	Call     SetCamPosB  		( .Cam:Default -500` -500` )				% Set Cam Cordinates, you need to set this manually
+	Call     SetPanTarget 		( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call     PanToTarget 		( .Cam:Default 00000000 00000001 )
+	Return
+	End
+}
+	
+	#new:Script $Script_ZoomIn_Camera_3
+{
+	Call     GetNpcPos 			( .Npc_Bandit *Var[0] *Var[1] *Var[2] )
+	Call     UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call     SetCamSpeed 		( .Cam:Default *Fixed[10.0] )				% Speed to Zoom to Target
+	Call     SetCamDistance 	( .Cam:Default 300` )						% Cam Zoom
+	Call     SetCamPosB  		( .Cam:Default -500` -500` )				% Set Cam Cordinates, you need to set this manually
+	Call     SetPanTarget 		( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call     PanToTarget 		( .Cam:Default 00000000 00000001 )
+	Return
+	End
+}
+
+%%
+% Money Bag
+%%
+	 
+#new:NpcGroup $NpcGroup_MoneyBag
+{
+00000040 $NPC_Settings_Sack ~Vec3f:NPC_MoneyBag
+00440C0D $Script_Init_Bag 00000000 00000000 0000010E % Script loaded from TrackBattle.mpat
+~NoItems ~NoHP ~NoFP ~NoCoinBonus 
+FFFFFDEA FFFFFFF4 0000006B 0000000F 00000000 FFFF8001 00000000 FFFFFDEA 
+FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+% animations
+00ED0001 00ED0002 00ED0003 00ED0003 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0002 00ED0001 00ED0002 00ED0001 00ED0001 00ED0001 00ED0001 
+00000001 00000000 00000000 00000000 % tattle string
+% 21540C0C % Toogle HitBox Visibility
+% $NpcGroup_MoneyBag[1F0]
+00000041 $NPC_Settings_Sack ~Vec3f:NPC_MoneyBag
+21544C0C $Script_Init_Bag_HitBox 00000000 00000000 0000010E % Script loaded from TrackBattle.mpat
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 00ED0001 
+00000001 00000000 00000000 00000000 % tattle string%/
+}
+
+/% Green Shy Guy
+003B0201 003B0202 003B0204 003B0204X003B0201 003B0201 003B020C 003B020C 
+003B0215 003B0212 003B0211 003B0210X003B0205 003B0201 003B0201 003B0201 
+%/
+
+/% Blue Shy Guy
+003B0101 003B0102 003B0104 003B0104X003B0101 003B0101 003B010C 003B010C 
+003B0115 003B0112 003B0111 003B0110X003B0105 003B0101 003B0101 003B0101 
+%/
+
+/% Sack Animations
+00ED0001 00ED0002 00ED0003 00ED0003 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0002 00ED0001 00ED0002 00ED0001 00ED0001 00ED0001 00ED0001 
+%/	
+
+	% Set Pipes
+	#new:Script $Script_SetPipesPosition
+{
+	% Disable bottom pipe collisions
+	Call     ModifyColliderFlags 	( .False 5 7FFFFE00 ) % Bool ColliderID ?
+    Call     ModifyColliderFlags 	( .False 6 7FFFFE00 ) % Bool ColliderID ?
+	%
+	Call     EnableModel 	( A .False ) % ModelID Boolean % Green Bottom Pipe
+	Call     EnableModel 	( B .False ) % ModelID Boolean % Blue Bottom Pipe
+	If *Flag_Mode_Rogue == 1
+		Call     EnableModel 	( 3 .False ) % ModelID Boolean % Green Top Pipe
+	Else
+		Call     EnableModel 	( 4 .False ) % ModelID Boolean % Blue Top Pipe
+	EndIf
+	Return
+	End
+}
+	
+	#new:Script $Script_DisableNumbers
+{
+	% Disable all numbers %
+	Call     EnableModel 	( .Number_0 .False )
+	Call     EnableModel 	( .Number_1 .False )
+	Call     EnableModel 	( .Number_2 .False )
+	Call     EnableModel 	( .Number_3 .False )
+	Call     EnableModel 	( .Number_4 .False )
+	Call     EnableModel 	( .Number_5 .False )
+	Call     EnableModel 	( .Number_6 .False )
+	Call     EnableModel 	( .Number_7 .False )
+	Call     EnableModel 	( .Number_8 .False )
+	Call     EnableModel 	( .Number_9 .False )
+	Return
+	End
+}
+
+% Set Floor counter on the pipe
+#new:Script $Script_SetFloorNumbers
+{
+	% Realocate Numbers
+	Switch *PitMapID
+		Case == 1
+			Call EnableModel ( .Number_1 .True )
+			Return
+		Case == 2
+			Call EnableModel ( .Number_2 .True )
+			Return
+		Case == 3
+			Call EnableModel ( .Number_3 .True )
+			Return
+		Case == 4
+			Call EnableModel ( .Number_4 .True )
+			Return
+		Case == 5
+			Call EnableModel ( .Number_5 .True )
+			Return
+		Case == 6
+			Call EnableModel ( .Number_6 .True )
+			Return
+		Case == 7
+			Call EnableModel ( .Number_7 .True )
+			Return
+		Case == 8
+			Call EnableModel ( .Number_8 .True )
+			Return
+		Case == 9
+			Call EnableModel ( .Number_9 .True )
+			Return
+		Case == 10`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_0
+		Case == 11`
+			Call CloneModel	 	( .Number_1 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_Extra
+		Case == 12`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_2
+		Case == 13`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_3
+		Case == 14`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_4
+		Case == 15`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_5
+		Case == 16`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_6
+		Case == 17`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_7
+		Case == 18`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_8
+		Case == 19`
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_9
+		Case == 20`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_0
+		Case == 21`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_1
+		Case == 22`
+			Call CloneModel	 	( .Number_2 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_Extra
+		Case == 23`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_3
+		Case == 24`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_4
+		Case == 25`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_5
+		Case == 26`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_6
+		Case == 27`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_7
+		Case == 28`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_8
+		Case == 29`
+			Set .Number_Left .Number_2
+			Set .Number_Right .Number_9
+		Case == 30`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_0
+		Case == 31`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_1
+		Case == 32`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_2
+		Case == 33`
+			Call CloneModel	 	( .Number_3 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_Extra
+		Case == 34`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_4
+		Case == 35`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_5
+		Case == 36`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_6
+		Case == 37`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_7
+		Case == 38`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_8
+		Case == 39`
+			Set .Number_Left .Number_3
+			Set .Number_Right .Number_9
+		Case == 40`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_0
+		Case == 41`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_1
+		Case == 42`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_2
+		Case == 43`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_3
+		Case == 44`
+			Call CloneModel	 	( .Number_4 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_Extra
+		Case == 45`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_5
+		Case == 46`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_6
+		Case == 47`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_7
+		Case == 48`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_8
+		Case == 49`
+			Set .Number_Left .Number_4
+			Set .Number_Right .Number_9
+		Case == 50`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_0
+		Case == 51`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_1
+		Case == 52`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_2
+		Case == 53`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_3
+		Case == 54`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_4
+		Case == 55`
+			Call CloneModel	 	( .Number_5 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_Extra
+		Case == 56`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_6
+		Case == 57`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_7
+		Case == 58`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_8
+		Case == 59`
+			Set .Number_Left .Number_5
+			Set .Number_Right .Number_9
+		Case == 60`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_0
+		Case == 61`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_1
+		Case == 62`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_2
+		Case == 63`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_3
+		Case == 64`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_4
+		Case == 65`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_5
+		Case == 66`
+			Call CloneModel	 	( .Number_6 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_Extra
+		Case == 67`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_7
+		Case == 68`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_8
+		Case == 69`
+			Set .Number_Left .Number_6
+			Set .Number_Right .Number_9
+		Case == 70`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_0
+		Case == 71`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_1
+		Case == 72`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_2
+		Case == 73`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_3
+		Case == 74`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_4
+		Case == 75`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_5
+		Case == 76`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_6
+		Case == 77`
+			Call CloneModel	 	( .Number_7 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_Extra
+		Case == 78`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_8
+		Case == 79`
+			Set .Number_Left .Number_7
+			Set .Number_Right .Number_9
+		Case == 80`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_0
+		Case == 81`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_1
+		Case == 82`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_2
+		Case == 83`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_3
+		Case == 84`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_4
+		Case == 85`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_5
+		Case == 86`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_6
+		Case == 87`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_7
+		Case == 88`
+			Call CloneModel	 	( .Number_8 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_Extra
+		Case == 89`
+			Set .Number_Left .Number_8
+			Set .Number_Right .Number_9
+		Case == 90`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_0
+		Case == 91`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_1
+		Case == 92`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_2
+		Case == 93`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_3
+		Case == 94`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_4
+		Case == 95`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_5
+		Case == 96`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_6
+		Case == 97`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_7
+		Case == 98`
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_8
+		Case == 99`
+			Call CloneModel	 	( .Number_9 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_9
+			Set .Number_Right .Number_Extra
+		Case == 100`
+			Call CloneModel	 	( .Number_0 .Number_Extra ) % ModelToCloneID ModelClonedID
+			Set .Number_Left .Number_1
+			Set .Number_Right .Number_0
+	EndSwitch
+	Call EnableModel ( .Number_Left  .True )
+	Call EnableModel ( .Number_Right .True )
+	Call TranslateModel ( .Number_Left   .Number_Pos_Left  .False .False ) % ModelID XYZ Offsets
+	Call TranslateModel ( .Number_Right  .Number_Pos_Right .False .False )
+	If *Var[1] == 100` % If player is at floor 100
+		Call TranslateModel ( .Number_Extra  21` .False .False )
+	EndIf
+	Return
+	End%/
+}
+	
+	% Check if Mario has just used the Option 2 from a Bandit, to make a conversation between Mario and his partner
+	#new:Script $Script_CheckBanditStatus1
+{
+	Call	DisablePlayerInput ( .True )
+	SetGroup 0
+	SuspendAll .True
+	Wait	 70`
+	Exec	$Script_Cutscene_BanditStatus1 *Var[A]
+	Exec	$SkipCutscene_Default
+	Loop
+		DoesScriptExist ( *Var[A] *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait 4
+	EndLoop
+	Set 	*Flag_Skip .False
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	ResumeAll .True
+	Call	DisablePlayerInput ( .False )
+	Call    EnablePartnerAI
+	Call 	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+	Set 	*BanditState 2
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_BanditStatus1
+{
+	Call 	ShowEmote			( .Npc:Self .Emote:Question -45` 20` 0 0 0 0 0 )
+	Call 	PlaySoundAtPlayer 	( 0263 0 )
+	Wait	40`
+	ExecWait $Script_ZoomIn_Camera
+	Call    DisablePartnerAI 	( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 $String_Warning3 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 $String_Warning3 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 $String_Warning3 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 $String_Warning3 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 0 $String_Warning3 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 0 $String_Warning3 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 $String_Warning3 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 $String_Warning3 )
+	EndSwitch
+	Call	SetPlayerAnimation ( .PlayerAnim:NodYes )
+	Wait	20`
+	Return
+	End
+}
+	
+	#new:Script $Script_CheckBanditStatus2
+{
+	If *BanditState != 3 % If Mario hasn't been scammed and arrived to floor 1 after that, also if there isn't a bandit in the map
+		Return
+	EndIf
+	Call	DisablePlayerInput ( .True )
+	Wait	 80`
+	% why this cutscene doesn't have a skipper?
+	% was having one but got scrapped because the cutscene is very short and also
+	% it ask you a question so will be 2 skippers for a very small cutscene, i don't think
+	% is really that worth it - __-
+	Call	GetPlayerPos ( *Var[0] .False *Var[1] )
+	Sub		*Var[0] 60`
+	Call	PlayerMoveTo ( *Var[0] *Var[1] 12` )
+	ExecWait $Script_ZoomIn_Camera_3
+	Call	SetNpcAnimation 	( .Npc_Bandit 009C0007 )
+	Call	NpcFacePlayer 		( .Npc_Bandit .False )
+	Call	SetPlayerAnimation  ( .PlayerAnim:BeforeJump )
+	Call    DisablePartnerAI 	( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_Bandit_Confrontation1 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_Bandit_Confrontation1 )
+	EndSwitch
+	Call    ShowChoice    	( $String_List_YesNo ) % yes no
+	If 		*Var[0] == 1 % No
+		Call	SetNpcAnimation 	( .Npc_Bandit 009C0005 ) % Running
+		Set		*Var[0] 0
+		% Rotate the Bandit Inverted Clockwise
+		Loop
+			Call     SetNpcRotation ( .Npc_Bandit 0 *Var[0] 0 )
+			If	*Var[0] == -180`
+				BreakLoop
+			EndIf
+			Sub		*Var[0] 20`
+			Wait	1
+		EndLoop
+		Call	SetPlayerAnimation  ( .PlayerAnim:Walking )
+		Wait	1
+		ExecWait $Script_ClosePartnerDialog
+		Exec  	 $GoToNextLevel %% from MapLoader.mpat
+	Else
+		Call    802D0A98 % close message box
+		Call	SetNpcAnimation 	( .Npc_Bandit 009C0005 ) % Running
+		Call    EnablePartnerAI
+		Call 	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+		Call	SetNpcVar ( .Npc_Bandit 0 .True ) % start battle
+		Return
+	EndIf
+	Call    EnablePartnerAI
+	Call 	ResetCam	 ( .Cam:Default *Fixed[4.0] ) % Reset Pan
+	Return
+	End
+}
+
+#new:Script $Script_TrackOutcome_Bandit
+{
+	Call     GetBattleOutcome 	( *Var[0] )
+	Switch  *Var[0] 
+		Case  ==  0 % When you won
+			Call	SetEncounterStatusFlags 	( 00000001 .True ) % prevent thumbs up animation
+			Call	SetEncounterStatusFlags 	( 00000004 .True ) % prevent coin drops from fleeing
+			Call	AddCoin ( 0 ) % var0 = current coins
+			Call	SetNpcVar ( .Npc_Bandit F *Var[0] )
+			Exec	$Script_Cutscene_BanditDefeated *Var[A]
+			Exec	$SkipCutscene_BanditDefeated
+			Loop
+				DoesScriptExist ( *Var[A] *Var[0] )
+				If *Var[0] == .False
+					BreakLoop
+				EndIf
+				Wait 1
+			EndLoop
+			Set 	*Flag_Skip .False
+			Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+			Set		*BanditState 4 % completed
+			Set		*Flag_Cheev_Classic_08 .True % Challenge completed
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			Call	EnablePartnerAI
+		Case  ==  1 % When you die
+			Call	SetNpcAnimation ( .Npc:Self 009C0005 ) % running
+			SuspendOthers .True
+			Call SetPlayerAnimation ( 0001000F ) % Dead
+			ExecWait $Script_SetEnemyIdle		 % Set the Enemy NPC animation to idle
+			Call GetCurrentPartnerID 	( *Var[0] )
+			If  *Var[0]  !=  0 
+				Call DisablePartnerAI ( .True )
+			EndIf
+			Call     $Function_RevivePlayer
+                  WaitSeconds 1
+                  Set  *Flag_Cheev_Classic_03 .True % Challenged Completed
+			Call ShowCoinCounter ( .True )
+			Call DisablePlayerInput	( .True )
+			% Check if Mario has the Debit Card
+			If *Flag_Fishmael_1stTime_Talk == .True
+				Call	FindKeyItem 	( 7B *Var[0] )
+				If *Var[0] != FFFF
+					Call	RemoveKeyItemAt ( *Var[0] )
+				EndIf
+				% If Mario completily losted his card
+				If *LostCoinsMapID != 0
+					Set *Flag_CardLosted .True
+				EndIf
+                  EndIf
+                  % bypass if rogue is active
+                  If *Flag_Mode_Rogue == .True
+                        Call ShowCoinCounter ( .False )
+                        WaitSeconds 1
+                        If *Flag_Demo == .True
+                              Call GotoMap ( "dmo_00" 0 )
+                        Else
+                              Call GotoMap ( "pt_00" 6 )
+                        EndIf
+                        Return
+                  EndIf
+			Jump $Script_SubstractCoins
+	EndSwitch
+	Return
+    End
+}
+
+#new:Script $Script_Cutscene_BanditDefeated
+{
+	Call	SetNpcAnimation 	( .Npc_Bandit 009C0007 ) % Hurt
+	Wait	45`
+	Call	SetNpcAnimation 	( .Npc_Bandit 009C0001 ) % idle
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated1 )
+	Call    DisablePartnerAI 	( .False )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_Bandit_Defeated_Partner1 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_Bandit_Defeated_Partner1 )
+	EndSwitch
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated2 )
+	% Give Debit Card
+	If *Flag_Fishmael_1stTime_Talk == .True
+		Call	HasKeyItem ( 007B *Var[0] )
+		If *Var[0] == .False
+			Wait	5`
+			Call    ShowGotItem 	( 007B 0 0 ) % Debit Credit
+			Call    AddKeyItem  	( 007B ) % Debit Credit
+		EndIf
+	EndIf
+	Call	ShowCoinCounter ( .True )
+	Wait	20`
+	/%
+	Var1=Losted Coins (mario's losted coins when he died)
+	Var2=30 + Losted Coins
+	%/
+	ExecWait $Script_AddCoins_Bandit
+	Set		*Var[2] 100`
+	Add		*Var[2] *Var[1]
+	Call	AddCoin ( *Var[2] )
+	Wait	20`
+	Call	ShowCoinCounter ( .False )
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated3 )
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Wait	1
+	Call 	SetPlayerAnimation ( 00080016 ) % surprised
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated4 )
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated5 )
+	Thread
+		Call 	SetPlayerAnimation ( 00080016 ) % surprised
+		Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+		Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+		Wait	35`
+		Call 	SetPlayerAnimation ( 00010002 ) % idle
+	EndThread
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_Bandit_Defeated_Partner2 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_Bandit_Defeated_Partner2 )
+	EndSwitch
+	Call	SetPlayerAnimation ( 00010032 ) % ThumbsUp
+	Wait	35`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated6 )
+	Call    ShowGotItem 		( 0023 .False 0 )
+	Call	AddBadge 			( 0023 .Default ) % Bandit's Badge
+	Call	SetNpcVar 			( .Npc_Bandit E .True )
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated7 )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_Bandit_Defeated_Partner3 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_Bandit_Defeated_Partner3 )
+	EndSwitch
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated8 )
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated9 )
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 2 $String_Bandit_Defeated_Partner4 )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 2 $String_Bandit_Defeated_Partner4 )
+	EndSwitch
+	Call	SpeakToPlayer		( .Npc_Bandit 009C000E 009C0001 0 $String_Bandit_Defeated10 )
+	Set		*BanditState 4 % completed
+	Call	SetNpcVar ( .Npc:Self 1 .True )
+	Set		*Flag_Cheev_Classic_08 .True % Challenge completed
+	Call	SetPlayerAnimation ( 00010032 ) % ThumbsUp
+	Wait	35`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	% The bandit ran away
+	Call	SetNpcAnimation ( .Npc:Self 009C0005 ) % running
+	Wait	5
+	Call	GetNpcPos ( .Npc:Self *Var[0] .False *Var[2] )
+	Call	SetNpcCollisionSize ( .Npc:Self 0 0 )
+	Call	PlaySoundAtNpc 		( .Npc:Self 015E 0 ) % running
+	Add		*Var[0] 500
+	Call	NpcMoveTo ( .Npc:Self *Var[0] *Var[2] 60` )
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_BanditDefeated
+{
+	Set	*Flag_Skip .True % show skip text
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Set 	*Flag_Skip .False
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			% Close Coins Counter
+			Call 	$ReadAddress ( 8010EFC6 0 *Var[0] .False .False )
+			If  *Var[0] != FF % ShowCoinCounter .True
+				Call     ShowCoinCounter     ( .False )
+			EndIf
+			% after cutscene code
+			Call	SetNpcPos ( .Npc_Bandit 0 -1000` 0 )
+			% Give Debit Card
+			If *Flag_Fishmael_1stTime_Talk == .True
+				Call	HasKeyItem ( 007B *Var[0] )
+				If *Var[0] == .False
+					Call    AddKeyItem  	( 007B ) % Debit Credit
+				EndIf
+			EndIf
+			% Add coins
+			% Var1=Losted Coins (if mario has coins losted)
+			% Var2=bandit's coins
+			% Check if you already got his money back
+			Call	GetNpcVar ( .Npc_Bandit F *Var[3] )
+			% var3 = mario's coins just before starting this cutscene
+			Call	AddCoin ( 0 ) % var0=current coins
+			If *Var[0] == *Var[3]
+				Call 	$ReadAddress ( 8010F2B0 1 *Var[1] .False .False ) % load coins losted
+				 % Mario has even lost some coins?
+				If	*Var[1] == .False
+					Wait 1
+					Goto End
+				EndIf
+				If	*LostCoinsMapID ==	*PitMapID % If Mario is at same floor when he lost his coins
+					Set   	*Flag_Cheev_Classic_02 .True % Challenged Completed
+					Call 	$WriteAddress ( 8010F2B0 1 0 .False .False ) % nuke coins losted
+					Set		*LostCoinsMapID 0
+				Else
+					Set *Var[1] 0 % if this floor wasn't the one mario lost his coins
+				EndIf
+				Label End
+				Set		*Var[2] 30`
+				Add		*Var[2] *Var[1]
+				Call	AddCoin ( *Var[2] )
+			EndIf
+			% Mario already got the badge?
+			Call	GetNpcVar ( .Npc_Bandit E *Var[0] )
+			If *Var[0] == .False
+				Call	AddBadge 			( 0023 .Default ) % Bandit's Badge
+			EndIf
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+	% If Mario losted his coins on the floor he defeated the bandit
+	#new:Script $Script_AddCoins_Bandit
+{
+	Call	$Function_LoadCoinsLosted ( *Var[1] )
+	If	*Var[1] == 0 % Mario has even lost some coins?
+		Wait 1
+		Goto End
+	EndIf
+	If	*LostCoinsMapID ==	*PitMapID % If Mario is at same floor when he lost his coins
+		Call	$Function_LoadCoinsLosted ( *Var[1] )
+		Set   	*Flag_Cheev_Classic_02 .True % Challenged Completed
+		Call	$Function_ResetCoinsLosted
+		Set		*LostCoinsMapID 0
+	Else
+		Set *Var[1] 0 % if this floor wasn't the one mario lost his coins
+	EndIf
+	Label End
+	Return
+	End
+}
+
+#new:String $String_Bandit_Defeated1
+{
+[STYLE:RIGHT][...]
+Wow!... okay... let me tell you
+something... you're tougher than
+I thought...
+[WAIT][NEXT][...]
+But I must say....
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated2
+{
+[STYLE:RIGHT][...]
+Hey relax!
+[WAIT][NEXT][...]
+Okay, okay here's your coins.
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated3
+{
+[STYLE:RIGHT][...]
+Like I was saying before both of
+you are some really thought
+and stubborn guys.
+[WAIT][NEXT][...]
+And I must say...
+[WAIT][NEXT][...]
+[StartFX:Shrinking][Size:19:19][Volume:40]I really like that![SizeReset][EndFX:Shrinking]
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated4
+{
+[STYLE:RIGHT][...]
+You didn't just accepted I
+freaking scam you like
+everybody else.
+[WAIT][NEXT][...]
+Instead you gave me a really
+good fight.
+[WAIT][NEXT][...]
+I must say it has been a really
+long time since I got one of
+those.
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated5
+{
+[STYLE:RIGHT][...]
+So, what if we make a deal?
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated6
+{
+[STYLE:RIGHT][...]
+In that case, take this.
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated7
+{
+[STYLE:RIGHT][...]
+If you have that badge
+activated I will [PushColor][Color:19]always
+appear as a mover![PopColor]
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated8
+{
+[STYLE:RIGHT][...]
+I knew you will say something
+like that.
+[WAIT][NEXT][...]
+Okay, do you know [PushColor][Color:19]the deeper
+you're in the Pit the better
+badges you will get?[PopColor] right?
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated9
+{
+[STYLE:RIGHT][...]
+So I can help you to farm some
+nice Badges.
+[WAIT][NEXT][...]
+So you will be able to basically
+open a good chest twice [PushColor][Color:19]without
+needing to restart the whole
+Pit[PopColor].
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated10
+{
+[STYLE:RIGHT][...]
+Good luck over there fellas!
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated_Partner1
+{
+[STYLE:RIGHT][...]
+[StartFX:Shrinking][Size:17:17][Volume:40]Enough of your lies, give
+us our money back![SizeReset][EndFX:Shrinking]
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated_Partner2
+{
+[STYLE:RIGHT][...]
+Wait!
+[WAIT][NEXT][...]
+A deal...!?
+[WAIT][NEXT][...]
+Hmm... I dunno if will be good
+to trust you but what do you
+think Mario?
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated_Partner3
+{
+[STYLE:RIGHT][...]
+Wait!
+[WAIT][NEXT][...]
+But why I would want to return
+10 floors back in the Pit?!
+[WAIT][NEXT][...]
+That isn't even useful!
+[WAIT][END]
+}
+
+#new:String $String_Bandit_Defeated_Partner4
+{
+[STYLE:RIGHT][...]
+Hmmm....
+In that case that doesn't
+sounds like a really bad
+deal after all!
+[WAIT][END]
+}
+	
+	#new:Function $Function_LoadPath
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S3, 2C (SP)
+    8:  DADDU     S3, A0, R0
+		%SH		  T0, 1 (SP) % Crasher
+    C:  SW        S0, 20 (SP)
+   10:  DADDU     S0, A1, R0
+   14:  ADDIU     A0, R0, 1
+   18:  SW        RA, 30 (SP)
+   1C:  SW        S2, 28 (SP)
+   20:  JAL       ~Func:get_npc_unsafe
+   24:  SW        S1, 24 (SP)
+   28:  LW        V1, C (S3)
+   2C:  DADDU     A0, S3, R0
+   30:  LW        A1, 0 (V1)
+   34:  JAL       ~Func:get_variable
+   38:  DADDU     S2, V0, R0
+   3C:  BEQ       S0, R0, .o48
+   40:  SW        V0, 74 (S3)
+   44:  SW        R0, 70 (S3)
+        .o48
+   48:  LUI       V0, 6666
+   4C:  LW        A0, 70 (S3)
+   50:  ORI       V0, V0, 6667
+   54:  MULT      A0, V0
+   58:  SRA       V0, A0, 1F
+   5C:  MFHI      T0
+   60:  SRA       V1, T0, 1
+   64:  SUBU      V1, V1, V0
+   68:  SLL       V0, V1, 2
+   6C:  ADDU      V0, V0, V1
+   70:  BNE       A0, V0, .oE0
+   74:  LUI       V0, 20
+   78:  ORI       V0, V0, 2
+   7C:  ADDIU     S1, SP, 1A
+   80:  ADDIU     S0, SP, 18
+   84:  SW        S1, 10 (SP)
+   88:  SW        V0, 14 (SP)
+   8C:  LW        A2, 40 (S2)
+   90:  LWC1      F12, 38 (S2)
+   94:  LWC1      F14, 3C (S2)
+   98:  JAL       80149E04
+   9C:  DADDU     A3, S0, R0
+   A0:  LUI       A1, 43FA
+   A4:  LW        V0, 74 (S3)
+   A8:  DADDU     A0, R0, R0
+   AC:  SW        V0, 10 (SP)
+   B0:  LW        A3, 70 (S3)
+   B4:  JAL       ~Func:update_lerp
+   B8:  DADDU     A2, R0, R0
+   BC:  ADDIU     A0, R0, 295
+   C0:  TRUNC.W.S F2, F0
+   C4:  MFC1      A3, F2
+   C8:  NOP
+   CC:  SLL       A3, A3, 10
+   D0:  LBU       A1, 1 (S0)
+   D4:  LBU       A2, 1 (S1)
+   D8:  JAL       ~Func:_play_sound
+   DC:  SRA       A3, A3, 10
+        .oE0
+   E0:  LW        V1, 70 (S3)
+   E4:  LW        V0, 74 (S3)
+   E8:  ADDIU     V1, V1, 1
+   EC:  SLT       V0, V0, V1
+   F0:  SW        V1, 70 (S3)
+   F4:  LW        RA, 30 (SP)
+   F8:  LW        S3, 2C (SP)
+   FC:  LW        S2, 28 (SP)
+  100:  LW        S1, 24 (SP)
+  104:  LW        S0, 20 (SP)
+  108:  SLL       V0, V0, 1
+  10C:  JR        RA
+  110:  ADDIU     SP, SP, 38
+}
+
+	#new:Script $Script_ClosePartnerDialog
+{
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	ContinueSpeech		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 $CloseDialogBubble )
+		Case == 2 % Kooper
+			Call	ContinueSpeech		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 $CloseDialogBubble )
+		Case == 3 % Bombette
+			Call	ContinueSpeech		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 $CloseDialogBubble )
+		Case == 4 % Parakarry
+			Call	ContinueSpeech		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 $CloseDialogBubble )
+		Case == 9 % Bow
+			Call	ContinueSpeech		( .Npc:Partner .Bow_Talking .Bow_Idle 0 $CloseDialogBubble )
+		Case == 6 % Watt
+			Call	ContinueSpeech		( .Npc:Partner .Watt_Talking .Watt_Idle 0 $CloseDialogBubble )
+		Case == 7 % Sushie
+			Call	ContinueSpeech		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 $CloseDialogBubble )
+		Case == 8 % Lakilester
+			Call	ContinueSpeech		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 $CloseDialogBubble )
+	EndSwitch
+	Return
+	End
+}
+	
+   % Pipe Spawning
+   #new:Script $PipeSpawning
+{
+	If *Flag_Mode_Rogue == .True
+		Set *Var[3] B % If Player is on Roguelike use Model ID #11/B (Blue Pipe)
+	Else
+		Set *Var[3] A % If Player isn't on Roguelike use Model ID #10/A instead (Green Pipe)
+	EndIf
+	Call	ParentColliderToModel 	( 5 *Var[3] ) % ColliderID ModelID
+	Call	ParentColliderToModel 	( 6 *Var[3] ) % ColliderID ModelID
+	Call 	DisablePlayerInput   ( .True )
+	Call	GetPlayerPos 	( .False *Var[A] .False )
+	Call 	EnableModel 	( *Var[3] .True )
+	Call 	MakeLerp		( 50` 0` 30` .Easing:CosInOut )
+	Call 	PlaySound   	( 208E ) % Pipe Spawning Sound
+	If 	*Flag_PipeBehaviour == .False % If isn't always
+		Set	.Flag_PipeSpawning .True
+	EndIf
+	Label	2
+	Call	UpdateLerp
+	Set		*Var[2]  .Default
+	Sub		*Var[2]  *Var[0]
+	Call	TranslateModel	( *Var[3] 0 *Var[2] 0 ) % ModelID XYZ Offset
+	Call	UpdateColliderTransform	( 5 ) % ColliderID 
+	Call	UpdateColliderTransform	( .Collider_PipeBody ) % ColliderID 
+	Call    ModifyColliderFlags 	( .True 5 7FFFFE00 ) % True/False ColliderID ??? 
+	Call    ModifyColliderFlags 	( .True .Collider_PipeBody 7FFFFE00 ) % True/False ColliderID ???
+	Wait	1 
+	If	*Var[1] ==  1 
+		Goto	2
+	EndIf
+	Wait	1
+	% Mario was on the top of the pipe?
+	% Check If mario was on the top of the Pipe
+	Call	GetPlayerPos ( .False *Var[B] .False )
+	If 	*Flag_PipeBehaviour == .False % If isn't always
+		If *Var[A] != *Var[B] % If Mario's Y pos change
+			Call    ModifyColliderFlags 	( .False 5 7FFFFE00 )
+			% make impossible to use the pipe until the player jump from the floor or the pipe once again
+			Bind	$EnablePipeCollider	.Trigger:FloorJump .Collider_Floor 1 0
+			Bind	$EnablePipeCollider	.Trigger:FloorJump .Collider_PipeBody 1 0
+		EndIf
+	EndIf
+	Call	DisablePlayerInput   ( .False )
+	Set		.Flag_PipeSpawning .False
+	Return
+	End
+}
+
+	#new:Script $EnablePipeCollider
+{
+	Call    ModifyColliderFlags 	( .True 5 7FFFFE00 )
+	Unbind
+	Return
+	End
+}
+  
+%%
+% Entities
+%%
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+	Call     AssignScript	( $PipeSpawning )
+	Return
+	End
+}
+	
+	#new:Script $CommingDownPipe
+{
+	Call  $Function_TimerCurrentFloor % Handle Saving the Highest time on memory and also the Map ID
+	Set    *LastPitMapID *PitMapID % Used for $Function_TimerCurrentFloor
+	Set 	*Var[A] 0		 % entry index
+ 	Set 	*Var[B] 7		 % pipe collider id
+	Call    DisablePlayerPhysics 	( .False )
+	Exec $FallingDownPipe
+	Return
+	End
+}
+
+	 % Handle Saving the Highest time on memory and also the Map ID
+	 #new:Function $Function_TimerCurrentFloor
+{
+	 PUSH	RA, V0, A1, A2
+	 LAW  T0, $Timer_Floor_Highest
+	 LAW  T1, $Timer_Floor
+	 SLTU  T2, T0, T1 % Highest is lower than the current timer
+	 BEQ   T2, R0, .End % If isn't end the funciton
+	 NOP
+	 % Save new highest timer
+	 SAW   T1, $Timer_Floor_Highest
+	 % Save MapID
+	 LIO 	A1, *LastPitMapID
+	 JAL 	~Func:get_variable 
+	 NOP
+	 LIO   A1, *MostTimeFloorID
+	 JAL   ~Func:set_variable
+	 COPY  A2, V0
+	 .End
+	 SAW   R0, $Timer_Floor % Reset current floor timer
+	 POP		RA, V0, A1, A2
+	 JR    RA
+	 NOP
+}
+
+%%
+% Exits
+%%
+
+#new:Script $Script_MakeExits
+{
+	%ExecWait $SwitchPath % testing
+	Bind     $Script_Exit0  .Trigger:FloorTouch 5 1 0 % $ExitScript TriggerID ColliderID ? ?
+	Return
+	End	
+}
+	
+#new:Script $Script_Exit0
+{
+	Set  *Var[A]  1		% Entry ID
+	Set  *Var[B]  5		% Collider ID
+	ExecWait $Script_TrackPlayer 
+	Return
+	End
+}
+   
+%%   
+% Strings
+%%
+#string $MoverStart
+{
+[STYLE:RIGHT][...]
+Hey, Wassup? I'm a Mover.
+I know a few things about getting
+through this dungeon.
+[WAIT][NEXT][...]
+For a few coins, I can move you
+where you wanna go.
+Where do you wanna go?
+Current Floor: [PushColor][Color:19][Var:02][PopColor]
+[Func_04][END]
+}
+
+#string $MoverEnd
+{
+[NEXT][...]
+[StartFX:Shrinking]Allright! Close your eyes!
+[PAUSE:05][...]
+My secret paths are...[PAUSE:0A]secret!
+Don't open your eyes [PAUSE:0A]AT ALL![EndFX:Shrinking]
+[WAIT][END]
+}
+
+#string $MoverCancel
+{
+[NEXT][...]
+[END]
+}
+
+#string $Mover_Options
+{
+[STYLE:CHOICE:30:60:F0:3E][...]
+[DelayOff][Cursor:00][Option:00]Down 2 Levels:    50 Coins
+[Cursor:01][Option:01]Down 5 Levels:    100 Coins
+[Cursor:02][Option:02]To the Entrance:  50 Coins
+[Option:FF][DelayOn][SetCancel:03][EndChoice:03][END]
+}
+
+#string $MoverNoCoins
+{
+[NEXT][...]
+Hey! You need more coins.
+Sorry, but a guy's gotta make
+a living, know what I mean?
+[WAIT][END]
+}
+
+#string $Mover_Tattle
+{
+[STYLE:TATTLE][...]
+That's a Mover. Yeah, they
+sometimes appear in the Pit
+[WAIT][NEXT][...]
+For a few coins, he'll send
+you to another floor, It's up
+to you if you wanna use him.
+[WAIT][END]
+}
+
+%%Bandit Mover
+
+#string $BanditMoverStart
+{
+[STYLE:RIGHT][...]
+Hey, Wassup?
+I know a few things about getting
+through this dungeon.
+[WAIT][NEXT][...]
+For a few coins, I can move you
+where you wanna go.
+Where do you wanna go?
+Current Floor: [PushColor][Color:19][Var:02][PopColor]
+[Func_04][END]
+}
+
+#string $BanditMoverEnd
+{
+[STYLE:RIGHT][...]
+[StartFX:Shrinking]Allright! Close your eyes!
+[PAUSE:05][...]
+My secret paths are...[PAUSE:0A]secret!
+Don't open your eyes [PAUSE:0A]AT ALL![EndFX:Shrinking]
+[WAIT][END]
+}
+
+#string $BanditMoverCancel
+{
+[NEXT][...]
+[END]
+}
+
+#string $BanditMover_Options
+{
+[STYLE:CHOICE:24:60:FF:3E][...]
+[DelayOff][Cursor:00][Option:00]Down 10 Levels:      50 Coins
+[Cursor:01][Option:01]Down to Level 100:   100 Coins
+[Cursor:02][Option:02]To the Entrance:     50 Coins
+[Option:FF][DelayOn][SetCancel:03][EndChoice:03][END]
+}
+
+#string $BanditMover_Options2
+{
+[STYLE:CHOICE:24:60:FF:3E][...]
+[DelayOff][Cursor:00][Option:00]Up 10 Levels:        50 Coins
+[Cursor:01][Option:01]Go back to Level 1:  100 Coins
+[Cursor:02][Option:02]To the Entrance:     50 Coins
+[Option:FF][DelayOn][SetCancel:03][EndChoice:03][END]
+}
+
+#string $CloseDialogBubble
+{
+[NEXT][...]
+[END]
+}
+
+#string $String_Warning1
+{
+[STYLE:RIGHT][...]
+[DelayOn][StartFX:Shrinking][Size:17:17][Volume:32]Wait...[SizeReset][EndFX:Shrinking][DelayOff]
+
+
+[WAIT][NEXT][...]
+I dunno Mario,[PAUSE:A] I don't trust this
+guy.[PAUSE:A] I mean who can trust a
+bandit, they are not guys to be
+trusted.
+[WAIT][NEXT][...]
+Hmm...[PAUSE:A] all of this is just giving
+me a bad feeling,[PAUSE:A] do you really
+want to do this?
+[Func_04][END]
+}
+
+#string $String_Warning2
+{
+[STYLE:RIGHT][...]
+[DelayOn][StartFX:Shrinking][Size:19:19][Volume:40]I mean Mario
+LISTEN TO ME![SizeReset][EndFX:Shrinking][DelayOff]
+[WAIT]
+[Scroll:04]He's obviously lying,[PAUSE:A] do you
+really think he will warp you
+to the last floor!?
+[WAIT][NEXT][...]
+Something bad will happen after
+all of this...
+[WAIT][NEXT][...]
+[DelayOn][StartFX:Shrinking][Size:19:19][Volume:40]DO YOU REALLY WANT
+TO DO IT!?[SizeReset][EndFX:Shrinking][DelayOff]
+[Func_04][END]
+}
+
+#string $String_Warning3
+{
+[STYLE:RIGHT][...]
+[DelayOn]What the...?
+Mario, it looks like
+[WAIT][NEXT][...]
+[DelayOn][StartFX:Shrinking][Size:19:19][Volume:40]WE JUST GOT BACK
+TO THE 1ST FLOOR!?[SizeReset][EndFX:Shrinking]
+[WAIT][Scroll:04][Down:01]
+You know what?
+[WAIT][Scroll:03][Down:0C]
+Let's beat the hell of that guy!
+We need to find him, let's go![DelayOff]
+[WAIT][END]
+}
+
+#string $String_Whatever
+{
+[Scroll:04]
+
+Okay...[PAUSE:F]
+Don't say I didn't warn you.
+[WAIT][END]
+}
+
+#string $String_NoThanks
+{
+[STYLE:RIGHT][...]
+Sorry, but I think we are good
+right now, thank you for your
+hospitality!
+[WAIT][END]
+}
+
+#string $String_Okay
+{
+[STYLE:RIGHT][...]
+Okay then, don't worry my
+friends.
+[WAIT][NEXT][...]
+By the way, there's no
+need to get that paranoid...
+jeez.
+[WAIT][NEXT][...]
+What a bunch of freaks.
+[WAIT][END]
+}
+
+#string $String_Psst
+{
+[STYLE:RIGHT][...]
+**psst**
+[WAIT][END]
+}
+
+#string $String_List_NoYes % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:67:60:5A:2E][...]
+[DelayOff][Cursor:00][Option:00]No
+[Cursor:01][Option:01]Yep
+[Option:FF][DelayOn][SetCancel:00][EndChoice:02][END]
+}
+
+#string $String_List_YesNo
+{
+[STYLE:CHOICE:75:45:5A:2E][...]
+[DelayOff][Cursor:00][Option:00]Yes
+[Cursor:01][Option:01]No
+[Option:FF][DelayOn][SetCancel:01][EndChoice:02][END]
+}
+
+#string $String_Bandit_Confrontation1
+{
+[STYLE:RIGHT][...]
+Maybe we need get prepared
+before this.
+[WAIT][NEXT][...]
+Do you feel ok, about fighting
+right now?
+[Func_04][END]
+}
+
+#string $String_Bandit_Confrotation_Bye
+{
+[STYLE:RIGHT]
+Mark my words, we will come
+back to get you!
+[WAIT][END]
+}
+
+#string $BanditMoverNoCoins
+{
+[NEXT][...]
+Hey! You need more coins.
+Sorry, but a guy's gotta make
+a living, know what I mean?
+[WAIT][END]
+}
+
+#string $BanditMover_Tattle
+{
+[STYLE:TATTLE][...]
+That's a Bandit, acting as a
+Mover? I don't know Mario, this
+type of freaks give me a very bad
+feeling.
+[WAIT][NEXT][...]
+For a few coins, he'll apparently
+send you to another floor...
+[WAIT][NEXT][...]
+I think a better idea will be to
+not spend a single penny on this
+guy...
+[WAIT][NEXT][...]
+But well that's up to you Mario.
+[WAIT][END]
+}
+
+%% Misc - Floor Enemies
+/%
+Floors 1/6 Goomba
+Floors 2/7 Spiked Goomba
+Floors 3/8 Paragoomba
+Floors 4/9 Koopatropa
+Floor 5 Paratroopa
+
+Floors 11/16 Buzzy Bettle
+Floors 12/17 Bandit
+Floors 13/18 Pokey Mummy
+Floors 14/19 Swooper
+Floor 15 Forest Fuzzy
+
+Floors 21/26 Piranha Plant
+Floors 22/27 Red Goomba
+Floors 23/28 Red Paragoomba
+Floors 24/29 Bleft
+Floor 25 Clubba
+
+Floors 31/36 Shy Guy
+Floors 32/37 Sky Guy
+Floors 33/38 Medi Guy
+Floors 34/39 Pyro Guy
+Floor 35 Spy Guy
+
+Floors 41/46 Spear Guy
+Floors 42/47 Hurt Plant
+Floors 43/48 M Bush
+Floors 44/49 Spike Top
+Floor 45 Jungle Fuzzy
+
+Floors 51/56 Lava Bubble
+Floors 52/57 Putrid Piranha
+Floors 53/58 Bzzap
+Floors 54/59 Crazee Dayzee
+Floor 55 Y Magikoopa
+
+Floors 61/66 Lakitu
+Floors 62/67 Spiny
+Floors 63/68 Ruff Puff
+Floors 64/69 Frost Piranha
+Floor 65 Gray Magikoopa
+
+Floors 71/76 Gulpit
+Floors 72/77 Duplighost
+Floors 73/78 Swoopula
+Floors 74/79 White Clubba
+Floor 75 Ember
+
+Floors 81/86 Koopatrol
+Floors 82/87 Hammer Bros
+Floors 83/88 Bony Beetle
+Floors 84/89 Dry Bones
+Floor 85 Koopatrol
+
+Floors 91/96 Poison Fuzzy
+Floors 92/97 Poison Puff
+Floors 93/98 Ember Guy
+Floors 94/99 Black Magikoopa
+Floor 95 Negative Chomp
+%/

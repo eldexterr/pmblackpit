@@ -1,0 +1,73 @@
+% Script File: kkj_21.mscr
+% Decoded from: 0 to 250 (kkj_21)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  325.0    0.0  -30.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000001
+    [Background]  00000000
+    [MapTattle]   00190016
+}
+
+#new:Script $Script_ExitSingleDoor_80240050
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:tte
+    Set   *Var[2]  ~Model:o57
+    Set   *Var[3]  .DoorSwing:Out % FFFFFFFF
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80240240 00000002 ) % kkj_10
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_EnterSingleDoor_802400F4
+{
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[2]  ~Model:o57
+            Set   *Var[3]  .DoorSwing:Out % FFFFFFFF
+            ExecWait  EnterSingleDoor
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:PeachsCastle
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  UseDoorSounds     ( .DoorSounds:Basic )
+    Bind  $Script_ExitSingleDoor_80240050 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+    Exec  $Script_EnterSingleDoor_802400F4
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 80240238 to 80240240 (00000238 to 00000240)
+00000000 00000000
+
+#new:ASCII $ASCII_80240240
+{
+    "kkj_10"
+}
+
+PADDING: 80240248 to 80240250 (00000248 to 00000250)
+00000000 00000000
+

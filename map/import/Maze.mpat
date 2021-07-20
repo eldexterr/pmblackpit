@@ -1,0 +1,956 @@
+% This file has the MakeEntities function (used in mostly all maps in the maze).
+% Also the one who deal with all the Enemies Defeated flags
+
+#new:Script $Script_MakeEntities
+{
+Switch  *Dungeon_MapID
+    Case == 1
+        Call    $ReadAddress    ( $Maze_ChestData_Map1_5 0 *Var[0] 0 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map1_5 0 *Var[1] 1 .False )
+    Case == 5
+        Call    $ReadAddress    ( $Maze_ChestData_Map1_5 0 *Var[0] 2 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map1_5 0 *Var[1] 3 .False )
+    Case == 9
+        Call    $ReadAddress    ( $Maze_ChestData_Map9_13 0 *Var[0] 0 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map9_13 0 *Var[1] 1 .False )
+    Case == 13`
+        Call    $ReadAddress    ( $Maze_ChestData_Map9_13 0 *Var[0] 2 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map9_13 0 *Var[1] 3 .False )
+    Case == 18`
+        Call    $ReadAddress    ( $Maze_ChestData_Map18_20 0 *Var[0] 0 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map18_20 0 *Var[1] 1 .False )
+    Case == 20`
+        Call    $ReadAddress    ( $Maze_ChestData_Map18_20 0 *Var[0] 2 .False )
+        Call    $ReadAddress    ( $Maze_ChestData_Map18_20 0 *Var[1] 3 .False )
+EndSwitch
+% Spawn Chest 1
+Switch *Var[0]
+    Case == 0
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos1 80000000 )
+    Case == 1
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos2 80000000 )
+    Case == 2
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos3 80000000 )
+    Case == 3
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos4 80000000 )
+EndSwitch
+% Assign Flag for Chest 1
+Switch  *Dungeon_MapID
+    Case == 1
+        Call AssignFlag *Flag_Maze_Map1_Chest1
+    Case == 5
+        Call AssignFlag *Flag_Maze_Map5_Chest1
+    Case == 9
+        Call AssignFlag *Flag_Maze_Map9_Chest1
+    Case == 13`
+        Call AssignFlag *Flag_Maze_Map13_Chest1
+    Case == 18`
+        Call AssignFlag *Flag_Maze_Map18_Chest1
+    Case == 20`
+        Call AssignFlag *Flag_Maze_Map20_Chest1
+EndSwitch
+Switch *Dungeon_MapID
+    CaseOR == 18`
+    CaseOR == 20`
+        Call AssignScript ( $Script_UseChest_BossRoom )
+    EndCaseGroup
+    Default
+        Call AssignScript ( $Script_UseChest )
+EndSwitch
+% Spawn Chest 2
+Switch *Var[1]
+    Case == 0
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos1 80000000 )
+    Case == 1
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos2 80000000 )
+    Case == 2
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos3 80000000 )
+    Case == 3
+        Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos4 80000000 )
+EndSwitch
+% Assign Flag for Chest 2
+Switch  *Dungeon_MapID
+    Case == 1
+        Call AssignFlag *Flag_Maze_Map1_Chest2
+    Case == 5
+        Call AssignFlag *Flag_Maze_Map5_Chest2
+    Case == 9
+        Call AssignFlag *Flag_Maze_Map9_Chest2
+    Case == 13`
+        Call AssignFlag *Flag_Maze_Map13_Chest2
+    Case == 18`
+        Call AssignFlag *Flag_Maze_Map18_Chest2
+    Case == 20`
+        Call AssignFlag *Flag_Maze_Map20_Chest2
+EndSwitch
+Switch *Dungeon_MapID
+    CaseOR == 18`
+    CaseOR == 20`
+        Call AssignScript ( $Script_UseChest_BossRoom )
+    EndCaseGroup
+    Default
+        Call AssignScript ( $Script_UseChest )
+EndSwitch
+Return
+End
+}
+
+% Give between 20 - 25 star pieces
+#new:Script $Script_UseChest
+{
+Call    $WriteAddress ( 8010EF90 2 00000001 0 .False ) % Force status menu to appear
+Call    RandInt ( 5 *Var[1] )
+Set     *Var[0] 20`
+Add     *Var[0] *Var[1]
+Call    $ReadAddress ( 80356130 1 *Var[1] 0 .False ) % get temporary Star Pieces
+Add     *Var[0] *Var[1]
+If  *Var[0] > 999` % temp star pieces cap
+    Set *Var[0] 999`
+EndIf
+Call    $WriteAddress ( 80356130 1 *Var[0] 0 .False ) % Save new ammount
+% Give more O²
+Call    $ReadAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+Add     *Var[0] 8`
+If *Var[0] > 208`
+    Set *Var[0] 208` % 208` = Full timer
+EndIf
+Call    $WriteAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+% the inputs and the timer becomes disabled in MiscHooks.patch (@Hook 108A84)
+Set     *Flag_Cheev_Dungeon_01 .True
+Exec    $Script_Cheev_Dungeon_03
+Call    DisablePlayerInput ( .False ) % enable inputs
+Set     *Flag_DungeonPause .False % resume timer
+Return
+End
+}
+
+% Only for mze_10 and mze_11
+% Give between 50 - 60 star pieces
+#new:Script $Script_UseChest_BossRoom
+{
+/% The mist stone got moved to mze_00
+
+Give Chest's Lobby key if is the 1st time opening one of this chests
+If  *Flag_ChestLobbyKey == .False
+    Call    ShowGotItem 	( 0057 .True 0 ) % Mist Stone
+    Call    AddKeyItem  	( 0057 ) 
+    Set     *Flag_ChestLobbyKey .True
+    Wait    1
+    Goto    O2
+EndIf%/
+Call    $WriteAddress ( 8010EF90 2 00000001 0 .False ) % Force status menu to appear
+Call    RandInt ( 10` *Var[1] )
+Set     *Var[0] 50`
+Add     *Var[0] *Var[1]
+Call    $ReadAddress ( 80356130 1 *Var[1] 0 .False ) % get temporary Star Pieces
+Add     *Var[0] *Var[1]
+If  *Var[0] > 999` % temp star pieces cap
+    Set *Var[0] 999`
+EndIf
+Call    $WriteAddress ( 80356130 1 *Var[0] 0 .False ) % Save new ammount
+% Give more O²
+Label   O2
+Call    $ReadAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+Add     *Var[0] 24` % give a little more oxygen too
+If *Var[0] > 208`
+    Set *Var[0] 208` % 208` = Full timer
+EndIf
+Call    $WriteAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+% the inputs and the timer becomes disabled in MiscHooks.patch (@Hook 108A84)
+Set     *Flag_Cheev_Dungeon_01 .True
+Exec    $Script_Cheev_Dungeon_03
+Call    DisablePlayerInput ( .False ) % enable inputs
+Set     *Flag_DungeonPause .False % resume timer
+Return
+End
+}
+
+% Get total amount of chest on this playthough
+% and check if the player already opened all of them.
+#new:Script $Script_Cheev_Dungeon_03
+{
+    % Check amount of chests from trap rooms
+    Set *Var[5] 0
+    Set *Var[1] 0
+    Loop 10`
+        Call $ReadAddress ( $Data_TrapPointers 2 *Var[0] *Var[1] .False )
+        Call $ReadAddress ( *Var[0] 0 *Var[2] 2 .False )
+        % var2 = chest spawn pos
+        If *Var[2] != 0
+            If *Var[2] == 10`
+                Add *Var[5] 2
+            Else
+                Add *Var[5] 1
+            EndIf
+        EndIf
+        Add *Var[1] 4
+        Wait 1
+    EndLoop
+    % add special chests
+    Add *Var[5] 2
+    % add for battle floors
+    Add *Var[5] 10`
+    % check if chests are possible to spawn on mistar's room
+    If  *AreaFlag[00E] != .True
+        If  *Flag_Mistar == .True
+            Add *Var[5] 2
+        EndIf
+    EndIf
+    Add *Maze_ChestsOpened_CurrentP 1
+    If *Maze_ChestsOpened_CurrentP == *Var[5]
+        Set *Flag_Cheev_Dungeon_03 .True
+    EndIf
+    Return
+    End
+}
+
+#new:IntTable $Data_TrapPointers
+{
+    $Maze_Trap2_Data  $Maze_Trap4_Data  $Maze_Trap6_Data  $Maze_Trap8_Data
+    $Maze_Trap10_Data $Maze_Trap12_Data $Maze_Trap14_Data $Maze_Trap16_Data
+    $Maze_Trap17_Data $Maze_Trap19_Data
+}
+
+%%%%%% Enemies Flags %%%%%%%%
+
+/% This script check what enemies you have already beated on
+this maze run, so it set all defeated enemies flags at the
+moment you enter a new map.
+
+I made this myself because sometimes the game is kinda
+inconsistent on when he reset the flags so I prefered to
+just do it myself.
+%/
+#new:Script $Script_SetEnemiesFlags
+{
+% 800B0FC0 % Enemies Defeated Flags % Map ID #0
+Switch *Dungeon_MapID
+    Case == 1 % mze_02
+        % Enemy 1
+        If *AreaFlag[000] == .False
+           Call $WriteBitFlag ( 800B1020 .False 3 0 .False )
+        Else
+            Call $WriteBitFlag ( 800B1020 .False 3 0 .True )
+        EndIf
+        % Enemy 2
+        If *AreaFlag[001] == .False
+            Call $WriteBitFlag ( 800B1020 .False 3 1 .False )
+        Else
+            Call $WriteBitFlag ( 800B1020 .False 3 1 .True )
+        EndIf
+    Case == 5 % mze_03
+        % Enemy 1
+        If *AreaFlag[002] == .False
+            Call $WriteBitFlag ( 800B1050 .False 3 0 .False )
+         Else
+             Call $WriteBitFlag ( 800B1050 .False 3 0 .True )
+         EndIf
+         % Enemy 2
+         If *AreaFlag[003] == .False
+             Call $WriteBitFlag ( 800B1050 .False 3 1 .False )
+         Else
+             Call $WriteBitFlag ( 800B1050 .False 3 1 .True )
+         EndIf
+    Case == 9 % mze_04
+        % Enemy 1
+        If *AreaFlag[004] == .False
+            Call $WriteBitFlag ( 800B1080 .False 3 0 .False )
+         Else
+             Call $WriteBitFlag ( 800B1080 .False 3 0 .True )
+         EndIf
+         % Enemy 2
+         If *AreaFlag[005] == .False
+             Call $WriteBitFlag ( 800B1080 .False 3 1 .False )
+         Else
+             Call $WriteBitFlag ( 800B1080 .False 3 1 .True )
+         EndIf
+    Case == 13` % mze_05
+        % Enemy 1
+        If *AreaFlag[006] == .False
+            Call $WriteBitFlag ( 800B10B0 .False 3 0 .False )
+         Else
+             Call $WriteBitFlag ( 800B10B0 .False 3 0 .True )
+         EndIf
+         % Enemy 2
+         If *AreaFlag[007] == .False
+             Call $WriteBitFlag ( 800B10B0 .False 3 1 .False )
+         Else
+             Call $WriteBitFlag ( 800B10B0 .False 3 1 .True )
+         EndIf
+    Case == 18` % mze_10
+        % Enemy 1
+        If *AreaFlag[008] == .False
+            Call $WriteBitFlag ( 800B11A0 .False 3 0 .False )
+         Else
+             Call $WriteBitFlag ( 800B11A0 .False 3 0 .True )
+         EndIf
+         % Enemy 2
+         If *AreaFlag[009] == .False
+             Call $WriteBitFlag ( 800B11A0 .False 3 1 .False )
+         Else
+             Call $WriteBitFlag ( 800B11A0 .False 3 1 .True )
+         EndIf
+         % Enemy 3
+         If *AreaFlag[00A] == .False
+            Call $WriteBitFlag ( 800B11A0 .False 3 2 .False )
+        Else
+            Call $WriteBitFlag ( 800B11A0 .False 3 2 .True )
+        EndIf
+    Case == 20` % mze_11
+        % Enemy 1
+        If *AreaFlag[00B] == .False
+            Call $WriteBitFlag ( 800B11D0 .False 3 0 .False )
+         Else
+             Call $WriteBitFlag ( 800B11D0 .False 3 0 .True )
+         EndIf
+         % Enemy 2
+         If *AreaFlag[00C] == .False
+             Call $WriteBitFlag ( 800B11D0 .False 3 1 .False )
+         Else
+             Call $WriteBitFlag ( 800B11D0 .False 3 1 .True )
+         EndIf
+         % Enemy 3
+         If *AreaFlag[00D] == .False
+             Call $WriteBitFlag ( 800B11D0 .False 3 2 .False )
+         Else
+             Call $WriteBitFlag ( 800B11D0 .False 3 2 .True )
+         EndIf
+         % Enemy 4
+         If *AreaFlag[00E] == .False
+            Call $WriteBitFlag ( 800B11D0 .False 3 3 .False )
+        Else
+            Call $WriteBitFlag ( 800B11D0 .False 3 3 .True )
+        EndIf
+EndSwitch
+Return
+End
+}
+
+/% This script read the current map and enemy you beated
+and save his Area Flag %/
+#new:Script $Script_SaveEnemyFlag
+{
+    Call    GetSelfNpcID ( *Var[0] )
+    Switch *Dungeon_MapID
+        Case == 1 % mze_02
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[000] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[001] .True
+            EndSwitch
+        Case == 5 % mze_03
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[002] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[003] .True
+            EndSwitch
+        Case == 9 % mze_04
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[004] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[005] .True
+            EndSwitch
+        Case == 13` % mze_05
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[006] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[007] .True
+            EndSwitch
+        Case == 18` % mze_10
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[008] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[009] .True
+                Case  == 2 % Enemy3
+                    Set *AreaFlag[00A] .True
+            EndSwitch
+        Case == 20` % mze_11
+            Switch *Var[0]
+                Case  == 0 % Enemy1
+                    Set *AreaFlag[00B] .True
+                Case  == 1 % Enemy2
+                    Set *AreaFlag[00C] .True
+                Case  == 2 % Enemy3
+                    Set *AreaFlag[00D] .True
+                Case  == 3 % Enemy4 % Mistar
+                    Set *AreaFlag[00E] .True
+            EndSwitch
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Init_EnemyNPC
+{
+	Call     BindNpcDefeat 	( .Npc:Self $Script_TrackOutcome )
+	Return
+	End
+}
+
+%Handle current battle outcome
+#new:Script $Script_TrackOutcome
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+        Case  ==  0 % When you won
+            ExecWait $Script_SaveEnemyFlag
+            % Check if is time to make all chests available to be open
+            Call    GetSelfNpcID ( *Var[0] )
+            If *Var[0] == 3 % Mistar
+                Exec    $Script_Mistar_Outcome
+            EndIf
+            ExecWait $Script_LockChests
+            Call	DoNpcDefeat
+        Case  ==  1 % When you die
+            Call     $Function_RevivePlayer
+            Call     GotoMap ( "mze_00" 2 )
+        Case  ==  2 % When you run
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Mistar_Outcome
+{
+    Call    DisablePlayerInput ( .True )
+    Call    SetNpcPos    ( .Npc:Self 0 -1000` 0 )
+    Wait    10`
+    Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[330.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+    % Set partner post
+    Call    $ReadAddress ( 8010C95F 0 *Var[0] .False .False ) % Read Mario's orientation
+    If *Var[0] == 0 % Left
+        ExecWait $MovePartnerInFrontOfMario
+    Else % Right
+        ExecWait $MovePartnerBehindMario
+    EndIf
+    Wait	15` % wait cam
+    Exec	$Script_Cutscene_Mistar *Var[A]
+    Exec	$SkipCutscene_Mistar
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    % Mistar Disappears
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetNpcAnimation     ( 5 00201401 ) % idle
+    Call    GetNpcPos    ( 5 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 10`
+    Call	PlaySound	 ( 0241 ) % Focus
+    Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+    Call    SetNpcPos    ( 5 *Var[0] -1000` *Var[2] )
+    Call    ResetCam     ( .Cam:Default 10` ) % Reset the camera back to normal % camID Speed
+    Set     *Flag_Mistar .True
+    Call    DisablePlayerInput ( .False )
+    Set  *Flag_Cheev_Dungeon_09 .True % Challenge Completed
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_Mistar
+{
+    Wait    10`
+    % Mistar (Kid Form) appears
+    Call    SetNpcAnimation ( 5 0020140C ) % wow!
+    Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 30` % mistar x pos
+    Set		*Var[3] *Var[1]
+    Add		*Var[3] 20` % mistar y pos
+    Add		*Var[1] 30` % sparkle fx y pos
+    Call	SetNpcPos    ( 5 *Var[0] *Var[3] *Var[2] )
+    Call	PlaySound	 ( 0241 ) % Focus
+    Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+    Wait    25`
+    Call 	PlaySoundAtNpc 	( 5 0262 .Default ) % !
+    Call 	ShowEmote 		  	( 5 .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Wait	10`
+    Call    $ReadAddress ( 8010C95F 0 *Var[0] .False .False ) % Read Mario's orientation
+    If *Var[0] == 0 % Left
+        ExecWait $MovePartnerInFrontOfMario
+        Call    InterpPlayerYaw ( 90` 0 )
+        Wait    10`
+    EndIf
+    Call	SpeakToPlayer	    ( 5 0020140C 0020140C .Default $String_Mistar_1 )
+    Call 	PlaySoundAtPlayer 	( 0263 .Default ) % ?
+    Call 	ShowEmote 		  	( .Default .Emote:Question -45` 20` 0 0 0 0 0 )
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call 	SetPlayerAnimation 	( 00010028 ) % hmmm
+    Wait    35`
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call    SetNpcAnimation ( 5 0020140E )
+    If  *Flag_BonetailRemains == .True
+        Call    SetMessageString ( $String_Var_Bonetail 0 )
+    Else
+        Call    SetMessageString ( $String_Var_King 0 )
+    EndIf                
+    Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_2 )
+    Call	SpeakToPlayer	( 5 0020140A 0020140E .Default $String_Mistar_3 )
+    Wait    25`
+    Call    SetNpcAnimation ( 5 00201416 ) % sad
+    Wait    15`
+    Call	SpeakToPlayer	( 5 0020140A 00201416 .Default $String_Mistar_4 )
+    Wait    20`
+    Call    SetNpcAnimation ( 5 00201401 ) % idle
+    Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_5 )
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call 	SetPlayerAnimation 	( 00080007 ) % hand to the ear
+    Wait	35`
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_6 )
+    Call    SetNpcAnimation ( 5 00201413 ) % ;)
+    Wait    20`
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call 	SetPlayerAnimation 	( 0001002D ) % cough cough
+    Wait    35`
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call    SetNpcAnimation ( 5 00201401 ) % idle
+    Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_7 )
+    Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+    Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+    Wait    35`
+    Call 	SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Set     *Var[0] *Flag_BonetailRemains
+    Add     *Var[0] *Flag_RubyCrown
+    If *Var[0] == 2
+        Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_8_2 )
+    Else
+        Call	SpeakToPlayer	( 5 0020140A 00201401 .Default $String_Mistar_8_1 )
+    EndIf
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call	SetPlayerAnimation ( .PlayerAnim:NodYes )
+    Wait	30`
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call	SpeakToPlayer	( 5 0020140A 00201415 .Default $String_Mistar_9 )
+    Call    ShowGotItem 	( 7 0 0 ) % Black Star
+    Call    AddKeyItem  	( 7 ) % Black Star
+    Call	SpeakToPlayer	( 5 00201409 00201401 .Default $String_Mistar_10 )
+    Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call 	SetPlayerAnimation 	( .PlayerAnim:ThumbsUp )
+    Call    SetNpcAnimation     ( 5 00201413 ) % ;)
+    Wait    35`
+    Set 	*Flag_Skip .False
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Mistar
+{
+    Set	*Flag_Skip .True % show skip text
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+            Set 	*Flag_Skip .False
+            % Fade Screen Brightness
+            SetGroup 0
+            SuspendAll .True
+            SetF	*Var[0] *Fixed[25.0]  % speed
+            SetF	*Var[1] *Fixed[255.0] % fully dark
+            ExecWait $Script_FadeScreenOut
+			% after cutscene code
+            Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call	HasKeyItem ( 7 *Var[0] )
+            If *Var[0] == .False
+                Call    AddKeyItem  	( 7 ) % Black Star
+            EndIf
+            Kill	*Var[A]
+            Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+            ResumeAll .True
+            Thread % Fade Screen Brightness
+                SetF	*Var[0] *Fixed[25.0] % speed
+                SetF	*Var[1] *Fixed[5.0]  % fully bright
+                ExecWait $Script_FadeScreenIn
+            EndThread
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#string $String_Mistar_1
+{
+[STYLE:RIGHT][...]
+Hey!
+What is that you have there?
+[WAIT][END]
+}
+
+#string $String_Mistar_2
+{
+[STYLE:RIGHT][...]
+Is that [Var:00]?
+[WAIT][END]
+}
+
+#string $String_Mistar_3
+{
+[STYLE:RIGHT][...]
+It has to be!
+That's why I'm finally able
+to see everything clearer now.
+[WAIT][END]
+}
+
+#string $String_Mistar_4
+{
+[STYLE:RIGHT][...]
+...
+[WAIT][NEXT][...]
+It has been a really long
+time since the last time...
+[WAIT][NEXT][...]
+...
+[WAIT][END]
+}
+
+#string $String_Mistar_5
+{
+[STYLE:RIGHT][...]
+Sorry, forget about that.
+[WAIT][NEXT][...]
+I want to thank you, for
+what you did.
+[WAIT][NEXT][...]
+I'm Mistar, and you are?
+[WAIT][END]
+}
+
+#string $String_Mistar_6
+{
+[STYLE:RIGHT][...]
+Mario? I see
+[WAIT][NEXT][...]
+Also...
+[WAIT][NEXT][...]
+yes...
+[WAIT][NEXT][...]
+This is one is my true form,
+but don't be fooled!
+[WAIT][NEXT][...]
+I'm actually stronger and
+scarier now, right?
+[WAIT][END]
+}
+
+#string $String_Mistar_7
+{
+[STYLE:RIGHT][...]
+Okay so as I was telling you
+before that artifact you have
+there is really important.
+[WAIT][NEXT][...]
+Because it can be our key for
+leaving this place!
+[WAIT][END]
+}
+
+#string $String_Mistar_8_1
+{
+[STYLE:RIGHT][...]
+Hmm...
+[WAIT][NEXT][...]
+Right now it looks like you still
+need to [PushColor][Color:19]get the other
+artifact from the other Pit[PopColor].
+[WAIT][NEXT][...]
+After doing that [PushColor][Color:19]I want to talk
+with you at the bottom of any
+Pit[PopColor].
+[WAIT][NEXT][...]
+So I can talk with you a little
+more about what is exactly
+happening in this place.
+[WAIT][NEXT][...]
+And what we have to do next to
+leave once and for all too!
+[WAIT][END]
+}
+
+#string $String_Mistar_8_2
+{
+[STYLE:RIGHT][...]
+Right looks like you already
+have both artifacts.
+[WAIT][NEXT][...]
+Okay so what we need to do
+next is [PushColor][Color:19]going to the bottom
+of any Pit[PopColor].
+[WAIT][NEXT][...]
+I want to talk to you a little
+more about what exactly is
+happening in this place.
+[WAIT][NEXT][...]
+And what do we have to do next
+to leave once and for all too!
+[WAIT][END]
+}
+
+#string $String_Mistar_9
+{
+[STYLE:RIGHT][...]
+Also I want you to take this.
+[WAIT][NEXT][...]
+As a sign of gratitude for
+what you did for me.
+[WAIT][END]
+}
+
+#string $String_Mistar_10
+{
+[STYLE:RIGHT][...]
+I'll be by your side my friend.
+[WAIT][NEXT][...]
+Time to go to that Pit!
+Let's go!
+[WAIT][END]
+}
+
+#string $String_Var_Bonetail
+{
+a Bonetail's bone[END]
+}
+
+#string $String_Var_King
+{
+Ruby King's crown[END]
+}
+
+#new:Script $Script_LockChests
+{
+    Set *Var[0] .Default
+    Switch *Dungeon_MapID
+        Case == 1 % mze_02
+            Add *Var[0] *AreaFlag[000]
+            Add *Var[0] *AreaFlag[001]
+        Case == 5 % mze_03
+            Add *Var[0] *AreaFlag[002]
+            Add *Var[0] *AreaFlag[003]
+        Case == 9 % mze_04
+            Add *Var[0] *AreaFlag[004]
+            Add *Var[0] *AreaFlag[005]
+        Case == 13` % mze_05
+            Add *Var[0] *AreaFlag[006]
+            Add *Var[0] *AreaFlag[007]
+        Case == 18` % mze_10
+            Add *Var[0] *AreaFlag[008]
+            Add *Var[0] *AreaFlag[009]
+            Add *Var[0] *AreaFlag[00A]
+        Case == 20` % mze_11
+            Add *Var[0] *AreaFlag[00B]
+            Add *Var[0] *AreaFlag[00C]
+            Add *Var[0] *AreaFlag[00D]
+    EndSwitch
+    % Reformat Var0
+    Switch *Dungeon_MapID
+        CaseOR == 1 % mze_02
+        CaseOR == 5 % mze_03
+        CaseOR == 9 % mze_04
+        CaseOR == 13` % mze_05
+            If *Var[0] == 2 % Rooms with 2 enemies NPC
+                Set *Var[0] 3
+            EndIf
+        EndCaseGroup
+        Case == 20` % mze_11
+            If *AreaFlag[00E] == .True % Mistar Defeated
+                Set *Var[0] 3
+            EndIf
+    EndSwitch
+    If *Var[0] == 3 % all enemies defeated
+        % Unlock Chests
+        % Var1 = Offset
+        Switch *Dungeon_MapID
+            CaseOR == 1 % mze_02
+            CaseOR == 9 % mze_04
+            CaseOR == 18` % mze_10
+                Set *Var[1] .Default
+                % Get Data Pointer
+                Switch *Dungeon_MapID
+                    Case == 1 % mze_02
+                        Set *Var[2] $Maze_ChestData_Map1_5
+                    Case == 9 % mze_04
+                        Set *Var[2] $Maze_ChestData_Map9_13
+                    Case == 18` % mze_10
+                        Set *Var[2] $Maze_ChestData_Map18_20
+                EndSwitch
+                % Disable Colliders
+                Loop 2
+                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
+                    Switch *Var[0]
+                        Case == 0
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
+                        Case == 1
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
+                        Case == 2
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
+                        Case == 3
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
+                    EndSwitch
+                    Add *Var[1] 1
+                    Wait 1
+                EndLoop
+            EndCaseGroup
+            CaseOR == 5 % mze_03
+            CaseOR == 13` % mze_05
+            CaseOR == 20` % mze_11
+                Set *Var[1] 2
+                % Get Data Pointer
+                Switch *Dungeon_MapID
+                    Case == 5 % mze_03
+                        Set *Var[2] $Maze_ChestData_Map1_5
+                    Case == 13` % mze_05
+                        Set *Var[2] $Maze_ChestData_Map9_13
+                    Case == 20` % mze_11
+                        Set *Var[2] $Maze_ChestData_Map18_20
+                EndSwitch
+                % Disable Colliders
+                Loop 2
+                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
+                    Switch *Var[0]
+                        Case == 0
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
+                        Case == 1
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
+                        Case == 2
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
+                        Case == 3
+                            Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
+                    EndSwitch
+                    Add *Var[1] 1
+                    Wait 1
+                EndLoop
+            EndCaseGroup
+        EndSwitch
+    Else % if all enemies hasn't been defeated lock all chests
+        % Disable all chest's collisions and then only enable the one from the spawned chests
+        Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
+        Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
+        Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
+        Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
+        % Lock Chests
+        % Var1 = Offset
+        Switch *Dungeon_MapID
+            CaseOR == 1 % mze_02
+            CaseOR == 9 % mze_04
+            CaseOR == 18` % mze_10
+                Set *Var[1] .Default
+                % Get Data Pointer
+                Switch *Dungeon_MapID
+                    Case == 1 % mze_02
+                        Set *Var[2] $Maze_ChestData_Map1_5
+                    Case == 9 % mze_04
+                        Set *Var[2] $Maze_ChestData_Map9_13
+                    Case == 18` % mze_10
+                        Set *Var[2] $Maze_ChestData_Map18_20
+                EndSwitch
+                % Disable Colliders
+                Loop 2
+                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
+                    Switch *Var[0]
+                        Case == 0
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest1 7FFFFE00 )
+                        Case == 1
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest2 7FFFFE00 )
+                        Case == 2
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest3 7FFFFE00 )
+                        Case == 3
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest4 7FFFFE00 )
+                    EndSwitch
+                    Add *Var[1] 1
+                    Wait 1
+                EndLoop
+            EndCaseGroup
+            CaseOR == 5 % mze_03
+            CaseOR == 13` % mze_05
+            CaseOR == 20` % mze_11
+                Set *Var[1] 2
+                % Get Data Pointer
+                Switch *Dungeon_MapID
+                    Case == 5 % mze_03
+                        Set *Var[2] $Maze_ChestData_Map1_5
+                    Case == 13` % mze_05
+                        Set *Var[2] $Maze_ChestData_Map9_13
+                    Case == 20` % mze_11
+                        Set *Var[2] $Maze_ChestData_Map18_20
+                EndSwitch
+                % Disable Colliders
+                Loop 2
+                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
+                    Switch *Var[0]
+                        Case == 0
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest1 7FFFFE00 )
+                        Case == 1
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest2 7FFFFE00 )
+                        Case == 2
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest3 7FFFFE00 )
+                        Case == 3
+                            Call    ModifyColliderFlags ( .True ~Collider:Chest4 7FFFFE00 )
+                    EndSwitch
+                    Add *Var[1] 1
+                    Wait 1
+                EndLoop
+            EndCaseGroup
+        EndSwitch
+    EndIf
+    Return
+    End
+}
+
+% Call  $GetEntityPointer ( EntityID *out )
+%
+% Get the pointer data from an entity by reading his ID
+#new:Function $GetEntityPointer % unused
+{
+/% Why double PUSH/POP?
+Because ASM sucks and when using set_variable the value
+wasn't actually being saved.
+
+(Actually looks like was because A0)
+%/
+PUSH    RA, A0, S0
+% Get Arg 1
+LW      S0, C (A0)
+JAL     ~Func:get_variable
+LW      A1, 0 (S0)
+% A0 = Entity ID
+JAL     ~Func:get_entity_by_index
+COPY    A0, V0
+% Save pointer data before POPing
+COPY    T0, S0
+POP     RA, A0, S0
+PUSH    RA
+% Write Var
+COPY    A2, V0
+JAL     ~Func:set_variable
+LW      A1, 4 (T0) % Get Arg 2
+POP     RA
+JR      RA
+ORI     V0, R0, 2
+}
+
+#new:Function $Function_RevivePlayer
+{
+PUSH      RA
+ADDIU     V0, R0, 1
+SAB       V0, 8010F292
+JAL       800E9B6C
+NOP
+POP       RA
+JR        RA
+ADDIU     V0, R0, 2
+}

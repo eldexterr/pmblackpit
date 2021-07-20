@@ -1,0 +1,5419 @@
+%% This file handle all the hooks that needs to be running at all time (And a few other misc stuff)
+
+@Hook 82758 % 800E92A8
+{
+JAL        $SetUpgrades % Developer Hook
+NOP
+JAL        $GodMode
+NOP
+JAL 	   $Function_Print_Coins % Display the current coins being gained when fighting in a battle
+NOP
+JAL 	   $DrawCoinBox % Display the Bank Account's coins and box
+NOP
+JAL        $ShowBox_FinalResults % Print all the strings used on the Final Results message
+NOP
+JAL        $Draw_KeysStarPiecesCounter % Display the Keys count on Roguelike
+NOP
+JAL        $DemoSettingsBox % Display the box with the strings when changing the settings on the game demo
+NOP
+JAL        $DifficultiesDescriptions % Display the box with the strings when choosing a difficulty for a pit
+NOP
+JAL	   	   $Maze_Timer % Display the timer inside the Maze
+NOP
+JAL	   	   $Maze_SP % Display the current star pieces at maze's lobbies
+NOP
+JAL        $Draw_ChestsRoom % Display the amount needed to buy a chest on maze's chest room
+NOP
+% Chuck Stuff, when customizing the lobby or changing mario's skins
+JAL        $Draw_OnlyDescriptionBox
+NOP
+% Mario Skins
+%JAL	   	   $JAL_Overwrite_PlayersPalette % is a hook now
+%NOP
+% Challenges %
+JAL         $Function_TrackChallenges % Check if a challenged get completed
+NOP
+JAL         $Function_ChallengeNotification % If a timer got completed display the notification
+NOP
+% Skip Cutscenes
+JAL        $Display_SkipText
+NOP
+% Track Inputs
+JAL         $TrackInput % track an input and return a bool
+NOP
+LW        RA, 008C (SP)
+J        800E92B0
+NOP
+}%/
+
+#new:Data $cursor
+{
+00000000
+}
+
+% To being able to modify it's position on pt_00
+#export $cursor
+
+#new:Data $coin_posY
+{
+00000000
+}
+
+#new:Data $text_posY
+{
+00000000
+}
+
+#new:Data $box_sizeX
+{
+00000000
+}
+
+#new:Data $coin_opacity
+{
+00000000
+}
+
+#new:Data $text_opacity
+{
+00000000
+}
+
+#new:Data $BoxAnimation_Offset % Handle the offsets when the box is in an animation
+{
+00000000
+}
+
+#new:Data $BoxAnimation_State % Handle when to do the Start and Ending animations for the box
+{
+00000000
+}
+
+% Export it to being able to write on it when the player stopped talking to Fishmael
+#export $BoxAnimation_State
+#export $BoxAnimation_Offset
+
+#new:Function $DrawCoinBox
+{
+PUSH	RA, A0, A1, A2, A3, T0, T1, V0
+LIO     A1, *TalkingToFishmael
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End % If you aren't talking to fishmael, finish the function
+NOP
+% Handle cursor position
+LAW     A1, $cursor
+BEQ     A1, R0, .BypassCursor
+NOP
+% X000
+ADDIU   T0, R0, 1
+BEQ     A1, T0, .LoadArrow
+ORI     T1, R0, 5E % x pos
+% 0X00
+ADDIU   T0, R0, 2
+BEQL    A1, T0, .LoadArrow
+ADDIU   T1, T1, 25 % x pos
+% 00X0
+ADDIU   T0, R0, 3
+BEQL    A1, T0, .LoadArrow
+ADDIU   T1, T1, 4A % x pos
+% 000X
+ADDIU   T0, R0, 4
+BEQL    A1, T0, .LoadArrow
+ADDIU   T1, T1, 6F % x pos
+BEQ     R0, R0, .BypassCursor
+NOP
+% Draw Arrow Icon
+.LoadArrow
+LIO     A0, $String_PrintArrow
+COPY    A1, T1
+ADDIU   A3, R0, FF
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 86    % y
+.BypassCursor
+% Handle animations
+LAW      A1, $BoxAnimation_State
+ADDIU   T0, R0, 1
+BEQ     A1, T0, .OffsetsEnd    % It means the start animation has ended, keep the box in the same size
+NOP
+.SetFlag
+% Handle the speed of the offsets
+CLEAR	A2
+LIA		A0, $Script_HandleSpeed
+JAL		~Func:start_script
+ADDIU	A1, R0, 1 % This line looks like is unneccesary
+% Use the branches to make the offsets accordingly to the current animation
+LAW     A1, $BoxAnimation_Offset
+BNE     A1, R0, .CheckOffset2 % If current offset isn't the first 1
+NOP
+% Check if the current state is 2 - It means the ending animation has ended, so set the state to 0
+% to start the start animation the next time you talk to fishmael
+LAW     T0, $BoxAnimation_State
+ADDIU   T1, R0, 2
+BNE     T0, T1, .LoadOffset1
+NOP
+LIO     A1, *TalkingToFishmael % Set the flag to 0
+JAL     ~Func:set_variable
+ADDIU   A2, R0, 0
+SAW     R0, $BoxAnimation_State
+% If isn't state 2, just load the box
+.LoadOffset1
+SAW     R0, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset2
+ADDIU   T0, R0, 1
+BNE     A1, T0, .CheckOffset3
+NOP
+ADDIU    A2, R0, 10
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset3
+ADDIU   T0, R0, 2
+BNE     A1, T0, .CheckOffset4
+NOP
+ADDIU    A2, R0, 20
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset4
+ADDIU   T0, R0, 3
+BNE     A1, T0, .CheckOffset5
+NOP
+ADDIU    A2, R0, 30
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset5
+ADDIU   T0, R0, 4
+BNE     A1, T0, .CheckOffset6
+NOP
+ADDIU    A2, R0, 40
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset6
+ADDIU   T0, R0, 5
+BNE     A1, T0, .CheckOffset7
+NOP
+%% Offset 6 is when the text and the coin appears
+ADDIU   T0, R0, 0
+SAW     T0, $coin_posY
+ADDIU   T0, R0, 0
+SAW     T0, $text_posY
+ADDIU   T0, R0, 0
+SAW     T0, $coin_opacity
+ADDIU   T0, R0, 0
+SAW     T0, $text_opacity
+ADDIU   A2, R0, 50
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset7
+ADDIU   T0, R0, 6
+BNE     A1, T0, .CheckOffset8
+NOP
+%% Check Position to use for the String and the Coin
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .SaveCoinPos
+ADDIU   T0, R0, A2
+ADDIU   T0, R0, 8E % If wasn't fishmael just load Oakley position instead
+.SaveCoinPos
+SAW     T0, $coin_posY
+BEQL    V0, T1, .SaveTextPos
+ADDIU   T0, R0, AA
+ADDIU   T0, R0, 96 % If wasn't fishmael just load Oakley position instead
+.SaveTextPos
+SAW     T0, $text_posY
+ADDIU   T0, R0, 55
+SAW     T0, $coin_opacity
+ADDIU   T0, R0, 54
+SAW     T0, $text_opacity
+ADDIU   A2, R0, 60
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.CheckOffset8
+ADDIU   T0, R0, 7
+BNE     A1, T0, .OffsetsEnd
+NOP
+%% Check Position to use for the String and the Coin
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .SaveCoinPos2
+ADDIU   T0, R0, A4
+ADDIU   T0, R0, 90 % If wasn't fishmael just load Oakley position instead
+.SaveCoinPos2
+SAW     T0, $coin_posY
+BEQL    V0, T1, .SaveTextPos2
+ADDIU   T0, R0, AC
+ADDIU   T0, R0, 98 % If wasn't fishmael just load Oakley position instead
+.SaveTextPos2
+SAW     T0, $text_posY
+ADDIU   T0, R0, AA
+SAW     T0, $coin_opacity
+ADDIU   T0, R0, A8
+SAW     T0, $text_opacity
+ADDIU   A2, R0, 70
+SAW     A2, $box_sizeX
+BEQ     R0, R0, .LoadBox
+NOP
+.OffsetsEnd
+%% Check Position to use for the String and the Coin
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .SaveCoinPos3
+ADDIU   T0, R0, A6
+ADDIU   T0, R0, 92 % If wasn't fishmael just load Oakley position instead
+.SaveCoinPos3
+SAW     T0, $coin_posY
+BEQL    V0, T1, .SaveTextPos3
+ADDIU   T0, R0, AE
+ADDIU   T0, R0, 9A % If wasn't fishmael just load Oakley position instead
+.SaveTextPos3
+SAW     T0, $text_posY
+ADDIU   T0, R0, FF
+SAW     T0, $coin_opacity
+ADDIU   T0, R0, FE
+SAW     T0, $text_opacity
+ADDIU    A2, R0, 7A % End - The box has his largest size
+ADDIU   T0, R0, 1
+SAW     T0, $BoxAnimation_State % Put the box to State 1 (It means the start animation has ended)
+.LoadBox
+% Draw Box
+%% Check Position to use for the Box
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .LoadFinalBoxYPos
+ADDIU	A0, R0, 5E  % posX
+ADDIU   A0, R0, 16 % If wasn't fishmael just load Oakley position instead
+.LoadFinalBoxYPos
+BEQL    V0, T1, .LoadLastArgs
+ADDIU	A1, R0, A9  % posY
+ADDIU   A1, R0, 95 % If wasn't fishmael just load Oakley position instead
+.LoadLastArgs
+LAW     A2, $box_sizeX
+ADDIU	A3, R0, 1A % sizeY
+ADDIU	T0, R0, 3  % style
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+% Draw String
+LUI	    A0, 8035
+LW	    A0, 60DC (A0) % Load Bank Account
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 0    % Var Index (00-02)
+%% Check Position X pos to use for the String
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .LoadLastArgsString
+ADDIU   A1, R0, 7C % x
+ADDIU   A1, R0, 34 % If wasn't fishmael just load Oakley position instead
+.LoadLastArgsString
+LIO     A0, $String_CurrentCoins
+LAW     A2, $text_posY    % y
+LAW     A3, $text_opacity % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+NOP
+% Draw Coin Icon
+%% Check Position X pos to use for the Coin
+LIO 	A1, *BankTextBoxPosition
+JAL 	~Func:get_variable 
+NOP
+ADDIU   T1, R0, 1 % Fishmael
+BEQL    V0, T1, .LoadLastArgsCoin
+ADDIU   A1, R0, 5F % x
+ADDIU   A1, R0, 17 % If wasn't fishmael just load Oakley position instead
+.LoadLastArgsCoin
+LIO     A0, $String_PrintCoinIcon
+LAW     A2, $coin_posY    % y
+LAW     A3, $coin_opacity % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+NOP
+.End
+POP		RA, A0, A1, A2, A3, T0, T1, V0
+JR		RA
+NOP
+}
+
+#string $String_PrintArrow
+{
+[PushColor][Color:28][Size:15:15][UP][SizeReset][PopColor][END]
+}
+
+#string $String_CurrentCoins
+{
+[PushColor][Color:0A]x [Var:00][PopColor][END]
+}
+
+#string $String_PrintCoinIcon
+{
+[Item:00:5A][END]
+}
+
+#new:Script:Map $Script_HandleSpeed
+{
+Call $GetVar_BoxAnimation_State  ( *Var[0] )
+Call $GetVar_BoxAnimation_Offset ( *Var[1] )
+Switch  *Var[0]
+    Case == 0 % Start Animation
+        If  *Var[1] < 8 % The box isn't fully deployed
+            Wait    3
+            Call    $Function_MoveOffset
+        EndIf
+    Case == 1 % Idle
+    Case == 2 % Ending Animation
+        If  *Var[1] > 0 % The box isn't fully invisible
+            Call    $Function_SubOffset
+            Wait    3
+        EndIf
+EndSwitch
+Return
+End
+}
+
+#new:Function $GetVar_BoxAnimation_State
+{
+PUSH	RA, V0, A1, A2
+LAW     A2, $BoxAnimation_State
+LIO     A1, *Var[0]
+JAL     ~Func:set_variable
+NOP
+POP	    RA, V0, A1, A2
+JR      RA
+ADDIU V0, R0, 2
+}
+
+#new:Function $GetVar_BoxAnimation_Offset
+{
+PUSH	RA, V0, A1, A2
+LAW     A2, $BoxAnimation_Offset
+LIO     A1, *Var[1]
+JAL     ~Func:set_variable
+NOP
+POP	    RA, V0, A1, A2
+JR      RA
+ADDIU V0, R0, 2
+}
+
+#new:Function $Function_MoveOffset
+{
+LAW   T0, $BoxAnimation_Offset
+ADDIU T0, T0, 1
+SAW   T0, $BoxAnimation_Offset
+JR    RA
+ADDIU V0, R0, 2
+}
+
+#new:Function $Function_SubOffset
+{
+LAW   T0, $BoxAnimation_Offset
+ADDIU T1, R0, 1
+SUBU  T0, T0, T1
+SAW   T0, $BoxAnimation_Offset
+JR    RA
+ADDIU V0, R0, 2
+}
+
+% A0 = posX
+% A1 = posY
+% A2 = sizeX
+% A3 = sizeY
+% T0 = style
+% T1 = opacity
+#new:Function $DrawBox
+{
+ADDIU         SP, SP, -58
+SW            RA, 50 (SP)
+% setup call to DrawBox
+SW            R0, 10 (SP) % posZ
+SW            A2, 14 (SP) % width
+SW            A3, 18 (SP) % height
+SW            T1, 1C (SP) % opacity
+COPY          A2, A0 % posX
+COPY          A3, A1 % posY
+CLEAR         A0 % flags
+COPY          A1, T0 % flags
+SW            R0, 20 (SP) % fogRGB
+SW            R0, 24 (SP) % scaleX (unused)
+SW            R0, 28 (SP) % scaleY (unused)
+SW            R0, 2C (SP) % rotX (unused)
+SW            R0, 30 (SP) % rotY (unused)
+SW            R0, 34 (SP) % rotZ (unused)
+SW            R0, 38 (SP) % fpDrawContents (optional) % expect an address(?)
+SW            R0, 3C (SP) % drawContents() arg0 (optional)
+SW            R0, 40 (SP) % txMtx (unused)
+SW            R0, 44 (SP) % txShiftY (unused)
+SW            R0, 48 (SP) % txShiftX (unused)
+JAL           ~Func:draw_box
+SW            R0, 4C (SP) % unk
+LW            RA, 50 (SP)
+JR            RA
+ADDIU         SP, SP, 58
+}
+
+#export $DrawBox
+
+%%%% Printing Code made by Rain %%%%%
+#new:Data $PointerToStoreAsciiTo
+{
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 %allocate space to store result
+}
+
+#new:Data $PointerToStoreStringTo
+{
+FF0D0F0F % set font to 0F width, 0F height
+FF0500F7 % set color to 00 (black)
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+}
+
+#new:Data $Formatters
+{
+20202020 20202020 20202020 20202564 00000000
+%above hex is ascii for: "        %d"
+}
+
+#new:Function $Function_Print_Coins
+{
+PUSH T0, T1, a0, a1, a2, a3, v0, ra
+%%% Battle Check Start
+LAB		T0, 80074094	% Load EventID
+ADDIU	T1, R0, 1
+BNE		T0, T1, .BypassPrintingText % If Mario isn't inside a battle just bypass everything
+NOP
+%%% Battle Check End
+LIO     a0, $PointerToStoreAsciiTo
+LIO     a1, $Formatters
+LABU    a2, 800DC0E8 % Coins Gained in Battle
+JAL     ~Func:sprintf
+ADD     a3, r0, r0 %make the arg after the last arg we actually use 0
+%
+LIO     a0, $PointerToStoreStringTo
+LIO     a1, $PointerToStoreAsciiTo
+JAL     $ConvertAsciiToPM64String
+NOP
+LIO     a0, $PointerToStoreStringTo
+ORI     a1, r0, 00C7 %x pos
+ORI     a2, r0, 00CD %y pos
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     a3, r0, 00FE %FF gives an ugly black outline to text...so i opt for 0xFE
+% draw "x"
+LIO     A0, $String_x
+ORI     a1, r0, 0107 % x
+ORI     a2, r0, 00CB % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     a3, r0, 00FE % opacity
+% Draw Coin Icon
+% The one that sets the icon pos is at Hook 81E30 (NewStatsMenu.patch)
+LIO     A0, $CurrentLSIcon
+LHU     A0, 4 (A0)
+JAL	    ~Func:draw_icon_1
+ADDIU   A0, A0, 5 % Star's icon Index (+5) = coin's iconIndex (why 5? because there's 4 Life shrooms icons)
+.BypassPrintingText
+POP     T0, T1, a0, a1, a2, a3, v0, ra
+JR      RA
+NOP
+}
+
+#string $String_x
+{
+x[End]
+}
+
+#new:Function $ConvertAsciiToPM64String %takes args a0, a1
+{
+% a0 = where to store converted result
+% a1 = where to read from
+PUSH a0, a1
+ORI t1, r0, 0020 %space
+.loop
+LB t0, 0000 (a1)
+BEQ t0, r0, .endofascii
+NOP
+BEQ t0, t1, .isspace
+NOP
+ADDIU t0, t0, FFE0 %subtract 0x20 from ascii to get pm64 string hex
+.store
+SB t0, 0008 (a0)
+ADDIU a0, a0, 0001
+BEQ r0, r0, .loop
+ADDIU a1, a1, 0001
+.endofascii
+ORI t0, r0, 00FD %pm64 string terminator
+SB t0, 0008 (a0) %store terminator
+POP a0, a1
+JR RA
+NOP
+.isspace
+BEQ r0, r0, .store
+ORI t0, r0, 00F7
+}
+
+#export $ConvertAsciiToPM64String
+
+#new:Function $ShowBox_FinalResults % ~ 804148A0
+{
+% Print the box and all strings from the final results screen
+PUSH	RA, A0, A1, A2, A3, V0, S0
+% 1 % Check Flag
+LIO     A1, *ShowFinalResultValues
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End
+NOP
+LIO 	A1, *Flag_Mode_Rogue
+JAL 	~Func:get_variable 
+RESERVED
+COPY	S0, V0 % Copy Rogue flag in S0
+% 2 % Print Message Box
+JAL     $Print_MessageBox
+NOP
+% 3 % Handle the Speed of Printing and what to print next
+% Check Flag, used when the box was closed
+LABU    T0, $FinalResults_PrintingFlag
+BNE     T0, R0, .BypassScript
+NOP
+CLEAR	A2
+LIA		A0, $Script_HandleSpeed_FinalResults
+JAL		~Func:start_script
+ADDIU	A1, R0, 1
+.BypassScript
+% 4 % Load Values needed to get each Rank, varies between difficulties
+LABU   T0, 8035600F % *PitDifficulty
+SLTI   T1, T0, 1
+BEQ    T1, R0, .Hard
+NOP
+% Load Normal Difficulty Values
+.Normal
+ORI    T0, R0, 2900`
+SAH    T0, $Rank_Damage_Dealt
+ORI    T0, R0, 200`
+SAH    T0, $Rank_Damage_Received
+ORI    T0, R0, 5
+SAB    T0, $Rank_Items
+ORI    T0, R0, 3000`
+SAH    T0, $Rank_Coins
+ORI    T0, R0, 100`
+SAH    T0, $Rank_Floors
+LIO    T0, 021E0000 % HH:MM:SS Frames
+SAW    T0, $Rank_Timer
+BEQ    R0, R0, .FinalResults_String
+NOP
+% Load Hard Difficulty Values
+.Hard
+SLTI   T1, T0, 2
+BEQ    T1, R0, .VeryHard
+NOP
+% Load Hard Difficulty Values
+ORI    T0, R0, 4300`
+SAH    T0, $Rank_Damage_Dealt
+ORI    T0, R0, 300`
+SAH    T0, $Rank_Damage_Received
+ORI    T0, R0, 5
+SAB    T0, $Rank_Items
+ORI    T0, R0, 4500`
+SAH    T0, $Rank_Coins
+ORI    T0, R0, 100`
+SAH    T0, $Rank_Floors
+LIO    T0, 03000000 % HH:MM:SS Frames
+SAW    T0, $Rank_Timer
+BEQ    R0, R0, .FinalResults_String
+NOP
+.VeryHard
+% Load Very Hard Difficulty Values
+ORI    T0, R0, 5800`
+SAH    T0, $Rank_Damage_Dealt
+ORI    T0, R0, 400`
+SAH    T0, $Rank_Damage_Received
+ORI    T0, R0, 5
+SAB    T0, $Rank_Items
+ORI    T0, R0, 6000`
+SAH    T0, $Rank_Coins
+ORI    T0, R0, 100`
+SAH    T0, $Rank_Floors
+LIO    T0, 031E0000 % HH:MM:SS Frames
+SAW    T0, $Rank_Timer
+BEQ    R0, R0, .FinalResults_String
+NOP
+%/
+% 5 % Draw Strings
+%% Final Results - Start
+.FinalResults_String
+LIO     A0, $String_Final_Results % String to Print
+ADDIU   A1, R0, 64    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 15    % y
+%% Final Results - End
+%% Current Difficulty String - Start
+% Get current difficulty
+LIO 	A1, *PitDifficulty
+JAL 	~Func:get_variable
+RESERVED
+BNE     V0, R0 .CheckDifficulty_Hard
+NOP
+% Normal
+LIO     A0, $String_Normal
+BEQ     R0, R0, .PrintDifficulty
+NOP
+.CheckDifficulty_Hard
+SLTIU   T0, V0, 2
+% Hard
+LIO     A0, $String_Hard
+BEQ     T0, R0, .CheckDifficulty_VeryHard
+NOP
+BEQ     R0, R0, .PrintDifficulty
+NOP
+.CheckDifficulty_VeryHard
+% Very Hard
+LIO     A0, $String_VeryHard
+.PrintDifficulty
+ADDIU   A1, R0, 2A  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, CE    % y
+%% Damage Dealt - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 1
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Dealt % String to Print
+ADDIU   A1, R0, 78    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 2A    % y
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer       % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Half  % Type of Format to use
+LAHU    A2, $TotalDamage_Dealt  % Data to Format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LAHU    A2, $TotalDamage_Dealt
+LAHU    T1, $Rank_Damage_Dealt
+SLTU    T0, A2, T1
+BNE     T0, R0, .BypassYellow1 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow1
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit0
+SLL	    T0, T0, 1F
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow1 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit0 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 1
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow1
+NOP
+.BypassYellow1
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+.LoadYellow1
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, C0  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 2A    % y
+%% Damage Dealt - End
+%% Damage Received - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 2
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Received
+ADDIU   A1, R0, 60    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 3F    % y
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer       % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Half  % Type of Format to use
+LAHU    A2, $TotalDamage_Received  % Data to Format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LAHU    A2, $TotalDamage_Received
+LAHU    T1, $Rank_Damage_Received
+SLTU    T0, A2, T1
+BEQ     T0, R0, .BypassYellow2 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow2
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit1
+SLL	    T0, T0, 1E
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow2 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit1 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 2
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow2
+NOP
+.BypassYellow2
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+.LoadYellow2
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, C0  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 3F    % y
+%% Damage Received - End
+%% Total Items - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 3
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Items
+ADDIU   A1, R0, 87    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 54    % y
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Byte     % Type of Format to use
+LABU    A2, $TotalItemsUsed        % Data to Format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LABU    A2, $TotalItemsUsed
+LABU    T1, $Rank_Items
+ADDIU   T1, T1, 1
+SLTU    T0, A2, T1
+BEQ     T0, R0, .BypassYellow3 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow3
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit2
+SLL	    T0, T0, 1D
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow3 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit2 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 4
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow3
+NOP
+.BypassYellow3
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+.LoadYellow3
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, CC  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 54    % y
+%% Total Items - End
+%% Total Coins - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 4
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Coins
+ADDIU   A1, R0, 50    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 6A    % y
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Half     % Type of Format to use
+LAHU    A2, 8010F2AA               % Address from data to format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LAHU    A2, 8010F2AA % coins from battles
+LAHU    T1, $Rank_Coins
+SLTU    T0, A2, T1
+BNE     T0, R0, .BypassYellow4 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow4
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit3
+SLL	    T0, T0, 1C
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow4 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit3 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 8
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow4
+NOP
+.BypassYellow4
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+.LoadYellow4
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, C1  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 6A    % y
+%% Total Coins - End
+%% Total Floors - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 5
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Floors
+ADDIU   A1, R0, 40    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 7F    % y
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Half     % Type of Format to use
+LAHU    A2, $TotalFloors           % Data to Format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LAHU    A2, $TotalFloors
+LAHU    T1, $Rank_Floors
+SLTU    T0, A2, T1
+BNE     T0, R0, .BypassYellow5 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow5
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit4
+SLL	    T0, T0, 1B
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow5 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit4 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 10
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow5
+NOP
+.BypassYellow5
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+.LoadYellow5
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, C2  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 7F    % y
+%% Total Floors - End
+%% Most Time on Floor - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 6
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_MostTime
+ADDIU   A1, R0, 40    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 94    % y
+% Convert Data to ASCII
+% Load Byte
+LIO 	A1, *MostTimeFloorID
+JAL 	~Func:get_variable         % Output = V0
+NOP
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Byte     % Type of Format to use
+COPY    A2, V0                     % Data to format
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % ASCII to Format
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, CF  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 94    % y
+%% Most Time on Floor - End
+%% Total Time - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 7
+BNE     T1, R0, .End
+NOP
+LIO     A0, $String_Total_Time
+ADDIU   A1, R0, 47    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, AA    % y
+% Convert Data to ASCII - Load Hours
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Time     % Type of Format to use
+LIO     A2, $Timer_Total           % Data to Format
+LB      A2, 0 (A2)                 % Load Hours
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer                % ASCII to Format
+%%
+% Check if Yellow Text got achieved
+%%
+LAW     A2, $Timer_Total
+LAW     T1, $Rank_Timer
+SLTU    T0, A2, T1
+BEQ     T0, R0, .BypassYellow6 % If wasn't achieved
+NOP
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow6
+NOP
+% Load Yellow Buffer and aument y buffer count by 1
+LIO     A0, $String_Buffer_Yellow
+% Check if the Buffer counter has been already increased
+LABU    T0, $BuffersFlags
+% Check Bit5
+SLL	    T0, T0, 1A
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow6 % If has been already aumented
+NOP
+% Add 1 to Yellow Buffers
+LABU    T1, $YellowBuffers
+ADDIU   T1, T1, 1
+SAB     T1, $YellowBuffers % Add 1
+% Set Bit5 as true
+LABU    T0, $BuffersFlags
+ADDIU   T0, T0, 20
+SAB     T0, $BuffersFlags
+BEQ     R0, R0, .LoadYellow6
+NOP
+.BypassYellow6
+LIO     A0, $String_Buffer                % Pointer to Save Final String
+.LoadYellow6
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, 81  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, AA    % y
+% Convert Data to ASCII - Load Minutes
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Time     % Type of Format to use
+LIO     A2, $Timer_Total           % Data to Format
+LB      A2, 1 (A2)                 % Load Minutes
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer                 % ASCII to Format
+%% Just Check for Bit5 to know when to use the yellow buffer
+LABU    T0, $BuffersFlags
+% Check Bit5
+SLL	    T0, T0, 1A
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow7
+NOP
+% If wasn't true load the colorless buffer
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+BEQ     R0, R0, .BypassYellow7
+NOP
+.LoadYellow7
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow7
+NOP
+LIO     A0, $String_Buffer_Yellow
+.BypassYellow7
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, 9D  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, AA    % y
+% Convert Data to ASCII - Load Seconds
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Time     % Type of Format to use
+LIO     A2, $Timer_Total           % Data to Format
+LB      A2, 2 (A2)                 % Load Seconds
+JAL     ~Func:sprintf
+NOP
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer                 % ASCII to Format
+%% Just Check for Bit5 to know when to use the yellow buffer
+LABU    T0, $BuffersFlags
+% Check Bit5
+SLL	    T0, T0, 1A
+SRL 	T0, T0, 1F
+BNE	    T0, R0, .LoadYellow8
+NOP
+% If wasn't true load the colorless buffer
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+BEQ     R0, R0, .BypassYellow8
+NOP
+.LoadYellow8
+% Check if Roguelike Mode is active
+BNE		S0, R0, .BypassYellow8
+NOP
+LIO     A0, $String_Buffer_Yellow
+.BypassYellow8
+JAL     $ConvertAsciiToPM64String
+NOP
+ADDIU   A1, R0, BB  % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, AA    % y
+%% Total Time - End
+%% Rank String - Start
+% Check if Roguelike Mode is active to not print all the rank stuff
+BNE		S0, R0, .End
+NOP
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 8
+BNE     T1, R0, .End
+NOP
+% Check if the player got Rank S, to use the Rainbow FX
+LABU    T0, $YellowBuffers
+ADDIU   T1, R0, 6
+BNE     T0, T1, .DontLoadRainbow
+NOP
+LIO     A0, $String_Total_Rank_Rainbow
+BEQ     R0, R0, .LoadRankString
+NOP
+.DontLoadRainbow
+LIO     A0, $String_Total_Rank
+.LoadRankString
+ADDIU   A1, R0, 70    % x
+ADDIU   A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, C1    % y
+%% Rank - End
+%% Rank Icon - Start
+LAB     T0, $FinalResults_Offset % Check if is time to print the next string
+SLTI    T1, T0, 9
+BNE     T1, R0, .End
+NOP
+%% In the Result Screen if a value appears in Yellow it means you got
+%% a good score on that area.
+LABU    T0, $YellowBuffers
+.RankF
+SLTIU   T1, T0, 1 % The player didn't got any text in yellow?
+BEQ     T1, R0, .RankE
+NOP
+LIO     A0, $String_Total_Rank_F
+BEQ     R0, R0, .LoadIcon
+NOP
+.RankE
+SLTIU   T1, T0, 2 % The player got at least 1 text in yellow?
+BEQ     T1, R0, .RankD
+NOP
+LIO     A0, $String_Total_Rank_E
+BEQ     R0, R0, .LoadIcon
+NOP
+.RankD
+SLTIU   T1, T0, 3 % The player got at least 2 texts in yellow?
+BEQ     T1, R0, .RankC
+NOP
+LIO     A0, $String_Total_Rank_D
+BEQ     R0, R0, .LoadIcon
+NOP
+.RankC
+SLTIU   T1, T0, 4 % The player got at least 3 texts in yellow?
+BEQ     T1, R0, .RankB
+NOP
+LIO     A0, $String_Total_Rank_C
+BEQ     R0, R0, .LoadIcon
+NOP
+.RankB
+SLTIU   T1, T0, 5 % The player got at least 4 texts in yellow?
+BEQ     T1, R0, .RankA
+NOP
+LIO     A0, $String_Total_Rank_B
+BEQ     R0, R0, .LoadIcon
+NOP
+.RankA
+SLTIU   T1, T0, 6 % The player got at least 5 texts in yellow?
+BEQ     T1, R0, .RankS
+NOP
+% Challenge Completed
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:set_variable
+RESERVED
+LIO     A0, $String_Total_Rank_A
+BEQ     R0, R0, .LoadIcon
+RESERVED
+.RankS % If the player got all 6 values on yellow
+% Challenge Completed
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:set_variable
+RESERVED
+ADDIU 	A2, R0, 1
+LIO 	A1, *Flag_Cheev_Classic_17
+JAL 	~Func:set_variable
+RESERVED
+LIO     A0, $String_Total_Rank_S
+.LoadIcon
+ADDIU   A1, R0, A0    % x
+LAB     A3, $RankOpacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, BA    % y
+%% Rank Icon - End
+.End
+POP	    RA, A0, A1, A2, A3, V0, S0
+JR      RA
+NOP
+}
+
+#new:ASCII $ASCII_Format_Half
+{
+"%5u"
+}
+
+#new:ASCII $ASCII_Format_Byte
+{
+"%3u"
+}
+
+#new:ASCII $ASCII_Format_Time
+{
+"%02u"
+}
+
+#new:ASCII $ASCII_Buffer
+{
+"          "
+}
+
+#string $String_Buffer
+{
+[Color:00]             [END]
+}
+
+#string $String_Buffer_Size1313
+{
+[Size:13:13][Color:00]             [END]
+}
+
+#string $String_Buffer_Color00
+{
+[StartFX:DropShadow][Color:00]             [END]
+}
+
+#string $String_Buffer_Yellow
+{
+[Color:05]             [END]
+}
+
+#string $String_Final_Results
+{
+[Size:15:15]Final Results[END]
+}
+             
+#string $String_Total_Dealt
+{
+Damage Dealt: [END]
+}
+
+#string $String_Total_Received
+{
+Damage Received: [END]
+}
+
+#string $String_Total_Items
+{
+Items Used: [END]
+}
+
+#string $String_Total_Coins
+{
+Coins from Battles: [END]
+}
+
+#string $String_Total_Floors
+{
+Total Floors Reached: [END]
+}
+
+#string $String_Total_MostTime
+{
+Most time spent in: Floor[END]
+}
+
+#string $String_Total_Time
+{
+Total Time:     :    :[END]
+}
+
+#string $String_Total_Rank
+{
+Rank: [END]
+}
+
+#string $String_Total_Rank_Rainbow
+{
+[StartFX:RainbowB]Rank: [EndFX:RainbowB][END]
+}
+
+#string $String_Total_Rank_F
+{
+[Item:00:28][END]
+}
+
+#string $String_Total_Rank_E
+{
+[Item:00:29][END]
+}
+
+#string $String_Total_Rank_D
+{
+[Item:00:2A][END]
+}
+
+#string $String_Total_Rank_C
+{
+[Item:00:2B][END]
+}
+
+#string $String_Total_Rank_B
+{
+[Item:00:2C][END]
+}
+
+#string $String_Total_Rank_A
+{
+[Item:00:2D][END]
+}
+
+#string $String_Total_Rank_S
+{
+[Item:00:2E][END]
+}
+
+#string $String_Normal
+{
+[Size:0C:0C]Normal[END]
+}
+
+#string $String_Hard
+{
+[Size:0C:0C]Hard[END]
+}
+
+#string $String_VeryHard
+{
+[Size:0C:0C]Very Hard[END]
+}
+
+% Getting current Rank, related Data
+
+#new:Data $RankOpacity
+{
+00
+}
+
+#new:Data $YellowBuffers % Used to know the current Rank to Display
+{
+00
+}
+
+#new:Data $BuffersFlags % Used to know which text has been already become Yellow
+{
+00
+}
+
+#new:Data $Rank_Damage_Dealt % Value needed to achieve Rainbow status, it changes depending on the current Pit Difficulty
+{
+0000
+}
+
+#new:Data $Rank_Damage_Received
+{
+0000
+}
+
+#new:Data $Rank_Items
+{
+00
+}
+
+#new:Data $Rank_Coins
+{
+0000
+}
+
+#new:Data $Rank_Floors
+{
+0000
+}
+
+#new:Data $Rank_Timer
+{
+00000000
+}
+
+#new:Function $Print_MessageBox
+{
+ADDIU          SP, SP, -38
+SW             A0, 1C (SP)
+SW             A1, 20 (SP)
+SW             A2, 24 (SP)
+SW             A3, 28 (SP)
+SW             V0, 2C (SP)
+SW             S1, 30 (SP)
+SW             RA, 34 (SP)
+%% PUSH %%
+ADDIU          A0, R0, 1E % x pos
+ADDIU          A1, R0, 11 % y pos
+ADDIU          A2, R0, 104 % x lenght
+ADDIU          V0, R0, 6
+SW             V0, 10 (SP)
+SW             R0, 14 (SP)
+SW             S1, 18 (SP)
+JAL            8012DB58
+ADDIU          A3, R0, CF % y lenght
+%% POP %%
+LW             A0, 1C (SP)
+LW             A1, 20 (SP)
+LW             A2, 24 (SP)
+LW             A3, 28 (SP)
+LW             V0, 2C (SP)
+LW             S1, 30 (SP)
+LW             RA, 34 (SP)
+JR             RA
+ADDIU          SP, SP, 38
+}
+
+#new:Data $FinalResults_Offset % Used to handle what to print next
+{
+00
+}
+
+#new:Data $FinalResults_PrintingFlag % Used to stop checking for offsets when the box is fully printed
+{
+00
+}
+
+#new:Script:Map $Script_HandleSpeed_FinalResults
+{
+Call $LoadFR_Flag_SetTrue
+% Start writing each offset-
+Loop % Print the next string every 13 frames
+    Call $LoadFR_Offset % Load in Var3
+    Wait D
+    Call PlaySound ( 211 ) % Coin
+    Call $LoadFR_Offset_MoveOffset
+	If *Var[3] == 7
+		If	*Flag_Mode_Rogue == .True % Bypass the coin sound when the rank string is supposed to appear
+			Call $LoadFR_Offset_MoveOffset
+		EndIf
+	EndIf
+    If *Var[3] == 8 % All the strings has been fully printed?
+        Wait D
+        Call $LoadFR_Offset_MoveOffset
+        BreakLoop
+    EndIf
+EndLoop
+If *Flag_Mode_Rogue == .True
+	Goto Loop0
+EndIf
+% Rank Icon - Animation
+% Play Rank's Sound
+Call $Function_LoadCurrentRank % save in var3
+Switch *Var[3]
+    Case == 0 % F
+        Call PlaySound ( 0047 ) % Boo Scream
+    Case == 1 % E
+        Call PlaySound ( 20C3 ) % Sad Bandit
+    Case == 2 % D
+        Call PlaySound ( 00D1 ) % Item
+    Case == 3 % C
+        Call PlaySound ( 0232 ) % 1up (Unused SFX?)
+    Case == 4 % B
+        Call PlaySound ( 00D3 ) % Badge
+    Case == 5 % A
+        Call PlaySound ( 208E ) % Pipe Spawining/PowerUp
+    Case == 6 % S
+        Call PlaySound ( 008A ) % Fan Fare
+EndSwitch
+Label Loop0
+Loop
+	If *Flag_Mode_Rogue == .True
+		Goto TrackButtons
+	EndIf
+    Call $GetRankOpacity % save in var3
+    Add *Var[3] 55
+    Wait 1
+    Call $SetRankOpacity % save var3 as the new opacity
+    Call $GetRankOpacity % save in var3
+    If *Var[3] == FF
+        Call $LoadFR_Offset % Load in Var3
+        If *Var[3] != A % If the offset is already 10, skip this
+            Call $LoadFR_Offset_MoveOffset % Set Offset to 10, it means the box is fully displayed and the player can close it now
+        EndIf
+    EndIf
+    Call $LoadFR_Offset % Load in Var3
+    If *Var[3] == A
+		Label TrackButtons
+        Call $Function_TrackABButton % save in varA
+        If  *Var[A] == 1
+            Set     *ShowFinalResultValues .False
+            Call    PlaySound ( CA ) % Cancel
+            BreakLoop
+        EndIf
+    EndIf
+EndLoop
+Call    $Function_FinalResults_Reset
+Call    DisablePlayerInput ( .False ) % the .True line is at pt_100
+Return
+End
+}
+
+#new:Function $LoadFR_Offset % Just load the actual offset in Var3
+{
+PUSH	RA, V0, A1, A2
+LAB     A2, $FinalResults_Offset
+LIO     A1, *Var[3]
+JAL     ~Func:set_variable
+NOP
+POP	    RA, V0, A1, A2
+JR RA
+NOP
+}
+
+#new:Function $LoadFR_Offset_MoveOffset % Add a 1 to the Offset
+{
+PUSH	RA, V0, A1, A2
+LAB     A2, $FinalResults_Offset
+ADDIU   A2, A2, 1
+SAB     A2, $FinalResults_Offset
+LIO     A1, *Var[3]
+JAL     ~Func:set_variable
+NOP
+POP	    RA, V0, A1, A2
+JR RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $LoadFR_Flag % Load Offset Flag in Var3
+{
+PUSH	RA, V0, A1, A2
+LAB     A2, $FinalResults_PrintingFlag
+LIO     A1, *Var[3]
+JAL     ~Func:set_variable
+NOP
+POP	    RA, V0, A1, A2
+JR RA
+NOP
+}
+
+#new:Function $LoadFR_Flag_SetTrue % Set the Offset Flag as True
+{
+LAB     T0, $FinalResults_PrintingFlag
+ADDIU   T1, R0, 1
+SAB     T1, $FinalResults_PrintingFlag
+JR RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $GetRankOpacity % save in var3
+{
+PUSH	RA, V0, A1, A2
+LABU    A2, $RankOpacity
+LIO     A1, *Var[3]
+JAL     ~Func:set_variable
+NOP
+POP	RA, V0, A1, A2
+JR RA
+NOP
+}
+
+#new:Function $SetRankOpacity % read Var3 and Save it in RankOpacity
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[3]
+JAL 	~Func:get_variable 
+NOP
+SAB     V0, $RankOpacity
+POP		RA, V0, A1, A2
+JR 		RA
+ADDIU   V0, R0, 2
+}
+
+#new:Function $Function_LoadCurrentRank
+{
+PUSH	RA, V0, A1, A2
+LABU    A2, $YellowBuffers
+LIO     A1, *Var[3]
+JAL     ~Func:set_variable
+NOP
+POP	RA, V0, A1, A2
+JR RA
+NOP
+}
+
+#new:Function $Function_TrackABButton
+{
+PUSH	RA, V0, A1, A2
+% Check A Button
+LABU 	T0, 80074026 % Inputs
+SLL	 	T0, T0, 24`
+SRL  	T0, T0, 31` % Move all bits to just leave bit7 (A Button)
+ADDIU 	A2, R0, 1
+BNE		T0, A2, .CheckB % If the player didn't pressed the button
+NOP
+LIO   A1, *Var[A]
+JAL ~Func:set_variable
+NOP
+BEQ     R0, R0, .End
+NOP
+.CheckB
+% Check B Button
+LABU 	T0, 80074026 % Inputs
+SLL	 	T0, T0, 25`
+SRL  	T0, T0, 31` % Move all bits to just leave bit6 (B Button)
+BNE		T0, A2, .End % If the player didn't pressed the button
+NOP
+LIO   A1, *Var[A]
+JAL ~Func:set_variable
+NOP
+.End
+POP	RA, V0, A1, A2
+JR RA
+NOP
+}
+
+% Set all data/flags to 0
+#new:Function $Function_FinalResults_Reset
+{
+SAB R0, $FinalResults_PrintingFlag
+SAB R0, $FinalResults_Offset
+SAB R0, $RankOpacity
+SAB R0, $Rank_Items
+SAB R0, $RankOpacity
+SAB R0, $YellowBuffers
+SAB R0, $BuffersFlags
+SAH R0, $Rank_Floors
+SAH R0, $Rank_Damage_Dealt
+SAH R0, $Rank_Damage_Received
+SAW R0, $Rank_Timer
+JR  RA
+NOP
+/% 80074094 % Status ID
+00= Overworld
+01= Battle
+02= Pause
+
+8010EF92 = Status Bar / 00=Active 01=Inactive%/
+}
+
+% Draw the keys count on Roguelike Mode
+% or the Star Pieces in the Dungeon
+#new:Function $Draw_KeysStarPiecesCounter % ~ 804158B0
+{
+PUSH	RA, A0, A1, A2, A3, V0, V1, S0, S1
+LIO 	A1, *Flag_Dungeon
+JAL 	~Func:get_variable
+RESERVED
+BNEL	V0, R0, .StarPiecesStart
+ADDIU	S0, R0, 1 % Display the Star Pieces amount
+% Check If the player is inside the Pit
+LIO     A1, *PitFlag
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End
+NOP
+% Check If Roguelike is Active
+LIO     A1, *Flag_Mode_Rogue
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End
+NOP
+ADDIU	S0, R0, 0 % Display the keys amount
+% Check if Mario is in the overworld
+.StarPiecesStart
+LABU    T0, 80074094 % Status ID
+BNE     T0, R0, .End
+NOP
+% Load Box State
+LIO		T1, $KeyStarPieces_BoxData
+LBU		T2, 1 (T1)
+% Check if the Status Bar is active
+LABU    T0, 8010EF92 % Status Bar
+BNE     T0, R0, .CheckState0 % wasn't active
+NOP
+% The Status Bar is active
+% Isn't on State 0(Start)?
+BNE		T2, R0, .CheckState1
+NOP
+.SetStateAs1
+% Time to open the box
+ADDIU	T2, R0, 1
+SB		T2, 1 (T1) % Set State as Start
+BEQ		R0, R0, .LoadOffset
+NOP
+%==================
+% Check box states
+%==================
+.CheckState0
+% Check State 0 / Start
+BEQ		T2, R0, .End % indeed the current state is 0
+NOP
+.CheckState1
+% Check State 1 / Opening
+ADDIU	T3, R0, 1
+BNE		T2, T3, .CheckState2
+NOP
+% Check Stats Bar
+BEQ     T0, R0, .LoadOffset % is active
+NOP
+% Wasn't Active
+ADDIU	T3, R0, 3
+SB		T3, 1 (T1) % Set State as Closing
+BEQ		R0, R0, .LoadOffset
+NOP
+.CheckState2
+% Check State 2 / Fully Opened
+ADDIU	T3, R0, 2
+BNE		T2, T3, .CheckState3
+NOP
+% Check Stats Bar
+BEQ     T0, R0, .Offset5 % is active
+NOP
+% Wasn't Active
+ADDIU	T3, R0, 3
+SB		T3, 1 (T1) % Set State as Closing
+BEQ		R0, R0, .LoadOffset
+NOP
+.CheckState3
+% Check State 3 / Closing
+% Check Stats Bar
+BEQ     T0, R0, .SetStateAs1 % is active
+NOP
+% Wasn't Active
+BEQ		R0, R0, .LoadOffset
+NOP
+%==================
+% Box Offsets
+%==================
+.LoadOffset
+LIO     A3, $KeyStarPieces_BoxData
+LBU     A2, 2 (A3) % Load Offset
+LAHU	T3, $KeyStarPieces_Timer % Load Timer
+%===============
+.AumentOffset
+%===============
+% Check if the state got changed to decreasing
+ADDIU	T1, R0, 3
+BEQ		T2, T1, .DecreaseOffset
+NOP
+% OPEN BOX
+ADDIU	T3, T3, 10 % Move Timer
+SAH		T3, $KeyStarPieces_Timer
+% Is time to aument the offset?
+SLTI	T4, T3, 20
+BNE		T4, R0, .CheckOffsets
+NOP
+% Reset Timer
+SAH		R0, $KeyStarPieces_Timer
+LAHU	T3, $KeyStarPieces_Timer
+% Save New Offset
+ADDIU	A2, A2, 1
+SB      A2, 2 (A3) % save new offset
+% The box is fully opened?
+ADDIU	T1, R0, 5
+BNE		A2, T1, .CheckOffsets
+NOP
+% Yes, is fully opened
+ADDIU	T1, R0, 2
+LIO		T2, $KeyStarPieces_BoxData
+SB		T1, 1 (T2) % Set State as Fully Opened
+BEQ		R0, R0, .CheckOffsets
+NOP
+%===============
+.DecreaseOffset
+%===============
+% Check if the state got changed to aument
+ADDIU	T1, R0, 1
+BEQ		T2, T1, .AumentOffset
+NOP
+% CLOSE BOX
+ADDIU	T3, T3, 10 % Move Timer
+SAH		T3, $KeyStarPieces_Timer
+% Is time to aument the offset?
+SLTI	T4, T3, 20
+BNE		T4, R0, .CheckOffsets
+NOP
+% Reset Timer
+SAH		R0, $KeyStarPieces_Timer
+LAHU	T3, $KeyStarPieces_Timer
+% Save New Offset
+ADDI	A2, A2, -1`
+SB      A2, 2 (A3) % save new offset
+% The box is fully closed?
+BNE		A2, R0, .CheckOffsets
+NOP
+% Yes, is fully closed
+LIO		T2, $KeyStarPieces_BoxData
+SB		R0, 1 (T2) % Set State to Start
+BEQ		R0, R0, .End
+NOP
+% Check each offset
+.CheckOffsets
+BEQ     A2, R0, .Offset0
+ADDIU   T0, R0, 1
+BEQ     A2, T0, .Offset1
+ADDIU   T0, R0, 2
+BEQ     A2, T0, .Offset2
+ADDIU   T0, R0, 3
+BEQ     A2, T0, .Offset3
+ADDIU   T0, R0, 4
+BEQ     A2, T0, .Offset4
+ADDIU   T0, R0, 5
+BEQ     A2, T0, .Offset5
+NOP
+.Offset0
+SAB     R0, $KeyStarPieces_BoxData % key icon opacity
+SAB     R0, $KeyStarPieces_BoxDataExtra % string icon opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 27
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 2E
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, 0 % sizeX
+.Offset1
+ADDIU   T0, R0, 33
+SAB     T0, $KeyStarPieces_BoxData % key icon opacity
+SAB     R0, $KeyStarPieces_BoxDataExtra % string icon opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 28
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 2F
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, C % sizeX
+.Offset2
+ADDIU   T0, R0, 66
+SAB     T0, $KeyStarPieces_BoxData % key icon opacity
+SAB     R0, $KeyStarPieces_BoxDataExtra % string icon opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 29
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 30
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, 18 % sizeX
+.Offset3
+ADDIU   T0, R0, 99
+SAB     T0, $KeyStarPieces_BoxData % key icon opacity
+SAB     R0, $KeyStarPieces_BoxDataExtra % string icon opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 2A
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 31
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, 24 % sizeX
+.Offset4
+ADDIU   T0, R0, CC
+SAB     T0, $KeyStarPieces_BoxData % key icon opacity
+ADDIU   T0, R0, 7F
+SAB     T0, $KeyStarPieces_BoxDataExtra % string opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 2B
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 32
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, 30 % sizeX
+.Offset5
+ADDIU   T0, R0, FE
+SAB     T0, $KeyStarPieces_BoxData % key icon opacity
+SAB     T0, $KeyStarPieces_BoxDataExtra % string opacity
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 2C
+SB      T1, 1 (T0) % Y Offset - Icon
+LIO     T0, $KeyStarPieces_BoxDataExtra
+ADDIU   T1, R0, 33
+SB      T1, 2 (T0) % Y Offset - String
+BEQ     R0, R0, .OpenBox
+ADDIU	A2, R0, 4D % sizeX
+.OpenBox
+ADDIU	A0, R0, E5 % posX
+ADDIU	A1, R0, 2C % posY
+ADDIU	A3, R0, 20 % sizeY
+BEQL	S0, R0	.LoadBoxStyle % Keys
+ADDIU	T0, R0, 1A  % style
+BNEL	S0, R0	.LoadBoxStyle % Star Pieces
+ADDIU	T0, R0, 19  % style
+.LoadBoxStyle
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+% Load Keys Amount
+BNE		S0, R0	.LoadStarPiecesAmount % StarPieces
+NOP
+LIO 	A1, *Rogue_Keys
+COPY    S1, R0
+BEQ		R0, R0, .LoadKeysAmount
+NOP
+.LoadStarPiecesAmount
+ORI     S1, R0, 1
+LAHU 	V0, 80356130 % *Dungeon_StarPieces1 & 2
+BEQ     R0, R0, .StarPiecesLoaded
+NOP
+.LoadKeysAmount
+JAL 	~Func:get_variable
+NOP
+LABU 	V0, 80356086 % *Rogue_Keys
+.StarPiecesLoaded
+% Draw String - Amount
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Byte     % Type of Format to use
+COPY    A2, V0          		   % Data to Format
+JAL     ~Func:sprintf
+RESERVED
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % previously converted ASCII
+LIO     A0, $String_Buffer_Color00 % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String % The final result will be stored in A0
+NOP
+LIO     A2, $KeyStarPieces_BoxDataExtra
+LBU     A2, 2 (A2)  % y
+LABU    A3, $KeyStarPieces_BoxDataExtra % Opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A1, R0, 0100  % x
+% Draw String - x character
+BNE		S0, R0	.LoadStarPiecesString % StarPieces
+NOP
+LIO     A0, $String_KeysAmount
+BEQ		R0, R0, .LoadKeysString
+NOP
+.LoadStarPiecesString
+LIO     A0, $String_StarPiecesAmount
+.LoadKeysString
+LIO     A2, $KeyStarPieces_BoxDataExtra
+LBU     A2, 2 (A2)  % y
+LABU    A3, $KeyStarPieces_BoxDataExtra % Opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A1, R0, 00F7  % x
+% Draw Icon
+BNE		S0, R0	.LoadStarPieceIcon % StarPieces
+NOP
+LIO     A0, $String_KeyIcon
+BEQ		R0, R0, .LoadKeyIcon
+NOP
+.LoadStarPieceIcon
+LIO     A0, $String_StarPieceIcon
+.LoadKeyIcon
+LIO     A2, $KeyStarPieces_BoxDataExtra
+LBU     A2, 1 (A2)  % y
+LABU    A3, $KeyStarPieces_BoxData % Opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A1, R0, E9  % x
+.End
+JPOP    RA, A0, A1, A2, A3, V0, V1, S0, S1
+}
+
+#string $String_KeysAmount
+{
+[StartFX:DropShadow]  x[END]
+}
+  
+#string $String_StarPiecesAmount
+{
+[StartFX:DropShadow]  x[END]
+}
+
+#string $String_KeyIcon
+{
+[StartFX:DropShadow][Item:00:53][END]
+}
+
+#string $String_StarPieceIcon
+{
+[StartFX:DropShadow][Item:00:0A][END]
+}
+
+#string $String_StarPieceIcon_Large
+{
+[StartFX:DropShadow][Item:00:22][END]
+}
+
+#new:ASCII $ASCII_Format_StarPieces
+{
+"x %-3u"
+}
+
+#new:Data $KeyStarPieces_BoxData
+{
+00000000
+%000000XX = Script Flag
+%0000XX00 = Box Offset
+%00XX0000 = Box State / 00 = Start - 01= Opening - 02=Fully Opened - 03=Closing
+%XX000000 = Key Icon Opacity
+}
+
+#new:Data $KeyStarPieces_BoxDataExtra
+{
+00000000
+%000000XX = Unused
+%0000XX00 = Y Position - String
+%00XX0000 = Y Position - Icon
+%XX000000 = Strings Opacity
+}
+
+% handle how fast the animation appears
+#new:Data $KeyStarPieces_Timer
+{
+0000
+}
+
+% used by pt_00.mpat
+#export $KeyStarPieces_BoxData
+#export $KeyStarPieces_BoxDataExtra
+#export $KeyStarPieces_Timer
+
+#new:Function $Function_KeyBox_LoadData
+{
+PUSH	RA, V0, A1, A2
+LIO     A2, $KeyStarPieces_BoxData
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+LBU     A2, 1 (A2) % Load State
+LIO     A2, $KeyStarPieces_BoxData
+LIO 	A1, *Var[4]
+JAL 	~Func:set_variable
+LBU     A2, 2 (A2) % Load Offset
+LIO     A2, $KeyStarPieces_BoxData
+LIO 	A1, *Var[5]
+JAL 	~Func:set_variable
+LBU     A2, 3 (A2) % Load Script Flag
+JPOP	RA, V0, A1, A2
+}
+
+#new:Function $Function_KeyBox_SaveState % read *Var[3]
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[3]
+JAL 	~Func:get_variable
+NOP
+LIO     T0, $KeyStarPieces_BoxData
+SB      V0, 1 (T0) % Write State
+JPOP	RA, V0, A1, A2
+}
+
+#new:Function $Function_KeyBox_SaveOffset % read *Var[4]
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[4]
+JAL 	~Func:get_variable
+NOP
+LIO     T0, $KeyStarPieces_BoxData
+SB      V0, 2 (T0) % Write Offset
+JPOP	RA, V0, A1, A2
+}
+
+#new:Function $Function_KeyBox_SaveFlag % read *Var[5]
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[5]
+JAL 	~Func:get_variable
+NOP
+LIO     T0, $KeyStarPieces_BoxData
+SB      V0, 3 (T0) % Write Flag
+JPOP	RA, V0, A1, A2
+}
+
+#new:Data $DungeonTimer
+{
+00
+}
+
+#export $DungeonTimer
+
+% handle how fast the timer get decreased
+#new:Data $DungeonTimer_Speed
+{
+0000
+}
+
+/% 80074094 % Status ID
+00= Overworld
+01= Battle
+02= Pause
+
+8010EF92 = Status Bar / 00=Active 01=Inactive%/
+
+% Display the Maze's timer, and decrement timer - Battle Only
+% The one who decrement the timer in the overworld is at @Hook 83BF4
+#new:Function $Maze_Timer
+{
+/% Timer
+D0 = Highest
+10 = Lowest
+%/
+PUSH	RA, A0, A1, A2, A3, T0, T1
+% Check if the player is inside the Dungeon
+LIO 	A1, *Flag_Dungeon
+JAL 	~Func:get_variable
+RESERVED
+BEQ		V0, R0, .End
+NOP
+% Check if the timer is paused
+LIO 	A1, *Flag_DungeonPause
+JAL 	~Func:get_variable
+RESERVED
+LABU	A2, $DungeonTimer % load time metter
+BNE		V0, R0, .DrawTimerBox
+NOP
+% Check if the player doesn't have oxygen anymore to just
+% star decreasing his HP
+% Check if the timer is equal or below to 10
+SLTI	T0, A2, 11
+BNE		T0, R0, .DecreaseHP % if is
+NOP
+% This function only decrement the oxygen when the player in inside a battle
+LABU    T0, 80074094 % Game State
+ORI     T1, R0, 1
+BNE     T0, T1, .DrawTimerBox
+NOP
+% Load the amount of mist shields
+% Everything is fine start decreasing Mario's oxygen
+LIO     A1, *Dungeon_MistBadges
+JAL 	~Func:get_variable
+RESERVED
+LABU	A2, $DungeonTimer % load time metter
+BEQ     R0, R0, .CheckSpeedTimer % the oxygen hasen't run out
+NOP
+% Oxygen ran out
+%===========
+% Star decreasing Mario's HP
+%===========
+.DecreaseHP
+LAB     T0, 8010F292 % Current HP
+SLTI    T1, T0, 1
+BNE     T1, R0, .DrawTimerBox % Mario has Zero HP
+NOP
+% Check if is time to decrease the HP
+LAH 	T0, $DungeonTimer_Speed
+% Check if the speed timer is equal or lower to 0
+ADDIU	T1, R0, 0250 % Mario's HP Decreasing Speed (the lowest the slowest)
+SLTI	T2, T0, 1
+BEQ		T2, R0, .DecreseSpeedTimer % if wasn't
+NOP
+% Is equal or lower to 0
+ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+SAH		T1, $DungeonTimer_Speed
+% Decrement HP
+LAB     T0, 8010F292 % Current HP
+ORI     T1, R0, 1
+SUBU    T0, T0, T1
+SAB     T0, 8010F292 % save hp
+BEQ		R0, R0 .DrawTimerBox
+NOP
+%===========
+% Check if is time to decrease the timer
+%===========
+.CheckSpeedTimer
+LAH		T0, $DungeonTimer_Speed
+% Check if the speed timer is equal or lower to 0
+SLTI	T1, T0, 1
+BEQ		T1, R0, .CheckBadges % if wasn't
+NOP
+% Is equal or lower to 0
+ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+SAH		T1, $DungeonTimer_Speed
+BEQ		R0, R0, .DecrementTimer % decrease rogue timer
+NOP
+.CheckBadges
+% 0 Badges
+BEQL    V0, R0, .DecreseSpeedTimer
+ADDIU	T1, R0, 55
+% 1 Badge
+ADDIU   T1, R0, 1
+BEQL    V0, T1, .DecreseSpeedTimer
+ADDIU	T1, R0, 45
+% 2 Badges
+ADDIU   T1, R0, 2
+BEQL    V0, T1, .DecreseSpeedTimer
+ADDIU	T1, R0, 35
+% 3 Badges
+ADDIU	T1, R0, 25
+.DecreseSpeedTimer
+SUB		T0,	T0, T1
+SAH		T0, $DungeonTimer_Speed
+BEQ		R0, R0, .DrawTimerBox
+NOP
+.DecrementTimer
+ADDIU	A2, A2, -2`
+SAB		A2, $DungeonTimer
+% =========================
+% Timer Box
+.DrawTimerBox
+ADDIU	A0, R0, 3E  % posX
+ADDIU	A1, R0, DF  % posY
+ADDIU	A3, R0, 10 % sizeY
+ADDIU	T0, R0, A  % style
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+% Timer's Frame
+ADDIU	A0, R0, 3E  % posX
+ADDIU	A1, R0, DF  % posY
+ADDIU	A2, R0, D0 % sizeX
+ADDIU	A3, R0, 10 % sizeY
+ADDIU	T0, R0, 1  % style
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+.End
+POP		RA, A0, A1, A2, A3, T0, T1
+JR		RA
+NOP
+}
+
+% Maze - Decrement Oxygen Hook - Overworld
+% This hook only runs when the player can actually move mario in the overworld
+@Hook 83BF4 % 800EA744
+{
+/% Timer
+D0 = Highest
+10 = Lowest
+%/
+PUSH	RA, V0, V1, A0, A1, A2, A3, T0, T1
+% Check if the player is inside the Dungeon
+LIO 	A1, *Flag_Dungeon
+JAL 	~Func:get_variable
+RESERVED
+BEQ		V0, R0, .End
+NOP
+% Check if the timer is paused
+LIO 	A1, *Flag_DungeonPause
+JAL 	~Func:get_variable
+RESERVED
+BNE		V0, R0, .End
+NOP
+% Check if the player is mounting lakilester
+LABU    T0, 802BFF0B % Lakitester's cloud state
+ORI     T1, R0, 1 % mounting laki
+BEQ     T0, T1, .LoadMistBadges % it is
+NOP
+% Check if the Player Inputs are locked
+LABU    T0  8010EFCA
+SLL    	T0, T0, 26`
+SRL 	T0, T0, 31` % Move all bits to just leave bit5
+BNE	    T0, R0, .End % If the player have the controls locked, finish the function
+NOP
+% Load the amount of mist shields
+.LoadMistBadges
+LIO     A1, *Dungeon_MistBadges
+JAL 	~Func:get_variable
+RESERVED
+% ==========================
+% Move Timer
+LABU	A2, $DungeonTimer % sizeX
+% Check if the timer is equal or below to 10
+SLTI	T0, A2, 11
+BEQ		T0, R0, .CheckSpeedTimer % if wasn't
+NOP
+ORI     T0, R0, 10
+SAB		T0, $DungeonTimer
+BEQ		R0, R0 .End
+NOP
+% Check if is time to decrease the timer
+.CheckSpeedTimer
+LAH		T0, $DungeonTimer_Speed
+% Check if the speed timer is equal or lower to 0
+SLTI	T1, T0, 1
+BEQ		T1, R0, .CheckBadges % if wasn't
+NOP
+% Is equal or lower to 0
+ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+SAH		T1, $DungeonTimer_Speed
+BEQ		R0, R0, .DecrementTimer % decrease rogue timer
+NOP
+.CheckBadges
+% 0 Badges
+BEQL    V0, R0, .DecreseSpeedTimer
+ADDIU	T1, R0, 55
+% 1 Badge
+ADDIU   T1, R0, 1
+BEQL    V0, T1, .DecreseSpeedTimer
+ADDIU	T1, R0, 45
+% 2 Badges
+ADDIU   T1, R0, 2
+BEQL    V0, T1, .DecreseSpeedTimer
+ADDIU	T1, R0, 35
+% 3 Badges
+ADDIU	T1, R0, 25
+.DecreseSpeedTimer
+SUB		T0,	T0, T1
+SAH		T0, $DungeonTimer_Speed
+BEQ		R0, R0, .End
+NOP
+.DecrementTimer
+ADDIU	A2, A2, -2`
+SAB		A2, $DungeonTimer
+.End
+POP 	RA, V0, V1, A0, A1, A2, A3, T0, T1
+%
+SLL	    V0, V0, 2
+J       800EA74C
+ADDU	V0, V1, V0
+}
+
+#new:Function $Maze_SP
+{
+PUSH	RA, A0, A1, A2, A3, T0, T1
+% Check if the player is inside the Dungeon
+LIO 	A1, *Flag_Dungeon_Lobby
+JAL 	~Func:get_variable
+RESERVED
+BEQ		V0, R0, .End
+NOP
+LIO     A0, $String_StarPieceIcon_Large
+ADDIU   A1, R0, 007B % x
+ADDIU   A2, R0, 00C0 % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer            % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_StarPieces % Type of Format to use
+LAHU 	A2, 8035612C    		     % Star Pieces
+JAL     ~Func:sprintf
+RESERVED
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer       % previously converted ASCII
+LIO     A0, $String_Buffer      % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String % The final result will be stored in A0
+RESERVED
+ADDIU   A1, R0, 007C % x
+ADDIU   A2, R0, 00C7 % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+.End
+POP		RA, A0, A1, A2, A3, T0, T1
+JR		RA
+NOP
+}
+
+/% Maze - Disable the following attacks:
+Parakarry - Air Lift
+Bow - Spook
+Lakilester - Hurricane
+%/
+@Hook 192360 % 80263A80
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_Dungeon
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .End
+    NOP
+    % Player is inside the Maze
+    LABU    V0, 8010F2A2 % load current partner
+    ORI     V1, R0, 4 % Parakarry
+    BEQ     V0, V1, .Parakarry
+    ORI     V1, R0, 9 % Bow
+    BEQ     V0, V1, .Bow
+    ORI     V1, R0, 8 % Lakilester
+    BEQ     V0, V1, .Lakilester
+    NOP
+    % Isn't any of those partners so just finish
+    BEQ     R0, R0, .End
+    NOP
+    .Parakarry
+    ORI     V1, R0, 2 % Air Lift
+    BNE     S1, V1, .End
+    NOP
+    BEQ     R0, R0, .End
+    CLEAR   S6 % Lock this move
+    .Bow
+    ORI     V1, R0, 2 % Spook
+    BNE     S1, V1, .End
+    NOP
+    BEQ     R0, R0, .End
+    CLEAR   S6 % Lock this move
+    .Lakilester
+    ORI     V1, R0, 3 % Hurricane
+    BNE     S1, V1, .End
+    NOP
+    BEQ     R0, R0, .End
+    CLEAR   S6 % Lock this move
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    SB	    S6, 01F6 (S2)
+    ORI     S6, R0, 1
+    J       80263A88
+    LB	    V0, 040C (S5)
+}
+
+% Maze - Disable the following attacks:
+% Star Spirits - Kalmar
+@Hook 41B294 % 802A6504
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    LIO     A1, *Flag_Dungeon
+    JAL     ~Func:get_variable
+    COPY    GP, V0 % push V0
+    BEQ     V0, R0, .End
+    NOP
+    ORI     V0, R0, 6 % Kalmar
+    BNE     S3, V0, .End
+    NOP
+    CLEAR   GP % Lock this move
+    .End
+    COPY    V0, GP % pop V0
+    POP     RA, A0, A1, A2, A3, V1
+    SB	    V0, 01F6 (S0)
+    J       802A650C
+    LB	    V0, 040C (S7)
+}
+
+% Deals 9 more hazard damage inside the maze and make posible to set mario hp to zero
+@Hook E28000 % 802B60C0
+{
+PUSH    RA, V0, A0, A1, A2, A3
+LIO     A1, *Flag_Dungeon
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Sub 9 HP
+LABU    A0, 8010F292 % Load HP
+SLTI    A1, A0, 9
+BNEL    A1, R0, .ZeroHP
+ORI     A2, R0, 0 % Set HP to Zero if current HP is below 9
+ORI     A1, R0, 9 % sub stract 9 hp
+SUBU    A2, A0, A1
+.ZeroHP
+SAB     A2, 8010F292 % HP
+.End
+POP     RA, V0, A0, A1, A2, A3
+LIO     RA, 802B60C8 % go here after finishing below function
+J       ~Func:open_status_menu_long
+RESERVED
+}
+
+% Why not using a flag?
+% Hmm... i didn't wanted to push all A and V registers, i think in this way is just faster
+% isn't a really big deal but i like this approach better.
+
+/%
+XX000000 = fLag 1 % to hide the lists extra boxes
+00XX0000 = flag 2 % to show the cursor
+0000XX00 = menuID
+000000XX = cursorPos
+%/
+#new:Data $DescriptionBox_Data
+{
+    00000000
+}
+
+#export $DescriptionBox_Data
+
+#new:Function $Draw_ChestsRoom
+{
+PUSH    RA, V0, V1, A0, A1, A2, A3
+LIO     A1, *Flag_ChestRoom_Price
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Get current chest price
+LIO     A1, *MapVar[1]
+JAL     ~Func:get_variable
+RESERVED
+% Convert Data to ASCII
+LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_Half     % Type of Format to use
+COPY    A2, V0          		   % Data to Format
+JAL     ~Func:sprintf
+RESERVED
+% Convert ASCII to String and Print
+LIO     A1, $ASCII_Buffer               % previously converted ASCII
+LIO     A0, $String_Buffer_Size1313     % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String       % The final string will be stored in A0
+RESERVED
+ADDIU   A1, R0, 0078 % x
+ADDIU   A2, R0, 00AE % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+.End
+POP     RA, V0, V1, A0, A1, A2, A3
+JR      RA
+ORI     V0, R0, 2
+}
+
+#new:Function $Function_FurnitureCursor % what is this? lol
+{   
+    JR  RA
+    ORI V0, R0, 2
+}
+
+% Draw a description box when you open a list of elements
+% It also hide all other extra Boxes beside the list.
+#new:Function $Draw_OnlyDescriptionBox
+{
+    PUSH	RA, A0, A1, A2, A3, T0, T1, S0, S1, S2, S3
+    LAW     T0, $DescriptionBox_Data
+    BEQ     T0, R0, .End
+    NOP
+    % DRAW BOX
+    ADDIU	A0, R0, 20  % posX
+    ADDIU	A1, R0, C0  % posY
+    ADDIU	A2, R0, FF % sizeX
+    ADDIU	A3, R0, 22 % sizeY
+    ADDIU	T0, R0, 3  % style
+    ADDIU	T1, R0, FF % opacity
+    JAL		$DrawBox
+    NOP
+    % Load Current Menu
+    LIO     T1, $DescriptionBox_Data
+    LBU     T0, 3 (T1) % cursor pos % I don't remember what I was trying to do here???? lol
+    LABU    T0, 8010D64B % cursor pos (only from lists (Items/Partners/Mail))
+    COPY    S2, T0
+    LBU     T1, 2 (T1) % current menu
+    BNE     T1, R0, .Menu1
+    NOP
+    .Menu0
+    LIO     A1, *HighestFloor_Classic
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     A1, *HighestFloor_Rogue
+    JAL     ~Func:get_variable
+    COPY    S1, V0 % S1 = Highest Floor Classic
+    COPY    S3, V0 % S3 = Highest Floor Rogue
+    /%
+    S0= String ID
+    S1= Highest Floor (Classic)
+    S2= Cursor Pos
+    S3= Highest Floor (Roguelike)
+    %/
+    LUI     S0, 000B % String Bank
+    %============================
+    % Position 1
+    %============================
+    BNE     S2, R0, .Menu0_CursorPos2
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture1
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For1_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 20`
+    BNE     T1, R0, .For1_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 100` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For1_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0003 % String ID
+    .For1_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0011 % String ID
+    %============================
+    % Position 2
+    %============================
+    .Menu0_CursorPos2
+    ORI     T1, R0, 1
+    BNE     S2, T1, .Menu0_CursorPos3
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture2
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For2_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 30`
+    BNE     T1, R0, .For2_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 200` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For2_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0004 % String ID
+    .For2_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0012 % String ID
+    %============================
+    % Position 3
+    %============================
+    .Menu0_CursorPos3
+    ORI     T1, R0, 2
+    BNE     S2, T1, .Menu0_CursorPos4
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture3
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For3_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 40`
+    BNE     T1, R0, .For3_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 200` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For3_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0005 % String ID
+    .For3_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0013 % String ID
+    %============================
+    % Position 4
+    %============================
+    .Menu0_CursorPos4
+    ORI     T1, R0, 3
+    BNE     S2, T1, .Menu0_CursorPos5
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture4
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For4_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 50`
+    BNE     T1, R0, .For4_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 300` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For4_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0006 % String ID
+    .For4_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0014 % String ID
+    %============================
+    % Position 5
+    %============================
+    .Menu0_CursorPos5
+    ORI     T1, R0, 4
+    BNE     S2, T1, .Menu0_CursorPos6
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture5
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For5_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 60`
+    BNE     T1, R0, .For5_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 350` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For5_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0007 % String ID
+    .For5_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0015 % String ID
+    %============================
+    % Position 6
+    %============================
+    .Menu0_CursorPos6
+    ORI     T1, R0, 5
+    BNE     S2, T1, .Menu0_CursorPos7
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture6
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For6_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 70`
+    BNE     T1, R0, .For6_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 400` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For6_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0008 % String ID
+    .For6_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0016 % String ID
+    %============================
+    % Position 7
+    %============================
+    .Menu0_CursorPos7
+    ORI     T1, R0, 6
+    BNE     S2, T1, .Menu0_CursorPos8
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture7
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For7_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 80`
+    BNE     T1, R0, .For7_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 350` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For7_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0009 % String ID
+    .For7_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0017 % String ID
+    %============================
+    % Position 8
+    %============================
+    .Menu0_CursorPos8
+    ORI     T1, R0, 7
+    BNE     S2, T1, .Menu0_CursorPos9
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture8
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For8_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_RoguelikeBeated
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .For8_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 400` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For8_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000B % String ID
+    .For8_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0018 % String ID
+    %============================
+    % Position 9
+    %============================
+    .Menu0_CursorPos9
+    ORI     T1, R0, 8
+    BNE     S2, T1, .Menu0_CursorPos10
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture9
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For9_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_ClassicBeated
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .For9_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 500` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For9_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000A % String ID
+    .For9_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0019 % String ID
+    %============================
+    % Position 10
+    %============================
+    .Menu0_CursorPos10
+    ORI     T1, R0, 9
+    BNE     S2, T1, .Menu0_CursorPos11
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture10
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For10_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_Cheev_Global_03 % Pit Beated
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .For10_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 20` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For10_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000C % String ID
+    .For10_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 001B % String ID
+    %============================
+    % Position 11
+    %============================
+    .Menu0_CursorPos11
+    ORI     T1, R0, 10`
+    BNE     S2, T1, .Menu0_CursorPos12
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture11
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For11_Unlocked
+    NOP
+    % Check if can be buyed
+    % Get Current Total Percentage
+    JAL     $Function_GetProgress_Cheevs_Global
+    COPY	S0, R0 % Init S0
+    JAL     $Function_GetProgress_Cheevs_Classic
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Rogue
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Dungeon
+    NOP
+    % S0 = Amount of challenges completed
+    % Total amount of Challenges = 82
+    SLTIU   V0, S0, 21` % at least 21 from 82 challenges completed
+    LUI     S0, 000B % String Bank
+    BNE     V0, R0, .For11_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 550` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For11_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000D % String ID
+    .For11_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 001C % String ID
+    %============================
+    % Position 12
+    %============================
+    .Menu0_CursorPos12
+    ORI     T1, R0, 11`
+    BNE     S2, T1, .Menu0_CursorPos13
+    NOP
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture12
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For12_Unlocked
+    NOP
+    % Check if can be buyed
+    % Get Current Total Percentage
+    JAL     $Function_GetProgress_Cheevs_Global
+    COPY	S0, R0 % Init S0
+    JAL     $Function_GetProgress_Cheevs_Classic
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Rogue
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Dungeon
+    NOP
+    % S0 = Amount of challenges completed
+    % Total amount of Challenges = 82
+    SLTIU   V0, S0, 41` % at least 41 from 82 challenges completed
+    LUI     S0, 000B % String Bank
+    BNE     V0, R0, .For12_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 350` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For12_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000E % String ID
+    .For12_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 001D % String ID
+    %============================
+    % Position 13
+    %============================
+    .Menu0_CursorPos13
+    % Furniture already purchased?
+    LIO     A1, *Flag_Furniture13
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .For13_Unlocked
+    NOP
+    % Check if can be buyed
+    % Get Current Total Percentage
+    JAL     $Function_GetProgress_Cheevs_Global
+    COPY	S0, R0 % Init S0
+    JAL     $Function_GetProgress_Cheevs_Classic
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Rogue
+    NOP
+    JAL     $Function_GetProgress_Cheevs_Dungeon
+    NOP
+    % S0 = Amount of challenges completed
+    COPY    T0, S0
+    LUI     S0, 000B % String Bank
+    ORI     V0, R0, 82` % Total amount of Challenges
+    BNE     T0, V0, .For13_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 1000` % forniture price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004F % String ID
+    .For13_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 000F % String ID
+    .For13_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 001E % String ID
+    %============================
+    .Menu1 % Skins
+    %============================
+    LIO     A1, *HighestFloor_Classic
+    JAL     ~Func:get_variable
+    RESERVED
+    LIO     A1, *HighestFloor_Rogue
+    JAL     ~Func:get_variable
+    COPY    S1, V0 % S1 = Highest Floor Classic
+    COPY    S3, V0 % S3 = Highest Floor Roguelike
+    /%
+    S0= String ID
+    S1= Highest Floor (Classic)
+    S2= Cursor Pos
+    S3= Highest Floor (Roguelike)
+    %/
+    LUI     S0, 000B % String Bank
+    % Position 0
+    BEQL    S2, R0, .DrawString
+    ORI     S0, S0, 002E % String ID
+    %============================
+    % Position 1
+    %============================
+    ORI     T1, R0, 1
+    BNE     S2, T1, .CursorPos2
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin01
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin1_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 20`
+    BNE     T1, R0, .Skin1_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 100` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin1_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0041 % String ID
+    .Skin1_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 002F % String ID
+    %============================
+    % Position 2
+    %============================
+    .CursorPos2
+    ORI     T1, R0, 2
+    BNE     S2, T1, .CursorPos3
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin02
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin2_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 20`
+    BNE     T1, R0, .Skin2_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 150` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin2_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0042 % String ID
+    .Skin2_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0030 % String ID
+    %============================
+    % Position 3
+    %============================
+    .CursorPos3
+    ORI     T1, R0, 3
+    BNE     S2, T1, .CursorPos4
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin03
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin3_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 40`
+    BNE     T1, R0, .Skin3_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 150` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin3_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0043 % String ID
+    .Skin3_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0031 % String ID
+    %============================
+    % Position 4
+    %============================
+    .CursorPos4
+    ORI     T1, R0, 4
+    BNE     S2, T1, .CursorPos5
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin04
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin4_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 40`
+    BNE     T1, R0, .Skin4_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 200` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin4_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0044 % String ID
+    .Skin4_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0032 % String ID
+    %============================
+    % Position 5
+    %============================
+    .CursorPos5
+    ORI     T1, R0, 5
+    BNE     S2, T1, .CursorPos6
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin05
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin5_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 60`
+    BNE     T1, R0, .Skin5_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 200` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin5_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0045 % String ID
+    .Skin5_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0033 % String ID
+    %============================
+    % Position 6
+    %============================
+    .CursorPos6
+    ORI     T1, R0, 6
+    BNE     S2, T1, .CursorPos7
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin06
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin6_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 60`
+    BNE     T1, R0, .Skin6_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 250` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin6_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0046 % String ID
+    .Skin6_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0034 % String ID
+    %============================
+    % Position 7
+    %============================
+    .CursorPos7
+    ORI     T1, R0, 7
+    BNE     S2, T1, .CursorPos8
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin07
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin7_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S3, 80`
+    BNE     T1, R0, .Skin7_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 300` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin7_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0047 % String ID
+    .Skin7_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0035 % String ID
+    %============================
+    % Position 8
+    %============================
+    .CursorPos8
+    ORI     T1, R0, 8
+    BNE     S2, T1, .CursorPos9
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin08
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin8_Unlocked
+    NOP
+    % Check if can be buyed
+    SLTIU   T1, S1, 80`
+    BNE     T1, R0, .Skin8_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 300` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin8_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0048 % String ID
+    .Skin8_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0036 % String ID
+    %============================
+    % Position 9
+    %============================
+    .CursorPos9
+    ORI     T1, R0, 9
+    BNE     S2, T1, .CursorPos10
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin09
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin9_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_RoguelikeBeated
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin9_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 350` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin9_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0049 % String ID
+    .Skin9_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0037 % String ID
+    %============================
+    % Position 10
+    %============================
+    .CursorPos10
+    ORI     T1, R0, 10`
+    BNE     S2, T1, .CursorPos11
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin10
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin10_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_Cheev_Rogue_17
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin10_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 400` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin10_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004A % String ID
+    .Skin10_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0038 % String ID
+    %============================
+    % Position 11
+    %============================
+    .CursorPos11
+    ORI     T1, R0, 11`
+    BNE     S2, T1, .CursorPos12
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin11
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin11_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_ClassicBeated
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin11_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 350` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin11_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004B % String ID
+    .Skin11_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0039 % String ID
+    %============================
+    % Position 12
+    %============================
+    .CursorPos12
+    ORI     T1, R0, 12`
+    BNE     S2, T1, .CursorPos13
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin12
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin12_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_Cheev_Classic_22
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin12_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 400` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin12_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004C % String ID
+    .Skin12_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003A % String ID
+    %============================
+    % Position 13
+    %============================
+    .CursorPos13
+    ORI     T1, R0, 13`
+    BNE     S2, T1, .CursorPos14
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin13
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin13_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_Mistar
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin13_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 400` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin13_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004D % String ID
+    .Skin13_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003B % String ID
+    %============================
+    % Position 14
+    %============================
+    .CursorPos14
+    ORI     T1, R0, 14`
+    BNE     S2, T1, .CursorPos15
+    NOP
+    % Skin already purchased?
+    LIO     A1, *Flag_Skin14
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin14_Unlocked
+    NOP
+    % Check if can be buyed
+    LIO     A1, *Flag_Cheev_Global_03
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Skin14_Locked % can't be
+    NOP
+    % Is available to be purchased (doesn't means you have enough coins too tho)
+    % Load Message Var
+    ORI     A0, R0, 500` % skin price
+    JAL     ~Func:set_message_value
+    ADDIU   A1, R0, 1    % Var Index (00-02)
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003D % String ID
+    .Skin14_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 0060 % String ID
+    .Skin14_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 005F % String ID
+    %============================
+    % Position 15
+    %============================
+    .CursorPos15
+    ORI     T1, R0, 15`
+    BNE     S2, T1, .DrawString
+    NOP
+    % Skin already unlocked?
+    LIO     A1, *Flag_Cheev_Global_01
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .Skin15_Unlocked
+    NOP
+    .Skin15_Locked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 004E % String ID
+    .Skin15_Unlocked
+    BEQ     R0, R0, .DrawString
+    ORI     S0, S0, 003C % String ID
+    .DrawString
+    COPY    A0, S0
+    ADDIU   A1, R0, 0028 % x
+    ADDIU   A2, R0, 00C0 % y
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, FF % opacity
+    .End
+    POP     RA, A0, A1, A2, A3, T0, T1, S0, S1, S2, S3
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+% Hide the yellow and top boxes when a list is displayed, used with Chuck's lists
+@Hook DDF0C % 8014780C
+{
+    PUSH    T0
+    LAW     T0, $DescriptionBox_Data
+    BNE     T0, R0, .HideExtraBoxes
+    NOP
+    % Vanilla code
+    BEQ     V0, R0 .80147878
+    NOP
+    .HideExtraBoxes
+    POP     T0
+    J       80147814
+    NOP
+    .80147878
+    POP     T0
+    J       80147878
+    NOP
+}
+
+% Mario's palette's get overwrited everytime mario's animation changes
+% this hook overwrite the palette value everytime
+% JAL_Overwrite_PlayersPalette
+@Hook 1007B4 % 802DD6C4
+{
+    /% 802DF588 - Mario Sprite Data - Pointer
+    [Pointer + 28](4 Bytes) Component_00 Palette
+    [Pointer + 2C](4 Bytes) Component_00 Palette (Battle)
+    [Pointer + 63](1 Byte)  Component_01 Byte Flag?
+    [Pointer + 68](4 Bytes) Component_01 Palette
+    [Pointer + 7C](4 Bytes) Component_01 Palette (Battle)
+
+    80074094 - Current Mode
+    0x00 = Overworld
+    0x01 = Battle
+    0x02 = Pause
+
+    *PlayerSkin
+    0x00=Default
+    0x01=Doopliss
+    0x02=B&W
+    0x03=Gameboy
+    0x04=Luigi
+    0x05=Wario
+    0x06=Waluigi
+    0x07=Fire Flower
+    0x08=Ice Flower
+    0x09=Jumpman
+    0x0A=SMB1
+    0x0B=SMB3
+    0x0C=Maker
+    0x0D=Modern
+    0x0E=Gold
+    0x0F=Black Pit
+    %/
+
+    % This SW writes stuff for all NPCs/Actors in the map
+    % Check if the one trying to be overwrited right now is Mario's palette
+    PUSH    RA, T0, T1, T2, T3, T4, A0, A1, A2, A3, V1, S0, S1
+    LAW     T0, 802DF588 % Mario Sprite Data (Pointer)
+    % If the pointer isn't even loaded skip everything
+    BEQ     T0, R0, .End
+    NOP
+    % Check if mario is inside a battle
+    LABU    T1, 80074094 % Current Mode
+    BNEL    T1, R0, .InBattle0
+    ORI     T1, R0, 14
+    .InOverworld0
+    ORI     T1, R0, 10
+    .InBattle0
+    % The current actor/npc about to be overwriten isn't Mario comp_00?
+    % A0 = Mario Sprite Data Pointer
+    ADDU    T0, T0, T1
+    BEQ     T0, A0, .LoadPaletteID
+    NOP
+    % Check if the current actor/npc to be overwriten is maybe Mario comp_01 instead?
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BNE     T0, A0, .End
+    NOP
+    .LoadPaletteID
+    % Don't overwrite the palette if mario have the following animation
+    LAW     T0, 802DF58C % Mario Universal Animation ID
+    LIO     T1, 0001002F % burned
+    BEQ     T0, T1, .End
+    NOP
+    % Load Palette ID
+    COPY    S0, V0 % PUSH V0
+    COPY    S1, A0 % PUSH A0
+    LIO 	A1, *PlayerSkin % new palette
+    JAL 	~Func:get_variable
+    RESERVED
+    COPY    T1, V0 % PUSH skin ID
+    COPY    V0, S0 % POP V0
+    COPY    A0, S1 % POP A0
+    COPY    S0, T1 % POP skin ID
+    % GET PALETTE ID %
+    /% Why I overwrited some vanilla's palettes?
+    Mario can have a maximum of 0x23 palettes on Bank 1
+    If he have above 23, some problems will happen inside battle.
+    %/
+    % The *PlayeSkin byte is now loaded, but now load the actual palette ID
+    BEQ     S0, R0, .LoadPalette % Normal
+    ORI     T1, R0, 1
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 15 % Doopliss
+    ORI     T1, R0, 2
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 16 % B&W
+    ORI     T1, R0, 3
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 17 % Gameboy
+    ORI     T1, R0, 4
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1A % Luigi
+    ORI     T1, R0, 5
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1B % Wario
+    ORI     T1, R0, 6
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1C % Waluigi
+    ORI     T1, R0, 7
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1D % Fire Flower
+    ORI     T1, R0, 8
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1E % Ice Flower
+    ORI     T1, R0, 9
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 1F % Jump Man
+    ORI     T1, R0, A
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 20 % SMB1
+    ORI     T1, R0, B
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 21 % SMB3
+    ORI     T1, R0, C
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 22 % Maker
+    ORI     T1, R0, D
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 23 % Modern
+    ORI     T1, R0, E
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 0B % Black Pit
+    ORI     T1, R0, F
+    % Load Palette 19/Gold if the SkinID is >= F
+    BEQ     R0, R0, .LoadPalette
+    ORI     S0, R0, 19 % Gold
+    % S0 = Skin ID
+    .LoadPalette
+    #DEF    S0, *SkinID
+    % Check if mario is inside a battle
+    LAW     T0, 802DF588 % Mario Sprite Data (Pointer)
+    LABU    T1, 80074094 % Current Mode
+    BNEL    T1, R0, .InBattle
+    ORI     T1, R0, 14
+    .InOverworld
+    ORI     T1, R0, 10
+    /% Hammer Animations
+    Hammer's animations works a little different to all other animations
+    because it uses 2 components instead of 1, on all other animations
+    Mario's body is always component 00 but on the hammer ones he is component 01
+    and the hammer is component 00 %/
+    % Check if the current animation is a hammer one to overwrite component 01 palette instead
+    LBU     T2, 63 (T0) % Component 01 byte flag
+    BEQ     T2, R0, .Overwrite_Component % If component 01 is false
+    NOP
+    .OverwriteHammer
+    % Some animations use 2 components too but Mario body is component 00 instead of 01
+    % like the hammer ones, If the current animation is one of those, overwrite comp_00 not 01
+    LAW     T3, 8010F080 % Mario's Animation ID (Overworld)
+    /%
+    Check the following animations:
+    0006000C
+    0006000E
+    0006000F
+    0008001E
+    %/
+    LIO     T2, 0006000C
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0006
+    ORI     T2, T2, 000E
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0006
+    ORI     T2, T2, 000F
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0008
+    ORI     T2, T2, 001E
+    BEQ     T3, T2 .Overwrite_Component
+    NOP
+    % Overwrite Component 01 Palette - Overworld
+    % Check if the current actor/npc to be overwriten is Mario comp_01?
+    ADDU    T0, T0, T1
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BNE     T0, A0, .End
+    NOP
+    BEQ     R0, R0, .Overwrite_Component
+    NOP
+    .InBattle
+    % Check if Mario is a stone or poisoned to not overwrite the ID
+    LIO     T3, 800DC148 % Mario's Actor Data Pointer
+    LW      T2, 0 (T3)
+    LBU     T3, 210 (T2) % Mario's Status
+    ORI     T4, R0, 9 % Poison
+    BEQ     T3, T4, .End
+    ORI     T4, R0, C % Stone
+    LBU     T3, 214 (T2) % Mario's Status 2
+    BEQ     T3, T4, .End
+    NOP
+    /% Some battle animations Mario's body is in comp_01 instead of comp_00 too
+    check if the current animation is one of those, to write comp_01 instead of 00.
+
+    Check the following animations:
+    00030013
+    00030019
+    0003001A
+    00030020
+    00030021
+    0004001B
+    00040021
+    00040026
+    00040027
+    %/
+    LAW     T3, 802DF58C % Mario's Animation ID (Battle)
+    LIO     T2, 00030013
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030019
+    LIO     T2, 00030019
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .0003001A
+    LIO     T2, 0003001A
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030020
+    LIO     T2, 00030020
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030021
+    LIO     T2, 00030021
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .0004001B
+    LIO     T2, 0004001B
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040021
+    LIO     T2, 00040021
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040026
+    LIO     T2, 00040026
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040027
+    LIO     T2, 00040027
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    % The current animation isn't one of those?
+    % Check if the current pointer in A0 is for comp_01 to skip overwriting the palette then
+    ADDU    T0, T0, T1
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BEQ     T0, A0, .End
+    NOP
+    BEQ     R0, R0, .Overwrite_Component
+    NOP
+    .Overwrite_Comp01 % Battle
+    % skip if the pointer in A0 is for comp_00
+    ADDU    T0, T0, T1 % Comp_00
+    BEQ     T0, A0, .End
+    NOP
+    .Overwrite_Component
+    % Mario's palette is about to be overwrited
+    COPY    V0, *SkinID % overwrite palette
+    .End
+    #UNDEF  S0
+    POP     RA, T0, T1, T2, T3, T4, A0, A1, A2, A3, V1, S0, S1
+    % Vanilla code %
+    BNE 	A3, R0 .Falso
+    SW	    V0, 0018 (A0) % Write Palette
+    J       802DD6D4
+    NOP
+    .Falso
+    J       802DD6CC
+    NOP
+}
+
+% Lock Player Inputs when you open a giant chest with AssignScript
+@Hook 108A84 % 802E7204
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+LIO 	A1, *Flag_LockInputs_GiantChest
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Disable Player Inputs
+JAL     ~Func:disable_player_input
+NOP
+% If the player is in the maze also freeze the timer
+LIO 	A1, *Flag_Dungeon
+JAL 	~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+ORI     A2, R0, 1 % true
+LIO 	A1, *Flag_DungeonPause
+JAL 	~Func:set_variable
+RESERVED
+ORI     A0, R0, 1
+SAW     A0, 8010EF90 % Show C-Up Stats Bar
+.End
+POP     RA, A0, A1, A2, A3, V0, V1
+% Vanilla code
+LW	    V0, 0040 (A0)
+J       802E720C
+ADDIU	A0, R0, 01D3
+}
+
+% Prevent the game to not letting you 
+% to open a Giant Chest by poking the RAM
+@Hook A5F70 % 8010F870
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+LIO 	A1, *Flag_AutoOpenChest
+JAL 	~Func:get_variable
+RESERVED
+COPY    T0, V0
+POP     RA, A0, A1, A2, A3, V0, V1
+BNE     T0, R0, .End
+NOP
+SB	    V0, 0006 (S0) % skip this if you want to be able to open a chest automatically
+.End
+J       8010F878
+ANDI	V0, V0, 00FF
+}
+
+% Display "[START] Skip" when you can skip a cutscene
+% And track the Start Button
+#new:Function $Display_SkipText
+{
+PUSH    RA, A0, A1, A2, A3, V0
+% Check if the skipper is turned off
+LIO     A1, *Flag_DisableSkipper
+JAL     ~Func:get_variable
+RESERVED
+BNE     V0, R0, .End
+NOP
+LIO     A1, *Flag_Skip
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% DRAW BOX
+ADDIU	A0, R0, F5 % posX
+ADDIU	A1, R0, C6 % posY
+LABU    A2, $SkipCs_Data % 3B = MAX % sizeX
+ADDIU	A3, R0, 14 % sizeY
+ADDIU	T0, R0, 3  % style
+JAL		$DrawBox
+ADDIU	T1, R0, FF % opacity
+% Display Text
+LIO     A0, $String_Skip
+ADDIU   A1, R0, 00F9 % x
+ADDIU   A2, R0, 00C8 % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+% Track Start Button
+LABU    T0, 80074056 % Inputs Hold % bit4 = Start
+SLL    	T0, T0, 27`
+SRL 	T0, T0, 31` % Move all bits to just leave bit4
+BEQ	    T0, R0, .DecrementSize % If the Start button wasn't pressed
+NOP
+LABU    T0, $SkipCs_Data % Load Box Size
+ADDIU   T0, T0, 3 % Hold Start Speed
+SLTIU   T1, T0, 3C % Above 3C? ( 3B = Skip Cutscene )
+BEQL    T1, R0, .SaveSize
+ORI     T0, R0, 3B
+.SaveSize
+SAB     T0, $SkipCs_Data
+BEQ     R0, R0, .End
+NOP
+.DecrementSize
+% Check if the box size is zero
+LABU    T0, $SkipCs_Data % Load Box Size
+BEQ     T0, R0, .End
+NOP
+ORI     T1, R0, 2 % Decrement timer speed
+SUB     T0, T0, T1
+SLTI    T1, T0, 0 % Below Zero? (Negative Value)
+BNEL    T1, R0, .SaveSize % Below Zero
+CLEAR   T0
+BEQ     R0, R0, .SaveSize
+NOP
+.End
+POP     RA, A0, A1, A2, A3, V0
+JR      RA
+ORI     V0, R0, 2
+}
+
+% XX000000 = Size
+% 00XXXXXX = unused
+#new:Data $SkipCs_Data
+{ 00000000 }
+
+#export $SkipCs_Data
+
+#string $String_Skip
+{
+[Color:12][START] [Color:0A]Skip[END]
+}
+
+% Track an input by using a function instead of only scripting (it still need some scripting tho)
+% Save a bool as true if the tracked input was pressed
+#new:Function $TrackInput
+{
+PUSH    RA, A0, A1, A2, A3, T0, T1, T2, V0
+LIO     A1, *TrackInput
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Check if the Tracker has been initialitated, if not turn the tracker off and end the function
+LIO     T0, $Data_Inputs % save address
+LW      T2, 4 (T0)
+BNE     T2, R0, .StartTracker
+NOP
+% The track ins't initializated
+SW      R0, 0 (T0)
+SW      R0, 4 (T0)
+LIO     A1, *TrackInput
+JAL     ~Func:set_variable
+CLEAR   A2
+BEQ     R0, R0, .End
+NOP
+.StartTracker
+LIO     T0, $Data_Inputs % save address
+LBU     T1, 1 (T0) % Load Input to Track
+LW      T2, 4 (T0)
+LBU     T2, 0 (T2) % Load Address to Track
+BNE     T1, T2, .End
+NOP
+% Save Bool as true
+ORI     T0, R0, 1
+SAB     T0, $Data_Inputs
+.End
+POP     RA, A0, A1, A2, A3, T0, T1, T2, V0
+JR      RA
+ORI     V0, R0, 2
+}
+
+% XX000000 00000000 = Input pressed bool
+% 00XX0000 00000000 = Button to be tracked
+% 0000XX00 00000000 = Amount of Stylish made on last move
+% 000000XX 00000000 = unused
+% 00000000 XXXXXXXX = Address to track (will always load a single byte)
+#new:Data $Data_Inputs
+{ 00000000 00000000 }
+
+#export $Data_Inputs
+
+#new:Function $ToogleCheats
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LABU    T0, 80074037 % one time inputs
+    ANDI    T1, T0, 20 % bit5 / L Button
+    BEQ     T1, R0, .End
+    NOP
+    LABU    T0, 80074098 % Cheats
+    ORI     T1, R0, 4
+    BEQL    T0, T1, .SetCheat
+    CLEAR   T0 % Set Back to Zero
+    ADDIU   T0, T0, 1
+    .SetCheat
+    SAB     T0, 80074098
+    % Play Sound
+    ADDIU	A0, R0, 00C7 % sfx
+    CLEAR 	A1
+    COPY 	A2, A1
+    JAL 	~Func:_play_sound
+    COPY 	A3, A1
+    /% Test stuff by pressing L
+    LIO     A0, $Script_SwapModel00_RederMode
+    CLEAR	A2
+    JAL		~Func:start_script
+    ADDIU	A1, R0, 1%/
+    .End
+    % Print Current Cheat
+    % Convert Data to ASCII
+    LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+    LIO     A1, $ASCII_Format_Byte     % Type of Format to use
+    LABU 	A2, 80074098		   % Data to Format
+    JAL     ~Func:sprintf
+    RESERVED
+    % Convert ASCII to String and Print
+    LIO     A1, $ASCII_Buffer       % previously converted ASCII
+    LIO     A0, $String_Buffer      % Pointer to Save Final String
+    JAL     $ConvertAsciiToPM64String % The final result will be stored in A0
+    RESERVED
+    ORI     A1, R0, 0075 % x pos
+    ORI     A2, R0, 00CA % y pos
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, 00FF
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+% Ruby King - Star Shield's color
+@Function 362A60 % E005E4A0
+{
+    LIO     A0, $Hook_362A60
+    JR      A0
+    NOP
+}
+
+#new:Function $Hook_362A60
+{
+    PUSH    RA, A0, A1, A3, V0, V1
+    LIO     A1, *Flag_RubyKingStars
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .Yellow
+    NOP
+    LIO     A2, F76B6BA0 % Red - RGBA
+    BEQ     R0, R0, .End
+    RESERVED
+    .Yellow
+    LIO     A2, DCDC28FF % Yellow - RGBA
+    .End
+    POP     RA, A0, A1, A3, V0, V1
+    LW	    A0, 0000 (S6)
+    LIO     V0, E005E4AC
+    JR      V0
+    COPY    A1, A0    
+}
+
+%========================
+% Disable Focus mechanic
+
+% Disable Focus from the Star Powers list
+@Function 41B250 % 802A64C0
+{
+    SB	R0, 01F6 (S6)
+}
+
+% Show a different message when the player pick a locked move
+% Use for the following moves:
+
+% Star Spirits - Focus
+% Star Spirits - Up & Away (Only Maze)
+
+% Bow - Spook (Only Maze)
+% Parakarry - Air Lif (Only Maze)
+% Lakilester - Hurricane (Only Maze)
+@Hook 419304 % 802A4574
+{
+    % Load and Save Dungeon Flag in GP
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_Dungeon
+    JAL     ~Func:get_variable
+    NOP
+    COPY    GP, V0
+    POP     RA, A0, A1, A2, A3, V0, V1
+    % S0 = StringID
+    % V0 = Is Star   Spirits List (Bool)
+    BEQ	    V0, R0, .NotStarSpiritsList
+    NOP
+    .StarSpirits
+    % Check if the player choose "Focus" or another Star Power
+    LABU    T0, 802AD109 % Cursor Pos
+    BEQL    T0, R0, .ShowMessage % Focus
+    ORI	    S0, S0, 0080 % Use Stylish Moves to get Star Energy!
+    % The player isn't inside the Maze?
+    % GP = Maze Flag
+    BEQL    GP, R0, .ShowMessage % Common Star Spirit Message
+    ORI	    S0, S0, 00A0 % You don't have enough Star Power
+    % The player is indeed inside the Maze, check if the cursor
+    % is at Up & Away.
+    ORI     T1, R0, 7
+    BNEL    T0, T1 .ShowMessage
+    ORI	    S0, S0, 00A0 % You don't have enough Star Power
+    % Is Up & Away
+    ORI	    S0, S0, 00C3 % You can't select it now!
+    .ShowMessage
+    J       802A4584
+    NOP
+    .NotStarSpiritsList
+    % Check if the player is inside the Maze
+    % GP = Maze Flag
+    BEQ     GP, R0, .End
+    NOP
+    % The player is inside the Maze check the current partner
+    LABU    T0, 8010F2A2 % load current partner
+    ORI     T1, R0, 4 % Parakarry
+    BEQ     T0, T1, .Parakarry
+    ORI     T1, R0, 9 % Bow
+    BEQ     T0, T1, .Bow
+    ORI     T1, R0, 8 % Lakilester
+    BEQ     T0, T1, .Lakilester
+    NOP
+    % Isn't any of those partners so just finish
+    BEQ     R0, R0, .End
+    NOP
+    .Parakarry
+    LABU    T0, 802AD109 % Cursor Pos
+    ORI     T1, R0, 2 % Air Lift
+    BNE     T0, T1, .End
+    NOP
+    BEQ     R0, R0, .ShowMessage
+    ORI	    S0, S0, 00C3 % You can't select it now!
+    .Bow
+    LABU    T0, 802AD109 % Cursor Pos
+    ORI     T1, R0, 2 % Spook
+    BNE     T0, T1, .End
+    NOP
+    BEQ     R0, R0, .ShowMessage
+    ORI	    S0, S0, 00C3 % You can't select it now!
+    .Lakilester
+    LABU    T0, 802AD109 % Cursor Pos
+    ORI     T1, R0, 3 % Hurricane
+    BNE     T0, T1, .End
+    NOP
+    BEQ     R0, R0, .ShowMessage
+    ORI	    S0, S0, 00C3 % You can't select it now!
+    .End
+    J       802A457C
+    NOP
+}
+
+% Disable Partner's Focus
+@Function 41D468 % 802A86D8
+{
+    NOP
+}
+
+% old code for disabling mario's focus
+/% Don't update player turn, used when using focus
+@Hook 17525C % 8024697C
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    LIO     A1, *Flag_IgnorePlayerTurn
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    S0, V0
+    % set flag as false again
+    LIO     A1, *Flag_IgnorePlayerTurn
+    JAL     ~Func:set_variable
+    CLEAR   A2
+    COPY    T0, S0
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    BEQL    T0, R0, .Jump
+    ORI	    V0, V0, 0002
+    .Jump
+    J       80246984
+    SW	    V0, 0004 (V1)
+}%/
+
+/%========
+@Function 34FA94 % E003C5D4
+{
+    NOP
+}
+
+@Function 389D58 % E0086508
+{
+    NOP
+}%/
+
+% Developer Code, unlocks everything for Mario and Partners
+#new:Function $SetUpgrades 
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+/%Action Commands
+ADDIU   A1, R0, 1 
+SAB     A1, 8010F29A%/
+% Badge Points
+ADDIU   A1, R0, 30`
+SAB     A1, 8010F298
+/%Star Spirits
+ADDIU   A1, R0, 7 
+SAB     A1, 8010F51E
+%Boots
+ADDIU   A1, R0, 2
+SAB     A1, 8010F290 
+%Hammer 
+SAB     A1, 8010F291
+%Goombario
+ORI     A2, R0, 1
+SAB     A2, 8010F2AC
+SAB     A1, 8010F2AD
+%Kooper
+SAB     A2, 8010F2B4
+SAB     A1, 8010F2B5
+%Bombette
+SAB     A2, 8010F2BC
+SAB     A1, 8010F2BD
+%Parakarry
+SAB     A2, 8010F2C4
+SAB     A1, 8010F2C5
+%Bow
+SAB     A2, 8010F2EC
+SAB     A1, 8010F2ED
+%Watt
+SAB     A2, 8010F2D4
+SAB     A1, 8010F2D5
+%Sushie 
+SAB     A2, 8010F2DC
+SAB     A1, 8010F2DD
+%Lakilester
+SAB     A2, 8010F2E4
+SAB     A1, 8010F2E5
+% turn testing features
+LIO     A1, *Flag_Debugger
+JAL     ~Func:set_variable
+ORI     A2, R0, 1
+%/
+JPOP    RA, A0, A1, A2, A3, V0, V1
+NOP
+}
+
+% On battle fully heal when you pressing R and enable cheats
+#new:Function $GodMode
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_Debugger
+    JAL     ~Func:get_variable
+    RESERVED
+    %ORI     V0, R0, 1 % testing
+    BEQ     V0, R0, .End
+    NOP
+    % Toogle game cheats
+    JAL     $ToogleCheats
+    NOP
+    % check the player is inside battle
+    LABU    T0, 80074094 % game state
+    ORI     T1, R0, 1
+    BNE     T0, T1, .End
+    NOP
+    % check R button
+    LABU    T0, 80074037 % 1 Frame Inputs
+    ANDI    T0, T0, 10 % bit4 = R button
+    BEQ     T0, R0, .End
+    NOP
+    % restore HP, FP and Star Power
+    LABU    T0, 8010F293 % load max hp
+    SAB     T0, 8010F292
+    LABU    T0, 8010F296 % load max fp
+    SAB     T0, 8010F295
+    ORI     T0, R0, 0700 % always set sp as 7
+    SAH     T0, 8010F520
+    % play sound
+    ADDIU	A0, R0, 0010 % Sound ID
+    ADDIU	A2, R0, 18 % Volume
+    JAL 	~Func:_play_sound
+    CLEAR 	A1
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+#new:Script:Map $Script_SwapModel00_RederMode
+{
+    Call $GetModelPointer ( 0 *Var[0] )
+    Call $ReadAddress ( *Var[0] 0 *Var[1] A6 .False )
+    Add *Var[1] 1
+    % Model's Render Mode
+    If *Var[1] == 30
+        Set *Var[1] 1
+        Call    PlaySound ( 6 )
+    EndIf
+    Call $WriteAddress ( *Var[0] 0 *Var[1] A6 .False )
+    Return
+    End
+}
+
+% 80155676 - Cursor Posion (Func_04)
+
+#new:Function $DemoSettingsBox
+{
+PUSH	RA, A0, A1, A2, A3, T0, T1
+LIO     A1, *Flag_Demo_SettingsBox
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End
+NOP
+% DRAW BOX
+ADDIU	A0, R0, 20  % posX
+ADDIU	A1, R0, C0  % posY
+ADDIU	A2, R0, FF % sizeX
+ADDIU	A3, R0, 22 % sizeY
+ADDIU	T0, R0, 3  % style
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+% Check which box is currently open
+LIO     A1, *Flag_Demo_SettingsBox_StringsBank
+JAL     ~Func:get_variable
+NOP
+BNE     V0, R0, .FloorCounter
+NOP
+% LOAD STRING
+LABU   T0, 80155676 % Cursor Position (Func_04)
+BNE    T0, R0, .LoadStringAlways
+NOP
+LIO    A0, $String_DemoSettingsBox_AfterLanding
+BEQ    R0, R0, .ShowString
+NOP
+.LoadStringAlways
+LIO    A0, $String_DemoSettingsBox_Always
+BEQ    R0, R0, .ShowString
+NOP
+% Pipes
+.FloorCounter
+% LOAD STRING
+LABU    T0, 80155676 % Cursor Posion (Func_04)
+BNE     T0, R0, .LoadStringTopPipe
+NOP
+LIO     A0, $String_DemoSettingsBox_Sign
+BEQ     R0, R0, .ShowString
+NOP
+.LoadStringTopPipe
+LIO     A0, $String_DemoSettingsBox_TopPipe
+% DRAW STRING
+.ShowString
+ADDIU   A1, R0, 002A % x
+ADDIU   A2, R0, 00C0 % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+.End
+POP 	RA, A0, A1, A2, A3, T0, T1
+JR      RA
+NOP
+}
+
+#string $String_DemoSettingsBox_AfterLanding
+{
+[Color:0A]Track only after the player land
+into the Pipe.[END]
+}
+
+#string $String_DemoSettingsBox_Always
+{
+[Color:0A]Always track if the player moves
+the stick down.[END]
+}
+
+#string $String_DemoSettingsBox_Sign
+{
+[Color:0A]Put a sign on the wall.[END]
+}
+
+#string $String_DemoSettingsBox_TopPipe
+{
+[Color:0A]Show the current floor on the
+top pipe.[END]
+}
+
+#new:Function $DifficultiesDescriptions
+{
+PUSH	RA, A0, A1, A2, A3, T0, T1
+LIO     A1, *Flag_ShowDifficulties_Descriptions
+JAL     ~Func:get_variable
+NOP
+BEQ     V0, R0, .End
+NOP
+% DRAW BOX
+ADDIU	A0, R0, 20  % posX
+ADDIU	A1, R0, C0  % posY
+ADDIU	A2, R0, FF % sizeX
+ADDIU	A3, R0, 22 % sizeY
+ADDIU	T0, R0, 3  % style
+ADDIU	T1, R0, FF % opacity
+JAL		$DrawBox
+NOP
+% LOAD STRING
+LABU    T0, 80155676 % Cursor Posion (Func_04)
+% Very Hard
+ORI     T1, R0, 2
+LIO     A0, $String_DifficultyAbout_VeryHard
+BEQ     T0, T1, .ShowString
+NOP
+% Hard
+LIO     A0, $String_DifficultyAbout_Hard
+BNE     T0, R0, .ShowString
+NOP
+% Normal
+LIO     A0, $String_DifficultyAbout_Normal
+% DRAW STRING
+.ShowString
+ADDIU   A1, R0, 002A % x
+ADDIU   A2, R0, 00C0 % y
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+.End
+POP 	RA, A0, A1, A2, A3, T0, T1
+JR      RA
+NOP
+}
+
+#string $String_DifficultyAbout_Normal
+{
+[Color:0A]Normal Difficulty.[END]
+}
+
+#string $String_DifficultyAbout_Hard
+{
+[Color:0A][PushColor][Color:19]50\%[PopColor] more coins, enemies' HP
+and damage.[END]
+}
+
+#string $String_DifficultyAbout_VeryHard
+{
+[Color:0A][PushColor][Color:19]100\%[PopColor] more coins, enemies' HP
+and damage.[END]
+}
+
+% Tidal wave FX (non-blue)
+% used when using a mover
+% Call  PlayEffect 	( ~FX:Underwater ... )
+% osMapTLB - This function loads the fx data in E0
+% (And for all FXs btw, usefull if you want to find the location of one FX data in particular)
+@Function 3B8DEC % E00BA21C
+{
+% To jump between E0XXXXX and 80XXXXXX addresses
+% you need to jump from a register, that's why JR
+LIO  T0 $Function_TidalWave_RemoveBlue
+JR   T0
+NOP
+}
+
+#new:Function $Function_TidalWave_RemoveBlue
+{
+PUSH    V0, V1, A0, A1, A2, A3, RA
+LIO     A1, *Flag_TidalWave_Mover
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .Falso
+NOP
+POP     V0, V1, A0, A1, A2, A3, RA
+BEQ     R0, R0, .Verdadero
+ORI     A0, R0, 0100 % not blue
+.Falso
+POP     V0, V1, A0, A1, A2, A3, RA
+.Verdadero
+% Vanilla code
+LUI	    AT, 4F00
+MTC1	AT, F2
+LIO     T0, E00BA22C
+JR      T0
+MTC1	A0, F0
+}
+
+% Change the flame color (used by Bonetail and Bowser)
+% Set *FireBreathColor colorID
+% 0 = Orange (Default)
+% 1 = Green
+% 2 = Purple
+% 3 = White
+% 4 = Blue
+% 5 = Black and White (Used by BowserBP)
+%
+% Flames are divided in 2 colors one for the outlines 
+% and the other one for the body, each one use
+% 3 bytes as RGB values.
+%
+% Call  PlayEffect 	( ~FX:FireBreath ... )
+@Function 373158 % E006E9C8
+{
+LIO  T7 $Function_PlayFX_Flame_Color1 % Flame color 1 (body)
+JR   T7
+NOP
+}
+
+@Function 373198 % E006EA08
+{
+LIO  T7 $Function_PlayFX_Flame_Color2 % Flame color 2 (outline)
+JR   T7
+NOP
+}
+
+#new:Function $Function_PlayFX_Flame_Color1
+{
+PUSH    V0, V1, A0, A1, A2, A3, RA
+LIO     A1, *FireBreathColor
+JAL     ~Func:get_variable
+RESERVED
+COPY    T7, V0
+POP     V0, V1, A0, A1, A2, A3, RA
+BNE     T7, R0, .Green
+NOP
+.Orange
+% vanilla code
+% Flame Body Color
+LBU	    V0, 0067 (S4)
+LBU	    A1, 006B (S4)
+LBU	    A3, 006F (S4)
+BEQ     R0, R0, .End
+NOP
+.Green
+ORI     T1, R0, 1
+BNE     T7, T1, .Purple
+NOP
+% Flame Body Color
+ORI     V0, R0, 50 % R
+ORI     A1, R0, 87 % G
+ORI     A3, R0, 63 % B
+BEQ     R0, R0, .End
+NOP
+.Purple
+ORI     T1, R0, 2
+BNE     T7, T1, .White
+NOP
+% Flame Body Color
+ORI     V0, R0, 87 % R
+ORI     A1, R0, 50 % G
+ORI     A3, R0, 87 % B
+BEQ     R0, R0, .End
+NOP
+.White
+ORI     T1, R0, 3
+BNE     T7, T1, .Blue
+NOP
+% Flame Body Color
+ORI     V0, R0, E0 % R
+ORI     A1, R0, E0 % G
+ORI     A3, R0, E0 % B
+BEQ     R0, R0, .End
+NOP
+.Blue
+ORI     T1, R0, 4
+BNE     T7, T1, .BW
+NOP
+% Flame Body Color
+ORI     V0, R0, 35 % R
+ORI     A1, R0, E1 % G
+ORI     A3, R0, EE % B
+BEQ     R0, R0, .End
+NOP
+.BW
+% Flame Body Color
+ORI     V0, R0, 0 % R
+ORI     A1, R0, 0 % G
+ORI     A3, R0, 0 % B
+.End
+LIO     T7, E006E9D8
+JR      T7
+LBU	    T0, 0043 (S4) % flame alpha color?
+}
+
+#new:Function $Function_PlayFX_Flame_Color2
+{
+PUSH    V0, V1, A0, A1, A2, A3, RA
+LIO     A1, *FireBreathColor
+JAL     ~Func:get_variable
+RESERVED
+COPY    T7, V0
+POP     V0, V1, A0, A1, A2, A3, RA
+BNE     T7, R0, .Green
+NOP
+.Orange
+% vanilla code
+% Flame Outline Color
+LBU	    A3, 0073 (S4)
+LBU	    T0, 0077 (S4)
+LBU	    T1, 007B (S4)
+BEQ     R0, R0, .End
+NOP
+.Green
+ORI     T1, R0, 1
+BNE     T7, T1, .Purple
+NOP
+% Flame Outline Color
+ORI     A3, R0, 1D % R
+ORI     T0, R0, 41 % G
+ORI     T1, R0, 3D % B
+BEQ     R0, R0, .End
+NOP
+.Purple
+ORI     T1, R0, 2
+BNE     T7, T1, .White
+NOP
+% Flame Outline Color
+ORI     A3, R0, 41 % R
+ORI     T0, R0, 1D % G
+ORI     T1, R0, 40 % B
+BEQ     R0, R0, .End
+NOP
+.White
+ORI     T1, R0, 3
+BNE     T7, T1, .Blue
+NOP
+% Flame Outline Color
+ORI     A3, R0, 76 % R
+ORI     T0, R0, 76 % G
+ORI     T1, R0, 76 % B
+BEQ     R0, R0, .End
+NOP
+.Blue
+ORI     T1, R0, 4
+BNE     T7, T1, .BW
+NOP
+% Flame Outline Color
+ORI     A3, R0, 26 % R
+ORI     T0, R0, 77 % G
+ORI     T1, R0, 7D % B
+BEQ     R0, R0, .End
+NOP
+.BW
+% Flame Outline Color
+ORI     A3, R0, FF % R
+ORI     T0, R0, FF % G
+ORI     T1, R0, FF % B
+.End
+LIO     T7, E006EA18
+JR      T7
+ADDIU	V0, A2, 0018 % vanilla code
+}
+
+% List of Elements (Items, Partners, Skins and Furniture)
+% Block the A input when you can't buy that skin or furniture
+% And also block the A input when you already buyed that piece of furniture
+% V0 = 00008000 % button pressed
+@Hook 8BF30 % 800F2A80
+{
+PUSH    RA, V1, A0, A1, A2, A3
+LIO     A1, *Flag_IgnoreAButton_Lists
+JAL     ~Func:get_variable
+RESERVED
+BEQ    V0, R0, .ReadAButton
+NOP
+% Play an error Sound FX when A is pressed?
+LIO     A1, *Flag_IgnoreAButton_ErrorSfx
+JAL     ~Func:get_variable
+RESERVED
+BEQL    V0, R0, .End % don't play the sfx
+CLEAR   V0
+% Play error sound
+% The A button got pressed?
+LABU    V0, 80074036 % input
+SLL    	V0, V0, 24`
+SRL 	V0, V0, 31` % Move all bits to just leave bit7
+BEQL    V0, R0, .End % a button wasn't pressed don't play the sound fx
+CLEAR   V0
+% Play sound fx
+ADDIU	A0, R0, 021D % error sound fx
+CLEAR 	A1
+ADDIU	A2, R0, 18 % Volume
+JAL 	~Func:_play_sound
+COPY 	A3, A1
+BEQ     R0, R0, .End
+CLEAR   V0 % don't read A button
+% They aren't locked just load the input address
+.ReadAButton
+LAW     V0, 80074034 % load Inputs
+ANDI	V0, V0, 8000
+.End
+POP     RA, V1, A0, A1, A2, A3
+J       800F2A90
+NOP
+}
+
+%===============================
+% Dimentio's Shield
+%===============================
+% Change the default rainbow colors
+%===============================
+
+% Animation Speed
+@Hook 18B2B4 % 8025C9D4
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_DimentiosShield
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    GP, V0
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BEQL    GP, R0, .Jump
+    ADDIU	V0, V0, 0007 % default speed
+    ADDIU	V0, V0, 0012 % new speed
+    .Jump
+    J       8025C9DC
+    SLL	    V1, V0, 16`
+}
+
+% Brightness
+@Hook 18B320 % 8025CA40
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_DimentiosShield
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    GP, V0
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BEQL    GP, R0, .Jump
+    LUI	    AT, 405C % default brightness
+    LUI	    AT, 404A % new brightness
+    .Jump
+    J       8025CA48
+    MTC1	AT, F23
+}
+
+% Mess with the colors 1
+@Hook 18B3A0 % 8025CAC0
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_DimentiosShield
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    GP, V0
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BEQL    GP, R0, .Jump
+    ADDIU   A0, A0, 002D % default
+    ADDIU   A0, A0, 000D % new
+    .Jump
+    J       8025CAC8
+    SLL	    A0, A0, 16`
+}
+
+% Mess with the colors 2
+@Hook 18B404 % 8025CB24
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_DimentiosShield
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    GP, V0
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BEQL    GP, R0, .Jump
+    ADDIU	A0, A0, 005A % default
+    ADDIU	A0, A0, 002A % new
+    .Jump
+    J       8025CB2C
+    SLL	    A0, A0, 16`
+}
+
+%===============================
+% Reflect all attacks
+%===============================
+
+% All reflect Scripts are in globals/patch/TrackingValues.patch
+
+% Always disable all dialog boxes when the screen fades
+% Used for Roguelike to not start a battle with the spring's dialog
+@Hook CE488 % 80137D88
+{
+    SAW     R0, 80155144
+    % restore vanilla code
+    ANDI	A0, A0, 00FF
+    J       80137D90
+    LUI	    AT, 8015
+}
+
+%==============================
+
+% Fix Roguelike Crash - The game can crash on console if the player have 0FP and the game try to calculate what drop to spawn by reading the max FP
+@Hook 23CDC % 800488DC
+{
+    % V0 = Current FP
+    % V1 = Max FP
+    % Check if the current Max FP is equal to zero
+    BEQL    V1, R0, .End
+    ORI     V1, R0, 1
+    .End
+    ADDIU	S3, R0, 0002
+    J       800488E4
+    SW	    R0, 0030 (SP)
+}
+
+% Heal Blocks now fully Heal Star Power too
+@Hook 106848 % 802E4FC8
+{
+    LABU    V0, 8010F51E % load Star Spirits
+    SLL	    V0, V0, 8
+    SAH     V0, 8010F520 % restore star power
+    % restore vanilla code
+    LBU	    V0, 0001 (S0)
+    J       802E4FD0
+    SWC1	F4, 0018 (S0)
+}
+
+% Disable Healthy Healthy (because Coin Quicker uses Healthy's Badge ID)
+@Function 1A6654 % 80277D74
+{
+    CLEAR    V0
+    CLEAR    A0
+}
+
+%% Misc Data
+% Check the player have all badges he is supposed to have
+% if not give those badges
+#new:Script:Map $Script_CheckBadgeFlags
+{
+    % Tier S
+    If *Flag_HPDrain == .True
+        Set *Var[0] .Item:HPDrain
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DamageDodgeA == .True
+        Set *Var[0] .Item:DamageDodgeA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DamageDodgeB == .True
+        Set *Var[0] .Item:DamageDodgeB
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_LastStand == .True
+        Set *Var[0] .Item:LastStand
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PowerBounce == .True
+        Set *Var[0] .Item:PowerBounce
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_MegaRush == .True
+        Set *Var[0] .Item:MegaRush
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_AllorNothing == .True
+        Set *Var[0] .Item:AllorNothing
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier A
+    %=====================
+    If *Flag_PUpDDown == .True
+        Set *Var[0] .Item:PUpDDown
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DDownJump == .True
+        Set *Var[0] .Item:DDownJump
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PowerRush == .True
+        Set *Var[0] .Item:PowerRush
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DoubleDip == .True
+        Set *Var[0] .Item:DoubleDip
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PowerQuake == .True
+        Set *Var[0] .Item:PowerQuake
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_QuakeHammer == .True
+        Set *Var[0] .Item:QuakeHammer
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_QuickChange == .True
+        Set *Var[0] .Item:QuickChange
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier B
+    %=====================
+    If *Flag_PowerPlusA == .True
+        Set *Var[0] .Item:PowerPlusA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PowerPlusB == .True
+        Set *Var[0] .Item:PowerPlusB
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PDownDUp == .True
+        Set *Var[0] .Item:PDownDUp
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DefendPlus == .True
+        Set *Var[0] .Item:DefendPlusA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_CloseCall == .True
+        Set *Var[0] .Item:CloseCall
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_FlowerFinder == .True
+        Set *Var[0] .Item:FlowerFinder
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_HeartFinder == .True
+        Set *Var[0] .Item:HeartFinder
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_FlowerSaverA == .True
+        Set *Var[0] .Item:FlowerSaverA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_FlowerSaverB == .True
+        Set *Var[0] .Item:FlowerSaverB
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PowerJump == .True
+        Set *Var[0] .Item:PowerJump
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DizzyAttack == .True
+        Set *Var[0] .Item:DizzyAttack
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Multibounce == .True
+        Set *Var[0] .Item:Multibounce
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier C
+    %=====================
+    If *Flag_ZapTap == .True
+        Set *Var[0] .Item:ZapTap
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DodgeMaster == .True
+        Set *Var[0] .Item:DodgeMaster
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_HappyFlowerA == .True
+        Set *Var[0] .Item:HappyFlowerA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_HappyFlowerB == .True
+        Set *Var[0] .Item:HappyFlowerB
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DeepFocusA == .True
+        Set *Var[0] .Item:DeepFocus1
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DeepFocusB == .True
+        Set *Var[0] .Item:DeepFocus2
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DeepFocusC == .True
+        Set *Var[0] .Item:DeepFocus3
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_JumpCharge == .True
+        Set *Var[0] .Item:JumpCharge
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SJumpChg == .True
+        Set *Var[0] .Item:SJumpChg
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_IcePower == .True
+        Set *Var[0] .Item:IcePower
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier D
+    %=====================    
+    If *Flag_HappyHeartA == .True
+        Set *Var[0] .Item:HappyHeartA
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_HappyHeartB == .True
+        Set *Var[0] .Item:HappyHeartB
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_FireShield == .True
+        Set *Var[0] .Item:FireShield
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_GroupFocus == .True
+        Set *Var[0] .Item:GroupFocus
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_ShrinkStomp == .True
+        Set *Var[0] .Item:ShrinkStomp
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_TripleDip == .True
+        Set *Var[0] .Item:TripleDip
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_MegaQuake == .True
+        Set *Var[0] .Item:MegaQuake
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DizzyStomp == .True
+        Set *Var[0] .Item:DizzyStomp
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SleepStomp == .True
+        Set *Var[0] .Item:SleepStomp
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier E
+    %=====================
+    If *Flag_PowerSmash == .True
+        Set *Var[0] .Item:PowerSmash1
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_DDownPound == .True
+        Set *Var[0] .Item:DDownPound
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SpikeShield == .True
+        Set *Var[0] .Item:SpikeShield
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SmashCharge == .True
+        Set *Var[0] .Item:SmashCharge
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Refund == .True
+        Set *Var[0] .Item:Refund
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_MegaJump == .True
+        Set *Var[0] .Item:MegaJump
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_MegaSmash == .True
+        Set *Var[0] .Item:MegaSmash
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    %=====================
+    % Tier F
+    %=====================
+    If *Flag_Hammer_Throw == .True
+        Set *Var[0] .Item:HammerThrow
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Pretty_Lucky == .True
+        Set *Var[0] .Item:PrettyLucky
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Chill_Out == .True
+        Set *Var[0] .Item:ChillOut
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Money_Money == .True
+        Set *Var[0] .Item:MoneyMoney
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_PayOff == .True
+        Set *Var[0] .Item:PayOff
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Spin_Smash == .True
+        Set *Var[0] .Item:SpinSmash
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SSmashChg == .True
+        Set *Var[0] .Item:SSmashChg
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_Peekaboo == .True
+        Set *Var[0] .Item:Peekaboo
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_LuckyDay == .True
+        Set *Var[0] .Item:LuckyDay
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+    If *Flag_SlowGo == .True
+        Set *Var[0] .Item:SlowGo
+        Set *Var[3] *Var[0]
+        Call $PlayerHasBadge ( *Var[0] *Var[0] ) % itemID *out
+        If *Var[0] == .False
+            Call    AddBadge ( *Var[3] 0 )
+        EndIf
+    EndIf
+	Return
+	End
+}
+
+#export $Script_CheckBadgeFlags
+
+% Unused
+% I was trying to figure out how to make the box appear/desappear smoothly, looks like is by using update_lerp
+% At the end of the day I just scrapped that because will take a lot of time to completely figure out.
+% The part of *MapVar[A] is still incomplete, basically MapVar[A] is the one who handle the jumps by using the jumptable
+% I took it from kmr_20's sign code.
+/%#new:Function $LoadBoxLerp
+ADDIU          SP, SP, -20
+LIO			   A1, *MapVar[A]
+SW             RA, 1C (SP)
+JAL            ~Func:get_variable
+NOP            
+DADDU          S0, V0, R0
+LHU            V1, 0 (S0)    
+SLL            V0, V1, 2
+LTW			   V0, V0 ($JumpTable_80253040)
+JR             V0   
+NOP       
+% LBL: from $JumpTable_80253040 , entry 0`
+ADDIU          V0, R0, 1
+SW             R0, 4 (S0)
+SH             V0, 0 (S0)
+% LBL: from $JumpTable_80253040 , entry 1`
+LW             V0, 4 (S0)
+LUI            A2, 437F % A2 = Opacy?
+ADDIU          V0, V0, 1
+SW             V0, 4 (S0)
+ADDIU          V0, R0, 3 % v0 = frame duration
+SW             V0, 10 (SP)
+LW             A3, 4 (S0)
+JAL            ~Func:update_lerp
+DADDU          A0, R0, R0
+LW             V0, 4 (S0)
+TRUNC.W.S      F2, F0
+MFC1           V1, F2
+SH             V1, 1A (S0)
+SLTI           V0, V0, 3
+BNE            V0, R0, .LoadBox
+NOP            
+ADDIU          V0, R0, 2
+SH             V0, 0 (S0)       
+% LBL: from $JumpTable_80253040 , entry 2`   
+LAW			   V1, 8007419C
+ADDIU          V0, R0, FF         
+SH             V0, 1C (S0)
+LW             V0, 0 (V1)          
+BEQ            V0, R0, .BEQZ
+ADDIU          V0, R0, 3
+SH             V0, 0 (S0)
+.BEQZ       
+BNE            V1, V0, .LoadBox   
+NOP   
+% LBL: from $JumpTable_80253040 , entry 3`
+ADDIU          V0, R0, 4
+SW             R0, 4 (S0)          
+SH             V0, 0 (S0)
+% LBL: from $JumpTable_80253040 , entry 4`
+CLEAR		   A0
+LW             V0, 4 (S0)
+LH             V1, 1C (S0)
+ADDIU          V0, V0, 1
+SW             V0, 4 (S0)
+ADDIU          V0, R0, 3
+MTC1           V1, F2          
+CVT.S.W        F2, F2
+SW             V0, 10 (SP)
+LW             A3, 4 (S0)
+MFC1           A1, F2
+JAL            ~Func:update_lerp
+DADDU          A2, R0, R0
+LW             V0, 4 (S0)
+TRUNC.W.S      F2, F0
+MFC1           V1, F2
+SLTI           V0, V0, 3          
+SH             V1, 1A (S0)
+ADDIU          V0, R0, 5
+SH             V0, 0 (S0)
+LH             A1, 1A (S0)
+.LoadBox
+JAL            $Print_MessageBox
+DADDU          A0, S0, R0
+LW             RA, 1C (SP)           
+JR             RA
+ADDIU          SP, SP, 20
+
+#new:Data $JumpTable_80253040
+$LoadBoxLerp[2C] $LoadBoxLerp[38] $LoadBoxLerp[84] $LoadBoxLerp[AC] 
+$LoadBoxLerp[B8] %/

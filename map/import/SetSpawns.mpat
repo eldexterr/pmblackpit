@@ -1,0 +1,1139 @@
+#define .SpawningMethod *MapVar[9]
+#define .Normal 0
+#define .Special 1
+
+#new:Script $SetSpawns
+{
+	Set .SpawningMethod .Normal
+	/% Developer Code - To always Spawn a Mover
+	ExecWait	$Script_LoadMoverType
+	Set 		*MoverID 0 % Load a Mover in Specific (0=Normal/1=Bandit)
+	Exec	 	$Script_AddCoins
+	Exec		$Script_SpawnMover
+	Return%/
+	% Movers are disabled in the demo build and Roguelike Mode
+	SwitchConst .True
+		CaseOR == *Flag_Demo
+		CaseOR == *Flag_Mode_Rogue
+			ExecWait	$Script_Set_Formation
+			Return
+		EndCaseGroup
+	EndSwitch
+	If *Flag_Goombario == .False % If the player is still in the intro, don't spawn a mover
+		ExecWait	$Script_Set_Formation
+		Return
+	EndIf
+	If *MoverCounter == 0
+		ExecWait	$Script_SetMover
+		Exec		$Script_CheckBanditStatus2 % Track if is time to start the Bandit Battle
+	Else % Use an Enemy instead of a Mover
+		Sub  *MoverCounter 1
+		ExecWait	$Script_Set_Formation
+	EndIf
+	Return
+	End
+}
+	
+#new:Script $Script_Set_Formation
+{	
+	% To load Random Enemy Formation
+	Call  	RandInt	( 2 *Var[0] )
+	If *Flag_Goombario == .False % If the player doesn't have goombario always use formation 1
+		Set *Var[0] 0
+	EndIf
+	% 1st 10 floors in roguelike always use formation #1
+	If	*Flag_Mode_Rogue == .True
+		If *PitMapID < 10`
+			Set *Var[0] 0
+		EndIf
+	EndIf
+	% On swoopula floor's don't spawn any of cealing formations on roguelike
+	If *Flag_Mode_Rogue == .True
+		Switch *PitMapID
+			CaseOR == 73`
+			CaseOR == 78`
+				Set *Var[0] 0
+			EndCaseGroup
+		EndSwitch
+	EndIf
+	%Set		*Var[0] 2				% Load always this Formation, for testing purposes
+	Call	$Function_OverwriteBattleID
+	Set 	*Var[1] *PitMapID
+	If *Flag_Mode_Rogue == .True
+		Call	$GetFloorSign_Rogue ( *Var[1] )	% Loaded from StringLoader.mpat
+		ExecWait $Script_MapID_Converter 		% Convert the new MapID to the old method I was using
+	EndIf
+	Switch *Var[1]
+		% Levels with flying NPCs
+		CaseOR == 3`
+		CaseOR == 5`
+		CaseOR == 8`
+		CaseOR == 14`
+		CaseOR == 19`
+		CaseOR == 23`
+		CaseOR == 28`
+		CaseOR == 32`
+		CaseOR == 33`
+		CaseOR == 37`
+		CaseOR == 38`
+		CaseOR == 73`
+		CaseOR == 78`
+			Set		*Var[0] 43`	 % Flying NPC
+		EndCaseGroup
+		/%CaseOR == 14`
+		CaseOR == 19`
+		CaseOR == 73`
+		CaseOR == 78`
+			Set		*Var[0] 184` % Swoopula/Swoopers levels
+		EndCaseGroup%/
+		CaseOR == 51`
+		CaseOR == 56`
+		CaseOR == 63`
+		CaseOR == 68`
+		CaseOR == 75`
+		CaseOR == 92`
+		CaseOR == 97`
+			Set		*Var[0] -3` % LavaBubble/Ember & Ruff Puff
+		EndCaseGroup
+		CaseOR == 61`
+		CaseOR == 66`
+			Set		*Var[0] 70` % Lakitus
+		EndCaseGroup
+		Default
+			Set		*Var[0] -15` % Grounded NPC
+	EndSwitch
+	Call     	RandInt     	( 17` *Var[F] )		% Random Spawn Point for the Enemy
+	ExecWait	$Script_SetNPCPos
+	Return
+	End
+}
+
+#new:Function $Function_OverwriteBattleID
+{
+	PUSH	V1, A0, A1, A2, A3, RA
+	LIO 	A1, *Var[0]
+	JAL 	~Func:get_variable
+	RESERVED
+	LAW		T0, 800B0F38 % NPC 0 misc data
+	LBU		T1, 45 (T0) % Load Formation ID / AABB / AA=Formation Table BB=Formation ID
+	ADDU	T1, T1, V0 % Load new ID
+	SB		T1, 45 (T0)
+	POP		V1, A0, A1, A2, A3, RA
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+
+#new:Script $Script_SetMover
+{
+	ExecWait $Script_LoadOdds
+	Set 	*Var[1] *PitMapID
+	If *Var[1] == 1 % Level 1
+		If .SpawningMethod == .Normal
+			ExecWait $Script_Set_Formation
+			Return
+		EndIf
+	EndIf
+	ExecWait $Script_LoadMoverType
+	Switch *BanditState
+		CaseOR == 2
+		CaseOR == 3
+			% Don't spawn a sack if the bandit spawned in the same floor you lost your coins when you're about to fight agaisnt him
+		EndCaseGroup
+		Default
+			Exec	 $Script_AddCoins % Check if Mario lost his coins on the current map to spawn the Sack too % from TrackBattle.mpat
+	EndSwitch
+	Exec	 $Script_SpawnMover
+	Return
+	End
+}
+	
+	#new:Script $Script_MapID_Converter % Convert the New Map IDs method to the old one, when the Pit was using 100+ Maps
+{
+	Switch *Var[1]
+		Case == 1
+			Set *Var[1] 1
+		Case == 2
+			Set *Var[1] 2
+		Case == 3
+			Set *Var[1] 3
+		Case == 4
+			Set *Var[1] 4
+		Case == 5
+			Set *Var[1] 5
+		Case == 6
+			Set *Var[1] 11`
+		Case == 7
+			Set *Var[1] 12`
+		Case == 8
+			Set *Var[1] 13`
+		Case == 9
+			Set *Var[1] 14`
+		Case == 10`
+			Set *Var[1] 15`
+		Case == 11`
+			Set *Var[1] 21`
+		Case == 12`
+			Set *Var[1] 22`
+		Case == 13`
+			Set *Var[1] 23`
+		Case == 14`
+			Set *Var[1] 24`
+		Case == 15`
+			Set *Var[1] 25`
+		Case == 16`
+			Set *Var[1] 31`
+		Case == 17`
+			Set *Var[1] 32`
+		Case == 18`
+			Set *Var[1] 33`
+		Case == 19`
+			Set *Var[1] 34`
+		Case == 20`
+			Set *Var[1] 35`
+		Case == 21`
+			Set *Var[1] 41`
+		Case == 22`
+			Set *Var[1] 42`
+		Case == 23`
+			Set *Var[1] 43`
+		Case == 24`
+			Set *Var[1] 44`
+		Case == 25`
+			Set *Var[1] 45`
+		Case == 26`
+			Set *Var[1] 51`
+		Case == 27`
+			Set *Var[1] 52`
+		Case == 28`
+			Set *Var[1] 53`
+		Case == 29`
+			Set *Var[1] 54`
+		Case == 30`
+			Set *Var[1] 55`
+		Case == 31`
+			Set *Var[1] 61`
+		Case == 32`
+			Set *Var[1] 62`
+		Case == 33`
+			Set *Var[1] 63`
+		Case == 34`
+			Set *Var[1] 64`
+		Case == 35`
+			Set *Var[1] 65`
+		Case == 36`
+			Set *Var[1] 71`
+		Case == 37`
+			Set *Var[1] 72`
+		Case == 38`
+			Set *Var[1] 73`
+		Case == 39`
+			Set *Var[1] 74`
+		Case == 40`
+			Set *Var[1] 75`
+		Case == 41`
+			Set *Var[1] 81`
+		Case == 42`
+			Set *Var[1] 82`
+		Case == 43`
+			Set *Var[1] 83`
+		Case == 44`
+			Set *Var[1] 84`
+		Case == 45`
+			Set *Var[1] 85`
+		Case == 46`
+			Set *Var[1] 91`
+		Case == 47`
+			Set *Var[1] 92`
+		Case == 48`
+			Set *Var[1] 93`
+		Case == 49`
+			Set *Var[1] 94`
+		Case == 50`
+			Set *Var[1] 95`
+		% Chest Floors % Isn't really neccesary for this switch anyway
+		Case == 51`
+			Set *Var[1] 10`
+		Case == 52`
+			Set *Var[1] 50`
+		Case == 53`
+			Set *Var[1] 80`
+		Case == 54`
+			Set *Var[1] 100`
+	EndSwitch
+	Return
+	End
+}
+	
+	% Setting the amount of floors that need to be loaded to spawn a mover
+	#new:Script $Script_LoadOdds
+{
+	Switch *MapVar[0]
+		Case > 190` % 5% chance
+			Set *MoverCounter 3
+		Case > 170` % 10% chance
+			Set *MoverCounter 7
+		Case > 140` % 15% chance
+			Set *MoverCounter 15`
+		Case > 80` % 30% chance
+			Set *MoverCounter 20`
+		Case > 0 % 40% chance
+			Set *MoverCounter 30`
+	EndSwitch
+	Return
+	End
+}
+	
+% Setting the kind of Mover to use
+#new:Script $Script_LoadMoverType
+{
+	Call	RandInt ( 200` *Var[0] )
+	%==BANDIT==%
+	If *Var[0] > 170` % 15% chance
+		Set *MoverID 1 % Bandit
+		% Check the Following Conditions % 1
+		If *Flag_Mode_Rogue == .True % Always use a Normal one, if the player is on Roguelike Mode
+			Set *MoverID 0 % Normal
+		EndIf
+		% 2
+		If *PitMapID < 10` % Use a Normal Mover instead if Mario is on floors <10
+			Set *MoverID 0 % Normal
+		EndIf
+		% 3
+		If *BanditState == 4 % If Mario has already beated the Bandit, don't spawn it anymore
+			Set *MoverID 0 % Normal
+		EndIf
+		% If a Bandit was indeed loaded
+		If *MoverID == 1
+			If *BanditState == 2 % If Mario has already got scammed by a bandit and just got to floor 1
+				Set *BanditState 3 % Set BanditState to 3 to start the confrontation
+			EndIf
+		EndIf
+	Else
+	%==MOUSTAFA==%
+		Set *MoverID 0 % Normal
+		% Overwrite the ID to the Bandit One if Mario just got scammed by the bandit
+		Switch *BanditState
+			CaseOR == 2
+			CaseOR == 3
+				If *Flag_Mode_Rogue == .False
+					Set *BanditState 3
+					Set *MoverID 1 % Bandit
+					Return
+				EndIf
+			EndCaseGroup
+		EndSwitch
+		 % Use a Bandit Mover if Mario is on floors >90
+		 If *PitMapID > 90`
+			Set *MoverID 1 % Bandit
+		EndIf
+		% Bandit's Badge
+		Set *Var[0] .Item:FryingPan % 0023
+		ExecWait $IsBadgeEquipped_Script % return bool in var0
+		If *Var[0] == .True
+			If *PitMapID > 10` % bandit can't spawn on floors below 10
+				Set *MoverID 1 % Bandit
+			EndIf
+		EndIf
+	EndIf
+	Return
+	End
+}
+	
+#new:Script $Script_SpawnMover
+{
+	Switch *MoverID
+		Case == 0 % Normal Mover
+			Call     SetNpcPos   	( 6 -640` -13` 34` ) % Mover
+			Call	NpcFacePlayer 	( 6 1 )
+		Case == 1 % Bandit Mover
+			Call     SetNpcPos   	( 7 -640` -13` 34` ) % Bandit Mover
+			Call	 NpcFacePlayer 	( 7 1 )
+	EndSwitch
+	% 2 Switches will get spawned, the movers need the switch to be spawned before but
+	% Roguelike need to spawn the entites after the NPCs, so it's what it is ¯\_(ツ)_/¯
+	ExecWait $Script_MakeEntities
+	ExecWait $SwitchPath
+	Return
+	End
+}
+		
+#new:Script $Script_SetNPCPos
+{
+	Switch *Var[F]
+		Case == 0
+			Call     SetNpcPos   	( .Default -718` *Var[0] -49` )	% Spawn Position 1A
+		Case == 1
+			Call     SetNpcPos   	( .Default -632` *Var[0] -49` )	% Spawn Position 1B
+		Case == 2
+			Call     SetNpcPos   	( .Default -538` *Var[0] -49` )	% Spawn Position 1C
+		Case == 3
+			Call     SetNpcPos   	( .Default -448` *Var[0] -49` )	% Spawn Position 1D
+		Case == 4
+			Call     SetNpcPos   	( .Default -381` *Var[0] -49` )	% Spawn Position 1E
+		Case == 5
+			Call     SetNpcPos   	( .Default -718` *Var[0] -5` )	% Spawn Position 2A
+		Case == 6
+			Call     SetNpcPos   	( .Default -632` *Var[0] -5` )	% Spawn Position 2B
+		Case == 7
+			Call     SetNpcPos   	( .Default -448` *Var[0] -5` )	% Spawn Position 2C
+		Case == 8
+			Call     SetNpcPos   	( .Default -381` *Var[0] -5` )	% Spawn Position 2D
+		Case == 9
+			Call     SetNpcPos   	( .Default -718` *Var[0] 75` )	% Spawn Position 3A
+		Case == 10`
+			Call     SetNpcPos   	( .Default -632` *Var[0] 75` )	% Spawn Position 3B
+		Case == 11`
+			Call     SetNpcPos   	( .Default -448` *Var[0] 75` )	% Spawn Position 3C
+		Case == 12`
+			Call     SetNpcPos   	( .Default -381` *Var[0] 75` )	% Spawn Position 3D
+		Case == 13`
+			Call     SetNpcPos   	( .Default -718` *Var[0] 144` )	% Spawn Position 4A
+		Case == 14`
+			Call     SetNpcPos   	( .Default -632` *Var[0] 144` )	% Spawn Position 4B
+		Case == 15`
+			Call     SetNpcPos   	( .Default -538` *Var[0] 144` )	% Spawn Position 4C
+		Case == 16`
+			Call     SetNpcPos   	( .Default -448` *Var[0] 144` )	% Spawn Position 4D
+		Case == 17`
+			Call     SetNpcPos   	( .Default -381` *Var[0] 144` )	% Spawn Position 4E
+		EndSwitch
+		% Check if Roguelike Mode is active, it uses it own spawn points (because the enemy can spawn inside a trap)
+		If *Flag_Mode_Rogue == .True
+			Switch *Var[F]
+				CaseOR == 0
+				CaseOR == 1
+				CaseOR == 2
+					Call     SetNpcPos   	( .Default -601` *Var[0] 0 )	% Rogue Pos 1 % Left
+				EndCaseGroup
+				CaseOR == 3
+				CaseOR == 4
+				CaseOR == 5
+					Call     SetNpcPos   	( .Default -464` *Var[0] 0 )	% Rogue Pos 2 % Right
+				EndCaseGroup
+				CaseOR == 6
+				CaseOR == 7
+				CaseOR == 8
+					Call     SetNpcPos   	( .Default -534` *Var[0] 0 )	% Rogue Pos 3 % Middle
+				EndCaseGroup
+				CaseOR == 9
+				CaseOR == 10`
+				CaseOR == 11`
+					Call     SetNpcPos   	( .Default -601` *Var[0] 92` )	% Rogue Pos 4 % Left
+				EndCaseGroup
+				CaseOR == 12`
+				CaseOR == 13`
+				CaseOR == 14`
+					Call     SetNpcPos   	( .Default -464` *Var[0] 92` )	% Rogue Pos 5 % Right
+				EndCaseGroup
+				CaseOR == 15`
+				CaseOR == 16`
+				CaseOR == 17`
+					Call     SetNpcPos   	( .Default -534` *Var[0] 92` )	% Rogue Pos 6 % Middle
+				EndCaseGroup
+			EndSwitch
+		EndIf
+		Return
+		End
+}
+		
+#new:Function $Function_Load_MapID
+{
+PUSH A1, A2, V0, RA
+LAB	A2, 8035601A % Pit MapID
+LIO A1, FE363C81 % Load Pit MapID in Var1
+JAL ~Func:set_variable 
+NOP
+POP A1, A2, V0, RA
+JR	RA
+NOP
+}
+	
+	#new:Script $SwitchPath
+{
+	Set		*Var[9]  	0 % entity index
+	Call    LoadPath 	( 3 $VectorList_SwitchPath 3 0 ) % time vectorList numVectors ???
+	Loop
+		Call    GetNextPathPos
+		Call    $GetPos ( *Var[9] *Var[1] *Var[2] *Var[3] ) % *Var[9] == Entity ID
+		Wait 	1
+		If  *Var[0]  ==  0
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+  
+#new:VectorList $VectorList_SwitchPath
+{
+% {Path3f:{Path1}
+-468.0 -104.0 34.0
+-468.0 -49.0 34.0
+-468.0 -12.0 34.0
+}
+  
+    #new:Function $GetPos
+{
+    0:  ADDIU		SP, SP, FFC8
+    4:  SW			S1, 14 (SP)
+    8:  COPY		S1, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S2, 18 (SP)
+   14:  SW			S0, 10 (SP)
+   18:  SDC1		F24, 30 (SP)
+   1C:  SDC1		F22, 28 (SP)
+   20:  SDC1		F20, 20 (SP)
+   24:  LW			S0, C (S1)
+   28:  LW			A1, 0 (S0)
+   2C:  JAL			~Func:get_variable
+   30:  ADDIU		S0, S0, 4
+   34:  LW			A1, 0 (S0)
+   38:  ADDIU		S0, S0, 4
+   3C:  COPY		A0, S1
+   40:  JAL			~Func:get_variable
+   44:  COPY		S2, V0
+   48:  LW			A1, 0 (S0)
+   4C:  ADDIU		S0, S0, 4
+   50:  MTC1		V0, F24
+   54:  NOP
+   58:  CVT.S.W		F24, F24
+   5C:  JAL			~Func:get_variable
+   60:  COPY		A0, S1
+   64:  LW			A1, 0 (S0)
+   68:  MTC1		V0, F22
+   6C:  NOP
+   70:  CVT.S.W		F22, F22
+   74:  JAL			~Func:get_variable
+   78:  COPY		A0, S1
+   7C:  MTC1		V0, F20
+   80:  NOP
+   84:  CVT.S.W		F20, F20
+   88:  JAL			~Func:get_entity_by_index
+   8C:  COPY		A0, S2
+   90:  COPY		V1, V0
+   94:  SWC1		F24, 48 (V1)
+   98:  SWC1		F22, 4C (V1)
+   9C:  SWC1		F20, 50 (V1)
+   A0:  LW			RA, 1C (SP)
+   A4:  LW			S2, 18 (SP)
+   A8:  LW			S1, 14 (SP)
+   AC:  LW			S0, 10 (SP)
+   B0:  LDC1		F24, 30 (SP)
+   B4:  LDC1		F22, 28 (SP)
+   B8:  LDC1		F20, 20 (SP)
+   BC:  ADDIU		V0, R0, 2
+   C0:  JR			RA
+   C4:  ADDIU		SP, SP, 38
+}
+	
+	#new:Function $DispawnPartner
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  LAB       A2, 8010F2A2
+   14:  JAL       ~Func:set_variable
+   18:  LW        A1, 0 (V0)
+   1C:  JAL       800EB168
+   20:  DADDU     A0, R0, R0
+   24:  LW        RA, 10 (SP)
+   28:  ADDIU     V0, R0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18
+}
+	
+	#new:Function $RespawnPartner
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  SLL       V0, V0, 18
+   18:  JAL       800EB168
+   1C:  SRA       A0, V0, 18
+   20:  LW        RA, 10 (SP)
+   24:  ADDIU     V0, R0, 2
+   28:  JR        RA
+   2C:  ADDIU     SP, SP, 18
+}
+	
+	#new:Script $LoadMap
+{
+	/%If	*Flag_Mode_Rogue == 1 % If Roguelike Mode is Activated % unused
+			Jump $Script_LoadMapMover_Roguelike
+	EndIf%/
+	%This Thread Re-Spawn Mario's Partner in the last frame, so isn't visible when
+	%the shape from GotoMapSpecial finished his animation.
+	%
+	%Btw if you don't respawn the partner mario while get to the next map partnerless
+	Thread
+		Wait	32`
+		Call     $RespawnPartner ( *Var[A] )
+	EndThread
+	Set 	*Var[0] *MapVar[1]
+	%Call 	$GetFloor ( *Var[1] ) % old code (lol)
+	Switch *Var[0]
+		Case == 0 % 2 Floors
+			Add *PitMapID 2
+		Case == 1 % 5 Floors
+			Add *PitMapID 5
+		Case == 2 % Entrance
+			Set *PitMapID 0
+	EndSwitch
+	Switch *PitMapID
+		Case == 0
+			Call     GotoMapSpecial    ( "pt_00" 00000003 0000000D ) 
+		CaseOR == 1
+		CaseOR == 6
+			Call     GotoMapSpecial    ( "pt1_6" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 2
+		CaseOR == 7
+			Call     GotoMapSpecial    ( "pt2_7" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 3
+		CaseOR == 8
+			Call     GotoMapSpecial    ( "pt3_8" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 4
+		CaseOR == 9
+			Call     GotoMapSpecial    ( "pt4_9" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 5
+			Call     GotoMapSpecial    ( "pt_05" 00000000 0000000D ) 
+		CaseOR == 10`
+		CaseOR == 20`
+		CaseOR == 30`
+		CaseOR == 40`
+			Call     GotoMapSpecial    ( "pt_10" 00000000 0000000D ) 
+		EndCaseGroup
+		% Floors 11 - 20
+		CaseOR == 11`
+		CaseOR == 16`
+			Call     GotoMapSpecial    ( "pt11_16" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 12`
+		CaseOR == 17`
+			Call     GotoMapSpecial    ( "pt12_17" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 13`
+		CaseOR == 18`
+			Call     GotoMapSpecial    ( "pt13_18" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 14`
+		CaseOR == 19`
+			Call     GotoMapSpecial    ( "pt14_19" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 15`
+			Call     GotoMapSpecial    ( "pt_15" 00000000 0000000D ) 
+		% Floors 21 - 30
+		CaseOR == 21`
+		CaseOR == 26`
+			Call     GotoMapSpecial    ( "pt21_26" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 22`
+		CaseOR == 27`
+			Call     GotoMapSpecial    ( "pt22_27" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 23`
+		CaseOR == 28`
+			Call     GotoMapSpecial    ( "pt23_28" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 24`
+		CaseOR == 29`
+			Call     GotoMapSpecial    ( "pt24_29" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 25`
+			Call     GotoMapSpecial    ( "pt_25" 00000000 0000000D ) 
+		% Floors 31 - 40
+		CaseOR == 31`
+		CaseOR == 36`
+			Call     GotoMapSpecial    ( "pt31_36" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 32`
+		CaseOR == 37`
+			Call     GotoMapSpecial    ( "pt32_37" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 33`
+		CaseOR == 38`
+			Call     GotoMapSpecial    ( "pt33_38" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 34`
+		CaseOR == 39`
+			Call     GotoMapSpecial    ( "pt34_39" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 35`
+			Call     GotoMapSpecial    ( "pt_35" 00000000 0000000D )  
+		% Floors 41 - 50
+		CaseOR == 41`
+		CaseOR == 46`
+			Call     GotoMapSpecial    ( "pt41_46" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 42`
+		CaseOR == 47`
+			Call     GotoMapSpecial    ( "pt42_47" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 43`
+		CaseOR == 48`
+			Call     GotoMapSpecial    ( "pt43_48" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 44`
+		CaseOR == 49`
+			Call     GotoMapSpecial    ( "pt44_49" 00000000 0000000D ) 
+		Case == 45`
+			Call     GotoMapSpecial    ( "pt_45" 00000000 0000000D ) 
+		CaseOR == 50`
+		CaseOR == 60`
+		CaseOR == 70`
+			Call     GotoMapSpecial    ( "pt_50" 00000000 0000000D ) 
+		EndCaseGroup
+		% Floors 51 - 60
+		CaseOR == 51`
+		CaseOR == 56`
+			Call     GotoMapSpecial    ( "pt51_56" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 52`
+		CaseOR == 57`
+			Call     GotoMapSpecial    ( "pt52_57" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 53`
+		CaseOR == 58`
+			Call     GotoMapSpecial    ( "pt53_58" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 54`
+		CaseOR == 59`
+			Call     GotoMapSpecial    ( "pt54_59" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 55`
+			Call     GotoMapSpecial    ( "pt_55" 00000000 0000000D ) 
+		% Floors 61 - 70
+		CaseOR == 61`
+		CaseOR == 66`
+			Call     GotoMapSpecial    ( "pt61_66" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 62`
+		CaseOR == 67`
+			Call     GotoMapSpecial    ( "pt62_67" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 63`
+		CaseOR == 68`
+			Call     GotoMapSpecial    ( "pt63_68" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 64`
+		CaseOR == 69`
+			Call     GotoMapSpecial    ( "pt64_69" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 65`
+			Call     GotoMapSpecial    ( "pt_65" 00000000 0000000D ) 
+		% Floors 71 - 80
+		CaseOR == 71`
+		CaseOR == 76`
+			Call     GotoMapSpecial    ( "pt71_76" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 72`
+		CaseOR == 77`
+			Call     GotoMapSpecial    ( "pt72_77" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 73`
+		CaseOR == 78`
+			Call     GotoMapSpecial    ( "pt73_78" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 74`
+		CaseOR == 79`
+			Call     GotoMapSpecial    ( "pt74_79" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 75`
+			Call     GotoMapSpecial    ( "pt_75" 00000000 0000000D ) 
+		CaseOR == 80`
+		CaseOR == 90`
+			Call     GotoMapSpecial    ( "pt_80" 00000000 0000000D ) 
+		EndCaseGroup
+		% Floors 81 - 90
+		CaseOR == 81`
+		CaseOR == 86`
+			Call     GotoMapSpecial    ( "pt81_86" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 82`
+		CaseOR == 87`
+			Call     GotoMapSpecial    ( "pt82_87" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 83`
+		CaseOR == 88`
+			Call     GotoMapSpecial    ( "pt83_88" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 84`
+		CaseOR == 89`
+			Call     GotoMapSpecial    ( "pt84_89" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 85`
+			Call     GotoMapSpecial    ( "pt_85" 00000000 0000000D ) 
+		% Floors 91 - 100
+		CaseOR == 91`
+		CaseOR == 96`
+			Call     GotoMapSpecial    ( "pt91_96" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 92`
+		CaseOR == 97`
+			Call     GotoMapSpecial    ( "pt92_97" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 93`
+		CaseOR == 98`
+			Call     GotoMapSpecial    ( "pt93_98" 00000000 0000000D ) 
+		EndCaseGroup
+		CaseOR == 94`
+		CaseOR == 99`
+			Call     GotoMapSpecial    ( "pt94_99" 00000000 0000000D ) 
+		EndCaseGroup
+		Case == 95`
+			Call     GotoMapSpecial    ( "pt_95" 00000000 0000000D ) 
+		Case == 100`
+			Call     GotoMapSpecial    ( "pt_100" 00000000 0000000D ) 
+		Default ()
+	EndSwitch
+	Return
+	End
+}
+	
+	/%#new:Script $Script_LoadMapMover_Roguelike
+	Thread
+		Wait	32`
+		Call     $RespawnPartner ( *Var[A] )
+	EndThread
+	Switch *MapVar[1]
+		Case == 0	% Down 2 Levels
+			Add	*PitMapID 1
+			Add *RoguelikeLevelCounter 1
+			Set	*MoverUsedFlag	1
+			Jump	$GoToNextLevel_Roguelike % A +1 to Pit MapID and LevelCounter will be added here
+		Case == 1	% Down 5 Levels
+			Add	*PitMapID 4
+			Add *RoguelikeLevelCounter 4
+			Set	*MoverUsedFlag	1
+			Jump	$GoToNextLevel_Roguelike % A +1 to Pit MapID and LevelCounter will be added here
+		Case == 2	% Go to the Entrance
+				Call     GotoMapSpecial    ( "pt_00" 00000003 0000000D ) 
+	EndSwitch
+	Return
+	End%/
+	
+	#new:Function $GetFloor
+{
+	PUSH a0, a1, a2, t0, t1, t2, v0, ra % Store current register values
+	NOP
+	LIO a1, *Var[0]
+	JAL ~Func:get_variable 
+	NOP
+	LAB a2, 8035601A % Load Pit MapID in a2
+	ADDIU t0, r0, 0 % Creating comparison for Option 0
+	ADDIU t1, r0, 1 % Creating comparison for Option 1
+	ADDIU t2, r0, 2 % Creating comparison for Option 2
+	% Comparing if the player selected option 0 / Down 2 Levels
+	BEQ t0, v0, .2Levels 
+	NOP
+	% Comparing if the player selected option 1 / Down 5 Levels
+	BEQ t1, v0, .5Levels 
+	NOP
+	% Comparing if the player selected option 2 / Go to Entrance
+	BEQ t2, v0, .Entrance 
+	NOP
+	BEQ r0, r0, .End
+	NOP
+	.2Levels
+	LAB a2, 8035601A % Load Pit MapID in a2
+	ADDIU a2, a2, 2 % Add 2 to a2
+	BEQ r0, r0, .End
+	NOP
+	.5Levels
+	LAB a2, 8035601A % Load Pit MapID in a2
+	ADDIU a2, a2, 5 % Add 5 to a2
+	BEQ	r0, r0, .End
+	NOP
+	.Entrance
+	ADDIU a2, r0, 0 % Set a2 to 0
+	.End
+	SAB a2, 8035601A % Store a2 in Pit MapID
+	LIO a1, *Var[1]
+	JAL ~Func:set_variable
+	NOP
+	POP a0, a1, a2, t0, t1, t2, v0, ra % Restore registers
+	JR RA
+	NOP
+}
+	
+	#new:Function $LoadCoinsMover
+{
+	PUSH a0, a1, a2, t0, v0, ra
+	LIO a1, FE363C80
+	JAL ~Func:get_variable
+	NOP
+	%v0 now = what Var[0] holds
+	LAH t0, 8010F29C
+	SLT a2, v0, t0 %if right most register is larger than the register to the left, store 01
+	LIO a1, FE363C81
+	JAL ~Func:set_variable
+	NOP
+	POP a0, a1, a2, t0, v0, ra
+	JR RA
+	NOP
+}
+	
+	#new:Script $LoadMapBandit
+{
+	Set *Var[0] *MapVar[1]
+	Call $GetFloorBandit ( *Var[1] ) % Down 2 Levels
+	Switch *Var[1]
+		Case == 0
+			Call     GotoMapSpecial    ( "pt_00" 00000003 00000004 ) 
+		CaseOR == 1
+		CaseOR == 6
+			Call     GotoMapSpecial    ( "pt1_6" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 2
+		CaseOR == 7
+			Call     GotoMapSpecial    ( "pt2_7" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 3
+		CaseOR == 8
+			Call     GotoMapSpecial    ( "pt3_8" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 4
+		CaseOR == 9
+			Call     GotoMapSpecial    ( "pt4_9" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 5
+			Call     GotoMapSpecial    ( "pt_05" 00000000 00000004 ) 
+		CaseOR == 10`
+		CaseOR == 20`
+		CaseOR == 30`
+		CaseOR == 40`
+			Call     GotoMapSpecial    ( "pt_10" 00000000 00000004 ) 
+		EndCaseGroup
+		% Floors 11 - 20
+		CaseOR == 11`
+		CaseOR == 16`
+			Call     GotoMapSpecial    ( "pt11_16" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 12`
+		CaseOR == 17`
+			Call     GotoMapSpecial    ( "pt12_17" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 13`
+		CaseOR == 18`
+			Call     GotoMapSpecial    ( "pt13_18" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 14`
+		CaseOR == 19`
+			Call     GotoMapSpecial    ( "pt14_19" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 15`
+			Call     GotoMapSpecial    ( "pt_15" 00000000 00000004 ) 
+		% Floors 21 - 30
+		CaseOR == 21`
+		CaseOR == 26`
+			Call     GotoMapSpecial    ( "pt21_26" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 22`
+		CaseOR == 27`
+			Call     GotoMapSpecial    ( "pt22_27" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 23`
+		CaseOR == 28`
+			Call     GotoMapSpecial    ( "pt23_28" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 24`
+		CaseOR == 29`
+			Call     GotoMapSpecial    ( "pt24_29" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 25`
+			Call     GotoMapSpecial    ( "pt_25" 00000000 00000004 ) 
+		% Floors 31 - 40
+		CaseOR == 31`
+		CaseOR == 36`
+			Call     GotoMapSpecial    ( "pt31_36" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 32`
+		CaseOR == 37`
+			Call     GotoMapSpecial    ( "pt32_37" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 33`
+		CaseOR == 38`
+			Call     GotoMapSpecial    ( "pt33_38" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 34`
+		CaseOR == 39`
+			Call     GotoMapSpecial    ( "pt34_39" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 35`
+			Call     GotoMapSpecial    ( "pt_35" 00000000 00000004 )  
+		% Floors 41 - 50
+		CaseOR == 41`
+		CaseOR == 46`
+			Call     GotoMapSpecial    ( "pt41_46" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 42`
+		CaseOR == 47`
+			Call     GotoMapSpecial    ( "pt42_47" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 43`
+		CaseOR == 48`
+			Call     GotoMapSpecial    ( "pt43_48" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 44`
+		CaseOR == 49`
+			Call     GotoMapSpecial    ( "pt44_49" 00000000 00000004 ) 
+		Case == 45`
+			Call     GotoMapSpecial    ( "pt_45" 00000000 00000004 ) 
+		CaseOR == 50`
+		CaseOR == 60`
+		CaseOR == 70`
+			Call     GotoMapSpecial    ( "pt_50" 00000000 00000004 ) 
+		EndCaseGroup
+		% Floors 51 - 60
+		CaseOR == 51`
+		CaseOR == 56`
+			Call     GotoMapSpecial    ( "pt51_56" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 52`
+		CaseOR == 57`
+			Call     GotoMapSpecial    ( "pt52_57" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 53`
+		CaseOR == 58`
+			Call     GotoMapSpecial    ( "pt53_58" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 54`
+		CaseOR == 59`
+			Call     GotoMapSpecial    ( "pt54_59" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 55`
+			Call     GotoMapSpecial    ( "pt_55" 00000000 00000004 ) 
+		% Floors 61 - 70
+		CaseOR == 61`
+		CaseOR == 66`
+			Call     GotoMapSpecial    ( "pt61_66" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 62`
+		CaseOR == 67`
+			Call     GotoMapSpecial    ( "pt62_67" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 63`
+		CaseOR == 68`
+			Call     GotoMapSpecial    ( "pt63_68" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 64`
+		CaseOR == 69`
+			Call     GotoMapSpecial    ( "pt64_69" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 65`
+			Call     GotoMapSpecial    ( "pt_65" 00000000 00000004 ) 
+		% Floors 71 - 80
+		CaseOR == 71`
+		CaseOR == 76`
+			Call     GotoMapSpecial    ( "pt71_76" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 72`
+		CaseOR == 77`
+			Call     GotoMapSpecial    ( "pt72_77" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 73`
+		CaseOR == 78`
+			Call     GotoMapSpecial    ( "pt73_78" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 74`
+		CaseOR == 79`
+			Call     GotoMapSpecial    ( "pt74_79" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 75`
+			Call     GotoMapSpecial    ( "pt_75" 00000000 00000004 ) 
+		CaseOR == 80`
+		CaseOR == 90`
+			Call     GotoMapSpecial    ( "pt_80" 00000000 00000004 ) 
+		EndCaseGroup
+		% Floors 81 - 90
+		CaseOR == 81`
+		CaseOR == 86`
+			Call     GotoMapSpecial    ( "pt81_86" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 82`
+		CaseOR == 87`
+			Call     GotoMapSpecial    ( "pt82_87" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 83`
+		CaseOR == 88`
+			Call     GotoMapSpecial    ( "pt83_88" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 84`
+		CaseOR == 89`
+			Call     GotoMapSpecial    ( "pt84_89" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 85`
+			Call     GotoMapSpecial    ( "pt_85" 00000000 00000004 ) 
+		% Floors 91 - 100
+		CaseOR == 91`
+		CaseOR == 96`
+			Call     GotoMapSpecial    ( "pt91_96" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 92`
+		CaseOR == 97`
+			Call     GotoMapSpecial    ( "pt92_97" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 93`
+		CaseOR == 98`
+			Call     GotoMapSpecial    ( "pt93_98" 00000000 00000004 ) 
+		EndCaseGroup
+		CaseOR == 94`
+		CaseOR == 99`
+			Call     GotoMapSpecial    ( "pt94_99" 00000000 00000004 ) 
+		EndCaseGroup
+		Case == 95`
+			Call     GotoMapSpecial    ( "pt_95" 00000000 00000004 ) 
+		Case == 100`
+			Call     GotoMapSpecial    ( "pt_100" 00000000 00000004 ) 
+		Default ()
+	EndSwitch
+	Return
+	End
+}
+	
+	#new:Function $GetFloorBandit
+{
+	PUSH a0, a1, a2, t0, t1, t2, v0, ra % Store current register values
+	LIO a1, FE363C80 % Load *Var[0]/*MapVar[1]
+	JAL ~Func:get_variable 
+	NOP
+	LAB a2, 8035601A % Load Pit MapID in a2
+	ADDIU t0, r0, 0 % Creating comparison for Option 0
+	ADDIU t1, r0, 1 % Creating comparison for Option 1
+	ADDIU t2, r0, 2 % Creating comparison for Option 2
+	% Comparing if the player selected option 0 / Down "10" Levels
+	BEQ t0, v0, .10Levels 
+	NOP
+	% Comparing if the player selected option 1 / Down to "Last" Level
+	BEQ t1, v0, .FinalLevel
+	NOP
+	% Comparing if the player selected option 2 / Go to Entrance
+	BEQ t2, v0, .Entrance 
+	NOP
+	BEQ r0, r0, .End
+	NOP
+	.10Levels
+	LAB a2, 8035601A % Load Pit MapID in a2
+	ADDIU a2, a2, -A % Add -10 to a2
+	BEQ r0, r0, .End
+	NOP
+	.FinalLevel
+	ADDIU a2, r0, 1 % Set a2 to 1 - pt1_6/Level 1
+	BEQ	r0, r0, .End
+	NOP
+	.Entrance
+	ADDIU a2, r0, 0 % Set a2 to 0 - pt_00/Lobby
+	.End
+	SAB a2, 8035601A % Store a2 in Pit MapID
+	LIO a1, FE363C81 % Load Var[1]
+	JAL ~Func:set_variable
+	NOP
+	POP a0, a1, a2, t0, t1, t2, v0, ra % Restore registers
+	JR RA
+	NOP
+}

@@ -1,0 +1,160 @@
+	% This Script handle the animation when Mario is falling from a Pipe
+	
+#import StaticValues.mpat	%Update highscores from the Lobby Sign
+	
+#new:Script $FallingDownPipe
+{
+  If *PitMapID == 1 % The player has just started a new playthrough on the Pit?
+    Set	 *PitFlag .True 			% Used to know if the player is inside the pit
+  EndIf
+	Call DisablePlayerInput   ( .True )
+	Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Call     GetCurrentPartnerID 	( *Var[0] )
+	If  *Var[0]  !=  .Partner:Empty
+		Call     DisablePartnerAI 	( 0 )
+		Call     EnableNpcShadow 	( .Npc:Partner .False )
+		Call     SetNpcFlagBits ( .Npc:Partner 00000002 .True )
+		Call     SetNpcPos   	( .Npc:Partner 0 *Var[A] 0 )
+	EndIf
+	Set  	*Var[0]  *Var[A] 
+	Call    $Function_GetPos
+	Call    PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set  	*Var[0]  *Var[A] 
+	Call    $Function_GetPos
+	Call    SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call    SetPlayerFlagBits 	( 00200000 .True )
+	Call    $Function2
+	Call    InterpPlayerYaw 	( *Var[0] 0 )
+	Wait    2
+	Call    SetPlayerFlagBits 	( 00200000 .False )
+	Call    GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Call    802D286C ( 00000100 )
+	Call    802D2520 ( 00010000 5 2 1 1 0 )
+	Wait	4
+	Call PlaySound	( 163 )
+	Loop     40` 
+		Sub  	*Var[1]  1`
+		Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+		Wait	1 
+	EndLoop
+	Wait	1
+	Call     802D2520 ( 00010000 0 0 0 0 0 )
+	Call     SetPlayerAnimation 	( 00010002 )
+	Call     DisablePlayerPhysics 	( .False )
+	Call     DisablePlayerInput 	( .False )
+	Call     HidePlayerShadow 	( .False )
+	Call     GetCurrentPartnerID 	( *Var[0] )
+	If  *Var[0]  !=  .Partner:Empty
+		Wait	 4`
+		Call    GetPlayerPos    ( *Var[4] *Var[5] *Var[6] )
+		Call    SetNpcPos   	  ( .Npc:Partner *Var[4] *Var[5] *Var[6] )
+		Call    SetNpcFlagBits  ( .Npc:Partner 00000002 .False )
+		Call    EnablePartnerAI
+		Call    EnableNpcShadow ( .Npc:Partner .True )
+  EndIf
+  If *Dupli_Floors != 0
+    Sub *Dupli_Floors 1
+  EndIf
+  If *Flag_Mode_Rogue == .True
+    If *4Chests_Cooldown != .False
+        Sub *4Chests_Cooldown 1
+    EndIf
+  EndIf
+  Call	$GetFloorSign ( *Var[1] ) % from SignStringLoader.mpat
+	If *Var[1] != 0 % If Mario isn't on pit00
+		Call	$DeepestLevel 	% loaded from StaticValues.mpat
+		Call	$TotalLevels_CurrentPlaythrough % loaded from StaticValues.mpat
+    Call  $TotalLevels_Sign  % loaded from StaticValues.mpat
+	EndIf
+	Return
+  End
+}
+
+  	%Falling Down Pipe
+  #new:Function $Function_GetPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       ~Func:get_current_map_header
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0] % entryID
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81 % var1= pos x
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82 % var2= pos y
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83 % var3= pos z
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84 % var4= angle
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+	
+	%Entering a Pipe (Down Animation)
+	#new:Function $Function2
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       ~Func:clamp_angle
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}

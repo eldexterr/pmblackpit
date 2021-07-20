@@ -1,0 +1,133 @@
+#import Maze.mpat % $Script_MakeEntities is placed here
+#import Maze_Misc.mpat % Fog Function
+#import Maze_SpriteBlock.mpat % Sprite Block's code is here
+#import Maze_MarioHPTracker.mpat % track if mario have 0hp
+% Import all Enemies AI Data
+#import enemies/BasicAI.mpat
+#import enemies/Bzzap.mpat
+#import enemies/DryBones.mpat
+#import enemies/Dupplighost.mpat
+#import enemies/Ember.mpat
+#import enemies/Goomba.mpat
+#import enemies/Koopa.mpat
+#import enemies/Paragoomba.mpat
+#import enemies/Paratroopa.mpat
+#import enemies/PiranhaPlant.mpat
+#import enemies/Pokey.mpat
+#import enemies/PyroGuy.mpat
+#import enemies/RuffPuff.mpat
+#import enemies/SpikedGoomba.mpat
+#import enemies/Maze_SubBossesSettings.mpat
+#import Maze_SpawnNpcs.mpat
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 2
+[MapTattle]  $Function_GetTattle
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "tik_tex" 
+JAL 	~Func:sprintf
+RESERVED
+COPY 	V0, R0
+JPOP 	RA, A0, A1
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( FFFFFFFF )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    SetMusicTrack 	    ( .Default A2 .Default 10` ) % .Song:Maze
+Call    $Function_SetupFog
+Set     *Dungeon_MapID 13`
+ExecWait $Script_SetEnemiesFlags
+ExecWait $Script_MakeNpcs
+ExecWait $Script_MakeEntities
+Exec     $Script_LockChests
+% Sprite Block's Scripts
+ExecWait $Script_SpawnSpriteBlock
+Exec    $Script_TrackInvisibleBlock
+Exec    $Script_EnableTexPanning
+%
+Set	   *Var[0] $Script_MakeExits
+Exec    EnterWalk
+Wait    1
+Exec    $Script_KillMario % track mario hp
+Return
+End
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0 1 0
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:Entry1 1 0
+Return
+End
+}
+
+#new:Script $Script_Exit0
+{
+    Call     UseExitHeading  	( 3C 0 )
+    Exec     80285CF4 
+    Set     *Dungeon_MapID 14`
+    Call     GotoMap         	( "mze_09" 1 )
+    Wait     100` 
+    Return
+    End
+}
+
+#new:Script $Script_Exit1
+{
+Call     UseExitHeading  	( 3C 1 )
+Exec     80285CF4 
+Set     *Dungeon_MapID 12`
+Call     GotoMap         	( "mze_09" 0 )
+Wait     100` 
+Return
+End
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]We're inside the Cursed Maze
+[WAIT][NEXT][...]
+Our Oxygen will be limited in
+this place, so keep that in
+mind!
+[WAIT][NEXT][...]
+If the timer reaches Zero, your
+HP will start to decrease until
+you die or leave the Maze.
+[WAIT][NEXT][...]
+If that happen, you will lose
+all your Star Pieces from this
+run.
+[WAIT][NEXT][...]
+Remember is always better to
+escape from here on time!
+[WAIT][END]
+}

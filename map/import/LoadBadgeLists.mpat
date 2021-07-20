@@ -1,0 +1,1097 @@
+ %___________
+%|     		 | % This badge lists is only used on Roguelike Mode
+%| Roguelike |
+%|___________|
+ %
+ 
+#new:Script $BadgeListRogue
+{
+% The player have already all badges?
+ExecWait $Script_Reward_Badges_CheckAllFlags_ExceptHPDrain_PDownDUpANDSlowGo
+If *Var[1] >= 57` % All Badges
+	Set *MapVar[1] .False
+	Return
+EndIf
+Set *MapVar[5] 7 % This Var is for the current Badge List
+Loop
+	Call     RandInt     	( 63` *MapVar[1] ) % This Var is to get the Badge ID and Flag
+	% scrapped badges and badges imposible to get from chests in roguelike
+	Switch *MapVar[1]
+		CaseOR == 0   % HP Drain
+		CaseOR == 8	  % D Down Jump
+		CaseOR == 16` % P Down D Up
+		CaseOR == 35` % Feeling Fine
+		CaseOR == 47` % D Down Pound
+		CaseOR == 59` % Runaway Badge
+		CaseOR == 63` % Slow Go
+			% don't break
+		EndCaseGroup
+		Default
+			BreakLoop
+	EndSwitch
+EndLoop
+Switch *MapVar[1]
+	/% HP Drain is impossible to get from chests in Roguelike
+	Case == 0
+		If *Flag_HPDrain2  == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F5 % HP Drain
+		SetConst *MapVar[9] *Flag_HPDrain2%/
+	Case == 1
+		If *Flag_DamageDodgeA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0130 % Damage Dodge A
+		SetConst *MapVar[9] *Flag_DamageDodgeA2
+	Case == 2
+		If *Flag_DamageDodgeB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 013A % Damage Dodge B
+		SetConst *MapVar[9] *Flag_DamageDodgeB2
+	Case == 3
+		If *Flag_LastStand2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0111 % Last Stand
+		SetConst *MapVar[9] *Flag_LastStand2
+	Case == 4
+		If *Flag_PowerBounce2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E4 % Power Bounce
+		SetConst *MapVar[9] *Flag_PowerBounce2
+	Case == 5
+		If *Flag_MegaRush2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F9 % Mega Rush
+		SetConst *MapVar[9] *Flag_MegaRush2
+	Case == 6
+		If *Flag_AllorNothing2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F4 % All or Nothing
+		SetConst *MapVar[9] *Flag_AllorNothing2
+	Case == 7
+		If *Flag_PUpDDown2  == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0113 % P Up D Down
+		SetConst *MapVar[9] *Flag_PUpDDown2
+	Case == 8
+		/%If *Flag_DDownJump2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 012E % D Down Jump
+		SetConst *MapVar[9] *Flag_DDownJump2%/
+	Case == 9
+		If *Flag_PowerRush2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 010D % Power Rush
+		SetConst *MapVar[9] *Flag_PowerRush2
+	Case == 10`
+		If *Flag_DoubleDip2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E9 % Double Dip
+		SetConst *MapVar[9] *Flag_DoubleDip2
+	Case == 11`
+		If *Flag_PowerQuake2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0117 % Power Quake
+		SetConst *MapVar[9] *Flag_PowerQuake2
+	Case == 12`
+		If *Flag_QuakeHammer2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E8 % Quake Hammer
+		SetConst *MapVar[9] *Flag_QuakeHammer2
+	Case == 13`
+		If *Flag_QuickChange2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00ED % Quick Change
+		SetConst *MapVar[9] *Flag_QuickChange2
+	Case == 14`
+		If *Flag_PowerPlusA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E2 % Power Plus A
+		SetConst *MapVar[9] *Flag_PowerPlusA2
+	Case == 15`
+		If *Flag_PowerPlusB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 013C % Power Plus B
+		SetConst *MapVar[9] *Flag_PowerPlusB2
+	/% P Down D Up is impossible to get from chests in Roguelike
+	Case == 16`
+		If *Flag_PDownDUp2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0116 % P Down D Up
+		SetConst *MapVar[9] *Flag_PDownDUp2%/
+	Case == 17`
+		If *Flag_DefendPlus2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FB % Defend Plus
+		SetConst *MapVar[9] *Flag_DefendPlus2
+	Case == 18`
+		If *Flag_CloseCall2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0112 % Close Call
+		SetConst *MapVar[9] *Flag_CloseCall2
+	Case == 19`
+		If *Flag_FlowerFinder2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 011B % Flower Finder
+		SetConst *MapVar[9] *Flag_FlowerFinder2
+	Case == 20`
+		If *Flag_HeartFinder2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 011A % Heart Finder
+		SetConst *MapVar[9] *Flag_HeartFinder2
+	Case == 21`
+		If *Flag_FlowerSaverA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0105 % Flower Saver A
+		SetConst *MapVar[9] *Flag_FlowerSaverA2
+	Case == 22`
+		If *Flag_FlowerSaverB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0138 % Flower Saver B
+		SetConst *MapVar[9] *Flag_FlowerSaverB2
+	Case == 23`
+		If *Flag_PowerJump2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0121 % PowerJump
+		SetConst *MapVar[9] *Flag_PowerJump2
+	Case == 24`
+		If *Flag_DizzyAttack2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 011D % Dizzy Attack
+		SetConst *MapVar[9] *Flag_DizzyAttack2
+	Case == 25`
+		If *Flag_Multibounce2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E1 % Multibounce
+		SetConst *MapVar[9] *Flag_Multibounce2
+	Case == 26`
+		If *Flag_ZapTap2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0100 % Zap Tap
+		SetConst *MapVar[9] *Flag_ZapTap2
+	Case == 27`
+		If *Flag_DodgeMaster2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E3 % Dodge Master
+		SetConst *MapVar[9] *Flag_DodgeMaster2
+	Case == 28`
+		If *Flag_HappyFlowerA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0140 % Happy Flower A
+		SetConst *MapVar[9] *Flag_HappyFlowerA2
+	Case == 29`
+		If *Flag_HappyFlowerB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0141 % Happy Flower B
+		SetConst *MapVar[9] *Flag_HappyFlowerB2
+	Case == 30`
+		If *Flag_DeepFocusA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0129 % Deep Focus A
+		SetConst *MapVar[9] *Flag_DeepFocusA2
+	Case == 31`
+		If *Flag_DeepFocusB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0132 % Deep Focus B
+		SetConst *MapVar[9] *Flag_DeepFocusB2
+	Case == 32`
+		If *Flag_DeepFocusC2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0133 % Deep Focus C
+		SetConst *MapVar[9] *Flag_DeepFocusC2
+	Case == 33`
+		If *Flag_JumpCharge2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 010A % Jump Charge
+		SetConst *MapVar[9] *Flag_JumpCharge2
+	Case == 34`
+		If *Flag_SJumpChg2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 010C % S Jump Chg
+		SetConst *MapVar[9] *Flag_SJumpChg2
+	CaseOR == 35`
+		/% Feeling got scrapped
+		If *Flag_FeelingFine2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F2 % Feeling Fine
+		SetConst *MapVar[9] *Flag_FeelingFine2%/
+	CaseOR == 36`
+		If *Flag_IcePower2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FA % Ice Power
+		SetConst *MapVar[9] *Flag_IcePower2
+	EndCaseGroup
+	Case == 37`
+		If *Flag_HappyHeartA2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FF % Happy Heart A
+		SetConst *MapVar[9] *Flag_HappyHeartA2
+	Case == 38`
+		If *Flag_HappyHeartB2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0136 % HappyHeartB
+		SetConst *MapVar[9] *Flag_HappyHeartB2
+	Case == 39`
+		If *Flag_FireShield2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00EC % Fire Shield
+		SetConst *MapVar[9] *Flag_FireShield2
+	Case == 40`
+		If *Flag_GroupFocus2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0143 % Group Focus
+		SetConst *MapVar[9] *Flag_GroupFocus2
+	Case == 41`
+		If *Flag_ShrinkStomp2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 012F % Shrink Stomp
+		SetConst *MapVar[9] *Flag_ShrinkStomp2
+	Case == 42`
+		If *Flag_TripleDip2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0106 % Triple Dip
+		SetConst *MapVar[9] *Flag_TripleDip2
+	Case == 43`
+		If *Flag_MegaQuake2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0108 % Mega Quake
+		SetConst *MapVar[9] *Flag_MegaQuake2
+	Case == 44`
+		If *Flag_DizzyStomp2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00EF % Dizzy Stomp
+		SetConst *MapVar[9] *Flag_DizzyStomp2
+	Case == 45`
+		If *Flag_SleepStomp2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00EB % Sleep Stomp
+		SetConst *MapVar[9] *Flag_SleepStomp2
+	Case == 46`
+		If *Flag_PowerSmash2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0124 % Power Smash
+		SetConst *MapVar[9] *Flag_PowerSmash2
+	Case == 47`
+		/%If *Flag_DDownPound2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00EE % D Down Pound
+		SetConst *MapVar[9] *Flag_DDownPound2%/
+	Case == 48`
+		If *Flag_SpikeShield2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E5 % Spike Shield
+		SetConst *MapVar[9] *Flag_SpikeShield2
+	Case == 49`
+		If *Flag_SmashCharge2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0109 % Smash Charge
+		SetConst *MapVar[9] *Flag_SmashCharge2
+	Case == 50`
+		If *Flag_Refund2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0104 % Refund
+		SetConst *MapVar[9] *Flag_Refund2
+	Case == 51`
+		If *Flag_MegaJump2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0123 % Mega Jump 
+		SetConst *MapVar[9] *Flag_MegaJump2
+	Case == 52`
+		If *Flag_MegaSmash2 == 1
+			Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0126 % Mega Smash
+		SetConst *MapVar[9] *Flag_MegaSmash2
+	Case == 53`
+		If *Flag_Hammer_Throw2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0107 % Hammer Throw
+		SetConst *MapVar[9] *Flag_Hammer_Throw2
+	Case == 54`
+		If *Flag_Pretty_Lucky2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F1 % Pretty Lucky
+		SetConst *MapVar[9] *Flag_Pretty_Lucky2
+	Case == 55`
+		If *Flag_Chill_Out2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FE % Chill Out
+		SetConst *MapVar[9] *Flag_Chill_Out2
+	Case == 56`
+		If *Flag_Money_Money2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FD % Money Money
+		SetConst *MapVar[9] *Flag_Money_Money2
+	Case == 57`
+		If *Flag_PayOff2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00FC % Pay-Off
+		SetConst *MapVar[9] *Flag_PayOff2
+	Case == 58`
+		If *Flag_Spin_Smash2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00E0 % Spin Smash
+		SetConst *MapVar[9] *Flag_Spin_Smash2
+	/%Case == 59`
+		If *Flag_Runaway_Pay2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0103 % Runaway Pay
+		SetConst *MapVar[9] *Flag_Runaway_Pay2%/
+	Case == 60`
+		If *Flag_SSmashChg2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 010B % S.Smash Chg.
+		SetConst *MapVar[9] *Flag_SSmashChg2
+	Case == 61`
+		If *Flag_Peekaboo2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0144 % Peekaboo
+		SetConst *MapVar[9] *Flag_Peekaboo2
+	Case == 62`
+		If *Flag_LuckyDay2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 0114 % Lucky Day
+		SetConst *MapVar[9] *Flag_LuckyDay2
+	/% Slow Go is impossible to get from chests in Roguelike
+	Case == 63`
+		If *Flag_SlowGo2 == 1
+				Jump $BadgeListRogue
+		EndIf
+		Set *MapVar[1] 00F7 % Slow Go
+		SetConst *MapVar[9] *Flag_SlowGo2%/
+EndSwitch
+% If Mario is in floors 90 or 100
+If *MapVar[6] == .False % Mario didn't saved a partner
+	Set	*MapVar[2] FD
+	% For partnerless chests set the flag as true when the badge get added to your inventory
+Else
+	% Set Badge's flag as true
+	Call	$Function_SaveFlag
+EndIf
+Return						
+End
+}
+
+% read from MapVar9
+#new:Function $Function_SaveFlag
+{
+PUSH	RA, V0, A1, A2
+% Get Flag
+% var2=Flag Address
+LIO 	A1, *MapVar[9]
+JAL 	~Func:get_variable
+RESERVED
+% Save Flag
+ADDIU 	A2, R0, 1 % true
+JAL 	~Func:set_variable
+COPY	A1, V0
+JPOP    RA, V0, A1, A2
+}
+ 
+#new:Script $BadgeList
+{
+	Call RandInt   	( 100` *MapVar[0] ) % This Var is to load badge list X
+	% Is the first chest in the game?
+	If *Flag_MeetingAtLobby == .False
+		Set *MapVar[0] *BadgeListTierF % always give a badge from Tier F
+	EndIf
+	%Set *MapVar[0] 0 % testing
+	If *MapVar[0] >= *BadgeListTierS
+		Set 	*MapVar[5] 1 % This Var is for the current Badge List
+		Call  	RandInt   	( 6 *MapVar[1] ) % This Var is to get the Badge ID and Flag
+		Switch *MapVar[1]
+			Case == 0
+				If *Flag_HPDrain  == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 00F5 % HP Drain
+				Set *MapVar[2] 0 
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_HPDrain .True
+				EndIf
+			Case == 1
+				If *Flag_DamageDodgeA == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 0130 % Damage Dodge A
+				Set *MapVar[2] 1
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_DamageDodgeA .True
+				EndIf
+			Case == 2
+				If *Flag_DamageDodgeB == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 013A % Damage Dodge B
+				Set *MapVar[2] 2
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_DamageDodgeB .True
+				EndIf
+			Case == 3
+				If *Flag_LastStand == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 0111 % Last Stand
+				Set *MapVar[2] 3
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_LastStand .True
+				EndIf
+			Case == 4
+				If *Flag_PowerBounce == .True
+						Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 00E4 % Power Bounce
+				Set *MapVar[2] 4
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_PowerBounce .True
+				EndIf
+			Case == 5
+				If *Flag_MegaRush == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 00F9 % Mega Rush
+				Set *MapVar[2] 5
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_MegaRush .True
+				EndIf
+			Case == 6
+				If *Flag_AllorNothing == .True
+					Jump $BadgeList
+				EndIf
+				Set *MapVar[1] 00F4 % All or Nothing
+				Set *MapVar[2] 6 
+				If *MapVar[6] == .True % If the player have just saved a partner
+					Set *Flag_AllorNothing .True
+				EndIf
+		EndSwitch
+	Else
+		If *MapVar[0] >= *BadgeListTierA
+			Set *MapVar[5] 2 % This Var is for the current Badge List
+			Call     RandInt     	( 6 *MapVar[1] ) % This Var is to get the Badge ID and Flag
+			Switch *MapVar[1]
+				Case == 0
+					If *Flag_PUpDDown  == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 0113 % P Up D Down
+					Set *MapVar[2] 0 
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_PUpDDown .True
+					EndIf
+				Case == 1
+					If *Flag_DDownJump == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 012E % D Down Jump
+					Set *MapVar[2] 1 
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_DDownJump .True
+					EndIf
+				Case == 2
+					If *Flag_PowerRush == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 010D % Power Rush
+					Set *MapVar[2] 2
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_PowerRush .True
+					EndIf
+				Case == 3
+					If *Flag_DoubleDip == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 00E9 % Double Dip
+					Set *MapVar[2] 3
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_DoubleDip .True
+					EndIf
+				Case == 4
+					If *Flag_PowerQuake == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 0117 % Power Quake
+					Set *MapVar[2] 4
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_PowerQuake .True
+					EndIf
+				Case == 5
+					If *Flag_QuakeHammer == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 00E8 % Quake Hammer
+					Set *MapVar[2] 5
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_QuakeHammer .True
+					EndIf
+				Case == 6
+					If *Flag_QuickChange == .True
+						Jump $BadgeList
+					EndIf
+					Set *MapVar[1] 00ED % Quick Change
+					Set *MapVar[2] 6
+					If *MapVar[6] == .True % If the player have just saved a partner
+						Set *Flag_QuickChange .True
+					EndIf
+			EndSwitch
+		Else
+			If *MapVar[0] >= *BadgeListTierB
+				Set *MapVar[5] 3 % This Var is for the current Badge List
+				Call     RandInt     	( B *MapVar[1] ) % This Var is to get the Badge ID and Flag
+				Switch *MapVar[1]
+					Case == 0
+						If *Flag_PowerPlusA == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 00E2 % Power Plus A
+						Set *MapVar[2] 0 
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_PowerPlusA .True
+						EndIf
+					Case == 1
+						If *Flag_PowerPlusB == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 013C % Power Plus B
+						Set *MapVar[2] 1 
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_PowerPlusB .True
+						EndIf
+					Case == 2
+						If *Flag_PDownDUp == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 0116 % P Down D Up
+						Set *MapVar[2] 2
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_PDownDUp .True
+						EndIf
+					Case == 3
+						If *Flag_DefendPlus == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 00FB % Defend Plus
+						Set *MapVar[2] 3
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_DefendPlus .True
+						EndIf
+					Case == 4
+						If *Flag_CloseCall == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 0112 % Close Call
+						Set *MapVar[2] 4
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_CloseCall .True
+						EndIf
+					Case == 5
+						If *Flag_FlowerFinder == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 011B % Flower Finder
+						Set *MapVar[2] 5
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_FlowerFinder .True
+						EndIf
+					Case == 6
+						If *Flag_HeartFinder == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 011A % Heart Finder
+						Set *MapVar[2] 6
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_HeartFinder .True
+						EndIf
+					Case == 7
+						If *Flag_FlowerSaverA == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 0105 % Flower Saver A
+						Set *MapVar[2] 7
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_FlowerSaverA .True
+						EndIf
+					Case == 8
+						If *Flag_FlowerSaverB == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 0138 % Flower Saver B
+						Set *MapVar[2] 8
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_FlowerSaverB .True
+						EndIf
+					Case == 9
+						If *Flag_PowerJump == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 0121 % PowerJump
+						Set *MapVar[2] 9
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_PowerJump .True
+						EndIf
+					Case == A
+						If *Flag_DizzyAttack == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 011D % Dizzy Attack
+						Set *MapVar[2] A
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_DizzyAttack .True
+						EndIf
+					Case == B
+						If *Flag_Multibounce == .True
+							Jump $BadgeList
+						EndIf
+						Set *MapVar[1] 00E1 % Multibounce
+						Set *MapVar[2] B
+						If *MapVar[6] == .True % If the player have just saved a partner
+							Set *Flag_Multibounce .True
+						EndIf
+				EndSwitch
+			Else
+			If *MapVar[0] >= *BadgeListTierC
+				Set *MapVar[5] 4 % This Var is for the current Badge List
+					Call     RandInt     	( A *MapVar[1] ) % This Var is to get the Badge ID and Flag
+					Switch *MapVar[1]
+						Case == 0
+							If *Flag_ZapTap == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0100 % Zap Tap
+							Set *MapVar[2] 0
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_ZapTap .True
+							EndIf
+						Case == 1
+							If *Flag_DodgeMaster == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 00E3 % Dodge Master
+							Set *MapVar[2] 1 
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_DodgeMaster .True
+							EndIf
+						Case == 2
+							If *Flag_HappyFlowerA == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0140 % Happy Flower A
+							Set *MapVar[2] 2
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_HappyFlowerA .True
+							EndIf
+						Case == 3
+							If *Flag_HappyFlowerB == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0141 % Happy Flower B
+							Set *MapVar[2] 3
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_HappyFlowerB .True
+							EndIf
+						Case == 4
+							If *Flag_DeepFocusA == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0129 % Deep Focus A
+							Set *MapVar[2] 4
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_DeepFocusA .True
+							EndIf
+						Case == 5
+							If *Flag_DeepFocusB == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0132 % Deep Focus B
+							Set *MapVar[2] 5
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_DeepFocusB .True
+							EndIf
+						Case == 6
+							If *Flag_DeepFocusC == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 0133 % Deep Focus C
+							Set *MapVar[2] 6
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_DeepFocusC .True
+							EndIf
+						Case == 7
+							If *Flag_JumpCharge == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 010A % Jump Charge
+							Set *MapVar[2] 7
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_JumpCharge .True
+							EndIf
+						Case == 8
+							If *Flag_SJumpChg == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 010C % S Jump Chg
+							Set *MapVar[2] 8
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_SJumpChg .True
+							EndIf
+						CaseOR == 9
+							/% Feeling got scrapped
+							If *Flag_FeelingFine == 1
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 00F2 % Feeling Fine
+							Set *MapVar[2] 9
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_FeelingFine .True
+							EndIf%/
+						CaseOR == A
+							If *Flag_IcePower == .True
+								Jump $BadgeList
+							EndIf
+							Set *MapVar[1] 00FA % Ice Power
+							Set *MapVar[2] A
+							If *MapVar[6] == .True % If the player have just saved a partner
+								Set *Flag_IcePower .True
+							EndIf
+						EndCaseGroup
+					EndSwitch
+				Else
+					If *MapVar[0] >= *BadgeListTierD
+						Set *MapVar[5] 5 % This Var is for the current Badge List
+						Call     RandInt     	( 8 *MapVar[1] ) % This Var is to get the Badge ID and Flag
+						Switch *MapVar[1]
+							Case == 0
+								If *Flag_HappyHeartA == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 00FF % Happy Heart A
+								Set *MapVar[2] 0 
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_HappyHeartA .True
+								EndIf
+							Case == 1
+								If *Flag_HappyHeartB == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 0136 % HappyHeartB
+								Set *MapVar[2] 1 
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_HappyHeartB .True
+								EndIf
+							Case == 2
+								If *Flag_FireShield == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 00EC % Fire Shield
+								Set *MapVar[2] 2
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_FireShield .True
+								EndIf
+							Case == 3
+								If *Flag_GroupFocus == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 0143 % Group Focus
+								Set *MapVar[2] 3
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_GroupFocus .True
+								EndIf
+							Case == 4
+								If *Flag_ShrinkStomp == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 012F % Shrink Stomp
+								Set *MapVar[2] 4
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_ShrinkStomp .True
+								EndIf
+							Case == 5
+								If *Flag_TripleDip == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 0106 % Triple Dip
+								Set *MapVar[2] 5
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_TripleDip .True
+								EndIf
+							Case == 6
+								If *Flag_MegaQuake == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 0108 % Mega Quake
+								Set *MapVar[2] 6
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_MegaQuake .True
+								EndIf
+							Case == 7
+								If *Flag_DizzyStomp == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 00EF % Dizzy Stomp
+								Set *MapVar[2] 7
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_DizzyStomp .True
+								EndIf
+							Case == 8
+								If *Flag_SleepStomp == .True
+									Jump $BadgeList
+								EndIf
+								Set *MapVar[1] 00EB % Sleep Stomp
+								Set *MapVar[2] 8
+								If *MapVar[6] == .True % If the player have just saved a partner
+									Set *Flag_SleepStomp .True
+								EndIf
+						EndSwitch
+					Else
+						If *MapVar[0] >= *BadgeListTierE
+							Set *MapVar[5] 6 % This Var is for the current Badge List
+							Call     RandInt     	( 6 *MapVar[1] ) % This Var is to get the Badge ID and Flag
+							Switch *MapVar[1]
+								Case == 0
+									If *Flag_PowerSmash == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 0124 % Power Smash
+									Set *MapVar[2] 0 
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_PowerSmash .True
+									EndIf
+								Case == 1
+									If *Flag_DDownPound == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 00EE % D Down Pound
+									Set *MapVar[2] 1 
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_DDownPound .True
+									EndIf
+								Case == 2
+									If *Flag_SpikeShield == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 00E5 % Spike Shield
+									Set *MapVar[2] 2
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_SpikeShield .True
+									EndIf
+								Case == 3
+									If *Flag_SmashCharge == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 0109 % Smash Charge
+									Set *MapVar[2] 3
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_SmashCharge .True
+									EndIf
+								Case == 4
+									If *Flag_Refund == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 0104 % Refund
+									Set *MapVar[2] 4
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_Refund .True
+									EndIf
+								Case == 5
+									If *Flag_MegaJump == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 0123 % Mega Jump 
+									Set *MapVar[2] 5
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_MegaJump .True
+									EndIf
+								Case == 6
+									If *Flag_MegaSmash == .True
+										Jump $BadgeList
+									EndIf
+									Set *MapVar[1] 0126 % Mega Smash
+									Set *MapVar[2] 6
+									If *MapVar[6] == .True % If the player have just saved a partner
+										Set *Flag_MegaSmash .True
+									EndIf
+							EndSwitch
+						Else
+							If *MapVar[0] >= *BadgeListTierF
+								Set *MapVar[5] 7 % This Var is for the current Badge List
+								Loop
+									Call     RandInt     	( A *MapVar[1] ) % This Var is to get the Badge ID and Flag
+									If	*MapVar[1] != 6` % Runaway Badge
+										BreakLoop
+									EndIf
+								EndLoop
+								Switch *MapVar[1]
+									Case == 0
+										If *Flag_Hammer_Throw == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 0107 % Hammer Throw
+										Set *MapVar[2] 0
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Hammer_Throw .True
+										EndIf
+									Case == 1
+										If *Flag_Pretty_Lucky == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00F1 % Pretty Lucky
+										Set *MapVar[2] 1
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Pretty_Lucky .True
+										EndIf
+									Case == 2
+										If *Flag_Chill_Out == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00FE % Chill Out
+										Set *MapVar[2] 2
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Chill_Out .True
+										EndIf
+									Case == 3
+										If *Flag_Money_Money == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00FD % Money Money
+										Set *MapVar[2] 3
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Money_Money .True
+										EndIf
+									Case == 4
+										If *Flag_PayOff == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00FC % Pay-Off
+										Set *MapVar[2] 4
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_PayOff .True
+										EndIf
+									Case == 5
+										If *Flag_Spin_Smash == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00E0 % Spin Smash
+										Set *MapVar[2] 5
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Spin_Smash .True
+										EndIf
+									/%Case == 6
+										If *Flag_Runaway_Pay == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 0103 % Runaway Pay
+										Set *MapVar[2] 6
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Runaway_Pay .True
+										EndIf%/
+									Case == 7
+										If *Flag_Goombario == .False
+											% This badge can't appear as the first badge in the game
+											Jump $BadgeList
+										EndIf
+										If *Flag_SSmashChg == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 010B % S.Smash Chg.
+										Set *MapVar[2] 7
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_SSmashChg .True
+										EndIf
+									Case == 8
+										If *Flag_Peekaboo == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 0144 % Peekaboo
+										Set *MapVar[2] 8
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_Peekaboo .True
+										EndIf
+									Case == 9
+										If *Flag_LuckyDay == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 0114 % Lucky Day
+										Set *MapVar[2] 9
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_LuckyDay .True
+										EndIf
+									Case == A
+										If *Flag_SlowGo == .True
+											Jump $BadgeList
+										EndIf
+										Set *MapVar[1] 00F7 % Slow Go
+										Set *MapVar[2] A
+										If *MapVar[6] == .True % If the player have just saved a partner
+											Set *Flag_SlowGo .True
+										EndIf
+								EndSwitch
+							EndIf
+						EndIf
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Return						
+	End
+}

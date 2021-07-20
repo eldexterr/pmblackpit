@@ -1,0 +1,4293 @@
+% Black Pit's Credits Map
+
+% partners
+#define .Npc_Goombario 0
+#define .Npc_Kooper 1
+#define .Npc_Bombette 2
+#define .Npc_Parakarry 3
+#define .Npc_Bow 4
+#define .Npc_Watt 5
+#define .Npc_Sushie 6
+#define .Npc_Lakilester 7
+#define .Npc_Mistar 8
+% lobby gang
+#define .Npc_Cheato 9
+#define .Npc_Fishmael A
+#define .Npc_Oaklie B
+#define .Npc_Chuck C
+% Spirits1
+#define .Npc_Spirit1_1 D
+#define .Npc_Spirit1_2 E
+#define .Npc_Spirit1_3 F
+#define .Npc_Spirit1_4 10
+#define .Npc_Spirit1_5 11
+#define .Npc_Spirit1_6 12
+% Spirits2
+#define .Npc_Spirit2_1 13
+#define .Npc_Spirit2_2 14
+#define .Npc_Spirit2_3 15
+#define .Npc_Spirit2_4 16
+#define .Npc_Spirit2_5 17
+#define .Npc_Spirit2_6 18
+% Spirits Flying FX
+#define .Npc_SpiritFX1 19
+#define .Npc_SpiritFX2 1A
+#define .Npc_SpiritFX3 1B
+#define .Npc_SpiritFX4 1C
+#define .Npc_SpiritFX5 1D
+#define .Npc_SpiritFX6 1E
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 1
+[MapTattle]  00000000
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH    RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "arn_tex" 
+JAL 	~Func:sprintf
+RESERVED
+CLEAR 	V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    SetMusicTrack ( 0 A8 0 8 ) % .Song:BlackPit_Ending
+%Call	SetMusicTrack ( 0 .Song:TwinkTheme 1 8 )
+Call    MakeNpcs ( 0 $NpcGroupList_Credits )
+Exec    $Script_Cutscene_Credits
+Wait    5
+Return
+End
+}
+
+#new:NpcGroupList $NpcGroupList_Credits
+{
+00000009 $NpcGroup_Partners 	00000000
+00000004 $NpcGroup_Lobby     	00000000
+00000006 $NpcGroup_Spirits1    	00000000
+00000006 $NpcGroup_Spirits2    	00000000
+00000006 $NpcGroup_SpiritsFX   	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Partners
+{
+% Goombario
+00000000 $NpcSettings_Generic ~Vec3f:goombario
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00000000 00000000 00000000 00000000
+% Kooper
+00000001 $NpcSettings_Generic ~Vec3f:kooper
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00000000 00000000 00000000 00000000
+% Bombette
+00000002 $NpcSettings_Generic ~Vec3f:bombette
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00000000 00000000 00000000 00000000
+% Parakarry
+00000003 $NpcSettings_Generic ~Vec3f:parakarry
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00000000 00000000 00000000 00000000
+% Bow
+00000004 $NpcSettings_Generic ~Vec3f:bow
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00000000 00000000 00000000 00000000
+% Watt
+00000005 $NpcSettings_Generic ~Vec3f:watt
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00000000 00000000 00000000 00000000
+% Sushie
+00000006 $NpcSettings_Generic ~Vec3f:sushie
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00000000 00000000 00000000 00000000
+% Lakilester
+00000007 $NpcSettings_Generic ~Vec3f:lakilester
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00000000 00000000 00000000 00000000
+% Mistar
+00000008 $NpcSettings_Generic ~Vec3f:mistar
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Lobby
+{
+% Cheato
+00000009 $NpcSettings_Generic ~Vec3f:cheato
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00000000 00000000 00000000 00000000
+% Fishmael
+0000000A $NpcSettings_Generic ~Vec3f:fishmael
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 
+008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 008D0001 
+00000000 00000000 00000000 00000000
+% Oaklie
+0000000B $NpcSettings_Generic ~Vec3f:oaklie
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00000000 00000000 00000000 00000000
+% Chuck
+0000000C $NpcSettings_Generic ~Vec3f:chuck
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 
+00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 00AF0001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Spirits1
+{
+% Spirit1_1
+0000000D $NpcSettings_Generic ~Vec3f:spirit1_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit1_2
+0000000E $NpcSettings_Generic ~Vec3f:spirit2_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit1_3
+0000000F $NpcSettings_Generic ~Vec3f:spirit3_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit1_4
+00000010 $NpcSettings_Generic ~Vec3f:spirit4_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit1_5
+00000011 $NpcSettings_Generic ~Vec3f:spirit5_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit1_6
+00000012 $NpcSettings_Generic ~Vec3f:spirit6_R
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Spirits2
+{
+% Spirit2_1
+00000013 $NpcSettings_Generic ~Vec3f:spirit1_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit2_2
+00000014 $NpcSettings_Generic ~Vec3f:spirit2_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit2_3
+00000015 $NpcSettings_Generic ~Vec3f:spirit3_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit2_4
+00000016 $NpcSettings_Generic ~Vec3f:spirit4_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit2_5
+00000017 $NpcSettings_Generic ~Vec3f:spirit5_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Spirit2_6
+00000018 $NpcSettings_Generic ~Vec3f:spirit6_L
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_SpiritsFX
+{
+% Npc_SpiritFX1
+00000019 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX2
+0000001A $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX3
+0000001B $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX4
+0000001C $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX5
+0000001D $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX6
+0000001E $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_Credits
+{
+    Call    DisablePlayerInput ( .True )
+    Call    DisablePlayerPhysics ( .True )
+	Call    InterpPlayerYaw ( -90` 0 )
+	Exec	$Script_EmitterEmbers
+	Exec	$Script_LoopMarioAnimation_LookAround
+	Exec	$Script_SetEveryoneAnimations1
+	Exec	$Script_SomeSpiritsFlyAway
+    % Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	Exec    $Script_ShowCredits % Show the credits
+	% Disable all Npcs Shadows
+	Call	EnableNpcShadow ( .Npc_Goombario .False )
+	Call	EnableNpcShadow ( .Npc_Kooper .False )
+	Call	EnableNpcShadow ( .Npc_Bombette .False )
+	Call	EnableNpcShadow ( .Npc_Parakarry .False )
+	Call	EnableNpcShadow ( .Npc_Watt .False )
+	Call	EnableNpcShadow ( .Npc_Bow .False )
+	Call	EnableNpcShadow ( .Npc_Watt .False )
+	Call	EnableNpcShadow ( .Npc_Sushie .False )
+	Call	EnableNpcShadow ( .Npc_Lakilester .False )
+	%
+	Call	EnableNpcShadow ( .Npc_Cheato .False )
+	Call	EnableNpcShadow ( .Npc_Fishmael .False )
+	Call	EnableNpcShadow ( .Npc_Oaklie .False )
+	Call	EnableNpcShadow ( .Npc_Chuck .False )
+	Call	EnableNpcShadow ( .Npc_Mistar .False )
+	%
+	Call	EnableNpcShadow ( .Npc_Spirit1_1 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit1_2 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit1_3 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit1_4 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit1_5 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit1_6 .False )
+	%
+	Call	EnableNpcShadow ( .Npc_Spirit2_1 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit2_2 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit2_3 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit2_4 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit2_5 .False )
+	Call	EnableNpcShadow ( .Npc_Spirit2_6 .False )
+	Call	HidePlayerShadow ( .True )
+	% Ignore all collisions when using NpcFlyTo
+    Call    SetNpcFlagBits ( .Npc_Spirit1_1 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit1_2 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit1_3 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit1_4 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit1_5 00000900 .True )
+	Call    SetNpcFlagBits ( .Npc_Spirit1_6 00000900 .True )
+	%
+	Call    SetNpcFlagBits ( .Npc_Spirit2_1 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2_2 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2_3 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2_4 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2_5 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2_6 00000900 .True )
+	% Credits cutscene
+	Exec	$Script_StickCheatoGangToNpc % sticked to Cheato's pos
+	Exec	$Script_StickMarioGangToNpc % sticked to Bombette's pos
+	Exec	$Script_StickMistarToNpc % stick to bombette
+	% put everyone out of the camera
+	Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 179` % x
+	Add		*Var[1] 154` % y
+	Call	SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+	% Cheato
+	Call    GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -227` % x
+	Add		*Var[1] 175` % y
+	Call	SetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	% set spirits yaws
+	Call	SetNpcYaw ( .Npc_Spirit2_1 90` )
+	Call	SetNpcYaw ( .Npc_Spirit2_2 90` )
+	Call	SetNpcYaw ( .Npc_Spirit2_3 90` )
+	Call	SetNpcYaw ( .Npc_Spirit2_4 90` )
+	Call	SetNpcYaw ( .Npc_Spirit2_5 90` )
+	Call	SetNpcYaw ( .Npc_Spirit2_6 90` )
+	Wait	15`
+	% Mario gang fly to the center
+	Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -179` % x
+	Add		*Var[1] -154` % y
+	Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 600` 0 .Easing:Linear )
+	Wait	170`
+	% Cheato's gang fly towards our heroes
+	Thread % everyones does a !
+		Wait	10`
+		Call	SetNpcVar ( .Npc_Mistar 1 .False ) % stop looping mario's "looking around" animation
+		Call	SetNpcVar ( .Npc_Mistar 2 .False ) % partners will stop talking
+		Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	SetPlayerAnimation ( 00080007 ) % talk
+		Call    ShowEmote   ( .Npc:Player .Emote:Exclamation 45` 20` 0 0 0 0 0 )
+		Call    ShowEmote   ( .Npc_Mistar .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+	EndThread
+	Call    GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 227` % x
+	Add		*Var[1] -175` % y
+	Call    NpcFlyTo ( .Npc_Cheato *Var[0] *Var[1] *Var[2] 300` 0 .Easing:Linear )
+	Wait	10`
+	% flip spirits
+	Call	InterpNpcYaw ( .Npc_Spirit2_1 -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Spirit2_2 -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Spirit2_3 -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Spirit2_4 -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Spirit2_5 -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Spirit2_6 -90` 0 )
+	Wait	10`
+	% Everyone start talking
+	Call	SetNpcAnimation ( .Npc_Goombario 00010008 )
+	Call	SetNpcAnimation ( .Npc_Kooper 0002000D )
+	Call	SetNpcAnimation ( .Npc_Bombette 0003000E )
+	Call	SetNpcAnimation ( .Npc_Parakarry 00040006 )
+	Call	SetNpcAnimation ( .Npc_Bow 00050004 )
+	Call	SetNpcAnimation ( .Npc_Watt 00060004 )
+	Call	SetNpcAnimation ( .Npc_Sushie 00070004 )
+	Call	SetNpcAnimation ( .Npc_Lakilester 00080009 )
+	Call	SetNpcAnimation ( .Npc_Mistar 00201409 )
+	Call	SetNpcAnimation ( .Npc_Chuck 00AF0004 )
+	Call	SetNpcAnimation ( .Npc_Oaklie 00BE0002 )
+	Call	SetNpcAnimation ( .Npc_Fishmael 008D0002 )
+	Call	SetNpcAnimation ( .Npc_Cheato 00AE0004 )
+	Exec	$Script_LoopMarioAnimation_Talking
+	Wait	1800` % wait until the credits almost end
+	Call	SetNpcVar ( .Npc_Mistar 3 .False ) % mario stop talking
+	% Wait until mario stop talking
+	Loop
+		Call	GetNpcVar ( .Npc_Mistar 4 *Var[0] )
+		If *Var[0] == .True
+			Call	SetNpcVar ( .Npc_Mistar 4 .False )
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	% Set Idle animation for everyone
+	Exec	$Script_SetAllNpcsAnimation_Idle
+	Call	SetNpcAnimation ( .Npc_Mistar 00201401 )
+	Wait	25`
+	% Everyone from cheato's group look to the other side
+	Call	InterpNpcYaw ( .Npc_Cheato -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Oaklie -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Fishmael -90` 0 )
+	Call	InterpNpcYaw ( .Npc_Chuck -90` 0 )
+	Wait	15`
+	Exec	$Script_CheatoFliesAway
+	% Everyone get's happy
+	Call	SetPlayerAnimation ( 00080007 ) % talk
+	Call	SetNpcAnimation ( .Npc_Goombario 00010009 )
+	Call	SetNpcAnimation ( .Npc_Kooper 00020001 )
+	Call	SetNpcAnimation ( .Npc_Bombette 00030004 )
+	Call	SetNpcAnimation ( .Npc_Parakarry 00040007 )
+	Call	SetNpcAnimation ( .Npc_Bow 00050009 )
+	Call	SetNpcAnimation ( .Npc_Watt 00060006 )
+	Call	SetNpcAnimation ( .Npc_Sushie 00070006 )
+	Call	SetNpcAnimation ( .Npc_Lakilester 0008000D )
+	Call	SetNpcVar ( .Npc_Bombette 1 .False ) % mistar is free from bombette
+	Wait	20`
+	% Mistar follows Cheato
+	Exec 	$Script_NpcFlyTo_Mistar
+	Wait	40`
+	Exec	$Script_SetAllNpcsAnimation_Idle
+	% Everyone look to the other side
+	Call	InterpNpcYaw ( .Npc_Goombario 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Kooper 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Bombette 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Parakarry 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Bow 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Watt 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Sushie 90` 0 )
+	Call	InterpNpcYaw ( .Npc_Lakilester 90` 0 )
+	Wait	10`
+	% Our heroes fly away
+	Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 200` % x
+	Add		*Var[1] 200` % y
+	Thread
+		Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 300` 0 .Easing:Linear )
+	EndThread
+	Wait	30`
+	Call	GotoMapSpecial ( "bp_07" 0 7 )
+    Return
+    End
+}
+
+#new:Script $Script_SomeSpiritsFlyAway
+{
+	% disable shadows
+	Call	EnableNpcShadow ( .Npc_SpiritFX1 .False )
+	Call	EnableNpcShadow ( .Npc_SpiritFX2 .False )
+	Call	EnableNpcShadow ( .Npc_SpiritFX3 .False )
+	Call	EnableNpcShadow ( .Npc_SpiritFX4 .False )
+	Call	EnableNpcShadow ( .Npc_SpiritFX5 .False )
+	Call	EnableNpcShadow ( .Npc_SpiritFX6 .False )
+	% Ignore all collisions when using NpcFlyTo
+	Call    SetNpcFlagBits ( .Npc_SpiritFX1 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_SpiritFX2 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_SpiritFX3 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_SpiritFX4 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_SpiritFX5 00000900 .True )
+	Call    SetNpcFlagBits ( .Npc_SpiritFX6 00000900 .True )
+    Exec    $Script_SoulFlies_1
+    Exec    $Script_SoulFlies_2
+    Exec    $Script_SoulFlies_3
+    Exec    $Script_SoulFlies_4
+    Exec    $Script_SoulFlies_5
+    Exec    $Script_SoulFlies_6
+	Return
+	End
+}
+
+#new:Script $Script_SoulFlies_1
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX1 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies_2
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX2 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies_3
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX3 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies_4
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX4 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies_5
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX5 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies_6
+{
+    Loop
+        Set *Var[5] .Npc_SpiritFX6 % npcID
+        ExecWait $Script_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_SoulFlies
+{
+    % Souls flies away % all souls fly to this coordinates
+    Set *Var[6] -225`   % x
+    Set *Var[7] 135`    % y
+    Set *Var[8] 3`     % z
+    % souls origin position
+	Set		*Var[0] 88` % x
+	Set		*Var[1] 0 % y
+	Set		*Var[2] 0 % z
+	% get soul random spawn post
+    % x
+    Call    RandInt ( 60` *Var[3] )
+    Call    RandInt ( 1 *Var[4] )
+    If *Var[4] != 0
+        Mul *Var[3] -1 % Set value as negative
+    EndIf
+	Add     *Var[0] *Var[3] % x
+	% y
+    Call    RandInt ( 215` *Var[3] )
+	Mul 	*Var[3] -1 % Set value as negative
+	Add     *Var[1] *Var[3] % y
+    % z
+    Call    RandInt ( 293` *Var[3] )
+    Call    RandInt ( 1 *Var[4] )
+    If *Var[4] != 0
+        Mul *Var[3] -1 % Set value as negative
+    EndIf
+	Add     *Var[2] *Var[3] % z
+	Call    802CFD30 ( *Var[5] 7 0 .False .False .False ) % Set alpha as zero
+    Call    SetNpcPos ( *Var[5] *Var[0] *Var[1] *Var[2] )
+	Call    SetNpcSpeed ( *Var[5] *Fixed[2.0] )
+	Thread % Fade Spirit
+		Set	*Var[0] 0
+		Loop
+			Add *Var[0] 5
+			If *Var[0] >= FF
+				Call    802CFD30 ( *Var[5] 7 FF .False .False .False )
+				BreakLoop
+			EndIf
+			Call    802CFD30 ( *Var[5] 7 *Var[0] .False .False .False )
+			Wait    1
+		EndLoop
+	EndThread
+    Call    NpcFlyTo ( *Var[5] *Var[6] *Var[7] *Var[8] 0 0 .Easing:Linear )
+    Return
+    End
+}
+
+% except Mistar
+#new:Script $Script_SetAllNpcsAnimation_Idle
+{
+	Call	SetNpcAnimation ( .Npc_Goombario 00010001 )
+	Call	SetNpcAnimation ( .Npc_Kooper 00020003 )
+	Call	SetNpcAnimation ( .Npc_Bombette 00030003 )
+	Call	SetNpcAnimation ( .Npc_Parakarry 00040001 )
+	Call	SetNpcAnimation ( .Npc_Bow 00050001 )
+	Call	SetNpcAnimation ( .Npc_Watt 00060001 )
+	Call	SetNpcAnimation ( .Npc_Sushie 00070001 )
+	Call	SetNpcAnimation ( .Npc_Lakilester 00080001 )
+	Call	SetNpcAnimation ( .Npc_Chuck 00AF0001 )
+	Call	SetNpcAnimation ( .Npc_Oaklie 00BE0001 )
+	Call	SetNpcAnimation ( .Npc_Fishmael 008D0001 )
+	Call	SetNpcAnimation ( .Npc_Cheato 00AE0001 )
+	Return
+	End
+}
+
+#new:Script $Script_NpcFlyTo_Mistar
+{
+	Call	SetNpcAnimation ( .Npc_Mistar 00201413 ) % ;D
+	Call	GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -200` % x
+	Add		*Var[1] 200` % y
+	Call    NpcFlyTo ( .Npc_Mistar *Var[0] *Var[1] *Var[2] 200` -68` .Easing:Linear )
+	Return
+	End
+}
+
+#new:Script $Script_CheatoFliesAway
+{
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -200` % x
+	Add		*Var[1] 200` % y
+	Call    NpcFlyTo ( .Npc_Cheato *Var[0] *Var[1] *Var[2] 300` 0 .Easing:Linear )
+	Return
+	End
+}
+
+#new:Script $Script_EmitterEmbers
+{
+	Call	SetNpcVar ( .Npc_Mistar 0 .True )
+    Loop
+		Call    PlayEffect  ( ~FX:EmitterVolume:Embers 20` -65` 200` 256` 160` *Fixed[1.0] 7 30` 0 0 0 0 )
+		Wait    1
+		Call	GetNpcVar 	( .Npc_Mistar 0 *Var[0] )
+		If	*Var[0] == .False
+			BreakLoop
+		EndIf
+    EndLoop
+    Return
+    End
+}
+
+% This animation doesn't loop for itself so I needed to make this script
+#new:Script $Script_LoopMarioAnimation_LookAround
+{
+	Call	SetNpcVar ( .Npc_Mistar 1 .True )
+	Loop
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Wait	10`
+		Call	SetPlayerAnimation ( 00080022 ) % look around
+		Wait	25`
+		Call	GetNpcVar ( .Npc_Mistar 1 *Var[0] )
+		If	*Var[0] == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_LoopMarioAnimation_Talking
+{
+	Call	SetNpcVar ( .Npc_Mistar 3 .True )
+	Loop
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	SetPlayerAnimation ( 00080007 ) % talk
+		Wait	40`
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	SetPlayerAnimation ( .PlayerAnim:Thinking )
+		Wait	35`
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	SetPlayerAnimation ( .PlayerAnim:NodYes )
+		Wait	40`
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	SetPlayerAnimation ( 00010028 ) % uh?
+		Wait	30`
+		Call	GetNpcVar ( .Npc_Mistar 3 *Var[0] )
+		If	*Var[0] == .False
+			Call	SetNpcVar ( .Npc_Mistar 4 .True )
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+% All partners are talking between them
+#new:Script $Script_SetEveryoneAnimations1
+{
+	Call	SetNpcVar ( .Npc_Mistar 2 .True )
+	% Goombario & Kooper
+	Exec	$Script_Talking_GombANDKoop
+	% Bombette & Bow
+	Exec	$Script_Talking_BombANDBow
+	% Parakarry & Lakilester
+	Exec	$Script_Talking_ParaANDLaki
+	% Sushie & Watt
+	Exec	$Script_Talking_SushANDWatt
+	Return
+	End
+}
+
+#new:Script $Script_Talking_GombANDKoop
+{
+	Loop
+		Call	SetNpcYaw ( .Npc_Goombario 90` )
+		Call	SetNpcAnimation ( .Npc_Goombario 00010008 ) % talking
+		Call	SetNpcAnimation ( .Npc_Kooper 00020003 ) % idle
+		Wait	20`
+		Call	SetNpcAnimation ( .Npc_Goombario 00010001 ) % idle
+		Call	SetNpcAnimation ( .Npc_Kooper 0002000E ) % talking (arms up)
+		Wait	20`
+		Call	SetNpcAnimation ( .Npc_Goombario 00010001 ) % idle
+		Call	SetNpcAnimation ( .Npc_Kooper 00020003 ) % idle
+		Wait	20`
+		Call	SetNpcAnimation ( .Npc_Kooper 00020001 ) % n__n
+		Call	SetNpcAnimation ( .Npc_Goombario 00010009 ) % happy
+		Wait	30`
+		Call	GetNpcVar ( .Npc_Mistar 2 *Var[0] )
+		If	*Var[0] == .False
+			Call	InterpNpcYaw ( .Npc_Goombario -90` 0 )
+			Call    ShowEmote   ( .Npc_Goombario .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call    ShowEmote   ( .Npc_Kooper .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call	SetNpcAnimation ( .Npc_Goombario 00010001 ) % idle
+			Call	SetNpcAnimation ( .Npc_Kooper 00020003 ) % idle
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Talking_BombANDBow
+{
+	Loop
+		Call	SetNpcYaw ( .Npc_Bombette 90` )
+		Call	SetNpcAnimation ( .Npc_Bombette 0003000E ) % talking
+		Call	SetNpcAnimation ( .Npc_Bow 00050004 ) % talking
+		Wait	30`
+		Call	SetNpcAnimation ( .Npc_Bow 00050009 ) % laugh
+		Wait	20`
+		Call	SetNpcAnimation ( .Npc_Bow 00050004 ) % talking
+		Call	SetNpcAnimation ( .Npc_Bombette 0003000E ) % talking
+		Wait	30`
+		Call	SetNpcAnimation ( .Npc_Bombette 0003000F ) % happy
+		Wait	20`
+		Call	GetNpcVar ( .Npc_Mistar 2 *Var[0] )
+		If	*Var[0] == .False
+			Call	InterpNpcYaw ( .Npc_Bombette -90` 0 )
+			Call    ShowEmote   ( .Npc_Bombette .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call    ShowEmote   ( .Npc_Bow .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call	SetNpcAnimation ( .Npc_Bombette 00030003 ) % idle
+			Call	SetNpcAnimation ( .Npc_Bow 00050001 ) % idle
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Talking_ParaANDLaki
+{
+	Loop
+		Call	SetNpcYaw ( .Npc_Parakarry 90` )
+		Call	SetNpcAnimation ( .Npc_Parakarry 00040006 ) % talking
+		Call	SetNpcAnimation ( .Npc_Lakilester 0008000B ) % talking (angry)
+		Call	GetNpcVar ( .Npc_Mistar 2 *Var[0] )
+		If	*Var[0] == .False
+			Call	InterpNpcYaw ( .Npc_Parakarry -90` 0 )
+			Call    ShowEmote   ( .Npc_Parakarry .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call    ShowEmote   ( .Npc_Lakilester .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call	SetNpcAnimation ( .Npc_Parakarry 00040001 ) % idle
+			Call	SetNpcAnimation ( .Npc_Lakilester 00080001 ) % idle
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Talking_SushANDWatt
+{
+	Loop
+		Call	SetNpcYaw ( .Npc_Sushie 90` )
+		Call	SetNpcAnimation ( .Npc_Sushie 00070005 ) % talking
+		Call	SetNpcAnimation ( .Npc_Watt 00060006 ) % n__n
+		Wait	30`
+		Call	SetNpcAnimation ( .Npc_Sushie 00070006 ) % laughing
+		Call	SetNpcAnimation ( .Npc_Watt 00060004 ) % talking
+		Wait	30`
+		Call	GetNpcVar ( .Npc_Mistar 2 *Var[0] )
+		If	*Var[0] == .False
+			Call	InterpNpcYaw ( .Npc_Sushie -90` 0 )
+			Call    ShowEmote   ( .Npc_Sushie .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call    ShowEmote   ( .Npc_Watt .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+			Call	SetNpcAnimation ( .Npc_Sushie 00070001 ) % idle
+			Call	SetNpcAnimation ( .Npc_Watt 00060001 ) % idle
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_StickCheatoGangToNpc
+{
+	Call	SetNpcVar ( .Npc_Cheato 0 .True )
+	Loop
+		% Chuck
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -26` % x
+		Add		*Var[2] -47` % z
+		Call	SetNpcPos ( .Npc_Chuck *Var[0] *Var[1] *Var[2] )
+		% Fishmael
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -54` % x
+		Add		*Var[2] -11` % z
+		Call	SetNpcPos ( .Npc_Fishmael *Var[0] *Var[1] *Var[2] )
+		% Oaklie
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -90` % x
+		Add		*Var[2] -57` % z
+		Call	SetNpcPos ( .Npc_Oaklie *Var[0] *Var[1] *Var[2] )
+		% Spirit 1
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -25` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] 30` % z
+		Call	SetNpcPos ( .Npc_Spirit2_1 *Var[0] *Var[1] *Var[2] )
+		% Spirit 2
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -68` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] 30` % z
+		Call	SetNpcPos ( .Npc_Spirit2_2 *Var[0] *Var[1] *Var[2] )
+		% Spirit 3
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -99` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -29` % z
+		Call	SetNpcPos ( .Npc_Spirit2_3 *Var[0] *Var[1] *Var[2] )
+		% Spirit 4
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -63` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -73` % z
+		Call	SetNpcPos ( .Npc_Spirit2_4 *Var[0] *Var[1] *Var[2] )
+		% Spirit 5
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -21` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -73` % z
+		Call	SetNpcPos ( .Npc_Spirit2_5 *Var[0] *Var[1] *Var[2] )
+		% Spirit 6
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 10` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -29` % z
+		Call	SetNpcPos ( .Npc_Spirit2_6 *Var[0] *Var[1] *Var[2] )
+		% Glow Model
+		Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -52` % x
+		Add		*Var[2] -43` % z
+		Call	TranslateModel ( ~Model:platform_L *Var[0] *Var[1] *Var[2] )
+		Call	GetNpcVar ( .Npc_Cheato 0 *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_StickMarioGangToNpc
+{
+	Call	SetNpcVar ( .Npc_Bombette 0 .True )
+	Loop
+		% Mario
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -43` % x
+		Add		*Var[2] -32` % z
+		Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		% Goombario
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -31` % x
+		Add		*Var[2] 11` % z
+		Call	SetNpcPos ( .Npc_Goombario *Var[0] *Var[1] *Var[2] )
+		% Kooper
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -18` % x
+		Add		*Var[2] -32` % z
+		Call	SetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+		% Parakarry
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 11` % x
+		Add		*Var[1] 19` % y
+		Add		*Var[2] -33` % z
+		Call	SetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+		% Bow
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 20` % x
+		Add		*Var[1] 7` % y
+		Add		*Var[2] 11` % z
+		Call	SetNpcPos ( .Npc_Bow *Var[0] *Var[1] *Var[2] )
+		% Watt
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 47` % x
+		Add		*Var[1] 16` % y
+		Add		*Var[2] -9` % z
+		Call	SetNpcPos ( .Npc_Watt *Var[0] *Var[1] *Var[2] )
+		% Sushie
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 41` % x
+		Add		*Var[2] 21` % z
+		Call	SetNpcPos ( .Npc_Sushie *Var[0] *Var[1] *Var[2] )
+		% Lakilester
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 43` % x
+		Add		*Var[1] 24` % y
+		Add		*Var[2] -26` % z
+		Call	SetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+		% Spirit 1
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 35` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] 42` % z
+		Call	SetNpcPos ( .Npc_Spirit1_1 *Var[0] *Var[1] *Var[2] )
+		% Spirit 2
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -8` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] 42` % z
+		Call	SetNpcPos ( .Npc_Spirit1_2 *Var[0] *Var[1] *Var[2] )
+		% Spirit 3
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -32` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -17` % z
+		Call	SetNpcPos ( .Npc_Spirit1_3 *Var[0] *Var[1] *Var[2] )
+		% Spirit 4
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -3` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -61` % z
+		Call	SetNpcPos ( .Npc_Spirit1_4 *Var[0] *Var[1] *Var[2] )
+		% Spirit 5
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 39` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -61` % z
+		Call	SetNpcPos ( .Npc_Spirit1_5 *Var[0] *Var[1] *Var[2] )
+		% Spirit 6
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 70` % x
+		Add		*Var[1] -35` % y
+		Add		*Var[2] -17` % z
+		Call	SetNpcPos ( .Npc_Spirit1_6 *Var[0] *Var[1] *Var[2] )
+		% Glow Model
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] 12` % x
+		Add		*Var[2] 32` % z
+		Call	TranslateModel ( ~Model:platform_R *Var[0] *Var[1] *Var[2] )
+		Call	GetNpcVar ( .Npc_Bombette 0 *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_StickMistarToNpc
+{
+	Call	SetNpcVar ( .Npc_Bombette 1 .True )
+	Loop
+		Call	GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+		Add		*Var[0] -20` % x
+		Add		*Var[1] 43` % y
+		Add		*Var[2] -11` % z
+		Call	SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+		Call	GetNpcVar ( .Npc_Bombette 1 *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait	1
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_ShowCredits
+{
+    Call    $Function_InitCredits
+    Wait    30`
+    Exec    $ShowBlackPitCredits
+    Return
+    End
+}
+
+#new:Script $ShowBlackPitCredits
+{
+    Call	$Function_ShowCreditList ( $CreditList_Start )
+    Exec    $Scrip_ShowTitles
+    Call	$Function_ShowCreditList ( $CreditList_Names )
+	Return
+    End
+}
+
+#new:Script $Scrip_ShowTitles
+{
+    Call	$Function_ShowCreditList ( $CreditList_Titles )
+    Return
+    End
+}
+   
+#new:IntTable $CreditList_Start
+{
+$String_PM_BlackPit
+000000A0 % posX center (A0 = screen center)
+000000AD % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000028 % delay time for next line
+00010000 
+$String_Staff
+000000A0 % posX center (A0 = screen center)
+000000BF % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000018 % hold time
+00000000
+0000000F % fade out time
+00000000
+FFFFFFFF % delay time for next line
+00010000 
+}
+
+#new:IntTable $CreditList_Titles
+{
+00000000
+00000000 % posX center (A0 = screen center)
+00000000 % posY
+00000000 % highlight flag
+00000000
+00000000 % fade in time
+00000000 % print delay
+00000000
+00000000 % hold time
+00000000
+00000000 % fade out time
+00000000
+0000006B % delay time for next line
+00000000 
+$String_RomHackBy
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000091 % delay time for next line
+00010000 
+$String_Scripting
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000091 % delay time for next line
+00010000 
+$String_ASM
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000091 % delay time for next line
+00010000 
+$String_AnimationsAndModeling
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000091 % delay time for next line
+00010000 
+$String_SpecialThanks
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+0000008B % hold time
+00000000
+0000000F % fade out time
+00000000
+000000F8 % delay time for next line
+00010000 
+$String_Spriters
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+0000008B % hold time
+00000000
+0000000F % fade out time
+00000000
+000000F8 % delay time for next line
+00010000 
+$String_ProofReaders
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+0000008B % hold time
+00000000
+0000000F % fade out time
+00000000
+000000F8 % delay time for next line
+00010000 
+$String_Art
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+0000004B % hold time
+00000000
+0000000F % fade out time
+00000000
+000000F8 % delay time for next line
+00010000 
+$String_SpecialThanks
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+000000FB % hold time
+00000000
+0000000F % fade out time
+00000000
+00000151 % delay time for next line
+00010000 
+$String_Testers
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+000000FB % hold time
+00000000
+0000000F % fade out time
+00000000
+00000151 % delay time for next line
+00010000 
+$String_Music
+000000A0 % posX center (A0 = screen center)
+000000B6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000091 % delay time for next line
+00010000 
+$String_MIDI
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+000000FB % hold time
+00000000
+0000000F % fade out time
+00000000
+00000151 % delay time for next line
+00010000 
+$String_Mixing
+000000A0 % posX center (A0 = screen center)
+000000A6 % posY
+00000001 % highlight flag
+00000000
+00000028 % fade in time
+00000002 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+FFFFFFFF % delay time for next line
+00010000 
+}
+
+#new:IntTable $CreditList_Names
+{
+00000000
+00000000 % posX center (A0 = screen center)
+00000000 % posY
+00000000 % highlight flag
+00000000
+00000000 % fade in time
+00000000 % print delay
+00000000
+00000000 % hold time
+00000000
+00000000 % fade out time
+00000000
+0000008B % delay time for next line
+00000000 
+%===========
+% Mod by
+%===========
+$String_elDexter
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000021 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000096 % delay time for next line
+00010000 
+%===========
+% Scripting
+%===========
+$String_elDexter
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000001E % hold time
+00000000
+0000000F % fade out time
+00000000
+0000008C % delay time for next line
+00010000 
+%===========
+% ASM
+%===========
+$String_elDexter
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000021 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000096 % delay time for next line
+00010000
+%===========
+% Animations
+%===========
+$String_elDexter
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000001E % hold time
+00000000
+0000000F % fade out time
+00000000
+0000008C % delay time for next line
+00010000
+%===========
+% Special Thanks 1
+%===========
+$String_Rain
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000011 % hold time
+00000000
+0000000F % fade out time
+00000000
+0000004C % delay time for next line
+00010000
+$String_Clover
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000001F % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Alex
+000000A0 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000001F % hold time
+00000000
+0000000F % fade out time
+00000000
+000000AC % delay time for next line
+00010000
+%===========
+% Custom Sprites
+%===========
+$String_DMZapp
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000006C % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Dimentio_Sprite
+000000A0 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000006C % hold time
+00000000
+0000000F % fade out time
+00000000
+000000F8 % delay time for next line
+00010000
+%===========
+% Proofreaders
+%===========
+$String_Pelouch
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000006E % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_TriplePain
+000000A0 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000006E % hold time
+00000000
+0000000F % fade out time
+00000000
+000000EB % delay time for next line
+00010000
+%===========
+% Art
+%===========
+$String_KevinArthur
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+0000003A % hold time
+00000000
+0000000F % fade out time
+00000000
+0000010B % delay time for next line
+00010000 
+%===========
+% Special Thanks 2
+%===========
+$String_Xdelta
+00000063 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Thamz
+000000D3 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Brotenko
+00000063 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Mov
+000000D3 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+000000BB % delay time for next line
+00010000
+$String_hack64
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000016 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000090 % delay time for next line
+00010000
+%===========
+% Testers
+%===========
+$String_TriplePain
+0000004A % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_NEWB
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Twopie
+0000004A % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_kappy
+000000F3 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_GamerFourFun
+000000F3 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Glower
+000000A0 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000061 % hold time
+00000000
+0000000F % fade out time
+00000000
+0000009B % delay time for next line
+00010000
+% page 2
+$String_1upShyguy
+00000063 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_LordMc
+000000D3 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Magus
+00000063 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Tengo86
+000000D3 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000041 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000141 % delay time for next line
+00010000
+%===========
+% MIDIs
+%===========
+$String_Avenger
+00000063 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Lutarez
+000000D3 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_BlueWarrior
+00000063 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_TheProcrastor
+000000D3 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000081 % hold time
+00000000
+0000000F % fade out time
+00000000
+000000BB % delay time for next line
+00010000
+% page 2
+$String_TenthClass
+00000063 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000026 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_Stupspider150
+000000D3 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000026 % hold time
+00000000
+0000000F % fade out time
+00000000
+00000000 % delay time for next line
+00010000
+$String_solis
+000000A0 % posX center (A0 = screen center)
+000000CD % posY
+00000000 % highlight flag
+00000000
+00000035 % fade in time
+00000000 % print delay
+00000000
+00000019 % hold time
+00000000
+0000000F % fade out time
+00000000
+0000008C % delay time for next line
+00010000
+%===========
+% MIXING
+%===========
+$String_elDexter
+000000A0 % posX center (A0 = screen center)
+000000BA % posY
+00000000 % highlight flag
+00000000
+00000028 % fade in time
+00000000 % print delay
+00000000
+00000031 % hold time
+00000000
+0000000F % fade out time
+00000000
+FFFFFFFF % delay time for next line
+00010000
+}
+
+% strings
+
+#string $String_PM_BlackPit
+{
+[Font:Title]PAPER MARIO BLACK PIT[END]
+}
+
+#string $String_Staff
+{
+[Font:Subtitle]STAFF[END]
+}
+
+#string $String_RomHackBy
+{
+[Font:Subtitle]ROMHACK BY[END]
+}
+
+#string $String_Scripting
+{
+[Font:Subtitle]SCRIPTING[END]
+}
+
+#string $String_ASM
+{
+[Font:Subtitle]ASM[END]
+}
+
+#string $String_AnimationsAndModeling
+{
+[Font:Subtitle]ANIMATIONS AND 3D MODELING[END]
+}
+
+#string $String_SpecialThanks
+{
+[Font:Subtitle]SPECIAL THANKS TO[END]
+}
+
+#string $String_Spriters
+{
+[Font:Subtitle]CUSTOM SPRITES[END]
+}
+
+#string $String_ProofReaders
+{
+[Font:Subtitle]PROOFREADERS[END]
+}
+
+#string $String_Art
+{
+[Font:Subtitle]ART[END]
+}
+
+#string $String_Testers
+{
+[Font:Subtitle]TESTERS[END]
+}
+
+#string $String_Music
+{
+[Font:Subtitle]CUSTOM MUSIC[END]
+}
+
+#string $String_MIDI
+{
+[Font:Subtitle]MIDI[END]
+}
+
+#string $String_Mixing
+{
+[Font:Subtitle]MIXING[END]
+}
+
+#string $String_elDexter
+{
+[Font:Title]ELDEXTER[END]
+}
+
+#string $String_Rain
+{
+[Font:Title]RAIN[END]
+}
+
+#string $String_Clover
+{
+[Font:Title]CLOVER[END]
+}
+
+#string $String_Alex
+{
+[Font:Title]ALEX[END]
+}
+
+#string $String_DMZapp
+{
+[Font:Title]DMZAPP[END]
+}
+
+#string $String_Dimentio_Sprite
+{
+[Font:Title]CYBERSHADOW & RETRIEVER II[END]
+}
+
+#string $String_Pelouch
+{
+[Font:Title]PELOUCH[END]
+}
+
+#string $String_TriplePain
+{
+[Font:Title]TRIPLE PAIN[END]
+}
+
+#string $String_KevinArthur
+{
+[Font:Title]KEVIN ARTHUR[END]
+}
+
+#string $String_Xdelta
+{
+[Font:Title]XDELTA[END]
+}
+
+#string $String_Thamz
+{
+[Font:Title]EMPEROR THAMZ[END]
+}
+
+#string $String_Brotenko
+{
+[Font:Title]BROTENKO[END]
+}
+
+#string $String_Mov
+{
+[Font:Title]MOV[END]
+}
+
+#string $String_hack64
+{
+[Font:Title]HACK64[END]
+}
+
+#string $String_NEWB
+{
+[Font:Title]NEWB[END]
+}
+
+#string $String_Twopie
+{
+[Font:Title]TWOPIERADIAN[END]
+}
+
+#string $String_kappy
+{
+[Font:Title]KAPPY[END]
+}
+
+#string $String_GamerFourFun
+{
+[Font:Title]GAMERFOURFUN[END]
+}
+
+#string $String_Glower
+{
+[Font:Title]IMGLOWER[END]
+}
+
+#string $String_1upShyguy
+{
+[Font:Title]1UPSHYGUY[END]
+}
+
+#string $String_LordMc
+{
+[Font:Title]LORDMCHAFFIE[END]
+}
+
+#string $String_Tengo86
+{
+[Font:Title]TENGO86DELTA[END]
+}
+
+#string $String_Magus
+{
+[Font:Title]CS2MAGUS[END]
+}
+
+% Music
+#string $String_Avenger
+{
+[Font:Title]AVENGER[END]
+}
+
+#string $String_Lutarez
+{
+[Font:Title]LUTAREZ[END]
+}
+
+#string $String_BlueWarrior
+{
+[Font:Title]BLUEWARRIOR[END]
+}
+
+#string $String_TheProcrastor
+{
+[Font:Title]THEPROCRASTOR[END]
+}
+
+#string $String_TenthClass
+{
+[Font:Title]TENTH CLASS[END]
+}
+
+#string $String_Stupspider150
+{
+[Font:Title]STUPSPIDER150[END]
+}
+
+#string $String_solis
+{
+[Font:Title]SOLIS[END]
+}
+
+/%
+
+Documentation and $ShowStarRodCredits tooked from Clover's Pro Mode romhack
+
+Credit List Format:
+
+002E0000 % string ID = "Paper Mario"
+000000A0 % posX center (A0 = screen center)
+000000AD % posY
+00000001 % highlight flag
+00000000 
+00000028 % fade in time
+00000000 
+00000000 
+00000078 % hold time
+00000000 
+00000028 % fade out time
+00000000 
+00000028 % delay time for next line
+00010000 
+%/
+
+%==========================
+% end_00 stuff
+%==========================
+
+% Show Credits stuff
+#new:Function $Function_ShowCreditList
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        V0, C (S1)
+	COPY      S0, A1
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	BEQ       S0, R0, .o40
+	COPY      S2, V0
+	ADDIU     V0, R0, FFFF
+	SW        R0, 84 (S1)
+	SW        V0, 88 (S1)
+	SW        R0, 8C (S1)
+	.o40
+	LW        V1, 84 (S1)
+	BEQ       V1, R0, .o5C
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .oD0
+	CLEAR     V0
+	BEQ       R0, R0, .oE8
+	NOP
+	.o5C
+	ADDIU     S0, R0, FFFF
+	.o60
+	LW        V0, 8C (S1)
+	SLL       V1, V0, 3
+	SUBU      V1, V1, V0
+	SLL       V1, V1, 3
+	ADDU      A0, V1, S2
+	LW        V0, 0 (A0)
+	BEQ       V0, R0, .o88
+	NOP
+	JAL       $Function_80242358
+	NOP
+	.o88
+	LW        V1, 8C (S1)
+	SLL       V0, V1, 3
+	SUBU      V0, V0, V1
+	SLL       V0, V0, 3
+	ADDU      V0, V0, S2
+	LW        V0, 30 (V0)
+	SW        V0, 88 (S1)
+	COPY      V0, V1
+	LW        V1, 88 (S1)
+	ADDIU     V0, V0, 1
+	BGTZ      V1, .oC8
+	SW        V0, 8C (S1)
+	BNE       V1, S0, .o60
+	ADDIU     V0, R0, 2
+	BEQ       R0, R0, .oE8
+	NOP
+	.oC8
+	ADDIU     V0, R0, 1
+	SW        V0, 84 (S1)
+	.oD0
+	LW        V0, 88 (S1)
+	ADDIU     V0, V0, FFFF
+	BGTZ      V0, .oE4
+	SW        V0, 88 (S1)
+	SW        R0, 84 (S1)
+	.oE4
+	CLEAR     V0
+	.oE8
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80242358
+{
+	ADDIU     SP, SP, FFC0
+	SW        S2, 30 (SP)
+	COPY      S2, A0
+	CLEAR     V1
+	LAW       A2, $End[E84]
+	ADDIU     A0, R0, 20
+	SW        RA, 38 (SP)
+	SW        S3, 34 (SP)
+	SW        S1, 2C (SP)
+	SW        S0, 28 (SP)
+	COPY      A1, A2
+	.o30
+	LHU       V0, 74 (A1)
+	ANDI      V0, V0, 1
+	BEQ       V0, R0, .o54
+	SLL       V0, V1, 3
+	ADDIU     V1, V1, 1
+	BEQ       V1, A0, .o18C
+	ADDIU     A1, A1, 74
+	BEQ       R0, R0, .o30
+	NOP
+	.o54
+	SUBU      V0, V0, V1
+	SLL       V0, V0, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	ADDIU     V0, V0, 4
+	LW        A0, 0 (S2)
+	BEQ       A0, R0, .o18C
+	ADDU      S1, A2, V0
+	BLTZL     A0, .oC8
+	SW        A0, 0 (S1)
+	LIA       S3, $???_80242D70
+	LW        A1, 0 (S3)
+	LIA       S0, $End[E90]
+	SLL       A1, A1, 8
+	JAL       ~Func:dma_load_string
+	ADDU      A1, A1, S0
+	LW        V1, 0 (S3)
+	SLL       V0, V1, 8
+	ADDU      V0, V0, S0
+	ADDIU     V1, V1, 1
+	SW        V0, 0 (S1)
+	SW        V1, 0 (S3)
+	SLTI      V1, V1, 17
+	BEQL      V1, R0, .oC8
+	SW        R0, 0 (S3)
+	BEQ       R0, R0, .oCC
+	CLEAR     A1
+	.oC8
+	CLEAR     A1
+	.oCC
+	ADDIU     V0, SP, 24
+	COPY      A2, A1
+	SW        R0, 10 (SP)
+	SW        R0, 14 (SP)
+	SW        V0, 18 (SP)
+	SW        R0, 1C (SP)
+	LW        A0, 0 (S1)
+	JAL       ~Func:get_string_properties
+	ADDIU     A3, SP, 20
+	LW        V0, 4 (S2)
+	SW        V0, 68 (S1)
+	LW        V0, 8 (S2)
+	SW        V0, 6C (S1)
+	LW        V0, C (S2)
+	SW        V0, 10 (S1)
+	LW        V0, 10 (S2)
+	SW        V0, 18 (S1)
+	LW        V0, 14 (S2)
+	SW        V0, 1C (S1)
+	LW        V0, 1C (S2)
+	SW        V0, 34 (S1)
+	LW        V0, 20 (S2)
+	SW        V0, 38 (S1)
+	LW        A0, 18 (S2)
+	BEQ       A0, R0, .o160
+	NOP
+	LW        V0, 24 (SP)
+	LW        V1, 20 (SP)
+	ADDIU     V0, V0, 1
+	SUBU      V1, V1, V0
+	MULT      V1, A0
+	LW        V0, 20 (S2)
+	MFLO      T0
+	SUBU      V0, V0, T0
+	BGEZ      V0, .o160
+	SW        V0, 38 (S1)
+	SW        R0, 38 (S1)
+	.o160
+	LW        V0, 24 (S2)
+	SW        V0, 4C (S1)
+	LW        V0, 28 (S2)
+	SW        V0, 50 (S1)
+	LW        V0, 18 (S2)
+	SW        V0, 20 (S1)
+	LW        V0, 2C (S2)
+	SW        V0, 54 (S1)
+	LHU       V0, 34 (S2)
+	ORI       V0, V0, 3
+	SH        V0, 70 (S1)
+	.o18C
+	LW        RA, 38 (SP)
+	LW        S3, 34 (SP)
+	LW        S2, 30 (SP)
+	LW        S1, 2C (SP)
+	LW        S0, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+#new:Unknown $???_80242D70
+{
+    00000000
+}
+
+%===========================
+% Init Credits stuff
+
+#new:Function $Function_InitCredits {
+	ADDIU     SP, SP, FFE8
+    SW        RA, 10 (SP)
+    JAL       $Function_80242500
+    NOP
+    JAL       ~Func:load_font
+    ADDIU     A0, R0, 1
+    LW        RA, 10 (SP)
+    ADDIU     V0, R0, 2
+    JR        RA
+    ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80242500 {
+	ADDIU     SP, SP, FFE8
+    SW        S0, 10 (SP)
+    LIA       S0, $End[0]
+    LIA       A1, $Function_802421D8
+    SW        RA, 14 (SP)
+    SAW       S0, $End[E84]
+    JAL       8012323C
+    CLEAR     A0
+    ADDIU     A0, R0, 1F
+    ADDIU     V1, S0, E0C
+    SW        V0, 0 (S0)
+    .o38
+    SH        R0, 74 (V1)
+    ADDIU     A0, A0, FFFF
+    BGEZ      A0, .o38
+    ADDIU     V1, V1, FF8C
+    LW        RA, 14 (SP)
+    LW        S0, 10 (SP)
+    JR        RA
+    ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802421D8 {
+	ADDIU     SP, SP, FFC0
+    LIO       A1, DC080008
+    SW        S4, 30 (SP)
+    CLEAR     S4
+    SW        S1, 24 (SP)
+    LIA       S1, 8009A66C
+    SW        S3, 2C (SP)
+    ADDIU     S3, R0, 4
+    LIA       V0, $End[2590]
+    SW        RA, 38 (SP)
+    SW        S5, 34 (SP)
+    SW        S2, 28 (SP)
+    SW        S0, 20 (SP)
+    LW        V1, 0 (S1)
+    LAW       S0, 800741F4
+    LAW       S5, $End[E84]
+    MTC1      R0, F0
+    LIF       F2, -100.0
+    LIF       F4, 100.0
+    LIF       F6, 1.0
+    LUI       A2, 43A0
+    LUI       A3, C370
+    COPY      T0, V1
+    ADDIU     V1, V1, 8
+    SLL       S0, S0, 6
+    ADDU      S0, S0, V0
+    COPY      A0, S0
+    COPY      S2, S5
+    SW        V1, 0 (S1)
+    SW        A1, 0 (T0)
+    MFC1      A1, F0
+    LIA       V0, $???_80242D60
+    SW        V0, 4 (T0)
+    SWC1      F2, 14 (SP)
+    SWC1      F4, 18 (SP)
+    SWC1      F6, 1C (SP)
+    JAL       ~Func:guOrtho
+    SW        A1, 10 (SP)
+    LIO       V1, DA380007
+    LIO       A1, D9C0F9FB
+    LIO       A3, D9FFFFFF
+    LUI       A2, 20
+    LW        V0, 0 (S1)
+    OR        A2, A2, S3
+    COPY      A0, V0
+    ADDIU     V0, V0, 8
+    SW        V0, 0 (S1)
+    SW        V1, 0 (A0)
+    LUI       V1, 8000
+    ADDU      S0, S0, V1
+    ADDIU     V1, V0, 8
+    SW        S0, 4 (A0)
+    SW        V1, 0 (S1)
+    LUI       V1, E700
+    SW        V1, 0 (V0)
+    ADDIU     V1, V0, 10
+    SW        R0, 4 (V0)
+    SW        V1, 0 (S1)
+    ADDIU     V1, V0, 18
+    SW        A1, 8 (V0)
+    SW        R0, C (V0)
+    SW        V1, 0 (S1)
+    SW        A3, 10 (V0)
+    SW        A2, 14 (V0)
+    .o130
+    LHU       V0, 74 (S2)
+    ANDI      V0, V0, 1
+    BEQL      V0, R0, .o14C
+    ADDIU     S3, S3, 74
+    JAL       $Function_80241B34
+    ADDU      A0, S5, S3
+    ADDIU     S3, S3, 74
+    .o14C
+    ADDIU     S4, S4, 1
+    SLTI      V0, S4, 20
+    BNE       V0, R0, .o130
+    ADDIU     S2, S2, 74
+    LW        RA, 38 (SP)
+    LW        S5, 34 (SP)
+    LW        S4, 30 (SP)
+    LW        S3, 2C (SP)
+    LW        S2, 28 (SP)
+    LW        S1, 24 (SP)
+    LW        S0, 20 (SP)
+    JR        RA
+    ADDIU     SP, SP, 40
+}
+
+#new:Unknown $???_80242D60
+{
+    028001E0 01FF0000 028001E0 01FF0000
+}
+
+#new:Function $Function_80241B34 {
+	ADDIU     SP, SP, FF80
+    SW        S3, 64 (SP)
+    COPY      S3, A0
+    SW        S8, 78 (SP)
+    CLEAR     S8
+    SW        RA, 7C (SP)
+    SW        S7, 74 (SP)
+    SW        S6, 70 (SP)
+    SW        S5, 6C (SP)
+    SW        S4, 68 (SP)
+    SW        S2, 60 (SP)
+    SW        S1, 5C (SP)
+    SW        S0, 58 (SP)
+    LHU       V1, 70 (S3)
+    ANDI      V0, V1, 2
+    BEQ       V0, R0, .o54
+    ADDIU     S0, SP, 20
+    ANDI      V0, V1, FFFD
+    SH        V0, 70 (S3)
+    SW        R0, 8 (S3)
+    SW        R0, C (S3)
+    .o54
+    ADDIU     A1, SP, 40
+    ADDIU     A2, SP, 44
+    ADDIU     A3, SP, 48
+    CLEAR     S1
+    SW        R0, 10 (SP)
+    SW        R0, 14 (SP)
+    SW        R0, 18 (SP)
+    SW        R0, 1C (SP)
+    LW        A0, 0 (S3)
+    JAL       ~Func:get_string_properties
+    ADDIU     S7, R0, 8
+    ADDIU     V0, R0, 1
+    SW        R0, 24 (SP)
+    SW        R0, 28 (SP)
+    SW        V0, 44 (SP)
+    .o90
+    LW        V0, 0 (S3)
+    ADDU      V1, V0, S1
+    ADDIU     S1, S1, 1
+    ADDU      V0, V0, S1
+    LBU       S4, 0 (V1)
+    LBU       S5, 0 (V0)
+    ADDIU     A0, S4, FF10
+    SLTIU     V1, A0, 10
+    BEQ       V1, R0, .o110
+    CLEAR     S6
+    SLL       V0, A0, 2
+    LIA       T1, $???_8024E8C0
+    ADDU      V0, V0, T1
+    LW        V0, 0 (V0)
+    JR        V0
+    NOP
+    ADDIU     V0, S4, FF0D
+    BEQ       R0, R0, .o1D8
+    SW        V0, 8 (S0)
+    BEQ       R0, R0, .o1D8
+    ADDIU     S6, R0, 1
+    LW        V1, 0 (S3)
+    ADDU      V0, V1, S1
+    LBU       V0, 0 (V0)
+    BNE       V0, R0, .o1D8
+    ADDIU     S1, S1, 1
+    ADDU      V0, V1, S1
+    LBU       V0, 0 (V0)
+    ADDIU     S1, S1, 1
+    BEQ       R0, R0, .o1D8
+    SW        V0, 4 (S0)
+    .o110
+    ADDIU     V0, R0, 1
+    ANDI      S2, S4, FF
+    SW        R0, 10 (SP)
+    SW        V0, 14 (SP)
+    LW        A1, 4 (S0)
+    LW        A2, 8 (S0)
+    LUI       A3, 3F80
+    JAL       80125C84
+    COPY      A0, S2
+    LW        V1, 44 (SP)
+    LW        A0, 4 (S0)
+    ADDIU     V1, V1, FFFF
+    ADDU      V1, V1, V0
+    ADDIU     V0, A0, FFFD
+    SLTIU     V0, V0, 2
+    BEQ       V0, R0, .o1D8
+    SW        V1, 44 (SP)
+    LIA       A1, $???_80242CD8
+    ADDIU     T1, R0, 4
+    BNE       A0, T1, .o170
+    NOP
+    LIA       A1, $???_80242C70
+    .o170
+    BNE       A0, T1, .o190
+    CLEAR     A2
+    BEQ       S2, S7, .o18C
+    ADDIU     V0, V1, 1
+    BNE       S5, S7, .o194
+    ANDI      T0, S4, FF
+    ADDIU     V0, V1, 1
+    .o18C
+    SW        V0, 44 (SP)
+    .o190
+    ANDI      T0, S4, FF
+    .o194
+    ANDI      A3, S5, FFFF
+    SLL       V0, A2, 2
+    ADDU      A0, V0, A1
+    .o1A0
+    LBU       V0, 0 (A0)
+    BNEL      T0, V0, .o1CC
+    ADDIU     A0, A0, 4
+    LBU       V0, 1 (A0)
+    BNEL      A3, V0, .o1CC
+    ADDIU     A0, A0, 4
+    LH        V1, 2 (A0)
+    LW        V0, 44 (SP)
+    ADDU      V0, V0, V1
+    SW        V0, 44 (SP)
+    ADDIU     A0, A0, 4
+    .o1CC
+    LH        V0, 2 (A0)
+    BNE       V0, R0, .o1A0
+    NOP
+    .o1D8
+    ANDI      V0, S6, FFFF
+    BEQ       V0, R0, .o90
+    NOP
+    LHU       V0, 70 (S3)
+    LW        V1, 44 (SP)
+    ANDI      V0, V0, 1
+    BEQ       V0, R0, .o248
+    SW        V1, 14 (S3)
+    MTC1      V1, F2
+    NOP
+    CVT.S.W   F2, F2
+    LIF       F1, 1.75
+    MTC1      R0, F0
+    CVT.D.S   F2, F2
+    MUL.D     F2, F2, F0
+    NOP
+    MTC1      R0, F0
+    MTC1      R0, F1
+    NOP
+    ADD.D     F2, F2, F0
+    LWC1      F0, 68 (S3)
+    CVT.D.W   F0, F0
+    SUB.D     F0, F0, F2
+    TRUNC.W.D F4, F0
+    MFC1      S5, F4
+    BEQ       R0, R0, .o250
+    CLEAR     S7
+    .o248
+    LW        S5, 68 (S3)
+    CLEAR     S7
+    .o250
+    SW        R0, 4 (S0)
+    SW        R0, 8 (S0)
+    LW        V0, 10 (S3)
+    COPY      S1, S7
+    SW        V0, C (S0)
+    .o264
+    LW        V0, 0 (S3)
+    SH        R0, 50 (SP)
+    ADDU      V1, V0, S1
+    ADDIU     S1, S1, 1
+    ADDU      V0, V0, S1
+    LBU       S4, 0 (V1)
+    LBU       S6, 0 (V0)
+    ADDIU     A0, S4, FF10
+    SLTIU     V1, A0, 10
+    BEQ       V1, R0, .o2E4
+    SLL       V0, A0, 2
+    LTW       V0, V0 ($JumpTable_8024E900)
+    JR        V0
+    NOP
+    % LBL: from $JumpTable_8024E900 , entry 5`
+    ADDIU     V0, S4, FF0D
+    BEQ       R0, R0, .o5B8
+    SW        V0, 8 (S0)
+    % LBL: from $JumpTable_8024E900 , entry 13`
+    ADDIU     T1, R0, 1
+    BEQ       R0, R0, .o5B8
+    SH        T1, 50 (SP)
+    % LBL: from $JumpTable_8024E900 , entry 15`
+    LW        V1, 0 (S3)
+    ADDU      V0, V1, S1
+    LBU       V0, 0 (V0)
+    BNE       V0, R0, .o5B8
+    ADDIU     S1, S1, 1
+    ADDU      V0, V1, S1
+    LBU       V0, 0 (V0)
+    ADDIU     S1, S1, 1
+    BEQ       R0, R0, .o5B8
+    SW        V0, 4 (S0)
+    % LBL: from $JumpTable_8024E900 , entry 14`
+    .o2E4
+    ANDI      V1, S4, FF
+    SLTIU     V0, V1, F0
+    BEQ       V0, R0, .o4FC
+    ADDIU     T1, R0, 1
+    SW        V1, 0 (S0)
+    SW        S5, 10 (S0)
+    LW        V0, 6C (S3)
+    SW        V0, 14 (S0)
+    LW        V1, C (S3)
+    BEQ       V1, T1, .o408
+    SLTI      V0, V1, 2
+    BEQL      V0, R0, .o328
+    ADDIU     T1, R0, 2
+    BEQ       V1, R0, .o338
+    NOP
+    BEQ       R0, R0, .o500
+    ADDIU     S7, S7, 1
+    .o328
+    BEQ       V1, T1, .o438
+    NOP
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o338
+    LW        V0, 20 (S3)
+    MULT      V0, S7
+    LW        V0, 8 (S3)
+    MFLO      T1
+    SUBU      V0, V0, T1
+    BLTZ      V0, .o4F8
+    SW        V0, 18 (S0)
+    LW        V1, 1C (S3)
+    SLT       V0, V1, V0
+    BNEL      V0, R0, .o364
+    SW        V1, 18 (S0)
+    .o364
+    ADDIU     T1, R0, FD
+    BNE       S6, T1, .o380
+    NOP
+    LW        V1, 18 (S0)
+    LW        V0, 1C (S3)
+    BEQL      V1, V0, .o380
+    ADDIU     S8, R0, 1
+    .o380
+    LW        V1, 18 (S3)
+    SLTIU     V0, V1, 6
+    BEQ       V0, R0, .o4F8
+    SLL       V0, V1, 2
+    LTW       V0, V0 ($JumpTable_8024E940)
+    JR        V0
+    NOP
+    % LBL: from $JumpTable_8024E940 , entry 1`
+    COPY      A0, S3
+    JAL       $Function_80240270
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    % LBL: from $JumpTable_8024E940 , entry 2`
+    COPY      A0, S3
+    JAL       $Function_80240540
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    % LBL: from $JumpTable_8024E940 , entry 3`
+    COPY      A0, S3
+    JAL       $Function_8024081C
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    % LBL: from $JumpTable_8024E940 , entry 4`
+    COPY      A0, S3
+    JAL       $Function_80240AE8
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    % LBL: from $JumpTable_8024E940 , entry 5`
+    COPY      A0, S3
+    JAL       $Function_80240EB0
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o408
+    ADDIU     T1, R0, FD
+    BNE       S6, T1, .o428
+    COPY      A0, S3
+    LW        V1, 8 (S3)
+    LW        V0, 38 (S3)
+    BEQL      V1, V0, .o428
+    ADDIU     S8, R0, 1
+    COPY      A0, S3
+    .o428
+    JAL       $Function_802411CC
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o438
+    LW        V0, 54 (S3)
+    MULT      V0, S7
+    LW        V0, 8 (S3)
+    MFLO      T1
+    SUBU      V0, V0, T1
+    BGEZ      V0, .o458
+    SW        V0, 18 (S0)
+    SW        R0, 18 (S0)
+    .o458
+    LW        V0, 18 (S0)
+    LW        V1, 50 (S3)
+    SLT       V0, V1, V0
+    BNEL      V0, R0, .o46C
+    SW        V1, 18 (S0)
+    .o46C
+    ADDIU     T1, R0, FD
+    BNE       S6, T1, .o488
+    NOP
+    LW        V1, 18 (S0)
+    LW        V0, 50 (S3)
+    BEQL      V1, V0, .o488
+    ADDIU     S8, R0, 1
+    .o488
+    LW        V1, 4C (S3)
+    ADDIU     T1, R0, 1
+    BEQ       V1, T1, .o4C8
+    SLTI      V0, V1, 2
+    BEQL      V0, R0, .o4B0
+    ADDIU     T1, R0, 2
+    BEQ       V1, R0, .o4F0
+    COPY      A0, S3
+    BEQ       R0, R0, .o500
+    ADDIU     S7, S7, 1
+    .o4B0
+    BEQ       V1, T1, .o4DC
+    ADDIU     V0, R0, 3
+    BEQ       V1, V0, .o4F0
+    COPY      A0, S3
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o4C8
+    COPY      A0, S3
+    JAL       $Function_802414CC
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o4DC
+    COPY      A0, S3
+    JAL       $Function_80241768
+    COPY      A1, S0
+    BEQ       R0, R0, .o4FC
+    ADDIU     S7, S7, 1
+    .o4F0
+    JAL       $Function_802419F8
+    COPY      A1, S0
+    .o4F8
+    ADDIU     S7, S7, 1
+    .o4FC
+    ADDIU     T1, R0, 1
+    .o500
+    ANDI      S2, S4, FF
+    SW        R0, 10 (SP)
+    SW        T1, 14 (SP)
+    LW        A1, 4 (S0)
+    LW        A2, 8 (S0)
+    LUI       A3, 3F80
+    JAL       80125C84
+    COPY      A0, S2
+    ADDIU     V1, S5, FFFF
+    LW        A0, 4 (S0)
+    ADDU      S5, V1, V0
+    ADDIU     V0, A0, FFFD
+    SLTIU     V0, V0, 2
+    BEQ       V0, R0, .o5B8
+    NOP
+    LIA       A1, $???_80242CD8
+    ADDIU     T1, R0, 4
+    BNE       A0, T1, .o558
+    NOP
+    LIA       A1, $???_80242C70
+    .o558
+    BNE       A0, T1, .o578
+    CLEAR     A2
+    ADDIU     V0, R0, 8
+    BEQL      S2, V0, .o578
+    ADDIU     S5, S5, 1
+    BNE       S6, V0, .o57C
+    ANDI      V1, S4, FF
+    ADDIU     S5, S5, 1
+    .o578
+    ANDI      V1, S4, FF
+    .o57C
+    ANDI      A3, S6, FFFF
+    SLL       V0, A2, 2
+    ADDU      A0, V0, A1
+    .o588
+    LBU       V0, 0 (A0)
+    BNEL      V1, V0, .o5AC
+    ADDIU     A0, A0, 4
+    LBU       V0, 1 (A0)
+    BNEL      A3, V0, .o5AC
+    ADDIU     A0, A0, 4
+    LH        V0, 2 (A0)
+    ADDU      S5, S5, V0
+    ADDIU     A0, A0, 4
+    .o5AC
+    LH        V0, 2 (A0)
+    BNE       V0, R0, .o588
+    NOP
+    .o5B8
+    LHU       V0, 50 (SP)
+    BEQ       V0, R0, .o264
+    NOP
+    LW        V0, C (S3)
+    BNE       V0, R0, .o620
+    NOP
+    BEQ       S8, R0, .o620
+    CLEAR     A1
+    COPY      A2, A1
+    SW        R0, 4C (SP)
+    SW        R0, 10 (SP)
+    SW        R0, 14 (SP)
+    SW        R0, 18 (SP)
+    SW        R0, 1C (SP)
+    LW        A0, 0 (S3)
+    JAL       ~Func:get_string_properties
+    ADDIU     A3, SP, 4C
+    LW        A0, C (S3)
+    LW        V1, 38 (S3)
+    SW        R0, 8 (S3)
+    ADDIU     V0, A0, 1
+    BGTZ      V1, .o668
+    SW        V0, C (S3)
+    ADDIU     V0, A0, 2
+    BEQ       R0, R0, .o668
+    SW        V0, C (S3)
+    .o620
+    LW        V1, C (S3)
+    ADDIU     V0, R0, 1
+    BNE       V1, V0, .o64C
+    ADDIU     V0, R0, 2
+    BEQ       S8, R0, .o648
+    COPY      V0, V1
+    ADDIU     V0, V0, 1
+    SW        R0, 8 (S3)
+    BEQ       R0, R0, .o668
+    SW        V0, C (S3)
+    .o648
+    ADDIU     V0, R0, 2
+    .o64C
+    BNE       V1, V0, .o668
+    NOP
+    BEQ       S8, R0, .o668
+    NOP
+    LHU       V0, 70 (S3)
+    ANDI      V0, V0, FFFE
+    SH        V0, 70 (S3)
+    .o668
+    LW        V0, 8 (S3)
+    ADDIU     V0, V0, 1
+    SW        V0, 8 (S3)
+    LW        RA, 7C (SP)
+    LW        S8, 78 (SP)
+    LW        S7, 74 (SP)
+    LW        S6, 70 (SP)
+    LW        S5, 6C (SP)
+    LW        S4, 68 (SP)
+    LW        S3, 64 (SP)
+    LW        S2, 60 (SP)
+    LW        S1, 5C (SP)
+    LW        S0, 58 (SP)
+    JR        RA
+    ADDIU     SP, SP, 80
+}
+
+#new:Unknown $???_8024E8C0
+{
+    $Function_80241B34[E0] $Function_80241B34[110] $Function_80241B34[110] $Function_80241B34[D4] $Function_80241B34[D4] $Function_80241B34[D4] $Function_80241B34[110] $Function_80241B34[110]
+    $Function_80241B34[110] $Function_80241B34[110] $Function_80241B34[110] $Function_80241B34[110] $Function_80241B34[110] $Function_80241B34[E0] $Function_80241B34[110] $Function_80241B34[E8]
+}
+
+% Origin: HEURISTIC
+#new:JumpTable $JumpTable_8024E900
+{
+    $Function_80241B34[2B0] $Function_80241B34[2E4] $Function_80241B34[2E4] $Function_80241B34[2A4]
+    $Function_80241B34[2A4] $Function_80241B34[2A4] $Function_80241B34[2E4] $Function_80241B34[2E4]
+    $Function_80241B34[2E4] $Function_80241B34[2E4] $Function_80241B34[2E4] $Function_80241B34[2E4]
+    $Function_80241B34[2E4] $Function_80241B34[2B0] $Function_80241B34[2E4] $Function_80241B34[2BC]
+}
+
+% Origin: HEURISTIC
+#new:JumpTable $JumpTable_8024E940
+{
+    $Function_80241B34[3F4] $Function_80241B34[3A4] $Function_80241B34[3B8] $Function_80241B34[3CC]
+    $Function_80241B34[3E0] $Function_80241B34[3F4]
+}
+
+#new:Unknown $???_80242CD8
+{
+    00020001 00060001 000E0001 00030001 00080001 000A0001 000D0001 00130001
+    00140001 07000001 07060001 07080001 08020001 08040001 08060001 080A0001
+    080D0001 080E0001 08130001 08180001 09080001 0C0E0001 0C080001 0D060001
+    0D080001 0D0E0001 0D130001 12040001 12080001 13040001 14020001 14080001
+    140A0001 00000000
+}
+
+#new:Unknown $???_80242C70
+{
+    02070001 020A0001 03040001 070D0001 09040001 0C040001 0C0C0001 0C140001
+    0D030001 0D040001 0D0A0001 0D140001 0E0D0001 0E110001 11040001 110F0001
+    14020001 140D0001 140F0001 14120001 12020001 12070001 120F0001 15040001
+    16110001 00000000
+}
+
+#new:Function $Function_80240270
+{
+	ADDIU     SP, SP, FF40
+	SW        S1, 8C (SP)
+	COPY      S1, A0
+	SW        S0, 88 (SP)
+	COPY      S0, A1
+	CLEAR     A0
+	SW        RA, A0 (SP)
+	SW        S5, 9C (SP)
+	SW        S4, 98 (SP)
+	SW        S3, 94 (SP)
+	SW        S2, 90 (SP)
+	SDC1      F24, B8 (SP)
+	SDC1      F22, B0 (SP)
+	SDC1      F20, A8 (SP)
+	LWC1      F22, 10 (S0)
+	CVT.S.W   F22, F22
+	LIF       F20, 255.0
+	LW        V0, 1C (S1)
+	MFC1      A2, F20
+	LWC1      F24, 14 (S0)
+	CVT.S.W   F24, F24
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	CLEAR     A1
+	C.LT.S    F20, F0
+	NOP
+	BC1F      .o7C
+	ADDIU     S5, SP, 38
+	MOV.S     F0, F20
+	.o7C
+	LW        A0, 1C (S1)
+	LW        V1, 18 (S0)
+	ADDIU     V0, A0, FFFC
+	BNE       V1, V0, .oA8
+	ADDIU     V0, A0, FFFD
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, A
+	BEQ       R0, R0, .o114
+	ADDIU     A2, R0, 40
+	.oA8
+	BNE       V1, V0, .oC8
+	ADDIU     V0, A0, FFFE
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, A
+	BEQ       R0, R0, .o114
+	ADDIU     A2, R0, 60
+	.oC8
+	BNE       V1, V0, .oE8
+	ADDIU     V0, A0, FFFF
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, A
+	BEQ       R0, R0, .o114
+	ADDIU     A2, R0, 7F
+	.oE8
+	BNE       V1, V0, .o104
+	CLEAR     A0
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	ADDIU     A1, R0, A
+	BEQ       R0, R0, .o114
+	ADDIU     A2, R0, 50
+	.o104
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	.o114
+	COPY      A3, A2
+	COPY      V0, A2
+	SW        V0, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	SW        S5, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	LW        A3, C (S0)
+	JAL       8012E8E0
+	LUI       S4, 1
+	LBU       V0, A (S5)
+	LIF       F21, 1.75
+	MTC1      R0, F20
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F20
+	NOP
+	ORI       S4, S4, 1630
+	CVT.D.S   F2, F22
+	ADD.D     F2, F2, F0
+	ADDIU     S3, SP, 48
+	COPY      A0, S3
+	NEG.S     F24, F24
+	MFC1      A2, F24
+	CVT.S.D   F2, F2
+	MFC1      A1, F2
+	JAL       ~Func:guTranslateF
+	CLEAR     A3
+	COPY      A0, S3
+	LIA       S0, 800741F0
+	LIA       S2, 8009A674
+	LHU       A1, 0 (S0)
+	LW        V0, 0 (S2)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S4
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V0, DA380002
+	LIA       S1, 8009A66C
+	LW        A0, 0 (S1)
+	LHU       A1, 0 (S0)
+	COPY      A2, A0
+	SW        V0, 0 (A2)
+	ANDI      V0, A1, FFFF
+	SLL       V0, V0, 6
+	LW        V1, 0 (S2)
+	ADDU      V0, V0, S4
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (A2)
+	LW        V0, 0 (S5)
+	ADDIU     A0, A0, 8
+	SW        A0, 0 (S1)
+	SW        V0, 20 (SP)
+	LW        V0, 4 (S5)
+	ADDIU     A1, A1, 1
+	SH        A1, 0 (S0)
+	SW        V0, 24 (SP)
+	LBU       V0, 8 (S5)
+	SH        V0, 28 (SP)
+	LBU       V0, 9 (S5)
+	SH        V0, 2A (SP)
+	LBU       V0, A (S5)
+	COPY      A3, S3
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F20
+	NOP
+	CLEAR     A0
+	LIO       A2, 00050040
+	ADDIU     A1, SP, 20
+	SH        R0, 2E (SP)
+	ADDIU     V0, R0, FF
+	SB        V0, 30 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F4, F0
+	MFC1      V0, F4
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S1)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S1)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, A0 (SP)
+	LW        S5, 9C (SP)
+	LW        S4, 98 (SP)
+	LW        S3, 94 (SP)
+	LW        S2, 90 (SP)
+	LW        S1, 8C (SP)
+	LW        S0, 88 (SP)
+	LDC1      F24, B8 (SP)
+	LDC1      F22, B0 (SP)
+	LDC1      F20, A8 (SP)
+	JR        RA
+	ADDIU     SP, SP, C0
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240540
+{
+	ADDIU     SP, SP, FEF0
+	SW        S2, D0 (SP)
+	COPY      S2, A0
+	SW        S0, C8 (SP)
+	COPY      S0, A1
+	SW        RA, E0 (SP)
+	SW        S5, DC (SP)
+	SW        S4, D8 (SP)
+	SW        S3, D4 (SP)
+	SW        S1, CC (SP)
+	SDC1      F28, 108 (SP)
+	SDC1      F26, 100 (SP)
+	SDC1      F24, F8 (SP)
+	SDC1      F22, F0 (SP)
+	SDC1      F20, E8 (SP)
+	LWC1      F22, 10 (S0)
+	CVT.S.W   F22, F22
+	LUI       A1, 4180
+	LUI       A2, 4396
+	LW        V0, 1C (S2)
+	LWC1      F28, 14 (S0)
+	CVT.S.W   F28, F28
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, C
+	LIF       F2, 255.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o88
+	ADDIU     S1, SP, 38
+	MOV.S     F0, F2
+	.o88
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	COPY      A3, A2
+	COPY      S5, A2
+	SW        S5, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	LW        V0, 1C (S2)
+	LIO       A1, 3E4CCCCD
+	LUI       A2, 4000
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	CLEAR     A0
+	MOV.S     F20, F0
+	LIF       F25, 1.875
+	MTC1      R0, F24
+	CVT.D.S   F0, F20
+	C.LT.D    F24, F0
+	NOP
+	BC1F      .oFC
+	SW        S1, 10 (SP)
+	LIF       F20, 1.0
+	.oFC
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	JAL       8012E8E0
+	LW        A3, C (S0)
+	LBU       V0, 42 (SP)
+	LIF       F27, 1.75
+	MTC1      R0, F26
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F26
+	NOP
+	CVT.D.S   F2, F22
+	ADD.D     F2, F2, F0
+	ADDIU     S4, SP, 48
+	COPY      A0, S4
+	NEG.S     F28, F28
+	MFC1      A2, F28
+	CVT.S.D   F2, F2
+	MFC1      A1, F2
+	JAL       ~Func:guTranslateF
+	CLEAR     A3
+	CVT.D.S   F0, F20
+	C.EQ.D    F0, F24
+	NOP
+	BC1T      .o19C
+	LUI       S3, 1
+    ADDIU     S0, SP, 88
+    .o19C % ?
+	COPY      A0, S0
+	MFC1      A1, F20
+	LUI       A3, 3F80
+	JAL       ~Func:guScaleF
+	COPY      A2, A1
+	COPY      A0, S0
+	COPY      A1, S4
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S4
+	LIO       S3, 00011630
+	COPY      A0, S4
+	LIA       S1, 800741F0
+	LIA       S2, 8009A674
+	LHU       A1, 0 (S1)
+	LW        V0, 0 (S2)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S3
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V1, DA380002
+	CLEAR     A0
+	ADDIU     A1, SP, 20
+	ADDIU     A2, R0, 40
+	LIA       S0, 8009A66C
+	COPY      A3, S4
+	LW        V0, 0 (S0)
+	LHU       T0, 0 (S1)
+	COPY      T1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ANDI      V0, T0, FFFF
+	SLL       V0, V0, 6
+	ADDU      V0, V0, S3
+	SW        V1, 0 (T1)
+	LW        V1, 0 (S2)
+	ADDIU     T0, T0, 1
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (T1)
+	LBU       V0, 42 (SP)
+	LW        V1, 3C (SP)
+	LBU       T1, 40 (SP)
+	LBU       T2, 41 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	LW        V0, 38 (SP)
+	MUL.D     F0, F0, F26
+	NOP
+	SH        T0, 0 (S1)
+	SH        R0, 2E (SP)
+	SB        S5, 30 (SP)
+	SW        V1, 24 (SP)
+	SH        T1, 28 (SP)
+	SH        T2, 2A (SP)
+	SW        V0, 20 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F4, F0
+	MFC1      V0, F4
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S0)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, E0 (SP)
+	LW        S5, DC (SP)
+	LW        S4, D8 (SP)
+	LW        S3, D4 (SP)
+	LW        S2, D0 (SP)
+	LW        S1, CC (SP)
+	LW        S0, C8 (SP)
+	LDC1      F28, 108 (SP)
+	LDC1      F26, 100 (SP)
+	LDC1      F24, F8 (SP)
+	LDC1      F22, F0 (SP)
+	LDC1      F20, E8 (SP)
+	JR        RA
+	ADDIU     SP, SP, 110
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8024081C
+{
+	ADDIU     SP, SP, FEF0
+	SW        S2, D0 (SP)
+	COPY      S2, A0
+	SW        S0, C8 (SP)
+	COPY      S0, A1
+	SW        RA, E0 (SP)
+	SW        S5, DC (SP)
+	SW        S4, D8 (SP)
+	SW        S3, D4 (SP)
+	SW        S1, CC (SP)
+	SDC1      F28, 108 (SP)
+	SDC1      F26, 100 (SP)
+	SDC1      F24, F8 (SP)
+	SDC1      F22, F0 (SP)
+	SDC1      F20, E8 (SP)
+	LWC1      F24, 10 (S0)
+	CVT.S.W   F24, F24
+	LUI       A1, 4200
+	LUI       A2, 4396
+	LW        V0, 1C (S2)
+	LWC1      F28, 14 (S0)
+	CVT.S.W   F28, F28
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, C
+	LIF       F2, 255.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o88
+	ADDIU     S1, SP, 38
+	MOV.S     F0, F2
+	.o88
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	COPY      A3, A2
+	COPY      S5, A2
+	SW        S5, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	LW        V0, 1C (S2)
+	LUI       A1, C296
+	LUI       A2, 41F0
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	CLEAR     A0
+	MTC1      R0, F22
+	MOV.S     F20, F0
+	C.LE.S    F22, F20
+	NOP
+	BC1TL     .oE4
+	MOV.S     F20, F22
+	.oE4
+	SW        S1, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	JAL       8012E8E0
+	LW        A3, C (S0)
+	LBU       V0, 42 (SP)
+	LIF       F27, 1.75
+	MTC1      R0, F26
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F26
+	NOP
+	CVT.D.S   F2, F24
+	ADDIU     S4, SP, 48
+	NEG.S     F28, F28
+	ADD.D     F2, F2, F0
+	MFC1      A2, F28
+	MFC1      A3, F22
+	CVT.S.D   F2, F2
+	MFC1      A1, F2
+	JAL       ~Func:guTranslateF
+	COPY      A0, S4
+	C.EQ.S    F20, F22
+	NOP
+	BC1T      .o188
+	LUI       S3, 1
+    ADDIU     S0, SP, 88
+    .o188 % ?
+	MFC1      A1, F20
+	MFC1      A2, F22
+	LUI       A3, 3F80
+	COPY      A0, S0
+	JAL       ~Func:guRotateF
+	SW        A2, 10 (SP)
+	COPY      A0, S0
+	COPY      A1, S4
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S4
+	LIO       S3, 00011630
+	COPY      A0, S4
+	LIA       S1, 800741F0
+	LIA       S2, 8009A674
+	LHU       A1, 0 (S1)
+	LW        V0, 0 (S2)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S3
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V1, DA380002
+	CLEAR     A0
+	ADDIU     A1, SP, 20
+	LIO       A2, 00010040
+	LIA       S0, 8009A66C
+	COPY      A3, S4
+	LW        V0, 0 (S0)
+	LHU       T0, 0 (S1)
+	COPY      T1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ANDI      V0, T0, FFFF
+	SLL       V0, V0, 6
+	ADDU      V0, V0, S3
+	SW        V1, 0 (T1)
+	LW        V1, 0 (S2)
+	ADDIU     T0, T0, 1
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (T1)
+	LBU       V0, 42 (SP)
+	LW        V1, 3C (SP)
+	LBU       T1, 40 (SP)
+	LBU       T2, 41 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	LW        V0, 38 (SP)
+	MUL.D     F0, F0, F26
+	NOP
+	SH        T0, 0 (S1)
+	SH        R0, 2E (SP)
+	SB        S5, 30 (SP)
+	SW        V1, 24 (SP)
+	SH        T1, 28 (SP)
+	SH        T2, 2A (SP)
+	SW        V0, 20 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F4, F0
+	MFC1      V0, F4
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S0)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, E0 (SP)
+	LW        S5, DC (SP)
+	LW        S4, D8 (SP)
+	LW        S3, D4 (SP)
+	LW        S2, D0 (SP)
+	LW        S1, CC (SP)
+	LW        S0, C8 (SP)
+	LDC1      F28, 108 (SP)
+	LDC1      F26, 100 (SP)
+	LDC1      F24, F8 (SP)
+	LDC1      F22, F0 (SP)
+	LDC1      F20, E8 (SP)
+	JR        RA
+	ADDIU     SP, SP, 110
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240AE8
+{
+	ADDIU     SP, SP, FEF0
+	SW        S0, C8 (SP)
+	COPY      S0, A0
+	SW        S1, CC (SP)
+	COPY      S1, A1
+	SW        S6, E0 (SP)
+	ADDIU     S6, R0, 40
+	SW        RA, E4 (SP)
+	SW        S5, DC (SP)
+	SW        S4, D8 (SP)
+	SW        S3, D4 (SP)
+	SW        S2, D0 (SP)
+	SDC1      F28, 108 (SP)
+	SDC1      F26, 100 (SP)
+	SDC1      F24, F8 (SP)
+	SDC1      F22, F0 (SP)
+	SDC1      F20, E8 (SP)
+	LWC1      F0, 10 (S1)
+	CVT.S.W   F0, F0
+	LW        V0, 68 (S0)
+	LW        V1, 14 (S0)
+	MFC1      A2, F0
+	LW        A3, 1C (S0)
+	ADDU      V0, V0, V1
+	ADDIU     V0, V0, FFF0
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	LW        V1, 6C (S0)
+	MFC1      A1, F4
+	SW        A3, 10 (SP)
+	LW        A3, 18 (S1)
+	ADDIU     V1, V1, 3C
+	MTC1      V1, F20
+	NOP
+	CVT.S.W   F20, F20
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, A
+	LWC1      F2, 14 (S1)
+	CVT.S.W   F2, F2
+	MFC1      A1, F20
+	MFC1      A2, F2
+	LW        V0, 1C (S0)
+	ADDIU     A0, R0, 5
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S1)
+	JAL       ~Func:update_lerp
+	MOV.S     F20, F0
+	ADDIU     S5, SP, 38
+	LW        V0, 18 (S1)
+	LW        V1, 1C (S0)
+	BNE       V0, V1, .oE0
+	MOV.S     F28, F0
+	MTC1      R0, F22
+	BEQ       R0, R0, .oFC
+	NOP
+	.oE0
+	SUBU      V1, V1, V0
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 1
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	.oFC
+	LW        V0, 1C (S0)
+	LUI       A1, 4000
+	LUI       A2, 3F80
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S1)
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, 4
+	LW        V0, 18 (S1)
+	LW        A0, 1C (S0)
+	BNE       V0, A0, .o154
+	MOV.S     F26, F0
+	CLEAR     A0
+	COPY      A1, A0
+	COPY      A2, A0
+	COPY      A3, A0
+	SW        R0, 10 (SP)
+	SW        R0, 14 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	LUI       V0, 1
+	BEQ       R0, R0, .o1B0
+	OR        S6, S6, V0
+	.o154
+	LUI       A1, 4180
+	LUI       A2, 4396
+	SW        A0, 10 (SP)
+	LW        A3, 18 (S1)
+	JAL       ~Func:update_lerp
+	CLEAR     A0
+	LIF       F2, 255.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1TL     .o188
+	MOV.S     F0, F2
+	.o188
+	TRUNC.W.S F4, F0
+	SWC1      F4, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	COPY      A3, A2
+	COPY      V0, A2
+	SW        V0, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	.o1B0
+	SW        S5, 10 (SP)
+	LW        A0, 4 (S1)
+	LW        A1, 8 (S1)
+	LW        A2, 0 (S1)
+	LW        A3, C (S1)
+	JAL       8012E8E0
+	LUI       S4, 1
+	LBU       V0, A (S5)
+	LIF       F25, 1.75
+	MTC1      R0, F24
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F24
+	NOP
+	ORI       S4, S4, 1630
+	CVT.D.S   F2, F20
+	ADDIU     S1, SP, 48
+	NEG.S     F28, F28
+	MTC1      R0, F20
+	ADD.D     F2, F2, F0
+	MFC1      A2, F28
+	MFC1      A3, F20
+	CVT.S.D   F2, F2
+	MFC1      A1, F2
+	JAL       ~Func:guTranslateF
+	COPY      A0, S1
+	ADDIU     S0, SP, 88
+	MFC1      A1, F22
+	LIF       F22, 1.0
+	MFC1      A2, F20
+	LIO       AT, 3E4CCCCD
+	MTC1      AT, F0
+	MFC1      A3, F22
+	COPY      A0, S0
+	JAL       ~Func:guRotateF
+	SWC1      F0, 10 (SP)
+	COPY      A0, S0
+	COPY      A1, S1
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S1
+	COPY      A0, S0
+	MFC1      A1, F26
+	MFC1      A3, F22
+	JAL       ~Func:guScaleF
+	COPY      A2, A1
+	COPY      A0, S0
+	COPY      A1, S1
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S1
+	COPY      A0, S1
+	LIA       S0, 800741F0
+	LIA       S3, 8009A674
+	LHU       A1, 0 (S0)
+	LW        V0, 0 (S3)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S4
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V0, DA380002
+	LIA       S2, 8009A66C
+	LW        A0, 0 (S2)
+	LHU       A1, 0 (S0)
+	COPY      A2, A0
+	SW        V0, 0 (A2)
+	ANDI      V0, A1, FFFF
+	SLL       V0, V0, 6
+	LW        V1, 0 (S3)
+	ADDU      V0, V0, S4
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (A2)
+	LW        V0, 0 (S5)
+	ADDIU     A0, A0, 8
+	SW        A0, 0 (S2)
+	SW        V0, 20 (SP)
+	LW        V0, 4 (S5)
+	ADDIU     A1, A1, 1
+	SH        A1, 0 (S0)
+	SW        V0, 24 (SP)
+	LBU       V0, 8 (S5)
+	SH        V0, 28 (SP)
+	LBU       V0, 9 (S5)
+	SH        V0, 2A (SP)
+	LBU       V0, A (S5)
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F24
+	NOP
+	COPY      A3, S1
+	CLEAR     A0
+	COPY      A2, S6
+	ADDIU     A1, SP, 20
+	SH        R0, 2E (SP)
+	ADDIU     V0, R0, FF
+	SB        V0, 30 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F4, F0
+	MFC1      V0, F4
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S2)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S2)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, E4 (SP)
+	LW        S6, E0 (SP)
+	LW        S5, DC (SP)
+	LW        S4, D8 (SP)
+	LW        S3, D4 (SP)
+	LW        S2, D0 (SP)
+	LW        S1, CC (SP)
+	LW        S0, C8 (SP)
+	LDC1      F28, 108 (SP)
+	LDC1      F26, 100 (SP)
+	LDC1      F24, F8 (SP)
+	LDC1      F22, F0 (SP)
+	LDC1      F20, E8 (SP)
+	JR        RA
+	ADDIU     SP, SP, 110
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240EB0
+{
+	ADDIU     SP, SP, FF90
+	SW        S0, 48 (SP)
+	COPY      S0, A1
+	SW        RA, 50 (SP)
+	SW        S1, 4C (SP)
+	SDC1      F24, 68 (SP)
+	SDC1      F22, 60 (SP)
+	SDC1      F20, 58 (SP)
+	LW        V0, 1C (A0)
+	CLEAR     A0
+	CLEAR     A1
+	LWC1      F20, 10 (S0)
+	CVT.S.W   F20, F20
+	LUI       A2, 437F
+	LWC1      F22, 14 (S0)
+	CVT.S.W   F22, F22
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     S1, SP, 38
+	SW        S1, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	LW        A3, C (S0)
+	JAL       8012E8E0
+	MOV.S     F24, F0
+	TRUNC.W.S F2, F20
+	MFC1      V0, F2
+	LBU       A1, 40 (SP)
+	LBU       A2, 41 (SP)
+	SLL       V0, V0, 10
+	SW        R0, 10 (SP)
+	LW        V1, 3C (SP)
+	SRA       V0, V0, 10
+	SW        V0, 18 (SP)
+	TRUNC.W.S F2, F22
+	MFC1      V0, F2
+	NOP
+	SLL       V0, V0, 10
+	LIF       F0, 2.14748365E9
+	SRA       V0, V0, 10
+	SW        V0, 1C (SP)
+	ADDIU     V0, R0, A
+	SW        V0, 20 (SP)
+	ADDIU     V0, R0, 14
+	SW        V0, 24 (SP)
+	ADDIU     V0, R0, 12C
+	SW        V0, 28 (SP)
+	ADDIU     V0, R0, C8
+	SW        V0, 2C (SP)
+	C.LE.S    F0, F24
+	NOP
+	BC1T      .oF0
+	SW        V1, 14 (SP)
+	TRUNC.W.S F2, F24
+	MFC1      V1, F2
+	BEQ       R0, R0, .o10C
+	ANDI      V0, V1, FF
+	.oF0
+	SUB.S     F0, F24, F0
+	LUI       V0, 8000
+	TRUNC.W.S F2, F0
+	MFC1      V1, F2
+	NOP
+	OR        V1, V1, V0
+	ANDI      V0, V1, FF
+	.o10C
+	SW        V0, 30 (SP)
+	LW        A0, 0 (S1)
+	JAL       8012E9A0
+	ADDIU     A3, R0, 2
+	LW        RA, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	LDC1      F24, 68 (SP)
+	LDC1      F22, 60 (SP)
+	LDC1      F20, 58 (SP)
+	JR        RA
+	ADDIU     SP, SP, 70
+}
+
+#new:Function $Function_802411CC
+{
+	ADDIU     SP, SP, FFA0
+	COPY      V0, A1
+	ADDIU     V1, SP, 38
+	SW        RA, 48 (SP)
+	SDC1      F22, 58 (SP)
+	SDC1      F20, 50 (SP)
+	LWC1      F20, 10 (V0)
+	CVT.S.W   F20, F20
+	LWC1      F22, 14 (V0)
+	CVT.S.W   F22, F22
+	SW        V1, 10 (SP)
+	LW        A0, 4 (V0)
+	LW        A1, 8 (V0)
+	LW        A2, 0 (V0)
+	JAL       8012E8E0
+	LW        A3, C (V0)
+	TRUNC.W.S F0, F20
+	MFC1      V0, F0
+	LBU       A1, 40 (SP)
+	LBU       A2, 41 (SP)
+	SLL       V0, V0, 10
+	SW        R0, 10 (SP)
+	LW        V1, 3C (SP)
+	SRA       V0, V0, 10
+	SW        V0, 18 (SP)
+	TRUNC.W.S F0, F22
+	MFC1      V0, F0
+	NOP
+	SLL       V0, V0, 10
+	SRA       V0, V0, 10
+	SW        V0, 1C (SP)
+	ADDIU     V0, R0, A
+	SW        V0, 20 (SP)
+	ADDIU     V0, R0, 14
+	SW        V0, 24 (SP)
+	ADDIU     V0, R0, 12C
+	SW        V0, 28 (SP)
+	ADDIU     V0, R0, C8
+	SW        V0, 2C (SP)
+	ADDIU     V0, R0, FF
+	SW        V0, 30 (SP)
+	SW        V1, 14 (SP)
+	LW        A0, 38 (SP)
+	JAL       8012E9A0
+	ADDIU     A3, R0, 2
+	LW        RA, 48 (SP)
+	LDC1      F22, 58 (SP)
+	LDC1      F20, 50 (SP)
+	JR        RA
+	ADDIU     SP, SP, 60
+}
+
+#new:Function $Function_802414CC
+{
+	ADDIU     SP, SP, FEE8
+	SW        S1, CC (SP)
+	COPY      S1, A0
+	SW        S0, C8 (SP)
+	COPY      S0, A1
+	SW        RA, E0 (SP)
+	SW        S5, DC (SP)
+	SW        S4, D8 (SP)
+	SW        S3, D4 (SP)
+	SW        S2, D0 (SP)
+	SDC1      F30, 110 (SP)
+	SDC1      F28, 108 (SP)
+	SDC1      F26, 100 (SP)
+	SDC1      F24, F8 (SP)
+	SDC1      F22, F0 (SP)
+	SDC1      F20, E8 (SP)
+	LWC1      F20, 10 (S0)
+	CVT.S.W   F20, F20
+	MTC1      R0, F28
+	LUI       A1, 437F
+	LW        V0, 50 (S1)
+	MFC1      A2, F28
+	LWC1      F30, 14 (S0)
+	CVT.S.W   F30, F30
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, B
+	TRUNC.W.S F2, F0
+	SWC1      F2, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	COPY      A3, A2
+	COPY      S5, A2
+	SW        S5, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	LIF       F26, 1.0
+	LW        V0, 50 (S1)
+	LIO       A2, 3E4CCCCD
+	MFC1      A1, F26
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	CLEAR     A0
+	ADDIU     V0, SP, 38
+	SW        V0, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	LW        A3, C (S0)
+	JAL       8012E8E0
+	MOV.S     F22, F0
+	LBU       V0, 42 (SP)
+	LIF       F25, 1.75
+	MTC1      R0, F24
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F24
+	NOP
+	LIO       S4, 00011630
+	CVT.D.S   F20, F20
+	ADDIU     S1, SP, 48
+	NEG.S     F30, F30
+	ADD.D     F20, F20, F0
+	MFC1      A2, F30
+	MFC1      A3, F28
+	CVT.S.D   F20, F20
+	MFC1      A1, F20
+	JAL       ~Func:guTranslateF
+	COPY      A0, S1
+	ADDIU     S0, SP, 88
+	COPY      A0, S0
+	MFC1      A1, F22
+	MFC1      A3, F26
+	JAL       ~Func:guScaleF
+	COPY      A2, A1
+	COPY      A0, S0
+	COPY      A1, S1
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S1
+	COPY      A0, S1
+	LIA       S2, 800741F0
+	LIA       S3, 8009A674
+	LHU       A1, 0 (S2)
+	LW        V0, 0 (S3)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S4
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V1, DA380002
+	CLEAR     A0
+	ADDIU     A1, SP, 20
+	ADDIU     A2, R0, 40
+	LIA       S0, 8009A66C
+	COPY      A3, S1
+	LW        V0, 0 (S0)
+	LHU       T0, 0 (S2)
+	COPY      T1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ANDI      V0, T0, FFFF
+	SLL       V0, V0, 6
+	ADDU      V0, V0, S4
+	SW        V1, 0 (T1)
+	LW        V1, 0 (S3)
+	ADDIU     T0, T0, 1
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (T1)
+	LBU       V0, 42 (SP)
+	LW        V1, 3C (SP)
+	LBU       T1, 40 (SP)
+	LBU       T2, 41 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	LW        V0, 38 (SP)
+	MUL.D     F0, F0, F24
+	NOP
+	SH        T0, 0 (S2)
+	SH        R0, 2E (SP)
+	SB        S5, 30 (SP)
+	SW        V1, 24 (SP)
+	SH        T1, 28 (SP)
+	SH        T2, 2A (SP)
+	SW        V0, 20 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F2, F0
+	MFC1      V0, F2
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S0)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, E0 (SP)
+	LW        S5, DC (SP)
+	LW        S4, D8 (SP)
+	LW        S3, D4 (SP)
+	LW        S2, D0 (SP)
+	LW        S1, CC (SP)
+	LW        S0, C8 (SP)
+	LDC1      F30, 110 (SP)
+	LDC1      F28, 108 (SP)
+	LDC1      F26, 100 (SP)
+	LDC1      F24, F8 (SP)
+	LDC1      F22, F0 (SP)
+	LDC1      F20, E8 (SP)
+	JR        RA
+	ADDIU     SP, SP, 118
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80241768
+{
+	ADDIU     SP, SP, FEF0
+	SW        S1, CC (SP)
+	COPY      S1, A0
+	SW        S0, C8 (SP)
+	COPY      S0, A1
+	SW        RA, E0 (SP)
+	SW        S5, DC (SP)
+	SW        S4, D8 (SP)
+	SW        S3, D4 (SP)
+	SW        S2, D0 (SP)
+	SDC1      F28, 108 (SP)
+	SDC1      F26, 100 (SP)
+	SDC1      F24, F8 (SP)
+	SDC1      F22, F0 (SP)
+	SDC1      F20, E8 (SP)
+	LWC1      F20, 10 (S0)
+	CVT.S.W   F20, F20
+	MTC1      R0, F22
+	LUI       A1, 437F
+	LW        V0, 50 (S1)
+	MFC1      A2, F22
+	LWC1      F28, 14 (S0)
+	CVT.S.W   F28, F28
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     A0, R0, B
+	TRUNC.W.S F2, F0
+	SWC1      F2, 14 (SP)
+	CLEAR     A0
+	ADDIU     A1, R0, 7
+	ADDIU     A2, R0, FF
+	COPY      A3, A2
+	COPY      S5, A2
+	SW        S5, 10 (SP)
+	JAL       8013AA9C
+	SW        R0, 18 (SP)
+	LW        V0, 50 (S1)
+	MFC1      A1, F22
+	LUI       A2, 4270
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	CLEAR     A0
+	ADDIU     V0, SP, 38
+	SW        V0, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	LW        A3, C (S0)
+	JAL       8012E8E0
+	MOV.S     F24, F0
+	LBU       V0, 42 (SP)
+	LIF       F27, 1.75
+	MTC1      R0, F26
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	MUL.D     F0, F0, F26
+	NOP
+	LIO       S4, 00011630
+	CVT.D.S   F20, F20
+	ADDIU     S1, SP, 48
+	NEG.S     F28, F28
+	ADD.D     F20, F20, F0
+	MFC1      A2, F28
+	MFC1      A3, F22
+	CVT.S.D   F20, F20
+	MFC1      A1, F20
+	JAL       ~Func:guTranslateF
+	COPY      A0, S1
+	ADDIU     S0, SP, 88
+	MFC1      A1, F24
+	MFC1      A2, F22
+	LUI       A3, 3F80
+	COPY      A0, S0
+	JAL       ~Func:guRotateF
+	SW        A2, 10 (SP)
+	COPY      A0, S0
+	COPY      A1, S1
+	JAL       ~Func:guMtxCatF
+	COPY      A2, S1
+	COPY      A0, S1
+	LIA       S2, 800741F0
+	LIA       S3, 8009A674
+	LHU       A1, 0 (S2)
+	LW        V0, 0 (S3)
+	SLL       A1, A1, 6
+	ADDU      A1, A1, S4
+	JAL       ~Func:guMtxF2L
+	ADDU      A1, V0, A1
+	LIO       V1, DA380002
+	CLEAR     A0
+	ADDIU     A1, SP, 20
+	LIO       A2, 00010040
+	LIA       S0, 8009A66C
+	COPY      A3, S1
+	LW        V0, 0 (S0)
+	LHU       T0, 0 (S2)
+	COPY      T1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ANDI      V0, T0, FFFF
+	SLL       V0, V0, 6
+	ADDU      V0, V0, S4
+	SW        V1, 0 (T1)
+	LW        V1, 0 (S3)
+	ADDIU     T0, T0, 1
+	ADDU      V1, V1, V0
+	LUI       V0, 8000
+	ADDU      V1, V1, V0
+	SW        V1, 4 (T1)
+	LBU       V0, 42 (SP)
+	LW        V1, 3C (SP)
+	LBU       T1, 40 (SP)
+	LBU       T2, 41 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	LW        V0, 38 (SP)
+	MUL.D     F0, F0, F26
+	NOP
+	SH        T0, 0 (S2)
+	SH        R0, 2E (SP)
+	SB        S5, 30 (SP)
+	SW        V1, 24 (SP)
+	SH        T1, 28 (SP)
+	SH        T2, 2A (SP)
+	SW        V0, 20 (SP)
+	NEG.D     F0, F0
+	TRUNC.W.D F2, F0
+	MFC1      V0, F2
+	JAL       8013AF70
+	SH        V0, 2C (SP)
+	LUI       A0, D838
+	LW        V0, 0 (S0)
+	ORI       A0, A0, 2
+	COPY      V1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (S0)
+	ADDIU     V0, R0, 40
+	SW        A0, 0 (V1)
+	SW        V0, 4 (V1)
+	LW        RA, E0 (SP)
+	LW        S5, DC (SP)
+	LW        S4, D8 (SP)
+	LW        S3, D4 (SP)
+	LW        S2, D0 (SP)
+	LW        S1, CC (SP)
+	LW        S0, C8 (SP)
+	LDC1      F28, 108 (SP)
+	LDC1      F26, 100 (SP)
+	LDC1      F24, F8 (SP)
+	LDC1      F22, F0 (SP)
+	LDC1      F20, E8 (SP)
+	JR        RA
+	ADDIU     SP, SP, 110
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_802419F8
+{
+	ADDIU     SP, SP, FF90
+	SW        S0, 48 (SP)
+	COPY      S0, A1
+	SW        RA, 50 (SP)
+	SW        S1, 4C (SP)
+	SDC1      F24, 68 (SP)
+	SDC1      F22, 60 (SP)
+	SDC1      F20, 58 (SP)
+	LW        V0, 50 (A0)
+	ADDIU     A0, R0, B
+	CLEAR     A2
+	LWC1      F20, 10 (S0)
+	CVT.S.W   F20, F20
+	LUI       A1, 437F
+	LWC1      F22, 14 (S0)
+	CVT.S.W   F22, F22
+	SW        V0, 10 (SP)
+	LW        A3, 18 (S0)
+	JAL       ~Func:update_lerp
+	ADDIU     S1, SP, 38
+	SW        S1, 10 (SP)
+	LW        A0, 4 (S0)
+	LW        A1, 8 (S0)
+	LW        A2, 0 (S0)
+	LW        A3, C (S0)
+	JAL       8012E8E0
+	MOV.S     F24, F0
+	TRUNC.W.S F2, F20
+	MFC1      V0, F2
+	LBU       A1, 40 (SP)
+	LBU       A2, 41 (SP)
+	SLL       V0, V0, 10
+	SW        R0, 10 (SP)
+	LW        V1, 3C (SP)
+	SRA       V0, V0, 10
+	SW        V0, 18 (SP)
+	TRUNC.W.S F2, F22
+	MFC1      V0, F2
+	NOP
+	SLL       V0, V0, 10
+	LIF       F0, 2.14748365E9
+	SRA       V0, V0, 10
+	SW        V0, 1C (SP)
+	ADDIU     V0, R0, A
+	SW        V0, 20 (SP)
+	ADDIU     V0, R0, 14
+	SW        V0, 24 (SP)
+	ADDIU     V0, R0, 12C
+	SW        V0, 28 (SP)
+	ADDIU     V0, R0, C8
+	SW        V0, 2C (SP)
+	C.LE.S    F0, F24
+	NOP
+	BC1T      .oF0
+	SW        V1, 14 (SP)
+	TRUNC.W.S F2, F24
+	MFC1      V1, F2
+	BEQ       R0, R0, .o10C
+	ANDI      V0, V1, FF
+	.oF0
+	SUB.S     F0, F24, F0
+	LUI       V0, 8000
+	TRUNC.W.S F2, F0
+	MFC1      V1, F2
+	NOP
+	OR        V1, V1, V0
+	ANDI      V0, V1, FF
+	.o10C
+	SW        V0, 30 (SP)
+	LW        A0, 0 (S1)
+	JAL       8012E9A0
+	ADDIU     A3, R0, 2
+	LW        RA, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	LDC1      F24, 68 (SP)
+	LDC1      F22, 60 (SP)
+	LDC1      F20, 58 (SP)
+	JR        RA
+	ADDIU     SP, SP, 70
+}

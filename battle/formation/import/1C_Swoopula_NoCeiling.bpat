@@ -1,0 +1,57 @@
+% The same as 1C_Swoopula this one just never appear on the Ceiling
+
+#new:Actor $1C_Swoopula_NoCeiling
+{
+% stats
+[Index]        3Ab 
+[Level]        22`b 
+[MaxHP]         8`b 
+[Coins]         1`b 
+[Flags]       00000204 % Hide Shadow
+[StatusTable] $StatusTable_8021B86C_1C 
+% ai
+[PartsCount]   1`s 
+[PartsTable] $PartsTable_Swoopula 
+[Script]      $Script_Init_Swoopula 
+% move effectiveness
+[Escape]       30`b 
+[Item]         70`b 
+[AirLift]      95`b 
+[Hurricane]    95`b % Bow's "Spook" as well
+[UpAndAway]    95`b 
+[PowerBounce]  80`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         31`b  24`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]   7`b 18`b % dx dy
+[StatusIcon]   7`b 18`b % dx dy
+}
+
+#new:PartsTable $PartsTable_Swoopula
+{
+00800000 01000000 001300FF $IdleAnimations_Flying $DefenseTable_8021B860_1C 00000000 00000000 01F10000 00000000 
+}
+
+#new:IdleAnimations $IdleAnimations_Flying % All animations overwrited by the animation when he's flying
+{
+.Status:Normal    00340102
+.Status:Stone     00340101
+.Status:Sleep     00340113
+.Status:Poison    00340102
+.Status:Stop      00340101
+.Status:Static    00340102
+.Status:Paralyze  00340101
+.Status:Dizzy     00340114
+.Status:Fear      00340114
+}
+
+#new:Script $Script_Init_Swoopula
+{
+Call     SetActorVar 	( .Actor:Self 00000008 00000001 )	% This one is the only line changed from 0 to 1
+Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_8021E7B4_1C )
+Call     BindIdle    	( .Actor:Self $Script_Idle_8021BA60_1C )
+Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_8021C414_1C )
+Return
+End
+}

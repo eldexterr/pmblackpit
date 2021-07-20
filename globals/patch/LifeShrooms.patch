@@ -1,0 +1,273 @@
+% 	This patch add 3 new Life Shrooms to the game
+
+% 8010F293 - Max HP
+% 8010F296 - Max FP
+% 80287B03 = Icon to print when Life Shroom is reviving Mario
+
+%This Hook check what type of LS Mario have in his inventory
+@Hook 173EAC % 802455CC
+{
+% Is the Golden Life Shroom activated?
+PUSH    RA, A0, A1, A2, A3, V0
+LIO     A1, *Flag_GoldenLS
+JAL     ~Func:get_variable
+NOP
+COPY    T0, V0 % mode golden flag to T0
+POP     RA, A0, A1, A2, A3, V0
+PUSH	RA
+BNE     T0, R0, .GoldenShroom
+NOP
+LABU	T0, 8010F2A4			% Load Current Shroom
+ADDIU	T1, R0, 2
+%	The player have an Ultra Life Shroom?
+BEQ		T0, T1, .UltraShroom
+NOP
+ADDIU	T1, R0, 1
+%	The player have an FP Life Shroom?
+BEQ		T0, T1, .FPShroom
+NOP
+ADDIU	T0, R0, 95
+SAB		T0, 80287B03
+JAL		~Func:find_item
+ADDIU	A0, R0, 0095	% Life Shroom
+BEQ		R0, R0, .End
+NOP
+.FPShroom
+ADDIU	T0, R0, A0
+SAB		T0, 80287B03
+JAL		~Func:find_item
+ADDIU	A0, R0, 00A0	% Life Shroom FP
+BEQ		R0, R0, .End
+NOP
+.UltraShroom
+ADDIU	T0, R0, 9F
+SAB		T0, 80287B03
+JAL		~Func:find_item
+ADDIU	A0, R0, 009F	% Ultra Life Shroom
+BEQ		R0, R0, .End
+NOP
+.GoldenShroom
+ADDIU	T0, R0, 000B % Golden Life Shroom
+SAB		T0, 80287B03
+ORI     V0, R0, 1
+.End
+POP		RA
+J		802455D4		
+NOP
+}
+
+%This Hook remove the following item after being used
+@Hook 18FB20 % 80261240
+{
+% Is the Golden Life Shroom activated?
+PUSH    RA, A0, A1, A2, A3, V0
+LIO     A1, *Flag_GoldenLS
+JAL     ~Func:get_variable
+NOP
+COPY    T0, V0 % mode golden flag to T0
+POP     RA, A0, A1, A2, A3, V0
+PUSH	RA
+BNEL    T0, R0, .End
+ORI     V0, R0, -1` % don't remove any item from inventory
+LABU	T0, 8010F2A4			% Load Current Shroom
+ADDIU	T1, R0, 2
+%	The player have an Ultra Life Shroom?
+BEQ		T0, T1, .UltraShroom
+NOP
+ADDIU	T1, R0, 1
+%	The player have an FP Life Shroom?
+BEQ		T0, T1, .FPShroom
+NOP
+JAL		~Func:find_item
+ADDIU	A0, R0, 0095	% Life Shroom
+BEQ		R0, R0, .End
+NOP
+.FPShroom
+JAL		~Func:find_item
+ADDIU	A0, R0, 00A0	% Life Shroom FP
+BEQ		R0, R0, .End
+NOP
+.UltraShroom
+JAL		~Func:find_item
+ADDIU	A0, R0, 009F	% Ultra Life Shroom
+.End
+POP		RA
+J		80261248
+NOP
+}
+
+% Hook mostly finded by Brotenko
+% This hook revives mario
+@Hook 18FAF8 % 80261218
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+LIO     A1, *Flag_GoldenLS
+JAL     ~Func:get_variable
+NOP
+COPY    T0, V0 % copy golden flag to T0
+POP     RA, A0, A1, A2, A3, V0, V1
+PUSH    RA, A0, A1, A2, A3, V0, V1, T1, T2, S0
+BNE     T0, R0, .GoldenShroom
+NOP
+LABU	T1, 8010F2A4			% Load Current Shroom
+ADDIU	T2, R0, 2
+%	The player have an Ultra Life Shroom?
+BEQ		T1, T2, .UltraShroom
+NOP
+ADDIU	T2, R0, 1
+%	The player have an FP Life Shroom?
+BEQ		T1, T2, .FPShroom
+NOP
+%	Vanilla Life Shroom
+ADDU	V0, V0, V1
+BEQ		R0, R0, .End
+SB		V0, 0002 (A0)		% Vanilla Code
+%	Life Shroom FP
+.FPShroom
+ADDIU	T0, R0, 5			% Set Mario HP to 5
+SAB		T0, 8010F292
+LABU	T0, 8010F296
+SAB		T0, 8010F295		% Fully restore Mario FP after reviving
+BEQ		R0, R0, .End
+NOP
+%	Ultra Life Shroom
+.UltraShroom
+LABU	T0, 8010F293		% Fully Heal Mario after reviving
+BEQ     R0, R0, .End
+SB		T0, 0002 (A0)
+% Golden Life Shroom
+.GoldenShroom
+LABU    T0, 8010F293 % max hp
+SAB     T0, 8010F292 % current hp
+LABU    T0, 8010F296 % max fp
+SAB     T0, 8010F295 % current fp
+.End
+POP     RA, A0, A1, A2, A3, V0, V1, T1, T2, S0
+J		80261220
+NOP
+}
+
+%This function set the HP value inside the flying Heart when Mario get revived by a Life Shroom
+@Hook 18FB3C % 8026125C
+{
+PUSH    RA, A0, A1, A2, A3, V0, V1
+LIO     A1, *Flag_GoldenLS
+JAL     ~Func:get_variable
+NOP
+COPY    T0, V0 % mode golden flag to T0
+POP     RA, A0, A1, A2, A3, V0, V1
+PUSH	RA, A0, A1, A2, A3, V0, V1, T0, T1, S2
+BNE     T0, R0, .GoldenShroom % true
+NOP
+LABU	T0, 8010F2A4		% Load Current Shroom
+ADDIU	T1, R0, 2
+BEQ		T0, T1, .UltraShroom
+NOP
+ADDIU	T1, R0, 1
+BEQ		T0, T1, .FPShroom
+NOP
+BEQ		R0, R0, .End
+SW		V1, 0090 (S2)		% Vanilla Code
+.UltraShroom
+LABU	V1, 8010F293
+BEQ		R0, R0, .End
+SW		V1, 0090 (S2)		% Ultra Shroom
+.FPShroom
+CLEAR	A2
+LIA		A0, $Script_Flying_Flower
+JAL		~Func:start_script
+ADDIU	A1, R0, 1 % This line looks like is unneccesary
+ADDIU	V1, R0, 5
+BEQ		R0, R0, .End
+SW		V1, 0090 (S2)		% FP Shroom
+.GoldenShroom
+% HP
+LABU	V1, 8010F293
+SW		V1, 0090 (S2)
+% FP
+CLEAR	A2
+LIA		A0, $Script_Flying_Flower
+JAL		~Func:start_script
+ADDIU	A1, R0, 1 % This line looks like is unneccesary
+.End
+POP		RA, A0, A1, A2, A3, V0, V1, T0, T1, S2
+J		80261264
+LW		RA, 001C (SP)
+}
+
+#new:Script:Battle $Script_Flying_Flower
+{
+Call	GetActorPos ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+Add		*Var[0] 15
+Call 	$ReadAddress ( 8010F296 0 *Var[3] .False .False )
+Call	PlayEffect ( ~FX:Recover:FP *Var[0] *Var[1] *Var[2] *Var[3] 0 0 0 0 0 0 0 0 )
+If *Flag_GoldenLS == .True
+    If  *PitFlag == .True    
+        Set *Flag_GoldenLS3 .True % the golden ls was used inside the pit, lock the leaderboards on this playthrough
+    EndIf
+EndIf
+Return
+End
+}
+
+% Using the new Life Shrooms inside the overworld
+@Hook 325554 % 802C0384
+{
+    % A1 = itemID
+    ORI     T0, R0, 009F % Ultra LS
+    BEQ     A1, T0, .ULS
+    ORI     T0, R0, 00A0 % FP LS
+    BNE     A1, T0, .SkipNewLS
+    NOP
+    .FPLS
+    ORI     V1, R0, 5 % HP to give
+    SW	    V1, 00B0 (S0)
+    LABU    V1, 8010F296 % Give Max FP
+    BEQ     R0, R0, .End
+    RESERVED
+    .ULS
+    LABU    V1, 8010F293 % Give Max HP
+    SW	    V1, 00B0 (S0)
+    BEQ     R0, R0, .End
+    CLEAR   V1 % don't give any FP
+    .SkipNewLS
+    % vanilla code
+    LB	    V1, 001B (V0) % load hp to give
+    SW	    V1, 00B0 (S0)
+    LB	    V1, 001C (V0) % load fp to give
+    .End
+    J       802C0390
+    NOP
+}
+
+% Eating one of the new Life Shrooms inside battle
+@Hook 73369C % 802A15CC
+{
+    % A1 = itemID
+    ORI     T0, R0, A0 % LS FP
+    BEQ     A1, T0, .SaveHP
+    ORI     V1, R0, 5
+    ORI     T0, R0, 9F % LS Ultra
+    LABU    V1, 8010F294 % load max HP
+    BEQ     A1, T0, .SaveHP
+    NOP
+    .IsntANewLifeShroom_HP
+    LB	    V1, 001B (V0) % load HP to restore
+    .SaveHP
+    SW	    V1, 00B0 (S0) % save HP to restore
+    %==FP===
+    ORI     T0, R0, A0 % LS FP
+    LABU    V1, 8010F296 % load max FP
+    BEQ     A1, T0, .SaveFP
+    NOP
+    ORI     T0, R0, 9F % LS Ultra
+    BEQ     A1, T0, .SaveFP
+    CLEAR   V1
+    .IsntANewLifeShroom_FP
+    LB	    V1, 001C (V0) % load FP to restore
+    .SaveFP
+    SW	    R0, 00B8 (S0) % ?
+    SW	    V1, 00B4 (S0) % save FP to restore
+    J       802A15E0
+    NOP
+}

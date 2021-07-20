@@ -1,0 +1,31 @@
+% Misc functions for the Maze maps
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	% World Fog
+	JAL       ~Func:enable_world_fog
+	NOP
+	ADDIU     A0, R0, 980`
+	JAL       ~Func:set_world_fog_dist
+	ADDIU     A1, R0, 1000`
+	ADDIU     A0, R0, 0` % r
+	ADDIU     A1, R0, 0` % g
+	ADDIU     A2, R0, 0` % b
+	JAL       ~Func:set_world_fog_color
+	ADDIU     A3, R0, FF
+	% Entities Fog
+	% Disabled because the invisble blocks just appear/disappear without fading
+	/%JAL       ~Func:enable_entity_fog
+	NOP
+	ADDIU     A0, R0, 970`
+	JAL       ~Func:set_entity_fog_dist
+	ADDIU     A1, R0, 1000`
+	ADDIU     A0, R0, 0` % r
+	ADDIU     A1, R0, 0` % g
+	ADDIU     A2, R0, 0` % b
+	JAL       ~Func:set_entity_fog_color
+	ADDIU     A3, R0, FF%/
+	ADDIU     V0, R0, 2
+	JPOP RA
+}

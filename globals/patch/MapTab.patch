@@ -1,0 +1,5732 @@
+% This file convert the Map Tab from the Pause Menu to the Extra Tab
+
+%===============================
+% Remove everything from the Map Tab
+%===============================
+% Remove map picture
+@Function 141054 % 8024DD14
+{
+NOP
+}
+
+% Disable all Map places
+@Function 1412FC % 8024DFBC
+{
+NOP
+}
+
+% The hand cursor always stay on the same place after pressing A
+@Function 1414A4 % 8024E164
+{
+NOP
+}
+
+#new:Data $MapTab_GlobalXYOffset
+{ 00000000 00000000 }
+
+% Disable map's picture frame
+@Hook 1417E8 % 8024E4A8
+{
+% restore vanilla code
+CLEAR     V0         % ADDIU	V0, R0, 00FA - Picture Frame X Size
+J         8024E4B0
+SW	     V0, 0014 (SP)
+}
+
+% Remove Mario's icon
+@Hook 	141490 % 8024E150
+{
+PUSH	     RA, V0
+LIO       V0, $MapTab_GlobalXYOffset
+SW        S2, 0 (V0) % save pos x
+SW        T7, 4 (V0) % save pos y
+JAL		$Function_DisplayExtraTab
+NOP
+POP		RA, V0
+J       8024E158
+NOP % <-- mario gif removed
+}
+
+% Hide the Purple Box from the Map Tab
+@Hook DE070 % 80147970
+{
+ADDIU	T0, R0, 7C % The one with 7C inside V1 is the purple one
+BNE		V1, T0, .SaveBoxPos
+NOP
+ADDIU	T0, R0, 47 % the box with position 47 is the purple one
+BEQL	     V0, T0, .SaveBoxPos
+ADDIU	V0, R0, 7FFF
+.SaveBoxPos
+SW		V0, 0094 (SP)
+J		80147978
+ADDU	     V1, V1, T3
+}
+
+% Don't overwrite the hand cursor x pos (inside map tab)
+@Function 141CE8 % 8024E9A8
+{
+     % The hand cursor isn't visible anymore but if you don't do this
+     % everything inside the map tab will get moved to the right if
+     % you hold the stick enough to the right, like on vanilla's map tab.
+     NOP
+}
+
+% Hide the Purple Box from the Map Tab (when the menu is rotating)
+@Hook DE04C % 8014794C
+{
+% vanilla code
+SW	     V0, 0090 (SP)
+ANDI	     V0, T3, 0001
+% new code
+ORI       T0, R0, 2A % S2 = 2A = Map Tab's purple box is currently active
+BEQL      S2, T0, .HidePurpleBox
+CLEAR     V0 % V0 = 0 = Hide box
+.HidePurpleBox
+J         80147954
+NOP
+}
+
+% Enlarge Map BG Impression Area
+@Hook 1410BC % 8024DD7C
+{
+ADDIU	V1, R0, 0   % Print Area - Y Pos
+ADDIU	T7, R0, 130 % Print Area - Y Size
+ADDIU	A0, R0, 20  % Print Area - X Pos
+ADDIU	A2, R0, 130 % Print Area - X Size
+J		8024DD84
+SW		V0, 4 (A1)
+}
+
+% To only leave the Extra Tab if the player is at the start Menu
+@Hook 141F40 % 8024EC00
+{
+LIO       T0, $ExtraTab_CursorData
+LBU       T0, 1 (T0) % Load Current Menu
+BNE       T0, R0, .DontLeaveExtraTab
+NOP
+SAB       R0, 802700D4
+.DontLeaveExtraTab
+J         8024EC08
+NOP
+}
+
+% To reset the Extra Menu Data everytime you open the pause menu
+@Hook FE94 % 80034A94
+{
+PUSH      RA
+JAL	     8005AEA0
+SB	     S1, 0070 (V0)
+POP       RA
+SAW       R0, $ExtraTab_CursorData
+SAW       R0, $ExtraTab_CursorData2
+SAW       R0, $ExtraTab_CursorData3
+SAW       R0, $ExtraTab_CursorData4
+J         80034A9C
+NOP
+}
+
+
+% To not overwrite the String ID to Zero, needed for the hook below
+@Function 141F70 % 8024EC30
+{
+NOP
+}
+
+% Overwrite the description box String ID
+@Hook 13778C % 8024444C
+{
+% Check if the cursor is inside the Extra Tab
+LABU    T0, 802700D4 % Current Opened tab, 00=None, 06=Extra Tab
+ADDIU   T1, R0, 6
+BNE     T0, T1, .BypassOverwriting
+NOP
+PUSH    A0, A1, A2, V0, V1, RA, S0
+ADDIU   T1, R0, 2F % Write String's Bank ID
+SAB     T1, 802700C9
+LIO     T0, $ExtraTab_CursorData
+LBU     T0, 3 (T0) % Load New String ID
+% Check if the String need to read a Var
+ADDIU   T1, R0, 008F
+BEQ     T0, T1, .008F
+ADDIU   T1, R0, 0083
+BEQ     T0, T1, .0083
+ADDIU   T1, R0, 0085
+BEQ     T0, T1, .0085_86
+ADDIU   T1, R0, 0086
+BEQ     T0, T1, .0085_86
+ADDIU   T1, R0, 0087
+BEQ     T0, T1, .0087_88_89
+ADDIU   T1, R0, 0088
+BEQ     T0, T1, .0087_88_89
+ADDIU   T1, R0, 0089
+BEQ     T0, T1, .0087_88_89
+ADDIU   T1, R0, 008D
+BEQ     T0, T1, .008D
+ADDIU   T1, R0, 0094
+BEQ     T0, T1, .0094
+ADDIU   T1, R0, 0095
+BEQ     T0, T1, .0095
+ADDIU   T1, R0, 009A
+BEQ     T0, T1, .009A_9B_9C_9D
+ADDIU   T1, R0, 009B
+BEQ     T0, T1, .009A_9B_9C_9D
+ADDIU   T1, R0, 009C
+BEQ     T0, T1, .009A_9B_9C_9D
+ADDIU   T1, R0, 009D
+BEQ     T0, T1, .009A_9B_9C_9D
+ADDIU   T1, R0, 00A2
+BEQ     T0, T1, .00A2
+ADDIU   T1, R0, 00A3
+BEQ     T0, T1, .00A3
+ADDIU   T1, R0, 00A5
+BEQ     T0, T1, .00A5_A6
+ADDIU   T1, R0, 00A6
+BEQ     T0, T1, .00A5_A6
+ADDIU   T1, R0, 00B3
+BEQ     T0, T1, .00B3_B4_BB
+ADDIU   T1, R0, 00B4
+BEQ     T0, T1, .00B3_B4_BB
+ADDIU   T1, R0, 00BB
+BEQ     T0, T1, .00B3_B4_BB
+ADDIU   T1, R0, 00B7
+BEQ     T0, T1, .00B7
+ADDIU   T1, R0, 00B8
+BEQ     T0, T1, .00B8
+ADDIU   T1, R0, 00C1
+BEQ     T0, T1, .00C1_C2
+ADDIU   T1, R0, 00C2
+BEQ     T0, T1, .00C1_C2
+ADDIU   T1, R0, 00C3
+BEQ     T0, T1, .00C3
+ADDIU   T1, R0, 00C4
+BEQ     T0, T1, .00C4
+ADDIU   T1, R0, 00C5
+BEQ     T0, T1, .00C5
+ADDIU   T1, R0, 00C6
+BEQ     T0, T1, .00C6_C7
+ADDIU   T1, R0, 00C7
+BEQ     T0, T1, .00C6_C7
+ADDIU   T1, R0, 00C9
+BEQ     T0, T1, .00C9
+ADDIU   T1, R0, 00DF
+BEQ     T0, T1, .00DF
+ADDIU   T1, R0, 00E0
+BEQ     T0, T1, .00E0
+NOP
+% Doesn't need to read a var
+BEQ     R0, R0, .BypassVar
+NOP
+%===============
+.008F
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_19
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 14`
+% The achievement hasn't been achieved
+LIO 	   A1, *SkinsPurchased
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.0083
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_07
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10`
+% The achievement hasn't been achieved
+LIO 	A1, *BadgeBeltLoadedAmount
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.0085_86
+%===============
+ADDIU   T1, R0, 0085
+BEQ     T0, T1, .Check_Global_09
+ADDIU   T1, R0, 0086
+BEQ     T0, T1, .Check_Global_10
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Global_09
+LIO 	A1, *Flag_Cheev_Global_09
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 50`
+BEQ     R0, R0, .0085_86_2
+NOP
+.Check_Global_10
+LIO 	A1, *Flag_Cheev_Global_10
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 100`
+% The achievement hasn't been achieved
+.0085_86_2
+LIO 	A1, *RowfPurchases
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.0087_88_89
+%===============
+ADDIU   T1, R0, 0087
+BEQ     T0, T1, .Check_Global_11
+ADDIU   T1, R0, 0088
+BEQ     T0, T1, .Check_Global_12
+ADDIU   T1, R0, 0089
+BEQ     T0, T1, .Check_Global_13
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Global_11
+LIO 	A1, *Flag_Cheev_Global_11
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 1000`
+BEQ     R0, R0, .0087_88_89_2
+NOP
+.Check_Global_12
+LIO 	A1, *Flag_Cheev_Global_12
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10000`
+BEQ     R0, R0, .0087_88_89_2
+NOP
+.Check_Global_13
+LIO 	A1, *Flag_Cheev_Global_13
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ORI     A0, R0, 40000`
+% The achievement hasn't been achieved
+.0087_88_89_2
+LAW     A0, 803560DC % Bank Account
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.008D
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_17
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10`
+% The achievement hasn't been achieved
+LIO 	A1, *ForniturePurchased
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.0094
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_23
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 1000`
+% The achievement hasn't been achieved
+LAHU    A0, 8010F2A8 % Total Floors Landed (classic)
+LAHU    T7, 803560D8 % Rogue_TotalFloors(16-bit) == GameByte[0D8] == 803560D8
+ADDU    A0, A0, T7
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.0095
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 20000`
+% The achievement hasn't been achieved
+LAHU    A0, 80356038 % Total Damage Dealt in the entire game
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.009A_9B_9C_9D
+%===============
+ADDIU   T1, R0, 009A
+BEQ     T0, T1, .Check_Classic_04
+ADDIU   T1, R0, 009B
+BEQ     T0, T1, .Check_Classic_05
+ADDIU   T1, R0, 009C
+BEQ     T0, T1, .Check_Classic_06
+ADDIU   T1, R0, 009D
+BEQ     T0, T1, .Check_Classic_07
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Classic_04
+LIO 	A1, *Flag_Cheev_Classic_04
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 5
+BEQ     R0, R0, .009A_9B_9C_9D_2
+NOP
+.Check_Classic_05
+LIO 	A1, *Flag_Cheev_Classic_05
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 20`
+BEQ     R0, R0, .009A_9B_9C_9D_2
+NOP
+.Check_Classic_06
+LIO 	A1, *Flag_Cheev_Classic_06
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 40`
+BEQ     R0, R0, .009A_9B_9C_9D_2
+NOP
+.Check_Classic_07
+LIO 	A1, *Flag_Cheev_Classic_07
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 62`
+% The achievement hasn't been achieved
+.009A_9B_9C_9D_2
+LIO 	A1, *BadgeList
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00A2
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Classic_11
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10`
+% The achievement hasn't been achieved
+LIO 	A1, *MoversUsedAmount
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00A3
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Classic_12
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 7200`
+% The achievement hasn't been achieved
+LAHU    A0, 8010F2AA % Total Coins from Battles
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.00A5_A6
+%===============
+ADDIU   T1, R0, 00A5
+BEQ     T0, T1, .Check_Classic_14
+ADDIU   T1, R0, 00A6
+BEQ     T0, T1, .Check_Classic_15
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Classic_14
+LIO 	A1, *Flag_Cheev_Classic_14
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 100`
+BEQ     R0, R0, .00A5_A6_2
+NOP
+.Check_Classic_15
+LIO 	A1, *Flag_Cheev_Classic_15
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 130`
+% The achievement hasn't been achieved
+.00A5_A6_2
+LAHU    A0, $TotalFloors
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.00B3_B4_BB
+%===============
+ADDIU   T1, R0, 00B3
+BEQ     T0, T1, .Check_Rogue_05
+ADDIU   T1, R0, 00B4
+BEQ     T0, T1, .Check_Rogue_06
+ADDIU   T1, R0, 00BB
+BEQ     T0, T1, .Check_Rogue_13
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Rogue_05
+LIO 	A1, *Flag_Cheev_Rogue_05
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10`
+BEQ     R0, R0, .00B3_B4_BB_2
+NOP
+.Check_Rogue_06
+LIO 	A1, *Flag_Cheev_Rogue_06
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 20`
+BEQ     R0, R0, .00B3_B4_BB_2
+NOP
+.Check_Rogue_13
+LIO 	A1, *Flag_Cheev_Rogue_13
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 30`
+% The achievement hasn't been achieved
+.00B3_B4_BB_2
+LIO 	A1, *BadgesEquipped_Rogue
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00B7
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Rogue_09
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 10`
+% The achievement hasn't been achieved
+LIO 	   A1, *HelpersUsed
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00B8
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Rogue_10
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 30`
+% The achievement hasn't been achieved
+LIO 	A1, *Rogue_RowfPurchases
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00C1_C2
+%===============
+ADDIU   T1, R0, 00C1
+BEQ     T0, T1, .Check_Rogue_19
+ADDIU   T1, R0, 00C2
+BEQ     T0, T1, .Check_Rogue_20
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Rogue_19
+LIO 	A1, *Flag_Cheev_Rogue_19
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 20`
+BEQ     R0, R0, .00C1_C2_2
+NOP
+.Check_Rogue_20
+LIO 	A1, *Flag_Cheev_Rogue_20
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 50`
+% The achievement hasn't been achieved
+.00C1_C2_2
+LIO 	   A1, *Rogue_PadlocksOpened
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00C3
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Rogue_21
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 800`
+% The achievement hasn't been achieved
+LAHU    A0, 80356092 % Coins Spended in Coin locks
+BEQ     R0, R0, .SaveVarValue
+NOP
+%===============
+.00C4
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Rogue_22
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 100`
+% The achievement hasn't been achieved
+LIO 	A1, *Rogue_Padlocks_HPSpended
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00C5
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Rogue_23
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 60`
+% The achievement hasn't been achieved
+LIO 	   A1, *Rogue_Padlocks_KeysSpended
+BEQ     R0, R0, .GetVariableee
+NOP
+%===============
+.00C6_C7
+%===============
+ADDIU   T1, R0, 00C6
+BEQ     T0, T1, .Check_Rogue_24
+ADDIU   T1, R0, 00C7
+BEQ     T0, T1, .Check_Rogue_25
+NOP
+% Check if the Challenge has been already done, to just put the needed value in the var
+.Check_Rogue_24
+LIO 	A1, *Flag_Cheev_Rogue_24
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 50`
+BEQ     R0, R0, .00C6_C7_2
+NOP
+.Check_Rogue_25
+LIO 	   A1, *Flag_Cheev_Rogue_25
+JAL 	   ~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 100`
+% The achievement hasn't been achieved
+.00C6_C7_2
+LAHU    A0, 803560D6 % *Rogue_TotalBadges(2 Bytes) == GameByte[0D6] == 803560D6
+BEQ     R0, R0, .SaveVarValue
+RESERVED
+%===============
+.00C9
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Dungeon_02
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 500`
+% The achievement hasn't been achieved
+LAHU	   A0, 80356130 % *Dungeon_StarPieces1 & 2
+BEQ     R0, R0, .SaveVarValue
+RESERVED
+%===============
+.00DF
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	   A1, *Flag_Cheev_Global_27
+JAL 	   ~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 250`
+% The achievement hasn't been achieved
+LABU	   A0, 80356147 % load *TotalStylishMoves
+BEQ     R0, R0, .SaveVarValue
+RESERVED
+%===============
+.00E0
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	   A1, *Flag_Cheev_Global_28
+JAL 	   ~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .E0_SaveVarValues
+ADDIU   A0, R0, 22`
+% The achievement hasn't been achieved
+JAL     $Function_GetStylishFlags_Mario
+NOP
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 0    % Var Index
+JAL     $Function_GetStylishFlags_Partners
+NOP
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 1    % Var Index
+BEQ     R0, R0, .BypassVar
+NOP
+.E0_SaveVarValues
+% var0
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 0    % Var Index
+% var1
+ADDIU   A0, R0, 32`
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 1    % Var Index
+BEQ     R0, R0, .BypassVar
+NOP
+.GetVariableee
+JAL 	~Func:get_variable 
+NOP
+COPY    A0, V0 % Var Value
+.SaveVarValue
+JAL     ~Func:set_message_value
+ADDIU   A1, R0, 0    % Var Index
+.BypassVar
+POP    A0, A1, A2, V0, V1, RA, S0
+LIO     T0, $ExtraTab_CursorData
+LBU     T0, 3 (T0) % Load New String ID
+SAB     T0, 802700CB % Write String ID to show
+.BypassOverwriting
+LAW     S3, 802700C8
+.End
+J   80244454
+NOP
+}
+
+% A0 = *out
+#new:Function $Function_GetStylishFlags_Mario
+{
+     PUSH      RA, A1, A2, A3, V0, V1, S0, S1
+     LIO       A1, *Flag_Stylish_Mario_Jump
+     JAL       ~Func:get_variable
+     CLEAR     S0
+     LIO       A1, *Flag_Stylish_Mario_Multibounce
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_PowerBounce
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_SleepStomp
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_DizzyStomp
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_JumpCharge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_SuperJumpCharge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_PowerJump
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_MegaJump
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_DDownJump
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_ShrinkJump
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_Hammer
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_SpinSmash
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_DDownPound
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_HammerThrow
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_SmashCharge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_SuperSmashCharge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_QuakeHammer
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_PowerQuake
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_MegaQuake
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_PowerSmash
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Mario_MegaSmash
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     ADDU      S0, S0, V0
+     COPY      A0, S0
+     POP       RA, A1, A2, A3, V0, V1, S0, S1
+     JR        RA
+     NOP
+}
+
+% A0 = *out
+#new:Function $Function_GetStylishFlags_Partners
+{
+     PUSH      RA, A1, A2, A3, V0, V1, S0, S1
+     LIO       A1, *Flag_Stylish_Partner_Goombario_Headbonk
+     JAL       ~Func:get_variable
+     CLEAR     S0
+     LIO       A1, *Flag_Stylish_Partner_Goombario_Tattle
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Goombario_Charge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Goombario_Multibonk
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Kooper_ShellToss
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Kooper_PowerShell
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Kooper_DizzyShell
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Kooper_FireShell
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bombette_BodySlam
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bombette_Bomb
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bombette_PowerBomb
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bombette_MegaBomb
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Parakarry_SkyDive
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Parakarry_ShellShot
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Parakarry_AirLift
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Parakarry_AirRaid
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bow_Smack
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bow_OuttaSight
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bow_Spook
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Bow_FanSmack
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Watt_ElectroDash
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Watt_PowerShock
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Watt_TurboCharge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Watt_MegaShock
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Sushie_BellyFlop
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Sushie_Squirt
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Sushie_WaterBlock
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Sushie_TidalWave
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Lakilester_SpinyFlip
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Lakilester_SpinySurge
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Lakilester_CloudNine
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     LIO       A1, *Flag_Stylish_Partner_Lakilester_Hurricane
+     JAL       ~Func:get_variable
+     ADDU      S0, S0, V0
+     ADDU      S0, S0, V0
+     COPY      A0, S0
+     POP       RA, A1, A2, A3, V0, V1, S0, S1
+     JR        RA
+     NOP
+}
+
+% Remove the Hand Cursor when inside the Map Tab
+@Hook 136884 % 80243544
+{
+% Check if the cursor is inside the Extra Tab
+LABU    T0, 802700D4 % Current Opened tab, 00=None, 06=Extra Tab
+ADDIU   T1, R0, 6
+BEQ     T0, T1, .BypassCursor
+NOP
+% Reset Start Timer for the Extra Tab
+LIO     T0 $ExtraTab_CursorData3
+SB      R0, 3 (T0)
+JAL	   801447E0 % Draw Hand Cursor
+LW	   A0, 0 (S0)
+% Check if the Start timer has been already initialized
+J       80243550
+NOP
+.BypassCursor
+% I know it has the same jump twice, I just didn't wanted
+% the game to always check the timer on the pause menu
+LIO     T0 $ExtraTab_CursorData3
+LBU     T1, 3 (T0) % Load Init Timer
+SLTI    T2, T0, 4
+BNE     T1, R0, .AumentInitTimer
+ADDIU   T1, R0, 4 % Freeze the timer in 4
+ADDIU   T1, T1, 1
+.AumentInitTimer
+SB      T1, 3 (T0)
+J       80243550
+NOP
+}
+
+#new:Function $Function_DisplayExtraTab
+{
+/%
+S0=Fade Timer
+S1=Current Menu
+S2=Current Page
+S3=String ID for the Bottom Box
+%
+S4=Current Menu Rows
+S5=Current Menu Pages
+S6=Cursor X Pos
+S7=Cursor Y Pos
+%/
+PUSH    RA, V0, V1, A0, A1, A2, A3, S0, S1, S2, S3, S4, S5, S6, S7
+LIO 	A1, *Flag_Demo
+JAL 	~Func:get_variable 
+RESERVED
+BEQ     V0, R0, .LoadStrings
+NOP
+% The player is playing a demo build
+LIO     A0, $String_Demo
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ORI     A3, R0, FF % opacity
+BEQ     R0, R0, .End
+NOP
+.LoadStrings
+% load Data on all registers
+LIO     T0, $ExtraTab_CursorData
+%LBU     S0, 0 (T0) % Fade Timer
+LBU     S1, 1 (T0) % Current Menu
+LBU     S2, 2 (T0) % Current Page
+LBU     S3, 3 (T0) % String ID for the Bottom Box
+LIO     T0, $ExtraTab_CursorData2
+LBU     S4, 0 (T0) % Current Menu Rows
+LBU     S5, 1 (T0) % Current Menu Pages
+LBU     S6, 2 (T0) % Cursor X Pos
+LBU     S7, 3 (T0) % Cursor Y Pos
+LIO     GP, $MapTab_GlobalXYOffset % Global X and Y Offsets
+% Load always displayed Strings
+% The curret menu is the 5th one? (Settings)
+% Use the "Settings" string instead of the "Challenges" one
+ADDIU     T3, R0, 5
+BNE       S1, T3, .String_Always_Load_Challenges
+NOP
+LIO       A0, $String_Always_Settings
+ADDIU     A1, R0, 0075 % x
+ORI       A3, R0, FF % opacity
+SW        R0, 0014 (SP) % text fx / 0 = none
+JAL       ~Func:draw_string
+ADDIU     A2, R0, 0032 % y
+BEQ       R0, R0, .String_Always_Bypass
+NOP
+.String_Always_Load_Challenges
+LIO     A0, $String_Always_Challenges
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 004A % x
+ADDIU   A2, A2, 000C % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+LIO     A0, $String_Always_Percentage
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 00E7 % x
+ADDIU   A2, A2, 0078 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Get Current Total Percentage
+JAL     $Function_GetProgress_Cheevs_Global
+CLEAR   S0 % Init S0
+JAL     $Function_GetProgress_Cheevs_Classic
+NOP
+JAL     $Function_GetProgress_Cheevs_Rogue
+NOP
+JAL     $Function_GetProgress_Cheevs_Dungeon
+NOP
+% S0 = Challenges unlocked
+% get percentage
+ORI     T3, R0, 100`
+MULT    S0, T3
+MFLO    S0
+ORI     T1, R0, 82` % total amount of challanges
+DIV     S0, T1
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer  % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_TotalProgress		% Type of Format to use
+JAL     ~Func:sprintf
+MFLO    A2
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer  		% ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer_Size1E  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, A9  % x
+ADDIU   A2, A2, 71  % y
+ADDIU   A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+LIO     A0, $String_StarPoint_Icon
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0003 % x
+ADDIU   A2, A2, 0073 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Get Current SP
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer      % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_CurrentSP	% Type of Format to use
+LAHU    A2, 8035612E % Star Points
+JAL     ~Func:sprintf
+RESERVED
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer   % ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0002 % x
+ADDIU   A2, A2, 007A % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+/%LIO     A0, $String_Always_Progress % UNUSED
+ADDIU   A1, R0, 0024 % x
+ORI     A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 009C % y%/
+.String_Always_Bypass
+% Check Current Menu Strings
+BEQ     S1, R0, .Menu0
+NOP
+% Check if the current menu is Menu5(Settings)
+ADDIU   T0, R0, 5
+BEQ     S1, T0, .Menu_Settings
+NOP
+% For Menus 1-4
+BEQ     R0, R0, .Menu1234
+NOP
+.Menu0
+% Load Strings for Menu0
+LIO     A0, $String_Menu0_Global
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0005 % x
+ADDIU   A2, A2, 0025 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+LIO     A0, $String_Menu0_Classic
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0005 % x
+ADDIU   A2, A2, 0034 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+LIO     A0, $String_Menu0_Rogue
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0005 % x
+ADDIU   A2, A2, 0045 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Check if the Dungeon is already unlocked
+LIO 	A1, *Flag_DungeonOpened
+JAL 	~Func:get_variable 
+RESERVED
+BNE		V0, R0, .BypassDungeonString1
+NOP
+% If the dungeon isn't unlocked
+LIO     A0, $String_Menu0_Question
+BEQ		R0, R0, .LoadQuestionMarksString
+NOP
+.BypassDungeonString1
+LIO     A0, $String_Menu0_Maze
+.LoadQuestionMarksString
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0005 % x
+ADDIU   A2, A2, 0055 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+LIO     A0, $String_Menu0_Settings
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 0005 % x
+ADDIU   A2, A2, 0065 % y
+ORI     A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Load Percentages for each option
+% Global
+% Get Global Percentage
+JAL     $Function_GetProgress_Cheevs_Global
+CLEAR   S0
+% S0 = Challenges unlocked
+% get percentage
+ORI     T3, R0, 100`
+MULT    S0, T3
+MFLO    S0
+ORI     T1, R0, 27` % total amount of challanges
+DIV     S0, T1
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer  % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_ByteMenu0		% Type of Format to use
+JAL     ~Func:sprintf
+MFLO    A2
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer  		% ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer_Menu0_Progress  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 99  % x
+ADDIU   A2, A2, 25  % y
+ADDIU   A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Classic
+% Get Classic Percentage
+JAL     $Function_GetProgress_Cheevs_Classic
+CLEAR   S0
+% S0 = Challenges unlocked
+% get percentage
+ORI     T3, R0, 100`
+MULT    S0, T3
+MFLO    S0
+ORI     T1, R0, 22` % total amount of challanges
+DIV     S0, T1
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer  % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_ByteMenu0		% Type of Format to use
+JAL     ~Func:sprintf
+MFLO    A2
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer  		% ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer_Menu0_Progress  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 99  % x
+ADDIU   A2, A2, 34  % y
+ADDIU   A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Roguelike
+% Get Roguelike Percentage
+JAL     $Function_GetProgress_Cheevs_Rogue
+CLEAR   S0
+% S0 = Challenges unlocked
+% get percentage
+ORI     T3, R0, 100`
+MULT    S0, T3
+MFLO    S0
+ORI     T1, R0, 24` % total amount of challanges
+DIV     S0, T1
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer  % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_ByteMenu0		% Type of Format to use
+JAL     ~Func:sprintf
+MFLO    A2
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer  		% ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer_Menu0_Progress  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW      A1, 0 (GP) % load global x offset
+LW      A2, 4 (GP) % load global y offset
+ADDIU   A1, A1, 99  % x
+ADDIU   A2, A2, 45  % y
+ADDIU   A3, R0, FF % opacity
+JAL     ~Func:draw_string
+SW      R0, 0014 (SP) % text fx / 0 = none
+% Dungeon
+% Get Dungeon Percentage
+% Check if the Dungeon is already unlocked
+LIO 	A1, *Flag_DungeonOpened
+JAL 	~Func:get_variable 
+RESERVED
+BEQ		V0, R0, .BypassDungeonString2
+NOP
+JAL     $Function_GetProgress_Cheevs_Dungeon
+CLEAR   S0
+% S0 = Challenges unlocked
+% get percentage
+ORI     T3, R0, 100`
+MULT    S0, T3
+MFLO    S0
+ORI     T1, R0, 9 % total amount of challanges
+DIV     S0, T1
+% Convert Data to ASCII
+LIO     A0, $ExtraTab_ASCII_Buffer  % Pointer to Save ASCII
+LIO     A1, $ASCII_Format_ByteMenu0		% Type of Format to use
+JAL     ~Func:sprintf
+MFLO    A2
+% Convert ASCII to String and Print
+LIO     A1, $ExtraTab_ASCII_Buffer  		% ASCII to Format
+LIO     A0, $ExtraTab_String_Buffer_Menu0_Progress  % Pointer to Save Final String
+JAL     $ConvertAsciiToPM64String
+RESERVED
+LW        A1, 0 (GP) % load global x offset
+LW        A2, 4 (GP) % load global y offset
+ADDIU     A1, A1, 99  % x
+ADDIU     A2, A2, 55  % y
+ADDIU     A3, R0, FF % opacity
+JAL       ~Func:draw_string
+SW        R0, 0014 (SP) % text fx / 0 = none
+% Set Menu 0 Lenght, needed by the cursor
+.BypassDungeonString2
+LIO		T0, $ExtraTab_CursorData2
+ADDIU	S4, R0, 0 % Current Menu Rows
+ADDIU	S5, R0, 0 % Current Menu Pages
+SB		S4, 0 (T0)
+SB		S5, 1 (T0)
+BEQ       R0, R0, .PrintCursor
+NOP
+%.Menu_Global
+.Menu1234
+% Load Challenges Titles for the current Menu
+/% Challenges Names goes like this
+     [1]  [2]
+[1]   1    2
+[2]   3    4
+[3]   5    6
+[4]   7    8
+[5]   9    10
+%/
+%===============
+% Cheev Name 1 & 2
+%===============
+% Get Current Page
+% Pos 1 - Check Page 1
+BEQ     S2, R0, .Titles_Pos1_Page1
+NOP
+% Pos 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .Titles_Pos1_Page2
+NOP
+% Pos 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .Titles_Pos1_Page3
+NOP
+%%%%
+%% Cheev Names - Page 1 - Pos1 - Strings
+%%%%
+.Titles_Pos1_Page1
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos1_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_01
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0029 % string ID
+BEQL    V0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos1_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos1_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_01
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0041 % string ID
+BEQL    V0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos1_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos1_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_01
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0059 % string ID
+BEQL    V0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos1_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_01
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0073 % string ID
+BEQL    V0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos1_Page1_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+%%%%
+%% Cheev Names - Page 1 - Pos2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos2_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_02
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002A % string ID
+BEQL    V0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos2_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos2_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_02
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0042 % string ID
+BEQL    V0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos2_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos2_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_02
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 005A % string ID
+BEQL    V0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos2_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_02
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0074 % string ID
+BEQL    V0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos2_Page1_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+BEQ     R0, R0, .Title_Pos3_AND_4_Start
+NOP
+%%%%
+%% Cheev Names - Page 2 - Pos1 - Strings
+%%%%
+.Titles_Pos1_Page2
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos1_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_11
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0033 % string ID
+BEQL    V0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos1_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos1_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_11
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 004C % string ID
+BEQL    V0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos1_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_11
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0063 % string ID
+BEQL    V0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos1_Page2_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+%%%%
+%% Cheev Names - Page 2 - Pos2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos2_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_12
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0034 % string ID
+BEQL    V0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos2_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos2_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_12
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 004D % string ID
+BEQL    V0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos2_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_12
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0064 % string ID
+BEQL    V0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos2_Page2_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+BEQ     R0, R0, .Title_Pos3_AND_4_Start
+NOP
+%%%%%
+%% Cheev Names - Page 3 - Pos1 - Strings
+%%%%
+.Titles_Pos1_Page3
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos1_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_21
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 003C % string ID
+BEQL    V0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos1_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos1_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_21
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0056 % string ID
+BEQL    V0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos1_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_21
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006E % string ID
+BEQL    V0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos1_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos1_Page3_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+%%%%
+%% Cheev Names - Page 3 - Pos2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos2_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_22
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 003D % string ID
+BEQL    V0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos2_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos2_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_22
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0057 % string ID
+BEQL    V0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos2_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_22
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006F % string ID
+BEQL    V0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos2_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos2_Page3_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+%===============
+% Cheev Name 3 & 4
+%===============
+.Title_Pos3_AND_4_Start
+% Get Current Page
+% Pos 3 - Check Page 1
+BEQ     S2, R0, .Titles_Pos3_Page1
+NOP
+% Pos 3 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .Titles_Pos3_Page2
+NOP
+% Pos 3 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .Titles_Pos3_Page3
+NOP
+%%%%
+%% Cheev Names - Page 1 - Pos3 - Strings
+%%%%
+.Titles_Pos3_Page1
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos3_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_03
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002B % string ID
+BEQL    V0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos3_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos3_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_03
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0043 % string ID
+BEQL    V0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos3_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos3_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_03
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 005B % string ID
+BEQL    V0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos3_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_03
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0075 % string ID
+BEQL    V0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos3_Page1_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+%%%%
+%% Cheev Names - Page 1 - Pos4 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos4_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_04
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002C % string ID
+BEQL    V0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos4_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos4_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_04
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0044 % string ID
+BEQL    V0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos4_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos4_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_04
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 005C % string ID
+BEQL    V0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos4_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_04
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0076 % string ID
+BEQL    V0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos4_Page1_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+BEQ     R0, R0, .Title_Pos5_AND_6_Start
+NOP
+%%%%
+%% Cheev Names - Page 2 - Pos3 - Strings
+%%%%
+.Titles_Pos3_Page2
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos3_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_13
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0035 % string ID
+BEQL    V0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos3_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos3_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_23
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0058 % string ID
+BEQL    V0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos3_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_13
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0065 % string ID
+BEQL    V0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos3_Page2_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+%%%%
+%% Cheev Names - Page 2 - Pos4 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos4_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_14
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0036 % string ID
+BEQL    V0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos4_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos4_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_14
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 004F % string ID
+BEQL    V0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos4_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_14
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0066 % string ID
+BEQL    V0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos4_Page2_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+BEQ     R0, R0, .Title_Pos5_AND_6_Start
+NOP
+%%%%%
+%% Cheev Names - Page 3 - Pos3 - Strings
+%%%%
+.Titles_Pos3_Page3
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos3_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_23
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 003E % string ID
+BEQL    V0, R0, .Title_Pos3_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos3_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos3_Page3_Menu3
+NOP
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQ     R0, R0, .Title_Pos3_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos3_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_23
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0070 % string ID
+BEQL    V0, R0, .Title_Pos3_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos3_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos3_Page3_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+%%%%
+%% Cheev Names - Page 3 - Pos4 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos4_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 003F % string ID
+BEQL    V0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos4_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos4_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Space
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos4_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_24
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0071 % string ID
+BEQL    V0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos4_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos4_Page3_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0058 % y
+%===============
+% Cheev Name 5 & 6
+%===============
+.Title_Pos5_AND_6_Start
+% Get Current Page
+% Pos 5 - Check Page 1
+BEQ     S2, R0, .Titles_Pos5_Page1
+NOP
+% Pos 5 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .Titles_Pos5_Page2
+NOP
+% Pos 5 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .Titles_Pos5_Page3
+NOP
+%%%%
+%% Cheev Names - Page 1 - Pos5 - Strings
+%%%%
+.Titles_Pos5_Page1
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos5_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_05
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002D % string ID
+BEQL    V0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos5_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos5_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_05
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0045 % string ID
+BEQL    V0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos5_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos5_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_05
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 005D % string ID
+BEQL    V0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos5_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_05
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0077 % string ID
+BEQL    V0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos5_Page1_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+%%%%
+%% Cheev Names - Page 1 - Pos6 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos6_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_06
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002E % string ID
+BEQL    V0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos6_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos6_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_06
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0046 % string ID
+BEQL    V0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos6_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos6_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_06
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 005E % string ID
+BEQL    V0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos6_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_06
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0078 % string ID
+BEQL    V0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos6_Page1_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+BEQ     R0, R0, .Title_Pos7_AND_8_Start
+NOP
+%%%%
+%% Cheev Names - Page 2 - Pos5 - Strings
+%%%%
+.Titles_Pos5_Page2
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos5_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_15
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0037 % string ID
+BEQL    V0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos5_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos5_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_15
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0050 % string ID
+BEQL    V0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos5_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_15
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0067 % string ID
+BEQL    V0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos5_Page2_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+%%%%
+%% Cheev Names - Page 2 - Pos6 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos6_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_16
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0038 % string ID
+BEQL    V0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos6_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos6_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0051 % string ID
+BEQL    V0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos6_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_16
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0069 % string ID
+BEQL    V0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos6_Page2_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+BEQ     R0, R0, .Title_Pos7_AND_8_Start
+NOP
+%%%%%
+%% Cheev Names - Page 3 - Pos5 - Strings
+%%%%
+.Titles_Pos5_Page3
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos5_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	   A1, *Flag_Cheev_Global_26
+JAL 	   ~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 00DB % string ID
+BEQL    V0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos5_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos5_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos5_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos5_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos5_Page3_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+%%%%
+%% Cheev Names - Page 3 - Pos6 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos6_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	   A1, *Flag_Cheev_Global_27
+JAL 	   ~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 00DC % string ID
+BEQL    V0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos6_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos6_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos6_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos6_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos6_Page3_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0069 % y
+%===============
+% Cheev Name 7 & 8
+%===============
+.Title_Pos7_AND_8_Start
+% Get Current Page
+% Pos 7 - Check Page 1
+BEQ     S2, R0, .Titles_Pos7_Page1
+NOP
+% Pos 7 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .Titles_Pos7_Page2
+NOP
+% Pos 7 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .Titles_Pos7_Page3
+NOP
+%%%%
+%% Cheev Names - Page 1 - Pos7 - Strings
+%%%%
+.Titles_Pos7_Page1
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos7_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_07
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 002F % string ID
+BEQL    V0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos7_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos7_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_07
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0047 % string ID
+BEQL    V0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos7_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos7_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_25
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0072 % string ID
+BEQL    V0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos7_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_07
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0079 % string ID
+BEQL    V0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos7_Page1_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+%%%%
+%% Cheev Names - Page 1 - Pos8 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos8_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_08
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0030 % string ID
+BEQL    V0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos8_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos8_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_08
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0048 % string ID
+BEQL    V0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos8_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos8_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_08
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0060 % string ID
+BEQL    V0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos8_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_08
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 007A % string ID
+BEQL    V0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos8_Page1_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+BEQ     R0, R0, .Title_Pos9_AND_10_Start
+NOP
+%%%%
+%% Cheev Names - Page 2 - Pos7 - Strings
+%%%%
+.Titles_Pos7_Page2
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos7_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_17
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 007E % string ID
+BEQL    V0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos7_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos7_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_17
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0052 % string ID
+BEQL    V0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos7_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_17
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006A % string ID
+BEQL    V0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos7_Page2_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+%%%%
+%% Cheev Names - Page 2 - Pos8 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos8_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_18
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0039 % string ID
+BEQL    V0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos8_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos8_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_18
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0053 % string ID
+BEQL    V0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos8_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_18
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006B % string ID
+BEQL    V0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos8_Page2_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+BEQ     R0, R0, .Title_Pos9_AND_10_Start
+NOP
+%%%%%
+%% Cheev Names - Page 3 - Pos7 - Strings
+%%%%
+.Titles_Pos7_Page3
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos7_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	   A1, *Flag_Cheev_Global_28
+JAL 	   ~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 00DD % string ID
+BEQL    V0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos7_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos7_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos7_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos7_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos7_Page3_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+%%%%
+%% Cheev Names - Page 3 - Pos8 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos8_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos8_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos8_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos8_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos8_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos8_Page3_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0079 % y
+%===============
+% Cheev Name 9 & 10
+%===============
+.Title_Pos9_AND_10_Start
+% Get Current Page
+% Pos 9 - Check Page 1
+BEQ     S2, R0, .Titles_Pos9_Page1
+NOP
+% Pos 9 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .Titles_Pos9_Page2
+NOP
+% Pos 9 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .Titles_Pos9_Page3
+NOP
+%%%%
+%% Cheev Names - Page 1 - Pos9 - Strings
+%%%%
+.Titles_Pos9_Page1
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos9_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_09
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0031 % string ID
+BEQL    V0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos9_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos9_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_09
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 004A % string ID
+BEQL    V0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos9_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos9_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_09
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0061 % string ID
+BEQL    V0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos9_Page1_Menu4
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Dungeon_09
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 007B % string ID
+BEQL    V0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos9_Page1_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+%%%%
+%% Cheev Names - Page 1 - Pos10 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos10_Page1_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_10
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0032 % string ID
+BEQL    V0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos10_Page1_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos10_Page1_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_10
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 004B % string ID
+BEQL    V0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos10_Page1_Menu3
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BNE     S1, T0, .Titles_Pos10_Page1_Menu4
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_10
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0062 % string ID
+BEQL    V0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, FF % opacity
+% Menu4 / Dungeon
+.Titles_Pos10_Page1_Menu4
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page1_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos10_Page1_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+BEQ     R0, R0, .SetMenuLenght
+NOP
+%%%%
+%% Cheev Names - Page 2 - Pos9 - Strings
+%%%%
+.Titles_Pos9_Page2
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos9_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_19
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 003A % string ID
+BEQL    V0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos9_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos9_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_19
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0054 % string ID
+BEQL    V0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos9_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_19
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006C % string ID
+BEQL    V0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos9_Page2_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+%%%%
+%% Cheev Names - Page 2 - Pos10 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos10_Page2_Menu2
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Global_25
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0040 % string ID
+BEQL    V0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos10_Page2_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos10_Page2_Menu3
+NOP
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Classic_20
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0055 % string ID
+BEQL    V0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos10_Page2_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+LIO 	A1, *Flag_Cheev_Rogue_20
+JAL 	~Func:get_variable
+RESERVED
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 006D % string ID
+BEQL    V0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page2_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos10_Page2_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+BEQ     R0, R0, .SetMenuLenght
+NOP
+%%%%%
+%% Cheev Names - Page 3 - Pos9 - Strings
+%%%%
+.Titles_Pos9_Page3
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos9_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos9_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos9_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos9_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos9_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos9_Page3_DrawString
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+%%%%
+%% Cheev Names - Page 3 - Pos10 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BNE     S1, T0, .Titles_Pos10_Page3_Menu2
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, FF % opacity
+% Menu2 / Classic
+.Titles_Pos10_Page3_Menu2
+ADDIU   T0, R0, 2
+BNE     S1, T0, .Titles_Pos10_Page3_Menu3
+NOP
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Titles_Pos10_Page3_Menu3
+% Menu3 / Rogue
+% Check if this challenge has been already completed
+% Blank Entry
+LUI     A0, 002F % String Bank ID
+ADDIU   A0, A0, 0091 % string ID
+BEQL    V0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, B0 % opacity
+BEQ     R0, R0, .Title_Pos10_Page3_DrawString
+ORI     A3, R0, FF % opacity
+.Title_Pos10_Page3_DrawString
+ADDIU   A1, R0, 00AD % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0089 % y
+BEQ     R0, R0, .SetMenuLenght
+NOP
+% Load Title Strings for the Settings Menu
+.Menu_Settings
+LIO     A0, $String_Settings_Pipes
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0049 % y
+LIO     A0, $String_Settings_Floor
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0057 % y
+LIO     A0, $String_Settings_Stylish
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0066 % y
+LIO     A0, $String_Settings_Cutscenes
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0075 % y
+LIO     A0, $String_Settings_BattleShortcuts
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0084 % y
+% The player already have the Golden Life Shroom?
+LIO     A1, *Flag_GoldenLS2
+JAL     ~Func:get_variable
+RESERVED
+% Save Flag
+SAB     V0, $ExtraTab_CursorData4
+BEQ     V0, R0, .SkipGoldenLS1
+NOP
+LIO     A0, $String_Settings_Golden
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 002D % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0093 % y
+.SkipGoldenLS1
+LIO     A0, $String_Settings_MainMenu
+ORI     A3, R0, FF % opacity
+ADDIU   A1, R0, 0050 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 00A2 % y
+% Load Options Strings
+% load "After Landing" string
+LIO 	   A1, *Flag_PipeBehaviour
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawPipeOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawPipeOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 0021 % String ID
+ADDIU   A1, R0, 0095 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 004A % y
+% load "Always" string
+LIO 	   A1, *Flag_PipeBehaviour
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawPipeOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawPipeOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 0022 % String ID
+ADDIU   A1, R0, 00EE % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 004A % y
+% Floor Counter
+% load the "Sign" string
+LIO 	   A1, *Flag_FloorNumber
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawCounterOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawCounterOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 0023 % String ID
+ADDIU   A1, R0, 00B2 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0057 % y
+% load the "Top Pipe" string
+LIO 	   A1, *Flag_FloorNumber
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawCounterOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawCounterOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 0024 % String ID
+ADDIU   A1, R0, 00EA % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0057 % y
+%===========================
+% Stylish Fanfare
+LIO 	   A1, *Flag_DisableFanfare
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawStylishOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawStylishOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 00D6 % Yes % String ID
+ADDIU   A1, R0, 00B5 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0066 % y
+% load the "Top Pipe" string
+LIO 	   A1, *Flag_DisableFanfare
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawStylishOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawStylishOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 00D5 % No % String ID
+ADDIU   A1, R0, 00FA % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0066 % y
+%===========================
+% Cutscene Skipper
+LIO 	   A1, *Flag_DisableSkipper
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawSkipperOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawSkipperOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 00D6 % Yes % String ID
+ADDIU   A1, R0, 00B5 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0075 % y
+% load the "Top Pipe" string
+LIO 	   A1, *Flag_DisableSkipper
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawSkipperOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawSkipperOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 00D5 % No % String ID
+ADDIU   A1, R0, 00FA % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0075 % y
+%===========================
+% Battle Shortcuts
+LIO 	   A1, *Flag_DisableShortcuts
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawShortcutsOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawShortcutsOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 00D6 % Yes % String ID
+ADDIU   A1, R0, 00B5 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0084 % y
+% load the "Top Pipe" string
+LIO 	   A1, *Flag_DisableShortcuts
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawShortcutsOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawShortcutsOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 00D5 % No % String ID
+ADDIU   A1, R0, 00FA % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0084 % y
+%===========================
+% Golden Life Shroom
+% The player already completed all challenges?
+LABU    V0, $ExtraTab_CursorData4
+BEQ     V0, R0, .SkipGoldenLS2
+NOP
+% Golden Life Shroom
+% load the "No" string
+LIO 	   A1, *Flag_GoldenLS
+JAL 	   ~Func:get_variable 
+RESERVED
+BEQL    V0, R0, .Menu5_DrawGoldenOption1
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawGoldenOption1
+LUI     A0, 002F
+ADDIU   A0, A0, 00D5 % No % String ID
+ADDIU   A1, R0, 00FA % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0093 % y
+% load the "Yes" string
+LIO 	   A1, *Flag_GoldenLS
+JAL 	   ~Func:get_variable 
+RESERVED
+BNE     V0, R0, .Menu5_DrawGoldenOption2
+ORI     A3, R0, FF % opacity
+% The flag is true
+ORI     A3, R0, B0 % opacity
+.Menu5_DrawGoldenOption2
+LUI     A0, 002F
+ADDIU   A0, A0, 00D6 % Yes % String ID
+ADDIU   A1, R0, 00B5 % x
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+ADDIU   A2, R0, 0093 % y
+.SkipGoldenLS2
+% Set Menu Lenght for Menu5(Settings)
+COPY    S4, R0
+COPY    S5, R0
+LIO	   T0, $ExtraTab_CursorData2
+SB	   S4, 0 (T0)
+SB	   S5, 1 (T0)
+BEQ     R0, R0, .PrintCursor
+NOP
+% Set Menu Lenght, needed by the cursor
+.SetMenuLenght
+LIO		T0, $ExtraTab_CursorData2
+ADDIU	S4, R0, 1 % Current Menu Rows
+% Check if the Current Menu is Menu4 (Dungeon)
+ADDIU     T5, R0, 4
+BEQL      S1, T5 .SetMenuLenght_Menu4
+ADDIU	S5, R0, 0 % Menu4 have one single page
+ADDIU	S5, R0, 2 % Menu1-3 use 3 pages
+.SetMenuLenght_Menu4
+SB		S4, 0 (T0)
+SB		S5, 1 (T0)
+% Show Cursor
+.PrintCursor
+LABU    T0, 802700D4 % Current Opened tab, 00=None
+BEQ     T0, R0, .End
+NOP
+% Get String ID for the Bottom Box by reading the current Menu, Page and Row
+% Check Current Row
+BEQL    S6, R0, .LoadBoxStringID
+ADDIU   A1, R0, 0020 % x
+% If wasn't row 0, just load row 1 pos instead
+ADDIU   A1, R0, 009F % x
+.LoadBoxStringID
+% Load Description
+/% Positions goes like this:
+       Row1 Row2
+Pos1    x    x
+Pos2
+Pos3
+Pos4
+Pos5
+%/
+% Check current position
+%============
+% Position 1
+%============
+% Get Current Page
+% Pos 1 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos1_Page1_Row1
+NOP
+% Pos 1 - Row 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .CheckCursorPos1_Page2_Row1
+NOP
+% Pos 1 - Row 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .CheckCursorPos1_Page3_Row1
+NOP
+.CheckCursorPos1_Page1_Row1
+%%%%
+%% Pos 1 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu0
+BEQL    S1, R0, .CheckCursorPos1_Page1_Row2
+ADDIU   T1, R0, 001B % String ID
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1_Page1_Row2
+ADDIU   T1, R0, 007C % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1_Page1_Row2
+ADDIU   T1, R0, 0097 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1_Page1_Row2
+ADDIU   T1, R0, 00AF % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos1_Page1_Row2
+ADDIU   T1, R0, 00C8 % String ID
+% Menu5 / Settings
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:get_variable 
+RESERVED
+BEQL      V0, R0, .CheckCursorPos1_Page1_Row2
+ADDIU     T1, R0, 0025 % String ID
+BNEL      V0, R0, .CheckCursorPos1_Page1_Row2
+ADDIU     T1, R0, 0026 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos1_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos1 % Row1
+NOP
+%%%%
+%% Pos 1 - Page 1 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 007D % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 0098 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00B0 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00C9 % String ID
+.CheckCursorPos1_Page2_Row1
+%%%%
+%% Pos 1 - Page 2 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1_Page2_Row2
+ADDIU   T1, R0, 0087 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1_Page2_Row2
+ADDIU   T1, R0, 00A2 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1_Page2_Row2
+ADDIU   T1, R0, 00B9 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos1_Page2_Row2
+BEQ     S6, R0, .CheckCursorPos1 % Row1
+NOP
+%%%%
+%% Pos 1 - Page 2 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 0088 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00A3 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00BA % String ID
+%%%%%
+.CheckCursorPos1_Page3_Row1
+%%%%
+%% Pos 1 - Page 3 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1_Page3_Row2
+ADDIU   T1, R0, 0092 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1_Page3_Row2
+ADDIU   T1, R0, 00AC % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1_Page3_Row2
+ADDIU   T1, R0, 00C3 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos1_Page3_Row2
+BEQ     S6, R0, .CheckCursorPos1 % Row1
+NOP
+%%%%
+%% Pos 1 - Page 3 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 0093 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00AD % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos1
+ADDIU   T1, R0, 00C4 % String ID
+.CheckCursorPos1
+% The string ID is loaded, now check if the cursor is even in pos1
+BEQL    S7, R0, .LoadCursor
+ADDIU   A2, R0, 004A % y
+%============
+% Position 2
+%============
+% Get Current Page
+% Pos 2 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos2_Page1_Row1
+NOP
+% Pos 2 - Row 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .CheckCursorPos2_Page2_Row1
+NOP
+% Pos 2 - Row 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .CheckCursorPos2_Page3_Row1
+NOP
+.CheckCursorPos2_Page1_Row1
+%%%%
+%% Pos 2 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu0
+BEQL    S1, R0, .CheckCursorPos2_Page1_Row2
+ADDIU   T1, R0, 001C % String ID
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2_Page1_Row2
+ADDIU   T1, R0, 007F % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2_Page1_Row2
+ADDIU   T1, R0, 0099 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2_Page1_Row2
+ADDIU   T1, R0, 00B1 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos2_Page1_Row2
+ADDIU   T1, R0, 00CA % String ID
+% Menu5 / Settings
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:get_variable 
+RESERVED
+BEQL      V0, R0, .CheckCursorPos2_Page1_Row2
+ADDIU     T1, R0, 0027 % String ID
+BNEL      V0, R0, .CheckCursorPos2_Page1_Row2
+ADDIU     T1, R0, 0028 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos2_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos2 % Row1
+NOP
+%%%%
+%% Pos 2 - Page 1 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 0080 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 009A % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 00B2 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 00CB % String ID
+.CheckCursorPos2_Page2_Row1
+%%%%
+%% Pos 2 - Page 2 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2_Page2_Row2
+ADDIU   T1, R0, 0089 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2_Page2_Row2
+ADDIU   T1, R0, 00AE % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2_Page2_Row2
+ADDIU   T1, R0, 00BB % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos2_Page2_Row2
+BEQ     S6, R0, .CheckCursorPos2 % Row1
+NOP
+%%%%
+%% Pos 2 - Page 2 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 008A % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 00A5 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 00BC % String ID
+%%%%%
+.CheckCursorPos2_Page3_Row1
+%%%%
+%% Pos 2 - Page 3 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2_Page3_Row2
+ADDIU   T1, R0, 0094 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2_Page3_Row2
+ADDIU   T1, R0, 00C5 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos2_Page3_Row2
+BEQ     S6, R0, .CheckCursorPos2 % Row1
+NOP
+%%%%
+%% Pos 2 - Page 3 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 0095 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos2
+ADDIU   T1, R0, 00C6 % String ID
+.CheckCursorPos2
+ADDIU   T0, R0, 1
+% The string ID is loaded, now check if the cursor is even in pos2
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos2_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0056 % y
+.CheckCursorPos2_NotMenu5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0059 % y
+%============
+% Position 3
+%============
+% Get Current Page
+% Pos 3 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos3_Page1_Row1
+NOP
+% Pos 3 - Row 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .CheckCursorPos3_Page2_Row1
+NOP
+% Pos 3 - Row 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .CheckCursorPos3_Page3_Row1
+NOP
+.CheckCursorPos3_Page1_Row1
+%%%%
+%% Pos 3 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu0
+BEQL    S1, R0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 001D % String ID
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 0081 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 009B % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 00B3 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 00CC % String ID
+% Menu5 / Settings
+ADDIU   T0, R0, 5
+BEQL    S1, T0, .CheckCursorPos3_Page1_Row2
+ADDIU   T1, R0, 00E2 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos3_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos3 % Row1
+NOP
+%%%%
+%% Pos 3 - Page 1 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 0082 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 009C % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 00B4 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 00CD % String ID
+.CheckCursorPos3_Page2_Row1
+%%%%
+%% Pos 3 - Page 2 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3_Page2_Row2
+ADDIU   T1, R0, 008B % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3_Page2_Row2
+ADDIU   T1, R0, 00A6 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3_Page2_Row2
+ADDIU   T1, R0, 00BD % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos3_Page2_Row2
+BEQ     S6, R0, .CheckCursorPos3 % Row1
+NOP
+%%%%
+%% Pos 3 - Page 2 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 008C % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 00A7 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 00BE % String ID
+%%%%%
+.CheckCursorPos3_Page3_Row1
+%%%%
+%% Pos 3 - Page 3 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3_Page3_Row2
+ADDIU   T1, R0, 00DE % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos3_Page3_Row2
+BEQ     S6, R0, .CheckCursorPos3 % Row1
+NOP
+%%%%
+%% Pos 3 - Page 3 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 00DF % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos3
+ADDIU   T1, R0, 0091 % String ID
+.CheckCursorPos3
+% Position 3
+ADDIU   T0, R0, 2
+% The string ID is loaded, now check if the cursor is even in pos3
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos3_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0064 % y
+.CheckCursorPos3_NotMenu5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 006A % y
+%============
+% Position 4
+%============
+% Get Current Page
+% Pos 4 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos4_Page1_Row1
+NOP
+% Pos 4 - Row 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .CheckCursorPos4_Page2_Row1
+NOP
+% Pos 4 - Row 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .CheckCursorPos4_Page3_Row1
+NOP
+.CheckCursorPos4_Page1_Row1
+%%%%
+%% Pos 4 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu0
+% Check if the Dungeon is already unlocked
+LIO 	A1, *Flag_DungeonOpened
+JAL 	~Func:get_variable 
+RESERVED
+BNE		V0, R0,	.LoadDungeonString_DescriptionBox
+NOP
+BEQL    S1, R0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 00D4 % String ID
+.LoadDungeonString_DescriptionBox
+BEQL    S1, R0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 00D1 % String ID
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 0083 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 009D % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 00C7 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 00CE % String ID
+% Menu5 / Settings
+ADDIU   T0, R0, 5
+BEQL    S1, T0, .CheckCursorPos4_Page1_Row2
+ADDIU   T1, R0, 00E3 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos4_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos4 % Row1
+NOP
+%%%%
+%% Pos 4 - Page 1 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 0084 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 009F % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 00B6 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 00CF % String ID
+.CheckCursorPos4_Page2_Row1
+%%%%
+%% Pos 4 - Page 2 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4_Page2_Row2
+ADDIU   T1, R0, 008D % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4_Page2_Row2
+ADDIU   T1, R0, 00A8 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4_Page2_Row2
+ADDIU   T1, R0, 00BF % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos4_Page2_Row2
+BEQ     S6, R0, .CheckCursorPos4 % Row1
+NOP
+%%%%
+%% Pos 4 - Page 2 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 008E % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 00A9 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 00C0 % String ID
+%%%%%
+.CheckCursorPos4_Page3_Row1
+%%%%
+%% Pos 4 - Page 3 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4_Page3_Row2
+ADDIU   T1, R0, 00E0 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos4_Page3_Row2
+BEQ     S6, R0, .CheckCursorPos4 % Row1
+NOP
+%%%%
+%% Pos 4 - Page 3 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 0091 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos4
+ADDIU   T1, R0, 0091 % String ID
+.CheckCursorPos4
+% Position 4
+ADDIU   T0, R0, 3
+% The string ID is loaded, now check if the cursor is even in pos3
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos4_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0073 % y
+.CheckCursorPos4_NotMenu5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 007A % y
+%============
+% Position 5
+%============
+% Get Current Page
+% Pos 5 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos5_Page1_Row1
+NOP
+% Pos 5 - Row 1 - Check Page 2
+ADDIU   T0, R0, 1
+BEQ     S2, T0, .CheckCursorPos5_Page2_Row1
+NOP
+% Pos 5 - Row 1 - Check Page 3
+ADDIU   T0, R0, 2
+BEQ     S2, T0, .CheckCursorPos5_Page3_Row1
+NOP
+.CheckCursorPos5_Page1_Row1
+%%%%
+%% Pos 5 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu0
+BEQL    S1, R0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 001E % String ID
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 0085 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 00A0 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 00B7 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 00D0 % String ID
+% Menu5 / Settings
+ADDIU   T0, R0, 5
+BEQL    S1, T0, .CheckCursorPos5_Page1_Row2
+ADDIU   T1, R0, 00E4 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos5_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos5 % Row1
+NOP
+%%%%
+%% Pos 5 - Page 1 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0086 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 00A1 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 00B8 % String ID
+% Menu4 / Dungeon
+ADDIU   T0, R0, 4
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0091 % String ID
+.CheckCursorPos5_Page2_Row1
+%%%%
+%% Pos 5 - Page 2 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5_Page2_Row2
+ADDIU   T1, R0, 008F % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5_Page2_Row2
+ADDIU   T1, R0, 00AA % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5_Page2_Row2
+ADDIU   T1, R0, 00C1 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos5_Page2_Row2
+BEQ     S6, R0, .CheckCursorPos5 % Row1
+NOP
+%%%%
+%% Pos 5 - Page 2 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0096 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 00AB % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 00C2 % String ID
+%%%%%
+.CheckCursorPos5_Page3_Row1
+%%%%
+%% Pos 5 - Page 3 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5_Page3_Row2
+ADDIU   T1, R0, 0091 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos5_Page3_Row2
+BEQ     S6, R0, .CheckCursorPos5 % Row1
+NOP
+%%%%
+%% Pos 5 - Page 3 - Row 2 - Strings
+%%%%
+% Read Current Menu
+% Menu1 / Global
+ADDIU   T0, R0, 1
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0091 % String ID
+% Menu2 / Classic
+ADDIU   T0, R0, 2
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0091 % String ID
+% Menu3 / Rogue
+ADDIU   T0, R0, 3
+BEQL    S1, T0, .CheckCursorPos5
+ADDIU   T1, R0, 0091 % String ID
+.CheckCursorPos5
+% Position 5
+ADDIU   T0, R0, 4
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos5_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0082 % y
+.CheckCursorPos5_NotMenu5
+% The string ID is loaded, now check if the cursor is even in pos5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 008A % y
+%============
+% Position 6 (Used only on the Settings Menu)
+%============
+% Get Current Page
+% Pos 6 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos6_Page1_Row1
+NOP
+.CheckCursorPos6_Page1_Row1
+%%%%
+%% Pos 6 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu5 / Settings
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:get_variable 
+RESERVED
+BEQL      V0, R0, .CheckCursorPos6_Page1_Row2
+ADDIU     T1, R0, 00D7 % String ID
+BNEL      V0, R0, .CheckCursorPos6_Page1_Row2
+ADDIU     T1, R0, 00D8 % String ID
+.CheckCursorPos6_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos6 % Row1
+NOP
+.CheckCursorPos6
+% Position 6
+ADDIU   T0, R0, 5
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos6_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 0091 % y
+.CheckCursorPos6_NotMenu5
+% The string ID is loaded, now check if the cursor is even in pos5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 008A % y
+%============
+% Position 7 (Used only on the Settings Menu)
+%============
+% Get Current Page
+% Pos 7 - Row 1 - Check Page 1
+BEQ     S2, R0, .CheckCursorPos7_Page1_Row1
+NOP
+.CheckCursorPos7_Page1_Row1
+%%%%
+%% Pos 7 - Page 1 - Row 1 - Strings
+%%%%
+% Read Current Menu
+% Menu5 / Settings
+% Go Back To Menu, Description Strings
+ADDIU   T0, R0, 5
+BNE     S1, T0, .CheckCursorPos7_Page1_Row2
+NOP
+LIO     T1, $ExtraTab_CursorData4
+LBU     T1, 1 (T1) % asking for confirmation (bool)
+BEQL    T1, R0, .CheckCursorPos7_Page1_Row2
+ADDIU   T1, R0, 0091 % String ID
+% asking for confirmation
+ADDIU   T1, R0, 00E1 % String ID
+% Check in what row the cursor is right now
+.CheckCursorPos7_Page1_Row2
+BEQ     S6, R0, .CheckCursorPos7 % Row1
+NOP
+.CheckCursorPos7
+% Position 7
+ADDIU   T0, R0, 6
+% Check if the current menu is Menu5(Settings) use another Y pos for the cursor
+ADDIU   T4, R0, 5
+BNE     S1, T4, .CheckCursorPos7_NotMenu5
+NOP
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 00A0 % y
+.CheckCursorPos7_NotMenu5
+% The string ID is loaded, now check if the cursor is even in pos5
+BEQL    S7, T0, .LoadCursor
+ADDIU   A2, R0, 008A % y
+% Load cursor string
+.LoadCursor
+% Check if the cursor is in settings position #3
+% to use another X pos for the cursor
+% S1 = Current Menu
+% S7 = Cursor Y Pos
+ORI     A1, R0, 5 % Was Menu 5? (Settings)
+BNE     S1, A1, .GetCursorXPos
+NOP
+ORI     A1, R0, 6 % Go back to main menu?
+BNE     S7, A1, .GetCursorXPos
+NOP
+BEQ     R0, R0, .LoadCursorPos
+ADDIU   A1, R0, 003E % x % Go back to menu
+% Check Current Row, loaded again because Menu5 calls a JAL
+.GetCursorXPos
+BEQL    S6, R0, .LoadCursorPos
+ADDIU   A1, R0, 0020 % x
+% If wasn't row 0, just load row 1 pos instead
+ADDIU   A1, R0, 009F % x
+.LoadCursorPos
+% Do the cursor animation
+% Check current state of the cursor
+LIO     T2, $ExtraTab_CursorData3
+LH      T4, 0 (T2) % load Timer
+LBU     T3, 2 (T2) % Load State
+BNE     T3, R0, .SetCursorStateAs1
+NOP
+.State0
+ADDIU   T4, T4, 2
+SAH     T4, $ExtraTab_CursorData3 % Move timer
+% Check the direction the cursor will move now
+SLTI    T2, T4, 32`
+BEQ     T2, R0, .SetCursorStateAs1
+NOP
+% Set State as 0
+LIO     T3, $ExtraTab_CursorData3
+SB      R0, 2 (T3)
+BEQ     R0, R0, .Cursor_Animation_Offsets
+NOP
+% Set State as 1
+.SetCursorStateAs1
+% Check if the cursor need to set back to state 0
+SLTI    T2, T4, 0
+BNE     T2, R0, .State0
+NOP
+ADDIU   T2, R0, 1
+LIO     T3, $ExtraTab_CursorData3
+SB      T2, 2 (T3)
+% Move timer
+ADDIU   T3, R0, 2
+SUB     T4, T4, T3
+SAH     T4, $ExtraTab_CursorData3 % Move timer
+.Cursor_Animation_Offsets
+% Check Offset 1
+SLTI    T2, T4, 8`
+BNE     T2, R0, .LoadDescriptionID
+NOP
+% Check Offset 2
+SLTI    T2, T4, 16`
+BNEL    T2, R0, .LoadDescriptionID
+ADDIU   A1, A1, 1
+% Check Offset 3
+SLTI    T2, T4, 24`
+BNEL    T2, R0, .LoadDescriptionID
+ADDIU   A1, A1, 2
+% Check Offset 4
+SLTI    T2, T4, 32`
+BNEL    T2, R0, .LoadDescriptionID
+ADDIU   A1, A1, 3
+BEQ     R0, R0, .LoadDescriptionID
+NOP
+% Save New String ID to use for the text box
+.LoadDescriptionID
+LIO     T0, $ExtraTab_CursorData
+SB      T1, 3 (T0)
+LIO     A0, $String_Cursor
+ORI     A3, R0, FF % opacity
+SW      R0, 0014 (SP) % text fx / 0 = none
+JAL     ~Func:draw_string
+NOP
+%%
+% Navigation Arrows
+%%
+% Draw some arrows to know the available pages to navigate
+% The current Menu even have multiple pages?
+BEQ       S5, R0, .TrackInputs
+NOP
+% It has
+% Current page is the 1st one?
+BEQ       S2, R0, .RightArrow
+NOP
+.LeftArrow
+% Arrow Animation
+% Do the arrows animation by reading the animation data from the cursor
+% Check current state of the cursor
+LIO     T2, $ExtraTab_CursorData3
+LHU     T4, 0 (T2) % load Timer
+LBU     T3, 2 (T2) % Load State
+ADDIU   A1, R0, 005A % x
+COPY    T5, R0
+% Check Offset 1
+SLTI    T2, T4, 8`
+BNE     T2, R0, .PrintLeftArrow
+NOP
+% Check Offset 2
+SLTI    T2, T4, 16`
+BNEL    T2, R0, .LeftArrow_SubPos
+ADDIU   T5, R0, 1
+% Check Offset 3
+SLTI    T2, T4, 24`
+BNEL    T2, R0, .LeftArrow_SubPos
+ADDIU   T5, R0, 2
+% Check Offset 4
+SLTI    T2, T4, 32`
+BNEL    T2, R0, .LeftArrow_SubPos
+ADDIU   T5, R0, 3
+.LeftArrow_SubPos
+SUBU    A1, A1, T5
+.PrintLeftArrow
+LIO       A0, $String_Arrow_Left
+ORI       A3, R0, FF % opacity
+SW        R0, 0014 (SP) % text fx / 0 = none
+JAL       ~Func:draw_string
+ADDIU     A2, R0, 0038 % y
+.RightArrow
+% Current page is the last one?
+BEQ       S2, S5, .TrackInputs
+NOP
+% Arrow Animation
+% Do the arrows animation by reading the animation data from the cursor
+% Check current state of the cursor
+LIO     T2, $ExtraTab_CursorData3
+LH      T4, 0 (T2) % load Timer
+LBU     T3, 2 (T2) % Load State
+ADDIU   A1, R0, 00E0 % x
+% Check Offset 1
+SLTI    T2, T4, 8`
+BNE     T2, R0, .PrintRightArrow
+NOP
+% Check Offset 2
+SLTI    T2, T4, 16`
+BNEL    T2, R0, .PrintRightArrow
+ADDIU   A1, A1, 1
+% Check Offset 3
+SLTI    T2, T4, 24`
+BNEL    T2, R0, .PrintRightArrow
+ADDIU   A1, A1, 2
+% Check Offset 4
+SLTI    T2, T4, 32`
+BNEL    T2, R0, .PrintRightArrow
+ADDIU   A1, A1, 3
+BEQ     R0, R0, .PrintRightArrow
+NOP
+.PrintRightArrow
+LIO       A0, $String_Arrow_Right
+ORI       A3, R0, FF % opacity
+SW        R0, 0014 (SP) % text fx / 0 = none
+JAL       ~Func:draw_string
+ADDIU     A2, R0, 0038 % y
+%=================
+% Cursor Inputs
+%=================
+/% 80074035 = Joystick (1 Frame Input)
+bit0=Up
+bit1=Down
+bit2=Left
+bit3=Right
+
+80074036 = Inputs 1
+bit5=Z Button
+bit6=B Button
+bit7=A Button
+
+80074037 = Inputs 2
+bit4=R Button
+bit5=L Button
+%/
+% Track Joystick vertical movement
+% Up
+.TrackInputs
+LABU      T0, 80074035 % Joystick (1 Frame Input)
+COPY      T1, T0
+SLL	     T1, T1, 31`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit0
+BNEL	     T1, R0, .CursorPos_ChangeYPos % If was indeed moved upwards
+ADDIU	T2, R0, 0
+% Down
+COPY      T1, T0
+SLL		T1, T1, 30`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit1
+BNEL	     T1, R0, .CursorPos_ChangeYPos % If was indeed moved downwards
+ADDIU	T2, R0, 1
+%=
+% Track Joystick horizontal movement
+%=
+COPY      T1, T0
+SLL		T1, T1, 29`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit2
+BNEL	     T1, R0, .CursorPos_ChangeXPos % If was indeed moved to the left
+ADDIU	T2, R0, 0
+% Down
+COPY      T1, T0
+SLL		T1, T1, 28`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit3
+BNEL	     T1, R0, .CursorPos_ChangeXPos % If was indeed moved downwards
+ADDIU	T2, R0, 1
+%=
+% Track Buttons
+%=
+LABU      T0, 80074036 % Inputs 1 / bit5=Z, bit6=B, bit7=A
+% A Button
+COPY      T1, T0
+SLL		T1, T1, 24`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit7
+BNEL	     T1, R0, .MenuNavigation_Inputs % If the button was indeed pressed
+ADDIU	T2, R0, 2
+% B Button
+COPY      T1, T0
+SLL		T1, T1, 25`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit6
+BNEL	     T1, R0, .MenuNavigation_Inputs % If the button was indeed pressed
+ADDIU	T2, R0, 3
+% Z Button
+COPY      T1, T0
+SLL		T1, T1, 26`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit5
+BNEL	     T1, R0, .MenuNavigation_Inputs % If the button was indeed pressed
+ADDIU	T2, R0, 4
+% L Button
+LABU      T0, 80074037 % Inputs 2 / bit4=R, bit5=L
+COPY      T1, T0
+SLL		T1, T1, 26`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit5
+BNEL	     T1, R0, .MenuNavigation_Inputs % If the button was indeed pressed
+ADDIU	T2, R0, 5
+% R Button
+COPY      T1, T0
+SLL		T1, T1, 27`
+SRL 	     T1, T1, 31` % Move all bits to just leave bit4
+BNEL	     T1, R0, .MenuNavigation_Inputs % If the button was indeed pressed
+ADDIU	T2, R0, 6
+% The joystick wasn't moved and any button wasn't pressed at all
+BEQ		R0, R0, .End
+NOP
+.MenuNavigation_Inputs
+/% T2 - Button Pressed
+02= A
+03= B
+04= Z
+05= L
+06= R
+%/
+% The button pressed was A?
+ADDIU     T3, R0, 2
+BEQ       T2, T3, .Navigation_CheckA_Conditions
+ADDIU     T3, R0, 3
+% The button pressed was B?
+BEQ       T2, T3, .Navigation_CheckB_Conditions
+ADDIU     T3, R0, 4
+% The button pressed was Z?
+BEQ       T2, T3, .Navigation_CheckZL_Conditions
+ADDIU     T3, R0, 5
+% The button pressed was L?
+BEQ       T2, T3, .Navigation_CheckZL_Conditions
+ADDIU     T3, R0, 6
+% The button pressed was R?
+BEQ       T2, T3, .Navigation_CheckR_Conditions
+NOP
+% Check if the current Menu is 0 or 5 (the only ones who use this button)
+.Navigation_CheckA_Conditions
+% Check if the Player has just entered the extra tab
+LIO       T1 $ExtraTab_CursorData3
+LBU       T1, 3 (T1)
+% The code that start the timer is at Hook 136884
+ADDIU     T3, R0, 4 % Wait 4 frames to receive inputs
+BNE       T1, T3, .End
+NOP
+BEQ       S1, R0, .MenuNavigation_Button_A
+NOP
+ADDIU     T1, R0, 5 % Was Menu 5? (Settings)
+BEQ       S1, T1, .MenuNavigation_Button_A
+NOP
+BEQ       R0, R0, .End
+NOP
+.MenuNavigation_Button_A
+% The current Menu is 0? and Dungeon haven't been unlocked?
+BNE       S1, R0, .MenuNavigation_Button_A_BypassDungeonChecks
+NOP
+% The cursor is at "Dungeon"?
+ADDIU     T3, R0, 3
+BNE       S7, T3, .MenuNavigation_Button_A_BypassDungeonChecks
+NOP
+LIO 	  A1, *Flag_DungeonOpened
+JAL 	  ~Func:get_variable 
+RESERVED
+% If dungeon isn't unlocked don't do anything
+BEQ		  V0, R0, .End
+NOP
+.MenuNavigation_Button_A_BypassDungeonChecks
+% Play Cursor Sound FX
+ADDIU	A0, R0, 00C9 % Accept
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	     ~Func:_play_sound
+COPY 	A3, A1
+% Read Cursor Y Position
+BEQL      S7, R0, .MenuNavigation_EnterNewMenu
+ADDIU     T1, R0, 1 % enter Menu1 (Globals)
+ADDIU     T3, R0, 1
+BEQL      S7, T3, .MenuNavigation_EnterNewMenu
+ADDIU     T1, R0, 2 % enter Menu2 (Classic)
+ADDIU     T3, R0, 2
+BEQL      S7, T3, .MenuNavigation_EnterNewMenu
+ADDIU     T1, R0, 3 % enter Menu3 (Roguelike)
+ADDIU     T3, R0, 3
+BEQL      S7, T3, .MenuNavigation_EnterNewMenu
+ADDIU     T1, R0, 4 % enter Menu4 (Dungeon)
+ADDIU     T3, R0, 4
+BEQL      S7, T3, .MenuNavigation_EnterNewMenu
+ADDIU     T1, R0, 5 % enter Menu5 (Settings)
+.MenuNavigation_EnterNewMenu
+% The curret menu is the 5th one? (Settings)
+ADDIU     T3, R0, 5
+BNE       S1, T3, .MenuNavigation_AButton_BypassMenu5
+NOP
+BEQL      S7, R0, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 1 % change the pipe flag
+ADDIU     T3, R0, 1
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 2 % change the sign flag
+ADDIU     T3, R0, 2
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 3 % change the stylish flag
+ADDIU     T3, R0, 3
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 4 % change the skipper flag
+ADDIU     T3, R0, 4
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 5 % change the shortcuts flag
+ADDIU     T3, R0, 5
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 6 % change the golden ls flag
+ADDIU     T3, R0, 6
+BEQL      S7, T3, .MenuNavigation_ChangeSettingsFlags
+ADDIU     T1, R0, 7 % ask confirmation to go back to the main menu
+.MenuNavigation_ChangeSettingsFlags
+/%
+T1=1=Pipe Settings
+T1=2=Sign Settings
+T1=3=Stylish Settings
+T1=4=Cutscenes Settings
+T1=5=Shorctus Settings
+T1=6=Golden Life Shroom Flag
+T1=7=Go Back to Main Menu
+%/
+ADDIU     T3, R0, 1
+BNE       T1, T3, .GetCounterFlag
+NOP
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetPipeFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetPipeFlag
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.GetCounterFlag
+ADDIU     T3, R0, 2
+BNE       T1, T3, .GetStylishFlag
+NOP
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetCounterFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetCounterFlag
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.GetStylishFlag
+ADDIU     T3, R0, 3
+BNE       T1, T3, .GetSkipperFlag
+NOP
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetStylishFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetStylishFlag
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.GetSkipperFlag
+ADDIU     T3, R0, 4
+BNE       T1, T3, .GetShorctusFlag
+NOP
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetSkipperFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetSkipperFlag
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.GetShorctusFlag
+ADDIU     T3, R0, 5
+BNE       T1, T3, .GetGoldenFlag
+NOP
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetShorcutsFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetShorcutsFlag
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.GetGoldenFlag
+ADDIU     T3, R0, 6
+BNE       T1, T3, .AskGoBackMainMenu
+NOP
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQL      V0, R0, .SetGoldenFlag
+ADDIU     A2, R0, 1 % Set Flag as True
+ADDIU     A2, R0, 0 % Set as False
+.SetGoldenFlag
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:set_variable
+RESERVED
+BEQ       R0, R0, .End
+NOP
+.AskGoBackMainMenu
+LIO       T0, $ExtraTab_CursorData4
+LBU       T1, 1 (T0) % the game is already asking "Are you sure?"
+BNE       T1, R0, .GoBackToMainMenu
+NOP
+ORI       T1, R0, 1
+BEQ       R0, R0, .End
+SB        T1, 1 (T0)
+.GoBackToMainMenu
+SB        R0, 1 (T0)
+JAL       $Function_GoToMainMenu_ExtraTab
+NOP
+BEQ       R0, R0, .End
+NOP
+.MenuNavigation_AButton_BypassMenu5
+LIO       T3, $ExtraTab_CursorData
+SB        R0, 2 (T3) % Set Current Page to 0
+SB        T1, 1 (T3) % Open New Menu
+LIO       T3, $ExtraTab_CursorData2
+SB        R0, 3 (T3) % Set the cursor pos back to 0
+BEQ       R0, R0, .End
+NOP
+.Navigation_CheckB_Conditions
+BEQ       S1, R0, .End % At Menu0 just exit from the Extra Tab
+NOP
+ % Set cursor y pos according to the previous menu
+ADDIU     T1, R0, 1 % Globals
+BEQL      S1, T1, .SetCursorYPos
+ADDIU     S7, R0, 0
+ADDIU     T1, R0, 2 % Classic
+BEQL      S1, T1, .SetCursorYPos
+ADDIU     S7, R0, 1
+ADDIU     T1, R0, 3 % Roguelike
+BEQL      S1, T1, .SetCursorYPos
+ADDIU     S7, R0, 2
+ADDIU     T1, R0, 4 % Dungeon
+BEQL      S1, T1, .SetCursorYPos
+ADDIU     S7, R0, 3
+ADDIU     T1, R0, 5 % Settings
+BNE       S1, T1, .SetCursorYPos
+NOP
+% Go back to Main Menu (Confirmation)
+LIO       T3, $ExtraTab_CursorData4
+LBU       T1, 1 (T3) % asking for confirmation (bool)
+BEQL      T1, R0, .SetCursorYPos
+ADDIU     S7, R0, 4
+% Is asking for confirmation
+BEQ       R0, R0, .End
+SB        R0, 1 (T3)
+.SetCursorYPos
+% Go back to Menu0
+LIO       T3, $ExtraTab_CursorData2
+SB        R0, 2 (T3) % Set cursor x pos back to 0
+SB        S7, 3 (T3) % Set new y pos
+LIO       T3, $ExtraTab_CursorData
+SB        R0, 1 (T3) % Go Back to the Start Menu
+SB        R0, 2 (T3) % Set Current Page to 0
+BEQ       R0, R0, .End
+NOP
+.Navigation_CheckZL_Conditions
+% Check if the current Menu is 0 or 5 (this ones doesn't use this buttons)
+BEQ       S1, R0, .End
+NOP
+ADDIU     T1, R0, 5 % Was Menu 5? (Settings)
+BEQ       S1, T1, .End
+NOP
+% If the current Menu page is the 1st one, don't do anything
+BEQ       S2, R0, .End
+NOP
+% Go back previous page
+ADDIU     T3, R0, 1
+SUBU      S2, S2, T3 % Sub 1
+LIO       T3, $ExtraTab_CursorData
+SB        S2, 2 (T3) % Go to previous page
+BEQ       R0, R0, .PlaySound_Cursor
+NOP
+.Navigation_CheckR_Conditions
+% Check if the current Menu is 0 or 5 (this ones doesn't use this buttons)
+BEQ       S1, R0, .End
+NOP
+ADDIU     T1, R0, 5 % Was Menu 5? (Settings)
+BEQ       S1, T1, .End
+NOP
+% If the current Menu page is the last one don't do anything
+BEQ       S2, S5, .End
+NOP
+% Go to next page
+ADDIU     S2, S2, 1
+LIO       T3, $ExtraTab_CursorData
+SB        S2, 2 (T3) % Go to next page
+BEQ       R0, R0, .PlaySound_Cursor
+NOP
+%====================
+% Joystick Navigation
+%===================
+% Set New Y Position for the cursor
+% T2= 0 = Up
+% T2= 1 = Down
+% S1= Current Menu ID
+% S5= Current Menu Columns
+% S7= Cursor Current Y Pos
+.CursorPos_ChangeYPos
+LIO       T0, $ExtraTab_CursorData4 % Nuke "Go back to Main Menu?" confirmation bool
+SB        R0, 1 (T0)
+BNE		T2, R0, .MoveCursor_Down
+NOP
+% Check if Menu5 is the current one
+ADDIU     T0, R0, 5
+BNE       S1, T0, .MoverCursor_Up_BypassMenu5_Checks
+NOP
+% Check if the cursor is on the last pos
+ORI       T0, R0, 6 % last pos
+BNE       S7, T0, .MoverCursor_Up_BypassGoldenLS_1
+NOP
+% Check if the Golden LS has been unlocked
+LABU      V0, $ExtraTab_CursorData4
+% The cursor is on the lowest position and the golden ls isn't unlocked
+BEQL      V0, R0, .SaveCursorPos
+ORI       S7, R0, 4
+.MoverCursor_Up_BypassGoldenLS_1
+% Check if the cursor is on the top position
+BNE       S7, R0, .MoverCursor_Up_JustMoveUp
+NOP
+BEQ       R0, R0, .SaveCursorPos
+ADDIU     S7, R0, 6 % set the cursor to the lowest column
+% For all other Menus
+% Just move the cursor upwards
+.MoverCursor_Up_BypassMenu5_Checks
+% Check if the cursor is on the top column
+BEQL	     S7, R0, .SaveCursorPos
+ADDIU     S7, R0, 4 % set the cursor to the lowest column
+% Just move the cursor Upwards
+.MoverCursor_Up_JustMoveUp
+ORI       T0, R0, 1
+BEQ		R0, R0, .SaveCursorPos
+SUBU	     S7, S7, T0
+.MoveCursor_Down
+% Check if Menu5 is the current one
+ADDIU     T0, R0, 5
+BNE       S1, T0, .MoverCursor_Down_BypassMenu5_Checks
+NOP
+% Check if the cursor is on the last pos
+ORI       T0, R0, 6 % last pos
+BEQL      S7, T0, .SaveCursorPos
+CLEAR     S7 % set the cursor to the 1st column
+% The cursor is on position 4?
+ORI       T0, R0, 4
+BNE       S7, T0, .MoverCursor_Down_JustMoveDown
+NOP
+% Check if the Golden LS has been unlocked
+LABU      V0, $ExtraTab_CursorData4
+BEQL      V0, R0, .SaveCursorPos
+ORI       S7, R0, 6 % lowest pos
+BEQ       R0, R0, .MoverCursor_Down_JustMoveDown
+NOP
+% For all other Menus
+.MoverCursor_Down_BypassMenu5_Checks
+% Check if the cursor is on the lowest position
+ADDIU     T0, R0, 4 % lowest column (except menu5/settings)
+BEQL	     S7, T0, .SaveCursorPos
+CLEAR     S7 % set the cursor to the 1st column
+% Just move the cursor downwards
+.MoverCursor_Down_JustMoveDown
+BEQ		R0, R0, .SaveCursorPos
+ADDIU	S7, S7, 1
+%=
+% Change Cursor X Pos
+%=
+% T2 = 0 = Left
+% T2 = 1 = Right
+% S4= Current Menu Rows
+% S6= Cursor Current Row
+.CursorPos_ChangeXPos
+% If the current Menu doesn't have more than 1 row, bypass checking the horizontal movement of the joystick
+% The curret menu is the 5th one? (Settings)
+ADDIU     T3, R0, 5
+BEQ       S1, T3, .MenuNavigation_Horizontal_BypassEnd
+NOP
+% If wasn't menu5
+BEQ       S4, R0, .End
+NOP
+.MenuNavigation_Horizontal_BypassEnd
+BNE		T2, R0, .MoveCursor_Right
+NOP
+%%
+% Left
+%%
+%========
+% Menu5 Checks
+%========
+% The curret menu is the 5th one? (Settings)
+ADDIU     T3, R0, 5
+BNE       S1, T3, .MenuNavigation_Left_BypassMenu5
+NOP
+BEQL      S7, R0, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 1 % change the pipe flag
+ADDIU     T3, R0, 1
+BEQL      S7, T3, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 2 % change the sign flag
+ADDIU     T3, R0, 2
+BEQL      S7, T3, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 3 % change the stylish flag
+ADDIU     T3, R0, 3
+BEQL      S7, T3, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 4 % change the skipper flag
+ADDIU     T3, R0, 4
+BEQL      S7, T3, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 5 % change the shortcuts flag
+ADDIU     T3, R0, 5
+BEQL      S7, T3, .MenuNavigation_Left_ChangeSettingsFlags
+ADDIU     T1, R0, 6 % change the golden ls flag
+% isn't any of above
+BEQ       R0, R0, .End
+NOP
+.MenuNavigation_Left_ChangeSettingsFlags
+/%
+T1=1=Pipe Settings
+T1=2=Sign Settings
+T1=3=Stylish Settings
+T1=4=Cutscenes Settings
+T1=5=Shorctus Settings
+T1=6=Golden Life Shroom Flag
+T1=7=Go Back to Main Menu
+%/
+ADDIU     T3, R0, 1
+BNE       T1, T3, .GetCounterFlag_Left
+NOP
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetPipeFlag_Left
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetCounterFlag_Left
+ADDIU     T3, R0, 2
+BNE       T1, T3, .GetStylishFlag_Left
+NOP
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetCounterFlag_Left
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetStylishFlag_Left
+ADDIU     T3, R0, 3
+BNE       T1, T3, .GetSkipperFlag_Left
+NOP
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetStylishFlag_Left
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetSkipperFlag_Left
+ADDIU     T3, R0, 4
+BNE       T1, T3, .GetShorctusFlag_Left
+NOP
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetSkipperFlag_Left
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetShorctusFlag_Left
+ADDIU     T3, R0, 5
+BNE       T1, T3, .GetGoldenFlag_Left
+NOP
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetShorcutsFlag_Left
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetGoldenFlag_Left
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as True
+.SetGoldenFlag_Left
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:set_variable
+RESERVED
+.SetSettingsFlag_PlaySoundFX_Accept
+ADDIU	A0, R0, 00C9 % Accept
+CLEAR 	A1
+CLEAR 	A2
+JAL 	     ~Func:_play_sound
+CLEAR 	A3
+BEQ       R0, R0, .End
+NOP
+%=========
+.MenuNavigation_Left_BypassMenu5
+%=========
+% Check if the cursor isn't on the 1st Row
+BNE       S6, R0, .Cursor_MoveLeft_Row2
+NOP
+% the cursor is on the 1st row
+% Check if a previous page need to be loaded
+ADDIU     T0, R0, 1
+BEQ       S2, R0, .Cursor_MoveLeft_DontLoadPage_Previous
+NOP
+SUBU      S2, S2, T0
+LIO       T1, $ExtraTab_CursorData
+SB        S2, 2 (T1)
+.Cursor_MoveLeft_DontLoadPage_Previous
+BEQ       R0, R0, .SaveCursorPos
+ADDIU     S6, R0, 1
+.Cursor_MoveLeft_Row2
+BEQ       R0, R0, .SaveCursorPos
+ADDIU     S6, R0, 0
+.MoveCursor_Right
+%%
+% Right
+%%
+%========
+% Menu5 Checks
+%========
+% The curret menu is the 5th one? (Settings)
+ADDIU     T3, R0, 5
+BNE       S1, T3, .MenuNavigation_Right_BypassMenu5
+NOP
+BEQL      S7, R0, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 1 % change the pipe flag
+ADDIU     T3, R0, 1
+BEQL      S7, T3, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 2 % change the sign flag
+ADDIU     T3, R0, 2
+BEQL      S7, T3, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 3 % change the stylish flag
+ADDIU     T3, R0, 3
+BEQL      S7, T3, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 4 % change the skipper flag
+ADDIU     T3, R0, 4
+BEQL      S7, T3, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 5 % change the shortcuts flag
+ADDIU     T3, R0, 5
+BEQL      S7, T3, .MenuNavigation_Right_ChangeSettingsFlags
+ADDIU     T1, R0, 6 % change the golden flag
+% isn't any of above
+BEQ       R0, R0, .End
+NOP
+.MenuNavigation_Right_ChangeSettingsFlags
+/%
+T1=1=Pipe Settings
+T1=2=Sign Settings
+T1=3=Stylish Settings
+T1=4=Cutscenes Settings
+T1=5=Shorctus Settings
+T1=6=Golden Life Shroom Flag
+T1=7=Go Back to Main Menu
+%/
+ADDIU     T3, R0, 1
+BNE       T1, T3, .GetCounterFlag_Right
+NOP
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as true
+.SetPipeFlag_Right
+LIO 	     A1, *Flag_PipeBehaviour
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetCounterFlag_Right
+ADDIU     T3, R0, 2
+BNE       T1, T3, .GetStylishFlag_Right
+NOP
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as true
+.SetCounterFlag_Right
+LIO 	     A1, *Flag_FloorNumber
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetStylishFlag_Right
+ADDIU     T3, R0, 3
+BNE       T1, T3, .GetSkipperFlag_Right
+NOP
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as true
+.SetStylishFlag_Right
+LIO 	     A1, *Flag_DisableFanfare
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetSkipperFlag_Right
+ADDIU     T3, R0, 4
+BNE       T1, T3, .GetShorctusFlag_Right
+NOP
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as true
+.SetSkipperFlag_Right
+LIO 	     A1, *Flag_DisableSkipper
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetShorctusFlag_Right
+ADDIU     T3, R0, 5
+BNE       T1, T3, .GetGoldenFlag_Right
+NOP
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is true?
+BNE       V0, R0, .End
+NOP
+ADDIU     A2, R0, 1 % Set as true
+.SetShorcutsFlag_Right
+LIO 	     A1, *Flag_DisableShortcuts
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+.GetGoldenFlag_Right
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:get_variable 
+RESERVED
+% The flag is false?
+BEQ       V0, R0, .End
+NOP
+ADDIU     A2, R0, 0 % Set as False
+.SetGoldenFlag_Right
+LIO 	     A1, *Flag_GoldenLS
+JAL 	     ~Func:set_variable
+RESERVED
+% Play Sound
+BEQ       R0, R0, .SetSettingsFlag_PlaySoundFX_Accept
+NOP
+%=========
+.MenuNavigation_Right_BypassMenu5
+%=========
+% Check if the cursor is on the 1st Row
+BEQ       S6, R0, .Cursor_MoveRight_Row1
+NOP
+% the cursor is on the 2nd row
+% Check if the next page need to be loaded
+BEQ       S2, S5, .Cursor_MoveRight_DontLoadPage_Next
+NOP
+ADDIU     S2, S2, 1
+LIO       T1, $ExtraTab_CursorData
+SB        S2, 2 (T1)
+.Cursor_MoveRight_DontLoadPage_Next
+BEQ       R0, R0, .SaveCursorPos
+ADDIU     S6, R0, 0
+.Cursor_MoveRight_Row1
+BEQ       R0, R0, .SaveCursorPos
+ADDIU     S6, S6, 1
+.SaveCursorPos
+LIO		T0, $ExtraTab_CursorData2
+SB		S6, 2 (T0) % Write X Pos
+SB		S7, 3 (T0) % Write Y Pos
+% Play Cursor Sound FX
+.PlaySound_Cursor
+ADDIU	A0, R0, 00C7 % Move Cursor
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	     ~Func:_play_sound
+COPY 	A3, A1
+.End
+POP    RA, V0, V1, A0, A1, A2, A3, S0, S1, S2, S3, S4, S5, S6, S7
+JR     RA
+ADDIU  V0, R0, 2   
+}
+
+#new:Function $Function_GoToMainMenu_ExtraTab
+{
+ADDIU     SP, SP, FFE0
+SW        S0, 18 (SP)
+COPY      S0, A0
+LHU       V0, 76 (S0)
+ADDIU     A0, SP, 10
+SAB       R0, 800A0949 % Set game state back to "Main Menu"
+JAL       801382AC
+SH        V0, 10 (SP)
+JAL       ~Func:set_game_mode
+CLEAR     A0
+ADDIU     V0, R0, 2
+LW        RA, 1C (SP)
+LW        S0, 18 (SP)
+JR        RA
+ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_GoToMainMenu
+{
+ADDIU     SP, SP, FFE0
+SW        S0, 18 (SP)
+COPY      S0, A0
+BEQ       A1, R0, .o20
+SW        RA, 1C (SP)
+JAL       ~Func:set_map_transition_effect
+ADDIU     A0, R0, 4
+SW        R0, 74 (S0)
+.o20
+LHU       V0, 76 (S0)
+ADDIU     A0, SP, 10
+JAL       801382AC
+SH        V0, 10 (SP)
+SLL       V0, V0, 10
+BEQ       V0, R0, .o4C
+CLEAR     V0
+JAL       ~Func:set_game_mode
+CLEAR     A0
+BEQ       R0, R0, .o54
+ADDIU     V0, R0, 2
+.o4C
+LH        V1, 10 (SP)
+SW        V1, 74 (S0)
+.o54
+LW        RA, 1C (SP)
+LW        S0, 18 (SP)
+JR        RA
+ADDIU     SP, SP, 20
+}
+
+#export $Function_GoToMainMenu
+
+% Save completed challenges amount in S0
+#new:Function $Function_GetProgress_Cheevs_Global
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Flag_Cheev_Global_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_07
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_13
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_18
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_19
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+%LIO 	A1, *Flag_Cheev_Global_20 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+%ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_21
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_22
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_23
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_24
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_25
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_26
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_27
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Global_28
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+JPOP    RA, V0, A1, A2
+}
+
+#new:Function $Function_GetProgress_Cheevs_Classic
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Flag_Cheev_Classic_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_07
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+%LIO 	A1, *Flag_Cheev_Classic_13 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+%ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_18
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_19
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_20
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_21
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_22
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Classic_23
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+JPOP    RA, V0, A1, A2
+}
+
+#new:Function $Function_GetProgress_Cheevs_Rogue
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Flag_Cheev_Rogue_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+%LIO 	A1, *Flag_Cheev_Rogue_07 % unused
+%JAL 	~Func:get_variable 
+%RESERVED
+%ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_10
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_11
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_12
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_13
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_14
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_15
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_16
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_17
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_18
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_19
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_20
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_21
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_22
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_23
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_24
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Rogue_25
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+JPOP    RA, V0, A1, A2
+}
+
+#new:Function $Function_GetProgress_Cheevs_Dungeon
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Flag_Cheev_Dungeon_01
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_02
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_03
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_04
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_05
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_06
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_07
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_08
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+LIO 	A1, *Flag_Cheev_Dungeon_09
+JAL 	~Func:get_variable 
+RESERVED
+ADDU    S0, S0, V0
+JPOP    RA, V0, A1, A2
+}
+
+% used by MiscHook.patch
+#export $Function_GetProgress_Cheevs_Global
+#export $Function_GetProgress_Cheevs_Classic
+#export $Function_GetProgress_Cheevs_Rogue
+#export $Function_GetProgress_Cheevs_Dungeon
+
+%% STRINGS %%
+%=======================
+%% TITLES
+%=======================
+% Always loaded strings
+#string $String_Always_Challenges
+{
+[StartFX:DropShadow][Size:15:15]Challenges[SizeReset][END]
+}
+
+#string $String_Always_Settings
+{
+[StartFX:DropShadow][Size:15:15]Settings[SizeReset][END]
+}
+
+#string $String_Always_Percentage
+{
+[StartFX:DropShadow][Size:15:15]\%[SizeReset][END]
+}
+
+#string $String_Always_Progress
+{
+[StartFX:DropShadow][Size:15:15]Progress:[SizeReset][END]
+}
+
+% Strings from Menu 1
+#string $String_Menu0_Global
+{
+[StartFX:DropShadow][Size:0F:0F]Global :[END]
+}
+
+#string $String_Menu0_Classic
+{
+[StartFX:DropShadow][Size:0F:0F]Classic Mode :[END]
+}
+
+#string $String_Menu0_Rogue
+{
+[StartFX:DropShadow][Size:0F:0F]Roguelike Mode :[END]
+}
+
+#string $String_Menu0_Question
+{
+[StartFX:DropShadow][Size:0F:0F]?  ?  ?  ?[END]
+}
+
+#string $String_Menu0_Maze
+{
+[StartFX:DropShadow][Size:0F:0F]Maze :[END]
+}
+
+#string $String_Menu0_Settings
+{
+[StartFX:DropShadow][Size:0F:0F][Color:09]Settings[END]
+}
+
+% Cursor
+#string $String_Cursor
+{
+[StartFX:DropShadow][Size:0D:0D][Color:07][RIGHT][END]
+}
+
+% Navigation Arrows
+#string $String_Arrow_Left
+{
+[StartFX:DropShadow][Size:0D:0D][LEFT][END]
+}
+
+#string $String_Arrow_Right
+{
+[StartFX:DropShadow][Size:0D:0D][RIGHT][END]
+}
+
+#string $String_StarPoint_Icon
+{
+[Item:00:1D][END]
+}
+
+%Settings Titles
+#string $String_Settings_Pipes
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Entering Pipes:[END]
+}
+
+#string $String_Settings_Floor
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Floor Counter:[END]
+}
+
+#string $String_Settings_Stylish
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Stylish Fanfare:[END]
+}
+
+#string $String_Settings_Cutscenes
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Cutscenes Skipper:[END]
+}
+
+#string $String_Settings_BattleShortcuts
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Battle Shortcuts:[END]
+}
+
+#string $String_Settings_Golden
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Golden Life Shroom:[END]
+}
+
+#string $String_Settings_MainMenu
+{
+[StartFX:DropShadow][Size:0E:0E][Color:09]Go back to the Title Screen[END]
+}
+
+% Demo
+#string $String_Demo
+{
+[StartFX:WavyB]Not available in Demo[EndFX:WavyB][END]
+}
+
+#new:Data $ExtraTab_CursorData
+{
+00000000
+%XX000000 = Fade timer
+%00XX0000 = Current Menu
+%0000XX00 = Current Page
+%000000XX = String ID for the Bottom Box, used to load the descriptions
+}
+
+#new:Data $ExtraTab_CursorData2
+{
+00000000
+% XX000000 = Current Menu Rows
+% 00XX0000 = Current Menu Columns
+% 0000XX00 = Cursor X Pos
+% 000000XX = Cursor Y Pos
+}
+
+#new:Data $ExtraTab_CursorData3
+{
+00000000
+% XXXX0000 = Animation Timer
+% 0000XX00 = Animation State
+% 000000XX = Start Timer (used not auto enter to the first menu when you enter to the extra tab)
+}
+
+#new:Data $ExtraTab_CursorData4
+{
+00000000
+% XX000000 = Golden Lifeshroom Byte flag
+% 00XX0000 = Are you sure? (bool) (used when going back to the main menu)
+% 0000XXXX = unused
+}
+
+% Needed by BadgeBelts.patch
+#export $ExtraTab_CursorData
+#export $ExtraTab_CursorData2
+
+% Buffers
+#new:ASCII $ExtraTab_ASCII_Buffer
+{
+"          "
+}
+
+#new:ASCII $ExtraTab_ASCII_YellowBuffer
+{
+"          "
+}
+
+#new:ASCII $ASCII_Format_Byte
+{
+"%u"
+}
+
+#new:ASCII $ASCII_Format_TotalProgress
+{
+"%3u"
+}
+
+#new:ASCII $ASCII_Format_CurrentSP
+{
+"x %-3u"
+}
+
+#new:ASCII $ASCII_Format_ByteMenu0
+{
+"%u%%"
+}
+
+#string $ExtraTab_String_Buffer
+{
+[StartFX:DropShadow]             [END]
+}
+
+#string $ExtraTab_String_Buffer_Menu0_Progress
+{
+[StartFX:DropShadow]             [END]
+}
+
+#string $ExtraTab_String_Buffer_Size1E
+{
+[StartFX:DropShadow][Size:1E:1E]             [END]
+}

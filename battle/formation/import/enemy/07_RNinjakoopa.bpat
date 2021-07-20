@@ -1,0 +1,243 @@
+% Automatically dumped from section 07
+
+#new:Actor $07_RNinjakoopa {
+% stats
+[Index]        9Cb 
+[Level]        17`b 
+[MaxHP]         5`b 
+[Coins]         0`b 
+[Flags]       00240000 
+[StatusTable] $StatusTable_80228518_07 
+% ai
+[PartsCount]    1`s 
+[PartsTable]  $PartsTable_802285C4_07 
+[Script]      $Script_Init_8022AC8C_07 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]  85`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         38`b  42`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  20`b % dx dy
+[StatusIcon]   10`b  20`b % dx dy
+}
+
+#new:DefenseTable $DefenseTable_80228500_07 {
+.Element:Normal 00000001
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_8022850C_07 {
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:StatusTable $StatusTable_80228518_07 {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep      30`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy      60`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze   60`
+.Status:Shrink    100`
+.Status:Stop       75`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod     -1`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod     -1`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod  -1`
+.Status:ShrinkTurnMod    -1`
+.Status:StopTurnMod      -2`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_802285C4_07 {
+00800000 01000000 FB2400FF $IdleAnimations_80228610_07 $DefenseTable_80228500_07 00001000 00000000 00000000 00000000 
+}
+
+#new:IdleAnimations $IdleAnimations_80228610_07 {
+.Status:Normal    00660104
+.Status:Stone     00660100
+.Status:Sleep     00660115
+.Status:Poison    00660100
+.Status:Stop      00660100
+.Status:Static    00660100
+.Status:Paralyze  00660100
+.Status:Paralyze  00660100
+.Status:Dizzy     00660118
+.Status:Dizzy     00660118
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_802286DC_07 {
+.Status:Normal    0066010C
+.Status:Stone     00660117
+.Status:Sleep     00660117
+.Status:Poison    00660117
+.Status:Stop      00660117
+.Status:Static    00660117
+.Status:Paralyze  00660117
+.Status:Paralyze  00660117
+.Status:Dizzy     00660122
+.Status:Dizzy     00660122
+.Status:End
+}
+
+#new:Script $Script_Init_8022AC8C_07 {
+    Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8022B474_07 )
+    Call  BindIdle      ( .Actor:Self $Script_Idle_8022AD80_07 )
+    Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8022ADE8_07 )
+    Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8022B484_07 )
+    Call  SetActorPos   ( .Actor:Self 00000000 FFFFFC18 00000000 )
+    Call  ForceHomePos  ( .Actor:Self 00000000 FFFFFC18 00000000 )
+    Call  HPBarToHome   ( .Actor:Self )
+    Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .True )
+    Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+    Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_Idle_8022AD80_07 {
+    Return
+    End
+}
+
+#new:IntTable $IntTable_8022AD90_07 {
+00000009 00000010 00000016 0000001A 0000001E 00000020 00000021 00000020 
+0000001E 0000001A 00000016 00000010 00000009 00000000 00000004 00000006 
+00000007 00000006 00000004 00000000 00000002 00000000 
+}
+
+#new:Script $Script_HandleEvent_8022ADE8_07 {
+    Call  UseIdleAnimation  ( .Actor:Self .False )
+    Call  EnableIdleScript  ( .Actor:Self 00000000 )
+    Call  GetLastEvent      ( .Actor:Self *Var[0] )
+    Switch  *Var[0] 
+        CaseOR  ==  .Event:HitCombo % 9
+        CaseOR  ==  .Event:Hit % A
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoNormalHit 
+        EndCaseGroup
+        Case  ==  .Event:BurnHit % E
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010E 
+            SetConst  *Var[2]  0066010F 
+            ExecWait  DoBurnHit 
+        Case  ==  .Event:BurnDeath % 24
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010E 
+            SetConst  *Var[2]  0066010F 
+            ExecWait  DoBurnHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010F 
+            ExecWait  DoDeath 
+            Return
+        Case  ==  .Event:SpinSmashHit % B
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoSpinSmashHit 
+        Case  ==  .Event:SpinSmashDeath % 21
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoSpinSmashHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoDeath 
+            Return
+        Case  ==  .Event:FlipTrigger % D
+            Call  SetActorVar       ( .Actor:Self 00000001 00000001 )
+            Call  SetActorVar       ( .Actor:Self 00000002 00000002 )
+            Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_802286DC_07 )
+            Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022850C_07 )
+            Call  SetTargetOffset   ( .Actor:Self 00000001 00000000 00000012 )
+            Call  GetActorVar       ( .Actor:Self 00000001 *Var[0] )
+            If  *Var[0]  ==  00000000 
+                Call  SetAnimation  ( .Actor:Self 00000001 0066010B )
+                Call  SetActorRotationOffset    ( .Actor:Self 00000000 0000000C 00000000 )
+                Thread
+                    Wait  4`
+                    Call  SetActorRotation  ( .Actor:Self 00000000 00000000 0000001E )
+                    Wait  1`
+                    Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+                    Wait  1`
+                    Call  SetActorRotation  ( .Actor:Self 00000000 00000000 FFFFFFE2 )
+                    Wait  1`
+                    Call  SetActorRotation  ( .Actor:Self 00000000 00000000 FFFFFFC4 )
+                    Wait  1`
+                    Call  SetActorRotation  ( .Actor:Self 00000000 00000000 FFFFFFB5 )
+                    Wait  1`
+                EndThread
+            Else
+                Call  SetAnimation  ( .Actor:Self 00000001 0066010C )
+            EndIf
+            UseIntBuffer  $IntTable_8022AD90_07 
+            Loop  00000016 
+                Get1Int  *Var[0] 
+                Call  SetActorDispOffset    ( .Actor:Self 00000000 *Var[0] 00000000 )
+                Wait  1`
+            EndLoop
+            Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+            Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+        CaseOR  ==  00000017 % 17
+        CaseOR  ==  .Event:Immune % 19
+            Call  GetActorVar   ( .Actor:Self 00000001 *Var[0] )
+            If  *Var[0]  ==  00000000 
+                SetConst  *Var[0]  00000001 
+                SetConst  *Var[1]  00660108 
+                ExecWait  DoImmune 
+                Call  GetStatusFlags    ( .Actor:Self *Var[0] )
+                If  *Var[0]  ==  00000000 
+                    Call  SetAnimation  ( .Actor:Self 00000001 00660109 )
+                    Wait  10`
+                EndIf
+            Else
+                SetConst  *Var[0]  00000001 
+                SetConst  *Var[1]  0066010C 
+                ExecWait  DoImmune 
+            EndIf
+        EndCaseGroup
+        Case  ==  .Event:Death % 20
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoNormalHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  0066010B 
+            ExecWait  DoDeath 
+            Return
+        Case  ==  .Event:RecoverStatus % 31
+            Call  GetActorVar   ( .Actor:Self 00000001 *Var[0] )
+            If  *Var[0]  ==  00000000 
+                SetConst  *Var[0]  00000001 
+                SetConst  *Var[1]  00660104 
+                ExecWait  DoRecover 
+            EndIf
+    EndSwitch
+    Call  EnableIdleScript  ( .Actor:Self 00000001 )
+    Call  UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_TakeTurn_8022B474_07 {
+    Return
+    End
+}
+
+#new:Script $Script_NextTurn_8022B484_07 {
+    Return
+    End
+}
+

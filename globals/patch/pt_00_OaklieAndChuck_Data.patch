@@ -1,0 +1,3417 @@
+/% This file have a large amount of functions and scripts from Oaklie and Chuck
+
+Happened the same as Roguelike Mode, there was a point when
+there was just a lot of code in pt_00 and that was causing
+some troubles so I just moved a lot of data from this 2 Npcs
+here (they use a really large amount of functions and stuff).%/
+
+#define .Npc_Cheato 1
+#define .Npc_Fishmael 5
+#define .Npc_Oaklie 6
+#define .Npc_Chuck 8
+#define .Npc_RubyK B
+#define .Cancel 2
+
+%===============
+%====OAKLIE=====
+%===============
+
+#new:Script $Script_Init_Oaklie
+{
+	  Call     BindNpcInteract	( .Npc:Self $Script_Interact_Oaklie )
+	  Return
+	  End
+}
+
+#export $Script_Init_Oaklie
+  
+#new:Script $Script_Interact_Oaklie
+{
+	%% Game Intro
+	% When Meeting Oaklie and Fishamel
+	Call	GetSelfVar ( 5 *Var[0] )
+	% If the player has already meet oaklie and he need to talk to the other guys
+	If	*Var[0] == .True
+		Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_GlMario )
+		Return
+	EndIf
+	If *Flag_MeetingAtLobby == .False
+		If *MapFlag[00] == .False
+			Exec	$Script_MeetingOaklie1 *Var[A]
+			Exec	$SkipCutscene_MeetingOaklie
+			Loop
+				DoesScriptExist ( *Var[A] *Var[0] )
+				If *Var[0] == .False
+					BreakLoop
+				EndIf
+				Wait 1
+			EndLoop
+			Set 	*Flag_Skip .False
+			Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+			Set 	*MapFlag[00] .True
+			% If the player haven't already talked to Fishmael
+			If *MapFlag[01] != .True
+				Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_LoadingAccount_0 )
+				Return
+			EndIf
+			Goto LoadAccount
+		Else
+			% Has talked to Oaklie but haven't talked to fish
+			If *MapFlag[01] != .True
+				Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_LoadingAccount_0 )
+				Return
+			EndIf
+			% The account has been already loaded
+			If *Flag_Oaklie_1stTime == .True
+				Goto Start
+			EndIf
+			% Loading Account
+			Label	LoadAccount
+			Exec	$Script_MeetingOaklie2 *Var[A]
+			Exec	$SkipCutscene_MeetingOaklie
+			Loop
+				DoesScriptExist ( *Var[A] *Var[0] )
+				If *Var[0] == .False
+					BreakLoop
+				EndIf
+				Wait 1
+			EndLoop
+			Set 	*Flag_Skip .False			
+			Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+			Set 	*Flag_Oaklie_1stTime .True
+			Call	SetSelfVar ( 5 .True )
+			Return
+		EndIf
+	EndIf
+	Label	Start
+	% Check if the player already bough everything from oaklie
+	Call	$Function_OakChuck_GetHammer % save in var3
+	Set		*Var[2] *Var[3]
+	Call	$Function_OakChuck_GetBoots % save in var3
+	Add		*Var[2] *Var[3]
+	Call	$Function_OakChuck_GetPartnersUpgrades % save in var3
+	Add		*Var[2] *Var[3]
+	If	*Var[2] == 20` % Mario and Partners are fully upgraded?
+		% Check if he has all badges too
+		ExecWait $Script_GetCommonBadges % *var1 = 39` = 100%
+		Set *Var[0] *Var[1]
+		ExecWait $Script_GetRareBadges % *var1 = 23` = 100%
+		Add *Var[0] *Var[1]
+		If *Var[0] == 62` % No More Badges Available too
+			Call    SpeakToPlayer    		( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_100Percent )
+			Return
+		EndIf
+	EndIf
+	Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Welcome )
+	% Get list to use
+	Call	$Function_OakChuck_GetHammer % save in var3
+	Set		*Var[2] *Var[3]
+	Call	$Function_OakChuck_GetBoots % save in var3
+	Add		*Var[2] *Var[3]
+	Call	$Function_OakChuck_GetPartnersUpgrades % save in var3
+	Add		*Var[2] *Var[3]
+	If	*Var[2] == 20` % Mario and Partners are fully upgraded
+		Call	ShowChoice ( $Choice_Upgrades_OnlyBadges )
+		% Reformat var0
+		If *Var[0] == 0
+			Set *Var[0] 1
+		Else % cancel
+			Set *Var[0] 2
+		EndIf
+	Else
+		% Check if he has all badges
+		ExecWait $Script_GetCommonBadges % *var1 = 39` = 100%
+		Set *Var[0] *Var[1]
+		ExecWait $Script_GetRareBadges % *var1 = 23` = 100%
+		Add *Var[0] *Var[1]
+		If *Var[0] == 62` % No More Badges Available
+			Call	ShowChoice ( $Choice_Upgrades_OnlyUpgrades )
+			If *Var[0] == 1 % cancel
+				Set *Var[0] 2
+			EndIf
+		Else % Default
+			Call	ShowChoice ( $Choice_Upgrades_Main )
+		EndIf
+	EndIf
+	Switch *Var[0]
+		Case == 0 % Upgrades
+			Call  CloseMessage
+			ExecWait $Script_Oaklie_BuyUpgrades
+		Case == 1 % Buy Badges
+			Call  CloseMessage
+			ExecWait $Script_Oaklie_BuyBadges
+		Case == 2 % Cancel
+			Call    ContinueSpeech    		( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Bye )
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_MeetingOaklie1
+{
+	Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Meeting_1 )
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Wait	1
+	Call 	SetPlayerAnimation ( 00080007 ) % hand to the ear
+	Wait	35`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Meeting_2 )
+	Call 	SetPlayerAnimation ( 00010029 ) % yes
+	Wait	20`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Return
+	End
+}
+
+#new:Script $Script_MeetingOaklie2
+{
+	Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_LoadingAccount_1 )
+	Call 	SetPlayerAnimation ( 00060007 ) % grabbing item
+	Wait	30`
+	Call 	SetPlayerAnimation ( 00010002 ) % idle
+	Call	PlaySound	( 0010 ) % Save
+	Call    ShowMessageAtScreenPos 	( $String_CardSaved 000000A0 00000028 )
+	Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_LoadingAccount_2 )
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_MeetingOaklie
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetNpcAnimation 	( .Npc_Oaklie 00BE0001 ) % idle
+			Call 	SetPlayerAnimation ( 00010002 ) % idle
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Oaklie_BuyUpgrades
+{
+	% Check if Mario even have any coins
+	Call    AddCoin ( 0 )
+    Set     *Var[3] *Var[0] % var3 = mario coins
+	If	*Var[3] == .False % Check Coins
+		Call	$Function_LoadBankCoins ( *Var[3] )
+		If	*Var[3] == .False % Check Bank Account
+			Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_ZeroCoins )
+			Jump	$Script_Interact_Oaklie
+			Return
+		EndIf
+	EndIf
+	Label	Start
+	Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_ForWho )
+	% Get List to use
+	Call	$Function_OakChuck_GetHammer % save in var3
+	Set		*Var[2] *Var[3]
+	Call	$Function_OakChuck_GetBoots % save in var3
+	Add		*Var[2] *Var[3]
+	% Var2 = Boots + Hammer
+	If *Var[2] == 4 % Mario is fully upgraded
+		Call	ShowChoice 		( $Choice_Upgrades_Who_OnlyPartner )
+		% Reformat var0
+		If *Var[0] == 0
+			Set *Var[0] 1
+		Else % Cancel
+			Set *Var[0] 2
+		EndIf
+	Else
+		% Check if all Partners are fully upgraded now
+		Call	$Function_OakChuck_GetPartnersUpgrades % save in var3
+		If *Var[3] == 16` % If you have 16/All upgrades purchased
+			Call	ShowChoice 		( $Choice_Upgrades_Who_OnlyMario )
+			% Reformat var0
+			If *Var[0] == 1 % Cancel
+				Set *Var[0] 2
+			EndIf
+		Else % If not use the list with both options
+			Call	ShowChoice 		( $Choice_Upgrades_Who )
+		EndIf
+	EndIf
+	Switch *Var[0]
+		Case == 0 % Mario
+			Call  CloseMessage
+			If	*Oaklie1 == .False
+				Call    ShowMessageAtScreenPos 	( $String_PartnerUpgrade_1stTime_1 000000A0 00000028 )
+				Set *Oaklie1 .True
+			EndIf
+			Set		*BankTextBoxPosition 1 % Used to handle the position for the Box with the Bank Coins
+			Set		*TalkingToFishmael 	.True % This flags handle showing the box with the current coins in the bank
+			Call	ShowCoinCounter ( .True )
+			ExecWait $Script_GetMarioUpgradeToPurchase
+			Return
+		Case == 1 % Partners
+			Call  CloseMessage
+			If	*Oaklie1 == .False
+				Call    ShowMessageAtScreenPos 	( $String_PartnerUpgrade_1stTime_1 000000A0 00000028 )
+				Set *Oaklie1 .True
+			EndIf
+			If	*Oaklie2 == .False
+				Call    ShowMessageAtScreenPos		( $String_PartnerUpgrade_1stTime_2 000000A0 00000028 )
+				Set *Oaklie2 .True
+			EndIf
+			ExecWait $Script_OpenPartnersMenu
+		Case == .Cancel
+			Call  CloseMessage
+			Jump $Script_Interact_Oaklie
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_GetMarioUpgradeToPurchase
+{
+	Label	HammerOrBoots
+	Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_WhichOne )
+	Call	$Function_OakChuck_GetHammer % Save in Var3
+	If	*Var[3] == 2 % If Mario has the ultra hammer, block the Hammer option
+		Call	ShowChoice 		( $Choice_Upgrades_OnlyBoots )
+		% Reformat Var0
+		If *Var[0] == 0
+			Set *Var[0] 1 % Boots
+		Else
+			Set *Var[0] 2 % Cancel
+		EndIf
+	Else
+	% Check if Mario have the Ultra Boots instead and do the same
+		Call	$Function_OakChuck_GetBoots % Save in Var3
+		If	*Var[3] == 2 
+			Call	ShowChoice 		( $Choice_Upgrades_OnlyHammer )
+			% Reformat Var0
+			If *Var[0] != 0
+				Set *Var[0] 2 % Cancel
+			EndIf
+		Else
+			Call	ShowChoice 		( $Choice_Upgrades_BootsAndHammer )
+		EndIf
+	EndIf
+	Set		*Var[1] *Var[0]
+	Call  	CloseMessage
+	Set		*Var[0] *Var[1]
+	% Do you want to purchase this upgrade? % 
+	Switch *Var[0]
+		Case == 0 % Hammer
+			Call 	SetSelfVar ( .Default 0 ) % Hammer
+			Call	$Function_OakChuck_GetHammer % save in Var3
+			% If the current hammer is the first one
+			If	*Var[3] == .Default
+				Call	SetMessageString ( $String_SuperHammer 2 )
+				Call	SetMessageValue ( 1000` 1 )
+				Set		*Var[1] 1000` % price
+			Else
+			% If wasn't it means is the Ultra one
+				Call	SetMessageString ( $String_UltraHammer 2 )
+				Call	SetMessageValue ( 1500` 1 )
+				Set		*Var[1] 1500`
+			EndIf
+		Case == 1 % Boots
+			Call 	SetSelfVar ( .Default 1 ) % Boots
+			Call	$Function_OakChuck_GetBoots % save in Var3
+			% If the current boots is the first one
+			If	*Var[3] == .Default
+				Call	SetMessageString ( $String_SuperBoots 2 )
+				Call	SetMessageValue ( 1000` 1 )
+				Set		*Var[1] 1000`
+			Else
+			% If wasn't it means is the Super one
+				Call	SetMessageString ( $String_UltraBoots 2 )
+				Call	SetMessageValue ( 1500` 1 )
+				Set		*Var[1] 1500`
+			EndIf
+		Case == 2 % Cancel
+			% Disable Coins Counters
+			% Is ShowCoinCounter True?
+			Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+			If *Var[E] != FF
+				Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+			EndIf
+			Call	$Function_BankCoins_Close
+			Call	$Function_BankCoins_UseLastFrame
+			Jump 	$Script_Oaklie_BuyUpgrades
+	EndSwitch
+	Call	$GetAllCoins % save sum in Var3
+	% If you don't have enought coins to purchase
+	If *Var[3] < *Var[1]
+		Call    SpeakToPlayer 		( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Mario_Upgrade_Error )
+		Jump	$Script_GetMarioUpgradeToPurchase
+	EndIf
+	Call    SpeakToPlayer 		( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_Mario_Upgrade_Price )
+	Call	ShowChoice ( 001E000D ) % yes no
+	If	*Var[0] != 0 % If was cancelled
+		Call  CloseMessage
+		Jump	$Script_GetMarioUpgradeToPurchase
+	EndIf
+	%% Substract Amount from Bank account and/or Mario's coins
+	SetTimescale *Fixed[15.0]
+	Loop
+		Call	$Function_LoadBankCoins 	( *Var[3] )
+		If	*Var[3] == 0 % If the account is empty, break
+			BreakLoop
+		EndIf
+		Call	PlaySound ( 211 ) % Coin
+		Call	$Function_SubCoinsFromAccount
+		Sub		*Var[1] 1
+		If	*Var[1] == 0 % If the ammount has been fully substracted
+			Goto UpgradePurchased
+		EndIf
+		Wait	1
+	EndLoop
+	SetTimescale *Fixed[1.0] % Back to Normal
+	% If the amount still isn't 0, use Mario's coins now
+	If	*Var[1] != 0
+		Mul	*Var[1] -1`
+		Call AddCoin ( *Var[1] )
+	EndIf
+	Label	UpgradePurchased
+	% Close Coin Boxes
+	Call    CloseMessage
+	Call	ShowCoinCounter ( .False )
+	Call	$Function_BankCoins_Close
+	Call	$Function_BankCoins_UseLastFrame
+	Call     DisablePlayerInput 	( .True )
+	ExecWait $Script_MarioUpgrade_Animation
+	%% Get current purchased upgrade
+	Call 	 GetSelfVar ( .Cam:Default *Var[0] )
+	If *Var[0] == 0 % Hammer
+		Call	$Function_OakChuck_GetHammer % Save in Var3
+	Else % Boots
+		Call	$Function_OakChuck_GetBoots % Save in Var3
+	EndIf
+	If	*Var[3] == .Cam:Default % If you have the Default hammer/boots
+		Set *Var[3] 1
+	Else % It means you have the Super one
+		Set *Var[3] 2
+	EndIf
+	%% Get current purchased upgrade
+	Call 	 GetSelfVar ( .Cam:Default *Var[0] )
+	If *Var[0] == 0 % Hammer
+		Call	$Function_SetHammer % Set New Hammer
+	Else % Boots
+		Call	$Function_SetBoots % Set New Hammer
+	EndIf
+	Set		*Flag_Cheev_Global_14 .True % Challenge Completed
+	Add		*OakliesUpgrades 1
+	If	*OakliesUpgrades == 20`
+		Set		*Flag_Cheev_Global_15 .True % Challenge Completed
+	EndIf
+	Call     DisablePlayerInput 	( .False )
+	Return
+	End
+}
+
+% Set Box Animation to the Ending one
+#new:Function $Function_BankCoins_Close
+{
+	ADDIU T0, R0, 2
+	SAW	  T0, $BoxAnimation_State % from MiscHooks.patch
+	JR	  RA
+	ADDIU V0, R0, 2
+}
+
+#new:Function $Function_BankCoins_UseLastFrame
+{
+	ADDIU T0, R0, 7
+	SAW	  T0, $BoxAnimation_Offset % from MiscHooks.patch
+	JR	  RA
+	ADDIU V0, R0, 2
+}
+
+#new:Function $Function_LoadBankCoins
+{
+	PUSH RA, A1, A2, V0
+	LAW  A2, 803560DC % coins
+	LIO  A1, *Var[3] % var3
+	JAL ~Func:set_variable
+	RESERVED
+	POP	 RA, A1, A2, V0
+	JR	 RA
+	NOP
+}
+
+#new:Function $Function_SubCoinsFromAccount
+{
+	LAW	  T0, 803560DC % Bank Account
+	ADDIU T1, R0, 1
+	SUBU  T0, T0, T1 
+	SAW	  T0, 803560DC
+	JR	  RA
+	ADDIU V0, R0, 2
+}
+
+#new:Script $Script_MarioUpgrade_Animation
+{
+	Call     AdjustCam 	( .Cam:Default *Fixed[8.0] 00000000 *Fixed[300.0] *Fixed[19.0] *Fixed[-9.0] )
+	%% Get current purchased upgrade
+	Call 	 GetSelfVar ( .Cam:Default *Var[0] )
+	If *Var[0] == 0
+		Call     $Function_OakChuck_GetHammer % save in var3
+		% Set Message
+		If *Var[3] == 0
+			Call SetSelfVar ( 1 .Item:SuperHammer )  % Super Hammer Icon
+			Call SetSelfVar ( 2  001D017D ) % Super Hammer String
+		Else
+			Call SetSelfVar ( 1 .Item:UltraHammer )  % Ultra Hammer Icon
+			Call SetSelfVar ( 2  001D0186 ) % Ultra Hammer String
+		EndIf
+	Else
+		Call     $Function_OakChuck_GetBoots % save in var3
+		If *Var[3] == 0
+			Call SetSelfVar ( 1 .Item:SpinJump ) % Super Boots Icon
+			Call SetSelfVar ( 2  001D0180 ) % Super Boots String
+		Else
+			Call SetSelfVar ( 1 .Item:TornadoJump ) % Super Boots Icon
+			Call SetSelfVar ( 2  001D0187 ) % Super Boots String
+		EndIf
+	EndIf
+	%%
+	Exec     $Script_80242A58 
+	Wait     30`
+	Call	 GetSelfVar 	( 2 *Var[D] )
+	Call     ShowMessageAtScreenPos 	( *Var[D] 000000A0 00000028 )  % custom string
+	Set  *MapFlag[00]  .True
+  	Thread
+  		Call     ResetCam    	( .Cam:Default 3 )
+  	EndThread
+	Return
+	End
+}
+
+#new:Script $Script_80242A58
+{
+    Call     SetPlayerAnimation 	( 0006000C )
+   	Call     GetPlayerPos 	( *Var[5] *Var[6] *Var[7] )
+	Add  *Var[6]  40` 
+	Call	 GetSelfVar 	( 1 *Var[C] )
+   	Call     MakeItemEntity ( *Var[C] *Var[5] *Var[6] *Var[7] 1 0 )
+   	Set  *Var[C]  *Var[0] 
+   	Add  *Var[6]  16` 
+   	Call     PlayEffect  	( ~FX:GotItemOutline *Var[5] *Var[6] *Var[7] *Fixed[1.0] *Var[8] )
+   	Call     PlayEffect  	( 33 9 *Var[5] *Var[6] *Var[7] *Fixed[1.0] 100` )
+  	Exec     $Script_802405B8 
+  	Thread
+  		Wait     4
+  		Call     GetPlayerPos 	( *Var[3] *Var[4] *Var[5] )
+  		Add  *Var[4]  50`
+  		Add  *Var[5]  2
+  		Add  *Var[3]  8
+  		Call     PlayEffect  	( 11 3 *Var[3] *Var[4] *Var[5] 20` )
+  		Add  *Var[3]  -16` 
+  		Call     PlayEffect  	( 11 3 *Var[3] *Var[4] *Var[5] 20` )
+  	EndThread
+  	Loop     
+  		Wait     1 
+  		If  *MapFlag[00]  ==  .True
+  			BreakLoop
+  		EndIf
+  	EndLoop
+  	Set		*MapFlag[00] .False
+  	Call     802D7B44 ( *Var[8] )
+  	Call     RemoveItemEntity 	( *Var[C] )
+  	Call     SetPlayerAnimation 	( 00010002 )
+  	Return
+  	End
+}
+
+#new:Script $Script_802405B8
+{
+  	Call     802D5FF8 ( 00000042 00000000 )
+ 	Wait     130` 
+ 	Call     802D5FD8
+ 	Return
+ 	End
+}
+
+#new:Function $Function_OakChuck_GetBoots
+{
+PUSH	RA, V0, A1, A2
+LAB 	A2, 8010F290 % Boots
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2
+JR 		RA
+NOP
+}
+
+#new:Function $Function_OakChuck_GetHammer
+{
+PUSH	RA, V0, A1, A2
+LAB 	A2, 8010F291 % Hammer
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2
+JR 		RA
+NOP
+}
+
+#new:Function $Function_SetHammer
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[3]
+JAL 	~Func:get_variable 
+NOP
+SAB		V0, 8010F291 % Hammer
+POP		RA, V0, A1, A2
+JR 		RA
+NOP
+}
+
+#new:Function $Function_SetBoots
+{
+PUSH	RA, V0, A1, A2
+LIO 	A1, *Var[3]
+JAL 	~Func:get_variable 
+NOP
+SAB		V0, 8010F290 % Boots
+POP		RA, V0, A1, A2
+JR 		RA
+NOP
+}
+
+#new:Function $Function_OakChuck_GetPartnersUpgrades
+{
+PUSH	RA, V0, A1, A2, A3
+LABU 	A2, 8010F2AD % Goombario
+LABU 	A3, 8010F2B5 % Kooper
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2BD % Bombette
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2C5 % Parakarry
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2ED % Bow
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2D5 % Watt
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2DD % Sushie
+ADDU	A2, A2, A3
+LABU 	A3, 8010F2E5 % Lakilester
+ADDU	A2, A2, A3
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2, A3
+JR 		RA
+NOP
+}
+
+#export $Function_OakChuck_GetPartnersUpgrades % for pt_00
+
+#new:Function $Function_GetPartnersUnlocked
+{
+PUSH	RA, V0, A1, A2, A3
+LAB 	A2, 8010F2AC % Goombario
+LAB 	A3, 8010F2B4 % Kooper
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2BC % Bombette
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2C4 % Parakarry
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2EC % Bow
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2D4 % Watt
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2DC % Sushie
+ADDU	A2, A2, A3
+LAB 	A3, 8010F2D4 % Lakilester
+ADDU	A2, A2, A3
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+NOP
+POP		RA, V0, A1, A2, A3
+JR 		RA
+NOP
+}
+
+#export $Function_GetPartnersUnlocked
+
+%% Partner Menu Code
+#new:Script $Script_OpenPartnersMenu
+{
+	Call     802D585C ( 1 00200000 )
+	Call     $Function_OakChuck_802423D0
+	Call     DisablePlayerInput ( .True )
+	Call     DisablePartnerAI 	( .Cam:Default )
+	Call     SetNpcFlagBits 	( .Npc:Partner 00000100 .True )
+	Call     $Function_SuperBlock_Glow_Start ( .Cam:Default *Var[9] )
+	Call     FindKeyItem 		( .Item:UltraStone *Var[C] )
+	Set		*Var[C] .True 		% Bypass Ultra Stone check
+	Call     $Function_OakChuck_CheckAvailability
+	If  *Var[0]  ==  FFFFFFFF % Any Partner isn't available to get upgraded
+		Call     ShowMessageAtScreenPos 	( 001D00DC 000000A0 00000028 ) % You have no member you can upgrade now.
+		Wait     10`
+		Call     $Function_SuperBlock_Glow_End ( *Var[9] )
+		Call     DisablePlayerInput 	( .False )
+		Call     EnablePartnerAI
+		Call     802D585C ( 0 00200000 )
+		Call     $Function_OakChuck_802423EC
+		Return
+	EndIf
+	Label	 Start
+	Set		*BankTextBoxPosition 2 % Used to handle the position for the Box with the Bank Coins
+	Set		*TalkingToFishmael .True % This flags handle showing the box with the current coins in the bank
+	Call     $Function_OakChuck_OpenPartnersList
+	If  *Var[0]  ==  FFFFFFFF % B Pressed
+		% Close Bank Account Box
+		% Disable Coins Counters
+		% Is ShowCoinCounter True?
+		Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+		If *Var[E] != FF
+			Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+		EndIf
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Wait	10`
+		Call     $Function_SuperBlock_Glow_End ( *Var[9] )
+		Call     DisablePlayerInput 	( .False )
+		Call     EnablePartnerAI
+		Call     802D585C ( 0 00200000 )
+		Call     $Function_OakChuck_802423EC
+		Jump	 $Script_Oaklie_BuyUpgrades
+	EndIf
+	Set  *Var[A]  *Var[0]
+	Set  *Var[B]  *Var[1]
+	Call     EnablePartnerAI
+	Call     GetCurrentPartnerID 	( *Var[0] )
+	If  *Var[0]  !=  *Var[B]
+		Call     $Function_OakChuck_802427EC ( *Var[B] )
+	Else
+		Call     802CF56C ( 2 )
+	EndIf
+	Wait     30`
+	Call	 $Function_GetRank % get Rank from actual partner and save it in var2
+	If	*Var[2] == 0 % Super Rank
+		Call	SetMessageString 	( $Super_String 2 )
+		Call	SetMessageValue 	( 600` 1 )
+		Set		*Var[1] 600` % price
+	Else % Ultra Rank
+		Call	SetMessageString ( $Ultra_String 	2 )
+		Call	SetMessageValue  ( 800`	1 )
+		Set		*Var[1] 800`
+	EndIf
+	% Show all Coin counters
+	Call	$Function_BankCoins_Close
+	Call	$Function_BankCoins_UseLastFrame
+	Wait	10`
+	Call	ShowCoinCounter ( .True )
+	Set		*BankTextBoxPosition 1
+	Set		*TalkingToFishmael .True
+	%% Check if Mario have the current amount of coins
+	Call	$GetAllCoins % save sum in Var3
+	If	*Var[3] < *Var[1]
+		Call    ShowMessageAtScreenPos 	( $String_PartnerUpgrade_Error 000000A0 00000028 )
+		% Close all coins counters
+		Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+		If *Var[E] != FF
+			Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+		EndIf
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Wait	10`
+		Goto	Start
+	Else
+		Call    ShowMessageAtScreenPos 	( $String_PartnerUpgrade_Confirmation 000000A0 00000028 ) % Do you want to upgrade this member?
+	EndIf
+	Call    ShowChoice  	( 001E000D ) % Yes No
+	Call    CloseMessage
+	If  *Var[0]  !=  0
+		% Close all coins counters
+		Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+		If *Var[E] != FF
+			Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+		EndIf
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Wait	10`
+		Goto	Start
+	EndIf
+	%% Substract Amount from Bank account and/or Mario's coins
+	SetTimescale *Fixed[15.0]
+	Loop
+		Call	$Function_LoadBankCoins 	( *Var[3] )
+		If	*Var[3] == 0 % If the account is empty, break
+			BreakLoop
+		EndIf
+		Call	PlaySound ( 211 ) % Coin
+		Call	$Function_SubCoinsFromAccount
+		Sub		*Var[1] 1
+		If	*Var[1] == 0 % If the ammount has been fully substracted
+			Goto UpgradePurchased
+		EndIf
+		Wait	1
+	EndLoop
+	SetTimescale *Fixed[1.0] % Back to Normal
+	% If the amount still isn't 0, use Mario's coins now
+	If	*Var[1] != 0
+		Mul	*Var[1] -1`
+		Call AddCoin ( *Var[1] )
+	EndIf
+	% Coins Sounds
+	Thread
+		Loop 10`
+			Wait 2
+			Call	PlaySound	( 211 ) % Coin
+		EndLoop
+	EndThread
+	Label	UpgradePurchased
+	% Disable Coins Counters
+	% Is ShowCoinCounter True?
+	Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+	If *Var[E] != FF
+		Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+	EndIf
+	Call	$Function_BankCoins_Close
+	Call	$Function_BankCoins_UseLastFrame
+	ExecWait $Script_UpgradeAnimation 
+	Call     $Function_OakChuck_80242438 ( *Var[B] *Var[D] )
+	Call     $Function_SuperBlock_Glow_End ( *Var[9] )
+	Call     $Function_OakChuck_80242818
+	If  *Var[D]  ==  1
+		Call     ShowMessageAtScreenPos 	( 001D00DD 000000A0 00000028 ) %  is upgraded to Super-rank!
+	Else
+		Call     ShowMessageAtScreenPos 	( 001D00DE 000000A0 00000028 ) %  is upgraded to Ultra-rank!
+	EndIf
+	Set		*Flag_Cheev_Global_14 .True % Challenge Completed
+	Add		*OakliesUpgrades 1
+	If	*OakliesUpgrades == 20`
+		Set		*Flag_Cheev_Global_15 .True % Challenge Completed
+	EndIf
+	Call     DisablePlayerInput 	( .False )
+	Call     EnablePartnerAI
+	Call     802D585C ( 0 00200000 )
+	Call     $Function_OakChuck_802423EC
+	Return
+	End
+}
+
+#new:Function $Function_GetRank
+{
+PUSH	RA, V0, A1, A2
+LAB		T0, 8010F2A2 % Current Partner
+ADDIU 	T1, R0, 1 % Goombario
+BNE		T0, T1, .Kooper
+ADDIU 	T1, R0, 2
+LAB		A2, 8010F2AD % Goombario Rank
+BEQ		R0, R0, .End
+NOP
+.Kooper
+BNE		T0, T1, .Bombette
+ADDIU 	T1, R0, 3
+LAB		A2, 8010F2B5 % Kooper Rank
+BEQ		R0, R0, .End
+NOP
+.Bombette
+BNE		T0, T1, .Parakarry
+ADDIU 	T1, R0, 4
+LAB		A2, 8010F2BD % Bombette Rank
+BEQ		R0, R0, .End
+NOP
+.Parakarry
+BNE		T0, T1, .Bow
+ADDIU 	T1, R0, 9
+LAB		A2, 8010F2C5 % Parakarry Rank
+BEQ		R0, R0, .End
+NOP
+.Bow
+BNE		T0, T1, .Watt
+ADDIU 	T1, R0, 6
+LAB		A2, 8010F2ED % Bow Rank
+BEQ		R0, R0, .End
+NOP
+.Watt
+BNE		T0, T1, .Sushie
+ADDIU 	T1, R0, 7
+LAB		A2, 8010F2D5 % Watt Rank
+BEQ		R0, R0, .End
+NOP
+.Sushie
+BNE		T0, T1, .Lakilester
+ADDIU 	T1, R0, 8
+LAB		A2, 8010F2DD % Sushie Rank
+BEQ		R0, R0, .End
+NOP
+.Lakilester
+LAB		A2, 8010F2E5 % Lakilester Rank
+.End
+LIO 	A1, *Var[2]
+JAL ~Func:set_variable
+NOP
+POP	RA, V0, A1, A2
+JR RA
+NOP
+}
+
+
+#new:Function $GetAllCoins % Sum my current coins + my bank account
+{
+PUSH	RA, V0, A1, A2
+LUI	    T0, 8035
+LW	    T0, 60DC (T0) % Load Bank Account
+LAHU	T1, 8010F29C % Mario's coins
+LIO 	A1, *Var[3]
+JAL 	~Func:set_variable
+ADDU	A2, T0, T1
+POP		RA, V0, A1, A2
+JR RA
+NOP
+}
+
+% Meeting Oaklie
+#string $String_Oaklie_Meeting_1
+{
+[STYLE:RIGHT][...]
+Hi, you are Mario right?
+Cheato told me about you.
+[WAIT][NEXT][...]
+Nice to meet you, I'm Oaklie.
+[WAIT][NEXT][...]
+I will be helping you, upgrading
+your gear for you and your
+partners.
+[WAIT][NEXT][...]
+Alas, nothing in life is free.
+[WAIT][NEXT][...]
+Those upgrades will have a cost
+so remember to farm coins inside
+the Pit before coming to me.
+[WAIT][END]
+}
+	
+#string $String_Oaklie_Meeting_2
+{
+[STYLE:RIGHT][...]
+Are you asking why we're helping
+you so suddenly?
+[WAIT][NEXT][...]
+Well to be honest...
+[WAIT][NEXT][...]
+None of us really know the
+way to get out of here.
+[WAIT][NEXT][...]
+Or even how we got here in
+first place...
+[WAIT][NEXT][...]
+Yeah I know
+It sounds weird...
+[WAIT][NEXT][...]
+Everything we know so far is
+we are stuck here and there's
+a Pit.
+[WAIT][NEXT][...]
+So the only thing we can do right 
+now is work as a team and help
+you to conquer that Pit!
+[WAIT][END]
+}
+
+% Oaklie - Saving Account
+#string $String_Oaklie_LoadingAccount_0
+{
+[STYLE:RIGHT][...]
+Hmm... looks like you still haven't
+talked to Fishmael, he has
+something really important for
+you.
+[WAIT][NEXT][...]
+Remember to [PushColor][Color:19]come back to me
+after you have talked to him[PopColor]
+okay?
+[WAIT][END]
+}
+	
+#string $String_Oaklie_LoadingAccount_1
+{
+[STYLE:RIGHT][...]
+Looks like you already have your
+Bank Account, can you give me
+your card for a sec?
+[WAIT][END]
+}
+	
+#string $String_Oaklie_LoadingAccount_2
+{
+[STYLE:RIGHT][...]
+Done.
+[WAIT][NEXT][...]
+Don't worry. I didn't do
+anything fishy haha.
+[WAIT][NEXT][...]
+I saved your card data, that
+means you can use [PushColor][Color:19]your current
+coins plus the money from your
+card to make purchases[PopColor] from me.
+[WAIT][NEXT][...]
+Well... that should be everything
+for now.
+[WAIT][NEXT][...]
+By the way why not talk to
+Cheato?
+I've heard he knows something we
+don't.
+[WAIT][END]
+}
+
+#string $String_CardSaved
+{
+[STYLE:INSPECT][...]
+Debit Card Saved.
+[WAIT][END]
+}
+
+#string $Super_String
+{
+Super[END]
+}
+
+#string $Ultra_String
+{
+Ultra[END]
+}
+
+#string $String_PartnerUpgrade_1stTime_1
+{
+[STYLE:UPGRADE:28:10:F5:50][...]
+You can buy stuff from Oaklie
+using the coins from your
+Bank Account [PushColor][Color:7]plus[PopColor] your
+current coins.
+[WAIT][NEXT][...]
+You can use your Bank
+Account to make purchases
+even if you [PushColor][Color:7]currently[PopColor] have
+coins losted inside the Pit.
+[WAIT][END]
+}
+
+#string $String_PartnerUpgrade_1stTime_2
+{
+[STYLE:UPGRADE:28:10:F5:50][...]
+Each [PushColor][Color:7]Super Rank[PopColor] upgrade
+has a cost of [PushColor][Color:7]600[PopColor] coins.
+And each [PushColor][Color:7]Ultra Rank[PopColor] upgrade
+has a cost of [PushColor][Color:7]800[PopColor] coins.
+[WAIT][END]
+}
+
+#string $String_PartnerUpgrade_Confirmation
+{
+[STYLE:UPGRADE:28:10:F5:60][...]
+A [PushColor][Color:7][Var:02] Rank[PopColor] upgrade has a
+cost of [PushColor][Color:7][Var:01] coins[PopColor].
+
+Do you want to upgrade this
+partner?
+[Func_04][END]
+}
+
+#string $String_PartnerUpgrade_Error
+{
+[STYLE:UPGRADE:28:10:F5:60][...]
+A [PushColor][Color:7][Var:02] Rank[PopColor] upgrade has a
+cost of [PushColor][Color:7][Var:01] coins[PopColor].
+
+Currently you don't have
+enough coins.
+[WAIT][END]
+}
+   
+#new:Function $Function_OakChuck_802423D0
+{
+    0:  LIA			V1, 8009A650
+    8:  LW			V0, 0 (V1)
+    C:  ORI			V0, V0, 40
+   10:  SW			V0, 0 (V1)
+   14:  JR			RA
+   18:  ADDIU		V0, R0, 2
+}
+   
+#new:Function $Function_SuperBlock_Glow_Start
+{
+    0:  ADDIU		SP, SP, FFD8
+    4:  SW			S1, 1C (SP)
+    8:  COPY		S1, A0
+    C:  SW			RA, 20 (SP)
+   10:  SW			S0, 18 (SP)
+   14:  LW			S0, C (S1)
+   18:  LW			A1, 0 (S0)
+   1C:  JAL			~Func:get_variable
+   20:  ADDIU		S0, S0, 4
+   24:  JAL			~Func:get_entity_by_index
+   28:  COPY		A0, V0
+   2C:  LW			S0, 0 (S0)
+   30:  LWC1		F4, 4C (V0)
+   34:  LIF			F0, 12.5
+   3C:  LIO			AT, 3F333333
+   44:  MTC1		AT, F2
+   48:  SW			R0, 14 (SP)
+   4C:  ADD.S		F4, F4, F0
+   50:  SWC1		F2, 10 (SP)
+   54:  LW			A1, 48 (V0)
+   58:  LW			A3, 50 (V0)
+   5C:  MFC1		A2, F4
+   60:  JAL			80071750
+   64:  CLEAR		A0
+   68:  COPY		A0, S1
+   6C:  COPY		A1, S0
+   70:  JAL			~Func:set_variable
+   74:  COPY		A2, V0
+   78:  LW			RA, 20 (SP)
+   7C:  LW			S1, 1C (SP)
+   80:  LW			S0, 18 (SP)
+   84:  ADDIU		V0, R0, 2
+   88:  JR			RA
+   8C:  ADDIU		SP, SP, 28
+}
+   
+   #new:Function $Function_OakChuck_CheckAvailability
+{
+    0:  ADDIU		SP, SP, FFD0
+    4:  SW			S3, 1C (SP)
+    8:  COPY		S3, A0
+    C:  SW			S0, 10 (SP)
+   10:  ADDIU		S0, R0, 1
+   14:  SW			S4, 20 (SP)
+   18:  ADDIU		S4, R0, FFFF
+   1C:  SW			S5, 24 (SP)
+   20:  COPY		S5, S0
+   24:  SW			S1, 14 (SP)
+   28:  LIA			S1, 8010F298
+   30:  SW			RA, 28 (SP)
+   34:  SW			S2, 18 (SP)
+   38:  LW			V0, B4 (S3)
+   3C:  COPY		V1, S4
+   40:  SW			V1, 84 (S3)
+   44:  NOR			V0, R0, V0
+   48:  SRL			V0, V0, 1F
+   4C:  SLL			S2, V0, 10
+        .o50
+   50:  LBU			V0, 14 (S1)
+   54:  BEQL		V0, R0, .o78
+   58:  ADDIU		S0, S0, 1
+   5C:  COPY		A0, S0
+   60:  JAL			$Function_OakChuck_802424A4
+   64:  SRA			A1, S2, 10
+   68:  BEQ			V0, S4, .o78
+   6C:  ADDIU		S0, S0, 1
+   70:  BEQ			R0, R0, .o84
+   74:  SW			S5, 84 (S3)
+        .o78
+   78:  SLTI		V0, S0, C
+   7C:  BNE			V0, R0, .o50
+   80:  ADDIU		S1, S1, 8
+        .o84
+   84:  LW			RA, 28 (SP)
+   88:  LW			S5, 24 (SP)
+   8C:  LW			S4, 20 (SP)
+   90:  LW			S3, 1C (SP)
+   94:  LW			S2, 18 (SP)
+   98:  LW			S1, 14 (SP)
+   9C:  LW			S0, 10 (SP)
+   A0:  ADDIU		V0, R0, 2
+   A4:  JR			RA
+   A8:  ADDIU		SP, SP, 30
+}
+   
+   #new:Function $Function_OakChuck_802424A4
+{
+    0:  LIA			V0, 8010F290
+    8:  SLL			A0, A0, 3
+    C:  ADDU		A0, A0, V0
+   10:  LBU			V0, 14 (A0)
+   14:  BEQ			V0, R0, .o3C
+   18:  NOP
+   1C:  LBU			V0, 15 (A0)
+   20:  SLL			A0, V0, 18
+   24:  SRA			V1, A0, 18
+   28:  SLL			V0, A1, 10
+   2C:  SRA			V0, V0, 10
+   30:  SLT			V0, V0, V1
+   34:  BEQ			V0, R0, .o44
+   38:  NOP
+        .o3C
+   3C:  JR			RA
+   40:  ADDIU		V0, R0, FFFF
+        .o44
+   44:  JR			RA
+   48:  SRA			V0, A0, 18
+}
+   
+   #new:Function $Function_SuperBlock_Glow_End
+{
+    0:  ADDIU		SP, SP, FFE8
+    4:  SW			RA, 10 (SP)
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  COPY		A0, V0
+   18:  LW			V1, 0 (A0)
+   1C:  ORI			V1, V1, 10
+   20:  SW			V1, 0 (A0)
+   24:  LW			RA, 10 (SP)
+   28:  ADDIU		V0, R0, 2
+   2C:  JR			RA
+   30:  ADDIU		SP, SP, 18
+}
+   
+   #new:Function $Function_OakChuck_802423EC
+{
+    0:  LIA			V0, 8009A650
+    8:  LW			V1, 0 (V0)
+    C:  ADDIU		A0, R0, FFBF
+   10:  AND			V1, V1, A0
+   14:  SW			V1, 0 (V0)
+   18:  JR			RA
+   1C:  ADDIU		V0, R0, 2
+}
+   
+   #new:Function $Function_OakChuck_OpenPartnersList
+{
+    0:  ADDIU		SP, SP, FFC0
+    4:  SW			S5, 2C (SP)
+    8:  COPY		S5, A0
+    C:  SW			S8, 38 (SP)
+   10:  LIA			S8, 8010F290
+   18:  SW			RA, 3C (SP)
+   1C:  SW			S7, 34 (SP)
+   20:  SW			S6, 30 (SP)
+   24:  SW			S4, 28 (SP)
+   28:  SW			S3, 24 (SP)
+   2C:  SW			S2, 20 (SP)
+   30:  SW			S1, 1C (SP)
+   34:  BEQ			A1, R0, .o174
+   38:  SW			S0, 18 (SP)
+   3C:  JAL			~Func:heap_malloc
+   40:  ADDIU		A0, R0, 330
+   44:  COPY		S3, V0
+   48:  CLEAR		S6
+   4C:  COPY		S2, S6
+   50:  LIA			S4, $Data_80243D38
+   58:  COPY		S1, S3
+   5C:  LW			V0, B4 (S5)
+   60:  LIA			V1, $Data_80243D30
+   68:  SW			S3, 78 (S5)
+   6C:  NOR			V0, R0, V0
+   70:  SRL			S7, V0, 1F
+   74:  SLL			V0, S7, 2
+   78:  ADDU		V0, V0, V1
+   7C:  SW			V0, 10 (SP)
+        .o80
+   80:  LH			S0, 0 (S4)
+   84:  SLL			V0, S0, 3
+   88:  ADDU		V0, S8, V0
+   8C:  LBU			V0, 14 (V0)
+   90:  BEQL		V0, R0, .o14C
+   94:  ADDIU		S2, S2, 1
+   98:  SLL			V0, S0, 4
+   9C:  LIA			A2, 8008EF20
+   A4:  ADDU		V0, V0, A2
+   A8:  COPY		A0, S0
+   AC:  SW			S0, 108 (S1)
+   B0:  LW			V0, 0 (V0)
+   B4:  COPY		A1, S7
+   B8:  JAL			$Function_OakChuck_802424A4
+   BC:  SW			V0, 84 (S1)
+   C0:  COPY		A0, V0
+   C4:  BLTZ		A0, .o10C
+   C8:  SLL			V0, S0, 2
+   CC:  LIA			A2, 800F7F00
+   D4:  ADDU		V0, V0, A2
+   D8:  LW			V1, 0 (V0)
+   DC:  ADDIU		V0, R0, 1
+   E0:  SW			V0, 18C (S1)
+   E4:  SLL			V0, A0, 2
+   E8:  LIA			A2, $Data_80243D48
+   F0:  SW			V1, 0 (S1)
+   F4:  SLL			V1, S2, 3
+   F8:  ADDU		V0, V0, V1
+   FC:  ADDU		V0, V0, A2
+  100:  LW			V0, 0 (V0)
+  104:  BEQ			R0, R0, .o130
+  108:  SW			V0, 294 (S1)
+        .o10C
+  10C:  LIA			A2, 800F7F40
+  114:  ADDU		V0, V0, A2
+  118:  LW			V0, 0 (V0)
+  11C:  SW			R0, 18C (S1)
+  120:  SW			V0, 0 (S1)
+  124:  LW			A2, 10 (SP)
+  128:  LW			V0, 0 (A2)
+  12C:  SW			V0, 294 (S1)
+        .o130
+  130:  SLL			V0, S0, 3
+  134:  ADDU		V0, S8, V0
+  138:  LB			V0, 15 (V0)
+  13C:  ADDIU		S6, S6, 1
+  140:  SW			V0, 210 (S1)
+  144:  ADDIU		S1, S1, 4
+  148:  ADDIU		S2, S2, 1
+        .o14C
+  14C:  SLTI		V0, S2, 8
+  150:  BNE			V0, R0, .o80
+  154:  ADDIU		S4, S4, 2
+  158:  COPY		A0, S3
+  15C:  ADDIU		V0, R0, 4
+  160:  SW			V0, 318 (A0)
+  164:  SW			S6, 324 (A0)
+  168:  JAL			800F4E40
+  16C:  SW			R0, 328 (A0)
+  170:  SW			R0, 70 (S5)
+        .o174
+  174:  LW			V0, 70 (S5)
+  178:  LW			S3, 78 (S5)
+  17C:  BNE			V0, R0, .o1A0
+  180:  ADDIU		V0, V0, 1
+  184:  LH			V0, 32C (S3)
+  188:  BEQ			V0, R0, .o1B0
+  18C:  SW			V0, 74 (S5)
+  190:  JAL			800F13B0
+  194:  NOP
+  198:  LW			V0, 70 (S5)
+  19C:  ADDIU		V0, V0, 1
+        .o1A0
+  1A0:  SW			V0, 70 (S5)
+  1A4:  SLTI		V0, V0, F
+  1A8:  BEQ			V0, R0, .o1B8
+  1AC:  NOP
+        .o1B0
+  1B0:  BEQ			R0, R0, .o220
+  1B4:  CLEAR		V0
+        .o1B8
+  1B8:  JAL			800F1538
+  1BC:  NOP
+  1C0:  LW			V1, 74 (S5)
+  1C4:  ADDIU		V0, R0, FF
+  1C8:  BEQ			V1, V0, .o20C
+  1CC:  ADDIU		V0, V1, FFFF
+  1D0:  SLL			V0, V0, 2
+  1D4:  ADDU		V0, S3, V0
+  1D8:  LW			V0, 108 (V0)
+  1DC:  SLL			V0, V0, 4
+  1E0:  LTW			V1, V0 (8008EF20)
+  1EC:  LW			V0, 74 (S5)
+  1F0:  ADDIU		V0, V0, FFFF
+  1F4:  SLL			V0, V0, 2
+  1F8:  ADDU		V0, S3, V0
+  1FC:  SW			V1, 84 (S5)
+  200:  LW			V0, 108 (V0)
+  204:  BEQ			R0, R0, .o214
+  208:  SW			V0, 88 (S5)
+        .o20C
+  20C:  ADDIU		V0, R0, FFFF
+  210:  SW			V0, 84 (S5)
+        .o214
+  214:  JAL			~Func:heap_free
+  218:  LW			A0, 78 (S5)
+  21C:  ADDIU		V0, R0, 2
+        .o220
+  220:  LW			RA, 3C (SP)
+  224:  LW			S8, 38 (SP)
+  228:  LW			S7, 34 (SP)
+  22C:  LW			S6, 30 (SP)
+  230:  LW			S5, 2C (SP)
+  234:  LW			S4, 28 (SP)
+  238:  LW			S3, 24 (SP)
+  23C:  LW			S2, 20 (SP)
+  240:  LW			S1, 1C (SP)
+  244:  LW			S0, 18 (SP)
+  248:  JR			RA
+  24C:  ADDIU		SP, SP, 40
+}
+  
+#new:Data $Data_80243D30
+{
+001D00F0 001D00F1 
+}
+
+#new:Data $Data_80243D38
+{
+00010002 00030004 00090006 00070008 
+}
+   
+#new:Data $Data_80243D48
+{
+001D00E0 001D00E1 001D00E2 001D00E3 001D00E4 001D00E5 001D00E6 001D00E7 
+001D00E8 001D00E9 001D00EA 001D00EB 001D00EC 001D00ED 001D00EE 001D00EF 
+}
+
+#new:Function $Function_OakChuck_802427EC
+{
+    0:  ADDIU		SP, SP, FFE8
+    4:  SW			RA, 10 (SP)
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  JAL			800EB168
+   18:  COPY		A0, V0
+   1C:  LW			RA, 10 (SP)
+   20:  ADDIU		V0, R0, 2
+   24:  JR			RA
+   28:  ADDIU		SP, SP, 18
+}
+   
+   #new:Script $Script_UpgradeAnimation
+{
+    Wait    10`
+   	Thread
+   		Call     PlaySound   		( 208E )
+   		Call     $Function_OakChuck_80242F08 ( 50` 50` )
+   	EndThread
+   	Thread
+   		Wait     47`
+   		Call     $Function_OakChuck_80242978
+   		Call     $Function_OakChuck_80243048
+   		Wait     5
+  		Call     $Function_OakChuck_80243090
+  		Wait     5
+  		Call     $Function_OakChuck_80243048
+  	EndThread
+  	Wait     40`
+  	Return
+  	End
+}
+   
+   #new:Function $Function_OakChuck_80242F08
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S1, 14 (SP)
+    8:  COPY		S1, A0
+    C:  SW			S2, 18 (SP)
+   10:  SW			RA, 1C (SP)
+   14:  SW			S0, 10 (SP)
+   18:  LW			S0, C (S1)
+   1C:  BEQ			A1, R0, .o60
+   20:  CLEAR		S2
+   24:  LW			A1, 0 (S0)
+   28:  JAL			~Func:get_variable
+   2C:  ADDIU		S0, S0, 4
+   30:  SW			V0, 84 (S1)
+   34:  LW			A1, 0 (S0)
+   38:  JAL			~Func:get_variable
+   3C:  COPY		A0, S1
+   40:  COPY		A0, S2
+   44:  ADDIU		A1, R0, D0
+   48:  COPY		A2, A1
+   4C:  COPY		A3, A1
+   50:  SW			V0, 88 (S1)
+   54:  SW			R0, 70 (S1)
+   58:  JAL			80137E10
+   5C:  SW			R0, 74 (S1)
+        .o60
+   60:  LW			V1, 70 (S1)
+   64:  ADDIU		A0, R0, 1
+   68:  BEQ			V1, A0, .oD0
+   6C:  SLTI		V0, V1, 2
+   70:  BEQ			V0, R0, .o88
+   74:  ADDIU		V0, R0, 2
+   78:  BEQ			V1, R0, .o98
+   7C:  ADDIU		A1, R0, FF
+   80:  BEQ			R0, R0, .o110
+   84:  NOP
+        .o88
+   88:  BEQ			V1, V0, .oF0
+   8C:  NOP
+   90:  BEQ			R0, R0, .o110
+   94:  NOP
+        .o98
+   98:  LW			V0, 74 (S1)
+   9C:  BNE			V0, A1, .oB0
+   A0:  NOP
+   A4:  SW			A0, 70 (S1)
+   A8:  SW			R0, 78 (S1)
+   AC:  LW			V0, 74 (S1)
+        .oB0
+   B0:  LW			V1, 84 (S1)
+   B4:  ADDU		V0, V0, V1
+   B8:  SW			V0, 74 (S1)
+   BC:  SLTI		V0, V0, 100
+   C0:  BEQL		V0, R0, .o110
+   C4:  SW			A1, 74 (S1)
+   C8:  BEQ			R0, R0, .o110
+   CC:  NOP
+        .oD0
+   D0:  LW			V0, 78 (S1)
+   D4:  ADDIU		V0, V0, 1
+   D8:  SW			V0, 78 (S1)
+   DC:  SLTI		V0, V0, 2
+   E0:  BNE			V0, R0, .o110
+   E4:  ADDIU		V0, R0, 2
+   E8:  BEQ			R0, R0, .o110
+   EC:  SW			V0, 70 (S1)
+        .oF0
+   F0:  LW			V1, 74 (S1)
+   F4:  BEQL		V1, R0, .oFC
+   F8:  ADDIU		S2, R0, 1
+        .oFC
+   FC:  LW			V0, 88 (S1)
+  100:  SUBU		V0, V1, V0
+  104:  BGEZ		V0, .o110
+  108:  SW			V0, 74 (S1)
+  10C:  SW			R0, 74 (S1)
+        .o110
+  110:  LWC1		F0, 74 (S1)
+  114:  CVT.S.W		F0, F0
+  118:  MFC1		A1, F0
+  11C:  JAL			80137D88
+  120:  ADDIU		A0, R0, 1
+  124:  COPY		V0, S2
+  128:  LW			RA, 1C (SP)
+  12C:  LW			S2, 18 (SP)
+  130:  LW			S1, 14 (SP)
+  134:  LW			S0, 10 (SP)
+  138:  JR			RA
+  13C:  ADDIU		SP, SP, 20
+}
+  
+  #new:Function $Function_OakChuck_8024240C
+{
+    0:  ADDIU		SP, SP, FFE8
+    4:  SW			RA, 10 (SP)
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  JAL			802E5690
+   18:  COPY		A0, V0
+   1C:  LW			RA, 10 (SP)
+   20:  ADDIU		V0, R0, 2
+   24:  JR			RA
+   28:  ADDIU		SP, SP, 18
+}
+   
+   #new:Function $Function_OakChuck_80242978
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 18 (SP)
+    8:  JAL			~Func:get_npc_safe
+    C:  ADDIU		A0, R0, FFFC
+   10:  LWC1		F4, 3C (V0)
+   14:  LIF			F2, 12.5
+   1C:  LIF			F0, 1.0
+   24:  ADDIU		V1, R0, 1E
+   28:  SW			V1, 14 (SP)
+   2C:  ADD.S		F4, F4, F2
+   30:  SWC1		F0, 10 (SP)
+   34:  LW			A1, 38 (V0)
+   38:  LW			A3, 40 (V0)
+   3C:  MFC1		A2, F4
+   40:  JAL			80070BB0
+   44:  ADDIU		A0, R0, 9
+   48:  LW			RA, 18 (SP)
+   4C:  ADDIU		V0, R0, 2
+   50:  JR			RA
+   54:  ADDIU		SP, SP, 20
+}
+   
+   #new:Function $Function_OakChuck_80243048
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 18 (SP)
+    8:  JAL			~Func:get_npc_safe
+    C:  ADDIU		A0, R0, FFFC
+   10:  LIF			F0, 30.0
+   18:  LWC1		F2, 3C (V0)
+   1C:  ADD.S		F2, F2, F0
+   20:  SWC1		F0, 10 (SP)
+   24:  LW			A1, 38 (V0)
+   28:  LW			A3, 40 (V0)
+   2C:  MFC1		A2, F2
+   30:  JAL			8006FEF0
+   34:  ADDIU		A0, R0, 2
+   38:  LW			RA, 18 (SP)
+   3C:  ADDIU		V0, R0, 2
+   40:  JR			RA
+   44:  ADDIU		SP, SP, 20
+}
+   
+   #new:Function $Function_OakChuck_80243090
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 18 (SP)
+    8:  JAL			~Func:get_npc_safe
+    C:  ADDIU		A0, R0, FFFC
+   10:  LIF			F0, 30.0
+   18:  LWC1		F2, 3C (V0)
+   1C:  ADD.S		F2, F2, F0
+   20:  SWC1		F0, 10 (SP)
+   24:  LW			A1, 38 (V0)
+   28:  LW			A3, 40 (V0)
+   2C:  MFC1		A2, F2
+   30:  JAL			8006FEF0
+   34:  ADDIU		A0, R0, 4
+   38:  LW			RA, 18 (SP)
+   3C:  ADDIU		V0, R0, 2
+   40:  JR			RA
+   44:  ADDIU		SP, SP, 20
+}
+
+#new:Data $Data_80243D88
+{
+430C0000 43340000 435C0000
+}
+
+#new:Function $Function_OakChuck_80242438
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S0, 10 (SP)
+    8:  COPY		S0, A0
+    C:  SW			RA, 18 (SP)
+   10:  SW			S1, 14 (SP)
+   14:  LW			S1, C (S0)
+   18:  LW			A1, 0 (S1)
+   1C:  JAL			~Func:get_variable
+   20:  ADDIU		S1, S1, 4
+   24:  COPY		A0, S0
+   28:  LIA			V1, 8010F290
+   30:  SLL			V0, V0, 3
+   34:  ADDU		V0, V0, V1
+   38:  LBU			A2, 15 (V0)
+   3C:  LW			A1, 0 (S1)
+   40:  ADDIU		A2, A2, 1
+   44:  SB			A2, 15 (V0)
+   48:  SLL			A2, A2, 18
+   4C:  JAL			~Func:set_variable
+   50:  SRA			A2, A2, 18
+   54:  LW			RA, 18 (SP)
+   58:  LW			S1, 14 (SP)
+   5C:  LW			S0, 10 (SP)
+   60:  ADDIU		V0, R0, 2
+   64:  JR			RA
+   68:  ADDIU		SP, SP, 20
+}
+   
+   #new:Function $Function_OakChuck_80242818
+{
+    0:  LAB			V0, 8010F2A2
+    8:  ADDIU		SP, SP, FFE8
+    C:  SW			RA, 10 (SP)
+   10:  SLL			V0, V0, 4
+   14:  LTW			A0, V0 (8008EF20)
+   20:  JAL			~Func:set_message_string
+   24:  CLEAR		A1
+   28:  LW			RA, 10 (SP)
+   2C:  ADDIU		V0, R0, 2
+   30:  JR			RA
+   34:  ADDIU		SP, SP, 18
+}
+
+%===============
+% Buy Badges
+%===============
+#new:Script $Script_Oaklie_BuyBadges
+{
+% Check if Mario even have any coins
+Call    AddCoin ( 0 )
+Set     *Var[3] *Var[0] % var3 = mario coins
+If	*Var[3] == .False % Check Coins
+	Call	$Function_LoadBankCoins ( *Var[3] )
+	If	*Var[3] == .False % Check Bank Account
+		Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_Oaklie_ZeroCoins )
+		Jump	$Script_Interact_Oaklie
+	EndIf
+EndIf
+% Show current money
+Set		*BankTextBoxPosition 1 % Used to handle the position for the Box with the Bank Coins
+Set		*TalkingToFishmael 	.True % This flags handle showing the box with the current coins in the bank
+Call	ShowCoinCounter ( .True )
+% Check if Mario can at least buy one chest
+Call	AddCoin ( 0 ) % AddCoin save current coins in Var0 too
+Call	$Function_LoadBankCoins ( *Var[3] )
+Add		*Var[0] *Var[3]
+Set 	*Var[4] *Var[0]
+% Check if the player already have all badges from common chests, so check for 1000 coins instead
+ExecWait $Script_GetCommonBadges % *var1 = 39` = 100%
+%Set *Var[1] 39` % testing
+If *Var[1] == 39`
+	If	*Var[4] < 1000`
+		Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_BuyBadges_NotEnoughtCoins2 )
+		% Show current money
+		Call	ShowCoinCounter ( .False )
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Wait	10`
+		Jump	$Script_Interact_Oaklie
+	EndIf
+Else
+	If	*Var[4] < 500`
+		Call    SpeakToPlayer 	( .Npc:Self 00BE0002 00BE0001 00000000 $String_BuyBadges_NotEnoughtCoins )
+		% Show current money
+		Call	ShowCoinCounter ( .False )
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Wait	10`
+		Jump	$Script_Interact_Oaklie
+	EndIf
+EndIf
+Call    SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_BuyBadges1_Welcome )
+% Check if the player already have one kind of badges (common or rare)
+ExecWait $Script_GetCommonBadges % *var1 = 39` = 100%
+%Set *Var[1] 39` % testing
+If *Var[1] == 39`
+	Call	ShowChoice 	  ( $Choice_BuyBadges_Complete_Common )
+	% Reformat Var0
+	If	*Var[0] == 1 % Cancel
+		Set *Var[0] 2
+	Else
+		Set *Var[0] 1
+	EndIf
+	Goto Confirmation
+Else % Check rare chests
+	ExecWait $Script_GetRareBadges % *var1 = 23` = 100%
+	%Set *Var[1] 23` % testing
+	If *Var[1] == 23`
+		Call	ShowChoice 	  ( $Choice_BuyBadges_Complete_Rare )
+		% Reformat Var0
+		If	*Var[0] == 1 % Cancel
+			Set *Var[0] 2
+		EndIf
+		Goto Confirmation
+	EndIf
+EndIf
+% Make Rare chests unavailable if the player can't buy one
+If	*Var[4] < 1000`
+	Call	ShowChoice 	  ( $Choice_BuyBadges_NotEnoughCoins_Rare )
+	% Reformat Var0
+	If	*Var[0] == 1 % Cancel
+		Set *Var[0] 2
+	EndIf
+Else
+	Call	ShowChoice 	  ( $Choice_BuyBadges )
+EndIf
+Label	Confirmation
+Switch *Var[0]
+	CaseOR == 0 % Common
+	CaseOR == 1 % Rare
+		% Save Var0 in one owner var
+		If *Var[0] == 0
+			Call	SetSelfVar ( 3 0 ) % Common
+		Else
+			Call	SetSelfVar ( 3 1 ) % Rare
+		EndIf
+		% Show the tutorial, if the player haven't bought any chests before
+		If *Flag_BuyingChests_Learned == .False
+			Call  CloseMessage
+			Call  ShowMessageAtScreenPos ( $String_About_BuyingBadges 000000A0 00000028 )
+			Call  GetSelfVar ( 3 *Var[0] ) % get chest
+			If *Var[0] == 0
+				Call  SetMessageString ( $Common 1 )
+				Call  SetMessageValue  ( 500` 2 )
+			Else
+				Call  SetMessageString ( $Rare 1 )
+				Call  SetMessageValue  ( 1000` 2 )
+			EndIf
+			Call  SpeakToPlayer ( .Npc:Self 00BE0002 00BE0001 00000000 $String_BuyBadges_Confirmation_RIGHT )
+			Goto  ShowMessageBox
+		EndIf
+		Call  GetSelfVar ( 3 *Var[0] ) % get chest
+		If *Var[0] == 0
+			Call  SetMessageString ( $Common 1 )
+			Call  SetMessageValue  ( 500` 2 )
+		Else
+			Call  SetMessageString ( $Rare 1 )
+			Call  SetMessageValue  ( 1000` 2 )
+		EndIf
+		Call    ContinueSpeech	 ( .Npc:Self 00BE0002 00BE0001 00000000 $String_BuyBadges_Confirmation_NEXT )
+		Label	ShowMessageBox
+		Call    ShowChoice    	 ( 001E001D ) % yes no
+		If *Var[0] == 1 % no
+			Call    CloseMessage
+			Jump	$Script_Oaklie_BuyBadges
+		EndIf
+		Call CloseMessage
+		% Get Random Badge
+		Jump $Script_BuyBadges_GetRandomBadge
+	EndCaseGroup
+	Case == 2 % Cancel
+		Call    CloseMessage
+		% Disable Coins Counters
+		% Is ShowCoinCounter True?
+		Call 	$ReadAddress ( 8010EFC4 0 *Var[E] 2 .False )
+		If *Var[E] != FF
+			Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+		EndIf
+		Call	$Function_BankCoins_Close
+		Call	$Function_BankCoins_UseLastFrame
+		Jump	$Script_Interact_Oaklie
+EndSwitch
+Return
+End
+}
+
+% Get Random Badge
+#new:Script $Script_BuyBadges_GetRandomBadge
+{
+Call  	GetSelfVar ( 3 *Var[0] ) % get chest
+If	*Var[0] == 0 % Common Chest
+	% Get Badge % Low & Medium Tiers
+	Call RandInt ( 39` *Var[0] )
+	Switch *Var[0]
+		Case == 0
+			If *Flag_SlowGo == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SlowGo
+			SetConst *Var[2] *Flag_SlowGo
+		Case == 1
+			If *Flag_LuckyDay == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:LuckyDay
+			SetConst *Var[2] *Flag_LuckyDay
+		Case == 2
+			If *Flag_Peekaboo == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:Peekaboo
+			SetConst *Var[2] *Flag_Peekaboo
+		Case == 3
+			If *Flag_SSmashChg == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SSmashChg
+			SetConst *Var[2] *Flag_SSmashChg
+		Case == 4
+			If *Flag_Spin_Smash == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SpinSmash
+			SetConst *Var[2] *Flag_Spin_Smash
+		Case == 5
+			If *Flag_PayOff == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PayOff
+			SetConst *Var[2] *Flag_PayOff
+		Case == 6
+			If *Flag_Money_Money == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:MoneyMoney
+			SetConst *Var[2] *Flag_Money_Money
+		Case == 7
+			If *Flag_Chill_Out == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:ChillOut
+			SetConst *Var[2] *Flag_Chill_Out
+		Case == 8
+			If *Flag_Pretty_Lucky == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PrettyLucky
+			SetConst *Var[2] *Flag_Pretty_Lucky
+		Case == 9
+			If *Flag_Hammer_Throw == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HammerThrow
+			SetConst *Var[2] *Flag_Hammer_Throw
+		Case == 10`
+			If *Flag_MegaSmash == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:MegaSmash
+			SetConst *Var[2] *Flag_MegaSmash
+		Case == 11`
+			If *Flag_MegaJump == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:MegaJump
+			SetConst *Var[2] *Flag_MegaJump
+		Case == 12`
+			If *Flag_Refund == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:Refund
+			SetConst *Var[2] *Flag_Refund
+		Case == 13`
+			If *Flag_SmashCharge == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SmashCharge
+			SetConst *Var[2] *Flag_SmashCharge
+		Case == 14`
+			If *Flag_SpikeShield == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SpikeShield
+			SetConst *Var[2] *Flag_SpikeShield
+		Case == 15`
+			If *Flag_DDownPound == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DDownPound
+			SetConst *Var[2] *Flag_DDownPound
+		Case == 16`
+			If *Flag_PowerSmash == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerSmash1
+			SetConst *Var[2] *Flag_PowerSmash
+		Case == 17`
+			If *Flag_SleepStomp == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SleepStomp
+			SetConst *Var[2] *Flag_SleepStomp
+		Case == 18`
+			If *Flag_DizzyStomp == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DizzyStomp
+			SetConst *Var[2] *Flag_DizzyStomp
+		Case == 19`
+			If *Flag_MegaQuake == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:MegaQuake
+			SetConst *Var[2] *Flag_MegaQuake
+		% Medium Tier
+		Case == 20`
+			If *Flag_TripleDip == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:TripleDip
+			SetConst *Var[2] *Flag_TripleDip
+		Case == 21`
+			If *Flag_ShrinkStomp == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:ShrinkStomp
+			SetConst *Var[2] *Flag_ShrinkStomp
+		Case == 22`
+			If *Flag_GroupFocus == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:GroupFocus
+			SetConst *Var[2] *Flag_GroupFocus
+		Case == 23`
+			If *Flag_FireShield == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:FireShield
+			SetConst *Var[2] *Flag_FireShield
+		Case == 24`
+			If *Flag_HappyHeartA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HappyHeartA
+			SetConst *Var[2] *Flag_HappyHeartA
+		Case == 25`
+			If *Flag_HappyHeartB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HappyHeartB
+			SetConst *Var[2] *Flag_HappyHeartB
+		Case == 26`
+			If *Flag_IcePower == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:IcePower
+			SetConst *Var[2] *Flag_IcePower
+		Case == 27` % Feeling got scrapped
+			Jump $Script_BuyBadges_GetRandomBadge
+			/%If *Flag_FeelingFine == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:FeelingFine
+			SetConst *Var[2] *Flag_FeelingFine%/
+		Case == 28`
+			If *Flag_SJumpChg == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:SJumpChg
+			SetConst *Var[2] *Flag_SJumpChg
+		Case == 29`
+			If *Flag_JumpCharge == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:JumpCharge
+			SetConst *Var[2] *Flag_JumpCharge
+		Case == 30`
+			If *Flag_DeepFocusA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DeepFocus1
+			SetConst *Var[2] *Flag_DeepFocusA
+		Case == 31`
+			If *Flag_DeepFocusB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DeepFocus2
+			SetConst *Var[2] *Flag_DeepFocusB
+		Case == 32`
+			If *Flag_DeepFocusC == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DeepFocus3
+			SetConst *Var[2] *Flag_DeepFocusC
+		Case == 33`
+			If *Flag_HappyFlowerA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HappyFlowerA
+			SetConst *Var[2] *Flag_HappyFlowerA
+		Case == 34`
+			If *Flag_HappyFlowerB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HappyFlowerB
+			SetConst *Var[2] *Flag_HappyFlowerB
+		Case == 35`
+			If *Flag_DodgeMaster == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DodgeMaster
+			SetConst *Var[2] *Flag_DodgeMaster
+		Case == 36`
+			If *Flag_ZapTap == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:ZapTap
+			SetConst *Var[2] *Flag_ZapTap
+		Case == 37`
+			If *Flag_Multibounce == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:Multibounce
+			SetConst *Var[2] *Flag_Multibounce
+		Case == 38`
+			If *Flag_DizzyAttack == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DizzyAttack
+			SetConst *Var[2] *Flag_DizzyAttack
+		Case == 39`
+			If *Flag_PowerJump == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerJump
+			SetConst *Var[2] *Flag_PowerJump
+		EndSwitch
+Else % Rare Chest
+	% Get Badge % High Tier
+	Call RandInt ( 22` *Var[0] )
+	Switch *Var[0]
+		Case == 0
+			If *Flag_FlowerSaverA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:FlowerSaverA
+			SetConst *Var[2] *Flag_FlowerSaverA
+		Case == 1
+			If *Flag_FlowerSaverB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:FlowerSaverB
+			SetConst *Var[2] *Flag_FlowerSaverB
+		Case == 2
+			If *Flag_HeartFinder == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HeartFinder
+			SetConst *Var[2] *Flag_HeartFinder
+		Case == 3
+			If *Flag_FlowerFinder == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:FlowerFinder
+			SetConst *Var[2] *Flag_FlowerFinder
+		Case == 4
+			If *Flag_CloseCall == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:CloseCall
+			SetConst *Var[2] *Flag_CloseCall
+		Case == 5
+			If *Flag_DefendPlus == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DefendPlusA
+			SetConst *Var[2] *Flag_DefendPlus
+		Case == 6
+			If *Flag_PDownDUp == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PDownDUp
+			SetConst *Var[2] *Flag_PDownDUp
+		Case == 7
+			If *Flag_PowerPlusA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerPlusA
+			SetConst *Var[2] *Flag_PowerPlusA
+		Case == 8
+			If *Flag_PowerPlusB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerPlusB
+			SetConst *Var[2] *Flag_PowerPlusB
+		Case == 9
+			If *Flag_QuickChange == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:QuickChange
+			SetConst *Var[2] *Flag_QuickChange
+		Case == 10`
+			If *Flag_QuakeHammer == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:QuakeHammer
+			SetConst *Var[2] *Flag_QuakeHammer
+		Case == 11`
+			If *Flag_PowerQuake == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerQuake
+			SetConst *Var[2] *Flag_PowerQuake
+		Case == 12`
+			If *Flag_DoubleDip == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DoubleDip
+			SetConst *Var[2] *Flag_DoubleDip
+		Case == 13`
+			If *Flag_PowerRush == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerRush
+			SetConst *Var[2] *Flag_PowerRush
+		Case == 14`
+			If *Flag_DDownJump == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DDownJump
+			SetConst *Var[2] *Flag_DDownJump
+		Case == 15`
+			If *Flag_PUpDDown == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PUpDDown
+			SetConst *Var[2] *Flag_PUpDDown
+		Case == 16`
+			If *Flag_AllorNothing == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:AllorNothing
+			SetConst *Var[2] *Flag_AllorNothing
+		Case == 17`
+			If *Flag_MegaRush == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:MegaRush
+			SetConst *Var[2] *Flag_MegaRush
+		Case == 18`
+			If *Flag_PowerBounce == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:PowerBounce
+			SetConst *Var[2] *Flag_PowerBounce
+		Case == 19`
+			If *Flag_LastStand == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:LastStand
+			SetConst *Var[2] *Flag_LastStand
+		Case == 20`
+			If *Flag_DamageDodgeA == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DamageDodgeA
+			SetConst *Var[2] *Flag_DamageDodgeA
+		Case == 21`
+			If *Flag_DamageDodgeB == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:DamageDodgeB
+			SetConst *Var[2] *Flag_DamageDodgeB
+		Case == 22`
+			If *Flag_HPDrain == .True
+				Jump $Script_BuyBadges_GetRandomBadge
+			EndIf
+			Set *Var[0] .Item:HPDrain
+			SetConst *Var[2] *Flag_HPDrain
+	EndSwitch
+EndIf
+Set		*Var[E] *Var[0] % Badge ID
+Set		*Var[F] *Var[2] % Badge's Flag
+% Substract Money
+Call  GetSelfVar ( 3 *Var[0] ) % get chest
+If	*Var[0] == 0
+	Set *Var[1] 500` % amount to sub
+Else
+	Set *Var[1] 1000` % amount to sub
+EndIf
+%% Substract Amount from Bank account and/or Mario's coins
+SetTimescale *Fixed[15.0]
+Loop
+	Call	$Function_LoadBankCoins 	( *Var[3] )
+	If	*Var[3] == 0 % If the account is empty, break
+		BreakLoop
+	EndIf
+	Call	PlaySound ( 211 ) % Coin
+	Call	$Function_SubCoinsFromAccount
+	Sub		*Var[1] 1
+	If	*Var[1] == 0 % If the ammount has been fully substracted
+		Goto UpgradePurchased
+	EndIf
+	Wait	1
+EndLoop
+% If the amount still isn't 0, use Mario's coins now
+If	*Var[1] != 0
+	Mul	*Var[1] -1`
+	Call AddCoin ( *Var[1] )
+EndIf
+Label	UpgradePurchased
+SetTimescale *Fixed[1.0] % Back to Normal
+% Disable Coins Counters
+Call	$Function_BankCoins_Close
+Call	$Function_BankCoins_UseLastFrame
+Wait	10`
+% Give Badge
+% Is ShowCoinCounter True?
+Call 	$ReadAddress ( 8010EFC4 0 *Var[0] 2 .False )
+If *Var[0] != FF
+	Call 	$WriteAddress ( 8010EFC4 0 1 .False .False ) % force coin's box to get closed fast
+EndIf
+% Giant Chest Animation
+% Get to the data of the chest
+Call    $GetEntityPointer 	( 2 *Var[0] )
+% EntityPointer(+40) > Giant Chest's Top data
+Call 	$ReadAddress 		( *Var[0] 2 *Var[0] 40 .False )
+% Do chest top animation
+% Chest Top Data(+8) = Top's Rotation
+Call	PlaySound ( 01D3 ) % giant chest
+Call 	$WriteAddressFloat	( *Var[0] 2 *Fixed[-2.0] 8 .False )
+Wait	17`
+Loop
+	Call 	$ReadAddressFloat	( *Var[0] 2 *Var[1] 8 .False )
+	SubF	*Var[1] *Fixed[1.0] % rotation speed
+	SetF	*Var[2] *Fixed[-19.0] % final rotation
+	If *Var[1] <= *Var[2]
+		SetF 	*Var[1] *Fixed[-19.0]
+		Call 	$WriteAddressFloat	( *Var[0] 2 *Var[1] 8 .False )
+		BreakLoop
+	EndIf
+	Call 	$WriteAddressFloat	( *Var[0] 2 *Var[1] 8 .False )
+	Wait 1
+EndLoop
+% give badge
+Call	AddBadge ( *Var[E] .Default )
+ExecWait $Script_CheckBadgeFlags % Check the player have all Badges his supposed to have, if not give the badge to him
+Call	ShowGotItem ( *Var[E] .True 0 )
+Call	$Function_SaveFlag  % Set Badge flag as True % reads from varF
+Set 	*Flag_BuyingChests_Learned .True
+Set     *Flag_AutoOpenChest .False
+% challenges
+Add *BadgeList 1 % Add one badge to the badge counter from the Main Lobby sign
+Switch *BadgeList % Challenge Completed
+	Case >= 62`
+		Set	*Flag_Cheev_Classic_07 .True
+		Set	*Flag_Cheev_Classic_06 .True
+		Set	*Flag_Cheev_Classic_05 .True
+		Set	*Flag_Cheev_Classic_04 .True
+	Case >= 40`
+		Set	*Flag_Cheev_Classic_06 .True
+		Set	*Flag_Cheev_Classic_05 .True
+		Set	*Flag_Cheev_Classic_04 .True
+	Case >= 20`
+		Set	*Flag_Cheev_Classic_05 .True
+		Set	*Flag_Cheev_Classic_04 .True
+	Case >= 5
+		Set	*Flag_Cheev_Classic_04 .True
+EndSwitch
+Call 	GotoMap ( $pt_00 D ) % ~Entry:Entry_PurchaseAChest
+Return
+End
+}
+
+#new:ASCII $pt_00
+{
+"pt_00"
+}
+
+% reads from varF
+#new:Function $Function_SaveFlag
+{
+PUSH	RA, V0, A1, A2
+% Get Flag
+% varF=Flag Address
+LIO 	A1, *Var[F]
+JAL 	~Func:get_variable
+RESERVED
+% Save Flag
+ADDIU 	A2, R0, 1 % true
+JAL 	~Func:set_variable
+COPY	A1, V0
+JPOP    RA, V0, A1, A2
+}
+
+#new:Script $Script_GetCommonBadges
+{
+Set *Var[1] .Default
+Add *Var[1] *Flag_SlowGo
+Add *Var[1] *Flag_LuckyDay
+Add *Var[1] *Flag_Peekaboo
+Add *Var[1] *Flag_SSmashChg
+Add *Var[1] *Flag_Spin_Smash
+Add *Var[1] *Flag_PayOff
+Add *Var[1] *Flag_Money_Money
+Add *Var[1] *Flag_Chill_Out
+Add *Var[1] *Flag_Pretty_Lucky
+Add *Var[1] *Flag_Hammer_Throw
+Add *Var[1] *Flag_MegaSmash
+Add *Var[1] *Flag_MegaJump
+Add *Var[1] *Flag_Refund
+Add *Var[1] *Flag_SmashCharge
+Add *Var[1] *Flag_SpikeShield
+Add *Var[1] *Flag_DDownPound
+Add *Var[1] *Flag_PowerSmash
+Add *Var[1] *Flag_SleepStomp
+Add *Var[1] *Flag_DizzyStomp
+Add *Var[1] *Flag_MegaQuake
+% Medium Tier
+Add *Var[1] *Flag_TripleDip
+Add *Var[1] *Flag_ShrinkStomp
+Add *Var[1] *Flag_GroupFocus
+Add *Var[1] *Flag_FireShield
+Add *Var[1] *Flag_HappyHeartA
+Add *Var[1] *Flag_HappyHeartB
+Add *Var[1] *Flag_IcePower
+%Add *Var[1] *Flag_FeelingFine
+Add *Var[1] *Flag_SJumpChg
+Add *Var[1] *Flag_JumpCharge
+Add *Var[1] *Flag_DeepFocusA
+Add *Var[1] *Flag_DeepFocusB
+Add *Var[1] *Flag_DeepFocusC
+Add *Var[1] *Flag_HappyFlowerA
+Add *Var[1] *Flag_HappyFlowerB
+Add *Var[1] *Flag_DodgeMaster
+Add *Var[1] *Flag_ZapTap
+Add *Var[1] *Flag_Multibounce
+Add *Var[1] *Flag_DizzyAttack
+Add *Var[1] *Flag_PowerJump
+% *Var[1] == 39` % All badges from common chests got it
+Return
+End
+}
+
+#new:Script $Script_GetRareBadges
+{
+Set *Var[1] .Default
+Add *Var[1] *Flag_FlowerSaverA
+Add *Var[1] *Flag_FlowerSaverB
+Add *Var[1] *Flag_HeartFinder
+Add *Var[1] *Flag_FlowerFinder
+Add *Var[1] *Flag_CloseCall
+Add *Var[1] *Flag_DefendPlus
+Add *Var[1] *Flag_PDownDUp
+Add *Var[1] *Flag_PowerPlusA
+Add *Var[1] *Flag_PowerPlusB
+Add *Var[1] *Flag_QuickChange
+Add *Var[1] *Flag_QuakeHammer
+Add *Var[1] *Flag_PowerQuake
+Add *Var[1] *Flag_DoubleDip
+Add *Var[1] *Flag_PowerRush
+Add *Var[1] *Flag_DDownJump
+Add *Var[1] *Flag_PUpDDown
+Add *Var[1] *Flag_AllorNothing
+Add *Var[1] *Flag_MegaRush
+Add *Var[1] *Flag_PowerBounce
+Add *Var[1] *Flag_LastStand
+Add *Var[1] *Flag_DamageDodgeA
+Add *Var[1] *Flag_DamageDodgeB
+Add *Var[1] *Flag_HPDrain
+% *Var[1] == 23` % All badges from common chests got it
+Return
+End
+}
+
+#string $Common
+{
+common[END]
+}
+
+#string $Rare
+{
+rare[END]
+}
+
+#string $String_BuyBadges1_Welcome
+{
+[STYLE:RIGHT][...]
+What kind of Chest do you want
+to buy?
+[Func_04][END]
+}
+
+#string $Choice_BuyBadges
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][Cursor:00][Option:00]Common - $500
+[Cursor:01][Option:01]Rare - $1000
+[Option:FF][DelayOn][SetCancel:02][EndChoice:02][END]
+}
+
+#string $Choice_BuyBadges_Complete_Common
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Common[PopColor]
+[Cursor:00][Option:00]Rare - $1000
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $Choice_BuyBadges_Complete_Rare
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Rare[PopColor]
+[Cursor:00][Option:00]Common - $500
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $Choice_BuyBadges_NotEnoughCoins_Rare
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:0B]Rare - $1000[PopColor]
+[Cursor:00][Option:00]Common - $500
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $String_About_BuyingBadges
+{
+[STYLE:INSPECT][...]
+
+			 Buying chests from Oaklie
+[WAIT][NEXT][...]
+You can get [PushColor][Color:07]new Badges[PopColor] by buying
+chests from Oaklie too.
+[WAIT][NEXT][...]
+Inside that chest will be a random
+new badge you [PushColor][Color:07]still don't own[PopColor].
+[WAIT][NEXT][...]
+The quality of the badge depends
+on the [PushColor][Color:07]kind of chest you bought[PopColor].
+[WAIT][END]
+}
+
+#string $String_BuyBadges_Confirmation_RIGHT
+{
+[STYLE:RIGHT][...]
+So you want to buy a [PushColor][Color:19][Var:01][PopColor]
+chest for [PushColor][Color:19][Var:02][PopColor] coins is that
+correct?
+[Func_04][END]
+}
+
+#string $String_BuyBadges_Confirmation_NEXT
+{
+[NEXT][...]
+So you want to buy a [PushColor][Color:19][Var:01][PopColor]
+chest for [PushColor][Color:19][Var:02][PopColor] coins is that
+correct?
+[Func_04][END]
+}
+
+#string $String_BuyBadges_NotEnoughtCoins
+{
+[STYLE:RIGHT][...]
+Sorry Mario but you need at
+least [PushColor][Color:19]500 coins[PopColor] to buy a chest.
+[WAIT][END]
+}
+
+#string $String_BuyBadges_NotEnoughtCoins2
+{
+[STYLE:RIGHT][...]
+Sorry Mario but you need at
+least [PushColor][Color:19]1000 coins[PopColor] to buy a chest.
+[WAIT][END]
+}
+
+%===============
+%====CHUCK======
+%===============
+
+% #new:Script $Script_Init_Chuck % still in pt_00
+% #new:Script $Script_Interact_Chuck % still in pt_00
+
+#new:Function $Function_GetPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+
+%===============
+% Customize Lobby Code
+%===============
+
+% This one is still in pt_00, it reads a lot of ~ModelsID
+% so was easier to just leave it in pt_00
+% #new:Script $Script_Chuck_Furniture
+
+#new:Script $Script_Chuck_Furniture_Restore
+{
+Call	$WriteAddress ( $DescriptionBox_Data 2 .False 0 .False ) % Hide Box
+Wait	5
+% MapVar[A] == current cursor pos
+% MapVar[B] == last cursor pos
+Set	 	*MapVar[B] *MapVar[A] % cursor pos
+Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+Return
+End
+}
+
+#export $Script_Chuck_Furniture_Restore
+
+#new:Script $Script_GetChallengesCompleted
+{
+Set *Var[2] .Default
+Add *Var[2] *Flag_Cheev_Global_01
+Add *Var[2] *Flag_Cheev_Global_02
+Add *Var[2] *Flag_Cheev_Global_03
+Add *Var[2] *Flag_Cheev_Global_04
+Add *Var[2] *Flag_Cheev_Global_05
+Add *Var[2] *Flag_Cheev_Global_06
+Add *Var[2] *Flag_Cheev_Global_07
+Add *Var[2] *Flag_Cheev_Global_08
+Add *Var[2] *Flag_Cheev_Global_09
+Add *Var[2] *Flag_Cheev_Global_10
+Add *Var[2] *Flag_Cheev_Global_11
+Add *Var[2] *Flag_Cheev_Global_12
+Add *Var[2] *Flag_Cheev_Global_13
+Add *Var[2] *Flag_Cheev_Global_14
+Add *Var[2] *Flag_Cheev_Global_15
+Add *Var[2] *Flag_Cheev_Global_16
+Add *Var[2] *Flag_Cheev_Global_17
+Add *Var[2] *Flag_Cheev_Global_18
+Add *Var[2] *Flag_Cheev_Global_19
+%Add *Var[2] *Flag_Cheev_Global_20 % unused
+Add *Var[2] *Flag_Cheev_Global_21
+Add *Var[2] *Flag_Cheev_Global_22
+Add *Var[2] *Flag_Cheev_Global_23
+Add *Var[2] *Flag_Cheev_Global_24
+Add *Var[2] *Flag_Cheev_Global_25
+Add *Var[2] *Flag_Cheev_Global_26
+Add *Var[2] *Flag_Cheev_Global_27
+Add *Var[2] *Flag_Cheev_Global_28
+% Classic
+Add *Var[2] *Flag_Cheev_Classic_01
+Add *Var[2] *Flag_Cheev_Classic_02
+Add *Var[2] *Flag_Cheev_Classic_03
+Add *Var[2] *Flag_Cheev_Classic_04
+Add *Var[2] *Flag_Cheev_Classic_05
+Add *Var[2] *Flag_Cheev_Classic_06
+Add *Var[2] *Flag_Cheev_Classic_07
+Add *Var[2] *Flag_Cheev_Classic_08
+Add *Var[2] *Flag_Cheev_Classic_09
+Add *Var[2] *Flag_Cheev_Classic_10
+Add *Var[2] *Flag_Cheev_Classic_11
+Add *Var[2] *Flag_Cheev_Classic_12
+%Add *Var[2] *Flag_Cheev_Classic_13 % unused
+Add *Var[2] *Flag_Cheev_Classic_14
+Add *Var[2] *Flag_Cheev_Classic_15
+Add *Var[2] *Flag_Cheev_Classic_16
+Add *Var[2] *Flag_Cheev_Classic_17
+Add *Var[2] *Flag_Cheev_Classic_18
+Add *Var[2] *Flag_Cheev_Classic_19
+Add *Var[2] *Flag_Cheev_Classic_20
+Add *Var[2] *Flag_Cheev_Classic_21
+Add *Var[2] *Flag_Cheev_Classic_22
+Add *Var[2] *Flag_Cheev_Classic_23
+% Rogue
+Add *Var[2] *Flag_Cheev_Rogue_01
+Add *Var[2] *Flag_Cheev_Rogue_02
+Add *Var[2] *Flag_Cheev_Rogue_03
+Add *Var[2] *Flag_Cheev_Rogue_04
+Add *Var[2] *Flag_Cheev_Rogue_05
+Add *Var[2] *Flag_Cheev_Rogue_06
+%Add *Var[2] *Flag_Cheev_Rogue_07 % unused
+Add *Var[2] *Flag_Cheev_Rogue_08
+Add *Var[2] *Flag_Cheev_Rogue_09
+Add *Var[2] *Flag_Cheev_Rogue_10
+Add *Var[2] *Flag_Cheev_Rogue_11
+Add *Var[2] *Flag_Cheev_Rogue_12
+Add *Var[2] *Flag_Cheev_Rogue_13
+Add *Var[2] *Flag_Cheev_Rogue_14
+Add *Var[2] *Flag_Cheev_Rogue_15
+Add *Var[2] *Flag_Cheev_Rogue_16
+Add *Var[2] *Flag_Cheev_Rogue_17
+Add *Var[2] *Flag_Cheev_Rogue_18
+Add *Var[2] *Flag_Cheev_Rogue_19
+Add *Var[2] *Flag_Cheev_Rogue_20
+Add *Var[2] *Flag_Cheev_Rogue_21
+Add *Var[2] *Flag_Cheev_Rogue_22
+Add *Var[2] *Flag_Cheev_Rogue_23
+Add *Var[2] *Flag_Cheev_Rogue_24
+Add *Var[2] *Flag_Cheev_Rogue_25
+% Maze
+Add *Var[2] *Flag_Cheev_Dungeon_01
+Add *Var[2] *Flag_Cheev_Dungeon_02
+Add *Var[2] *Flag_Cheev_Dungeon_03
+Add *Var[2] *Flag_Cheev_Dungeon_04
+Add *Var[2] *Flag_Cheev_Dungeon_05
+Add *Var[2] *Flag_Cheev_Dungeon_06
+Add *Var[2] *Flag_Cheev_Dungeon_07
+Add *Var[2] *Flag_Cheev_Dungeon_08
+Add *Var[2] *Flag_Cheev_Dungeon_09
+% 82` = All challenges completed
+Return
+End
+}
+
+#export $Script_GetChallengesCompleted
+
+% #new:Function $Function_ShowList_Furniture % still in pt_00
+
+#new:Data $???_80244D24
+{
+    FFFFFF80 FFFFFFFF FFFFFFB3 FFFFFFC9 FFFFFFF1 FFFFFFF1 00000005 FFFFFFFE
+    00000029 0000003B FFFFFFFD 00000057
+}
+
+#new:Data $Data_StringsBank_Furniture_1
+{
+	/%
+    Element1 Element2 Element3 Element4 Element5 Element6 Element7 Element8
+    Element9 Element10 Element11 Element12 Element13 / Element14 Element15
+	%/
+    000B0050 000B0051 000B0052 000B0053 000B0054 000B0055 000B0056 000B0057
+    000B0058 000B0059 000B005A 000B005B 000B005C 000B002C 000B002D
+}
+
+#new:Data $Data_StringsBank_Furniture_2
+{
+	/%
+    Element1(2?) 00200002 00200004 00200006 00200008 0020000A 0020000C 0020000E
+    00200010 00200012 00200014 00200016 / 00000000 00000000 00000000
+	%/
+    000B0050 00200002 00200004 00200006 00200008 0020000A 0020000C 0020000E
+    00200010 00200012 00200014 00200016 00000000 00000000 00000000
+}
+
+#new:Data $Data_CardsImages
+{
+    0000B290 0000D158 0000D178 0000EB78 0000ED78 00010778 00010978 00012378
+    00012578 00013F78 00014178 00015B78 00015D78 00017778 00017978 00019378
+    00019578 0001AF78 0001B178 0001CB78 0001CD78 0001E778 0001E978 00020378
+    00020578 00021F78
+}
+
+#export $???_80244D24
+#export $Data_StringsBank_Furniture_1
+#export $Data_StringsBank_Furniture_2
+#export $Data_CardsImages
+
+% #new:Function $Function_OakChuck_802405BC % still in pt_00
+
+#string $String_Oaklie_Welcome
+{
+[STYLE:RIGHT][...]
+Hello Mario, what do you want
+to do now?
+[Func_04][END]
+}
+
+#string $Choice_Upgrades_Main % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:47:60:A0:30][...]
+[DelayOff][Cursor:00][Option:00]Buy Upgrades
+[Cursor:01][Option:01]Buy Badges
+[Option:FF][DelayOn][SetCancel:02][EndChoice:02][END]
+}
+
+#string $Choice_Upgrades_OnlyBadges
+{
+[STYLE:CHOICE:47:60:A0:30][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Buy Upgrades[PopColor]
+[Cursor:00][Option:00]Buy Badges
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $Choice_Upgrades_OnlyUpgrades
+{
+[STYLE:CHOICE:47:60:A0:30][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Buy Badges[PopColor]
+[Cursor:00][Option:00]Buy Upgrades
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $String_Oaklie_ZeroCoins
+{
+[STYLE:RIGHT][...]
+Oh wait, looks like you don't
+have any coins at all. Please
+come back when you already
+have a few coins in your pocket.
+[WAIT][END]
+}
+
+#string $String_Oaklie_ForWho
+{
+[STYLE:RIGHT][...]
+For who?
+[Func_04][END]
+}
+
+#string $String_Oaklie_WhichOne
+{
+[STYLE:RIGHT][...]
+Which one?
+[Func_04][END]
+}
+
+#string $Choice_Upgrades_BootsAndHammer % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][Cursor:00][Option:00]Hammer
+[Cursor:01][Option:01]Boots
+[Option:FF][DelayOn][SetCancel:02][EndChoice:02][END]
+}
+
+#string $Choice_Upgrades_OnlyHammer
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Boots[PopColor]
+[Cursor:00][Option:00]Hammer
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $Choice_Upgrades_OnlyBoots
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Hammer[PopColor]
+[Cursor:00][Option:00]Boots
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $String_Oaklie_Mario_Upgrade_Price
+{
+[STYLE:RIGHT][...]
+A [PushColor][Color:19][Var:02][PopColor] upgrade has a
+cost of [PushColor][Color:19][Var:01] coins[PopColor], do you want
+it?
+[Func_04][END]
+}
+
+#string $String_Oaklie_Mario_Upgrade_Error
+{
+[STYLE:RIGHT][...]
+A [PushColor][Color:19][Var:02][PopColor] upgrade has a
+cost of [PushColor][Color:19][Var:01] coins[PopColor], currently
+you don't have enough coins.
+[WAIT][END]
+}
+
+#string $String_SuperHammer
+{
+Super Hammer[END]
+}
+
+#string $String_UltraHammer
+{
+Ultra Hammer[END]
+}
+
+#string $String_SuperBoots
+{
+Super Boots[END]
+}
+
+#string $String_UltraBoots
+{
+Ultra Boots[END]
+}
+
+#string $Choice_Upgrades_Who % [STYLE:CHOICE:XCoords:YCoords:XLenght:YLenght]
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][Cursor:00][Option:00]Mario
+[Cursor:01][Option:01]Partners
+[Option:FF][DelayOn][SetCancel:02][EndChoice:02][END]
+}
+
+#string $Choice_Upgrades_Who_OnlyPartner
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Mario[PopColor]
+[Cursor:00][Option:00]Partners
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $Choice_Upgrades_Who_OnlyMario
+{
+[STYLE:CHOICE:47:60:C0:2E][...]
+[DelayOff][PushColor][Color:13][STAR] [Color:0B]Partners[PopColor]
+[Cursor:00][Option:00]Mario
+[Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
+}
+
+#string $String_Oaklie_Confirm_Mario_Boots
+{
+[STYLE:RIGHT][...]
+This will increase your Jump
+damage by 1, are you sure?
+[Func_04][END]
+}
+
+#string $String_Oaklie_Confirm_Mario_Hammer
+{
+[STYLE:RIGHT][...]
+This will increase your Hammer
+damage by 1, are you sure?
+[Func_04][END]
+}
+
+#string $String_Oaklie_Confirm_Partner
+{
+[STYLE:RIGHT][...]
+This will unlock the [Var:00] ability
+for [Var:01], are you sure?
+[Func_04][END]
+}
+
+#string $String_Oaklie_Thanks
+{
+[STYLE:RIGHT][...]
+It is always good to get prepared
+before arriving to the Pit.
+[WAIT][NEXT]
+We don't want anything bad
+happening to you Mario.
+[WAIT][NEXT]
+Thanks Mario, be cautious.
+[WAIT][END]
+}
+
+#string $String_Oaklie_Bye
+{
+[NEXT][...]
+Take care Mario.
+[WAIT][END]
+}
+
+#string $String_Oaklie_100Percent
+{
+[STYLE:RIGHT][...]
+Hey, wait a minute...
+[WAIT][NEXT][...]
+Wow!!
+[WAIT][NEXT][...]
+It seems that you already
+have everything I can offer
+you!
+[WAIT][NEXT][...]
+I just wanna say, thank you!
+[WAIT][NEXT][...]
+Good luck over there friend.
+[WAIT][END]
+}
+
+%===============
+% Swap Skins
+%===============
+
+% #new:Script $Script_Chuck_Skins % still in pt_00
+
+#new:Script $Script_Chuck_Skins_Restore
+{
+Call	$WriteAddress ( $DescriptionBox_Data 2 .False 0 .False ) % Hide Box
+Wait	5
+Set	 	*MapVar[B] *MapVar[A] % cursor pos
+Set	 	*PlayerSkin *MapVar[A] % restore skin
+Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+Return
+End
+}
+
+#export $Script_Chuck_Skins_Restore
+
+% #new:Function $Function_ShowList_Skins1 % still in pt_00
+
+#new:Data $???_80244D24_Skins
+{
+    FFFFFF80 FFFFFFFF FFFFFFB3 FFFFFFC9 FFFFFFF1 FFFFFFF1 00000005 FFFFFFFE
+    00000029 0000003B FFFFFFFD 00000057
+}
+
+#new:Data $Data_StringsBank_Skins_1 % show the Black Pit skin as ???
+{
+	/%
+    Element1 Element2 Element3 Element4 Element5 Element6 Element7 Element8
+    Element9 Element10 Element11 Element12 / Element13 Element14 Element15 Element16
+	%/
+    000B001F 000B0020 000B0021 000B0022 000B0023 000B0024 000B0025 000B0026
+    000B0027 000B0028 000B0029 000B002A 000B002B 000B002C 000B005E 000B002D
+}
+
+#new:Data $Data_StringsBank_Skins_1_GameBeated
+{
+	/%
+    Element1 Element2 Element3 Element4 Element5 Element6 Element7 Element8
+    Element9 Element10 Element11 Element12 / Element13 Element14 Element15 Element16
+	%/
+    000B001F 000B0020 000B0021 000B0022 000B0023 000B0024 000B0025 000B0026
+    000B0027 000B0028 000B0029 000B002A 000B002B 000B002C 000B005D 000B002D
+}
+
+#new:Data $Data_StringsBank_Skins_2
+{
+	/%
+    Element1(2?) 00200002 00200004 00200006 00200008 0020000A 0020000C 0020000E
+    00200010 00200012 00200014 00200016 / 00000000 00000000 00000000
+	%/
+    000B001F 00200002 00200004 00200006 00200008 0020000A 0020000C 0020000E
+    00200010 00200012 00200014 00200016 00000000 00000000 00000000
+}
+
+#export $???_80244D24_Skins
+#export $Data_StringsBank_Skins_1
+#export $Data_StringsBank_Skins_1_GameBeated
+#export $Data_StringsBank_Skins_2
+
+% #new:Function $Function_OakChuck_802405BC_Skins % still in pt_00
+
+#string $String_GlMario
+{
+[STYLE:RIGHT][...]
+Good luck over there Mario!
+[WAIT][END]
+}
+
+%============
+% Misc Data
+%============
+
+% The map started to have problem with the amount of data again
+% So I just placed more stuff from pt00 here
+
+#new:Script $Script_ReadSign_pt00
+{
+	Call     DisablePlayerInput	( .True )
+	% Classic - Misc stuff
+	Call	 $LoadHighscores_copy
+	Call     SetMessageValue 	( *HighestFloor_Classic 0 )
+	Call     SetMessageValue 	( *BadgeList 1 )
+	Call     SetMessageValue 	( *Var[2] 2 ) % total floors
+	Call     ShowMessageAtScreenPos     	( $SignString_Classic 000000A0 00000028 )
+	% =======================
+	% Classic - Best Time
+	% Check if this pit has been even beated before
+	If	*Flag_ClassicBeated == .False
+		Set *BestTimeClassic_HH 99`
+		Set *BestTimeClassic_MM 59`
+		Set *BestTimeClassic_SS 59`
+	EndIf
+	Call	SetMessageValue 	( *BestTimeClassic_HH 0 )
+	Call	SetMessageValue 	( *BestTimeClassic_MM 1 )
+	Call	SetMessageValue 	( *BestTimeClassic_SS 2 )
+	% Read current time to know what kind of string to use
+	If *BestTimeClassic_HH > 9
+		Set *Var[A] $String_Highscore0_00_00
+		If *BestTimeClassic_MM > 9
+			Set *Var[A] $String_Highscore0_0_00
+			If *BestTimeClassic_SS > 9
+				Set *Var[A] $String_Highscore0_0_0
+			Else
+				Set *Var[A] $String_Highscore0_0_00
+			EndIf
+		Else
+			Set *Var[A] $String_Highscore0_00_00
+			If *BestTimeClassic_SS > 9
+				Set *Var[A] $String_Highscore0_00_0
+			Else
+				Set *Var[A] $String_Highscore0_00_00
+			EndIf
+		EndIf
+	Else
+		Set *Var[A] $String_Highscore00_00_00
+		If *BestTimeClassic_MM > 9
+			Set *Var[A] $String_Highscore00_0_00
+			If *BestTimeClassic_SS > 9
+				Set *Var[A] $String_Highscore00_0_0
+			Else
+				Set *Var[A] $String_Highscore00_0_00
+			EndIf
+		Else
+			Set *Var[A] $String_Highscore00_00_00
+			If *BestTimeClassic_SS > 9
+				Set *Var[A] $String_Highscore00_00_0
+			Else
+				Set *Var[A] $String_Highscore00_00_00
+			EndIf
+		EndIf
+	EndIf
+	Call    ShowMessageAtScreenPos     	( *Var[A] 000000A0 00000028 )
+	% ====================================================================================================
+	% Rogue - Misc Stuff
+	Call     SetMessageValue 	( *HighestFloor_Rogue 0 )
+	% Rogue_TotalBadges(16-bit) == GameByte[0D6] == 803560D6
+	Call 	 $ReadAddress 		( 803560D6 1 *Var[0] .False .False )
+	Call     SetMessageValue 	( *Var[0] 1 )
+	% Rogue_TotalFloors(16-bit) == GameByte[0D8] == 803560D8
+	Call 	 $ReadAddress 		( 803560D8 1 *Var[2] .False .False )
+	Call     SetMessageValue 	( *Var[2] 2 )
+	Call     ShowMessageAtScreenPos     	( $SignString_Rogue 000000A0 00000028 )
+	% =======================
+	% Rogue - Best Time
+	% Check if this pit has been even beated before
+	If	*Flag_RoguelikeBeated == .False
+		Set *BestTimeRogue_HH 99`
+		Set *BestTimeRogue_MM 59`
+		Set *BestTimeRogue_SS 59`
+	EndIf
+	Call	SetMessageValue 	( *BestTimeRogue_HH 0 )
+	Call	SetMessageValue 	( *BestTimeRogue_MM 1 )
+	Call	SetMessageValue 	( *BestTimeRogue_SS 2 )
+	% Read current time to know what kind of string to use
+	If *BestTimeRogue_HH > 9
+		Set *Var[A] $String_Highscore0_00_00
+		If *BestTimeRogue_MM > 9
+			Set *Var[A] $String_Highscore0_0_00
+			If *BestTimeRogue_SS > 9
+				Set *Var[A] $String_Highscore0_0_0
+			Else
+				Set *Var[A] $String_Highscore0_0_00
+			EndIf
+		Else
+			Set *Var[A] $String_Highscore0_00_00
+			If *BestTimeRogue_SS > 9
+				Set *Var[A] $String_Highscore0_00_0
+			Else
+				Set *Var[A] $String_Highscore0_00_00
+			EndIf
+		EndIf
+	Else
+		Set *Var[A] $String_Highscore00_00_00
+		If *BestTimeRogue_MM > 9
+			Set *Var[A] $String_Highscore00_0_00
+			If *BestTimeRogue_SS > 9
+				Set *Var[A] $String_Highscore00_0_0
+			Else
+				Set *Var[A] $String_Highscore00_0_00
+			EndIf
+		Else
+			Set *Var[A] $String_Highscore00_00_00
+			If *BestTimeRogue_SS > 9
+				Set *Var[A] $String_Highscore00_00_0
+			Else
+				Set *Var[A] $String_Highscore00_00_00
+			EndIf
+		EndIf
+	EndIf
+	Call    ShowMessageAtScreenPos     	( *Var[A] 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+#new:Function $LoadHighscores_copy
+{
+	PUSH 	RA, A0, A1, A2, A3, V1
+	LIO 	A1, *HighestFloor_Classic
+	JAL 	~Func:get_variable
+	RESERVED
+	POP 	RA, A0, A1, A2, A3, V1
+	% It has a double push/pop because i dunno why the hell the game crash when
+	% running the JAL below...!
+	PUSH 	RA, A0, A1, A2, A3, V0, V1
+	COPY	A2, V0 % save highest level
+	LIO 	A1, *Var[0]
+	JAL 	~Func:set_variable
+	RESERVED
+	LAHU 	A2, 8010F2A8 % Load TotalLevels
+	LIO 	A1, *Var[2]
+	JAL 	~Func:set_variable
+	RESERVED
+	POP 	RA, A0, A1, A2, A3, V0, V1
+	JR 		RA
+	ORI 	V0, R0, 2
+}
+
+#export $LoadHighscores_copy
+% Is literally the same function from StaticValues.mpat
+
+#string $SignString_Classic
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+     -       Classic        -
+[WAIT][NEXT][...]
+Deepest Level Reached:  [Var:00]/100
+Total Badges:              [Var:01]/62
+Total Floors Reached:     [Var:02]
+[DelayOn][WAIT][END]
+}
+
+#string $SignString_Rogue
+{
+[DelayOff][STYLE:SIGN][...]
+[Func_29:FF]
+     -       Roguelike       -
+[WAIT][NEXT][...]
+Deepest Level Reached:  [Var:00]/100
+Total Badges:              [Var:01]
+Total Floors Reached:     [Var:02]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore0_0_0
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19][Var:00]:[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore00_0_0
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19]0[Var:00]:[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore0_00_0
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19][Var:00]:0[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore0_0_00
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19][Var:00]:[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore00_00_0
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19]0[Var:00]:0[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore00_0_00
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19]0[Var:00]:[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore0_00_00
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19][Var:00]:0[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+#string $String_Highscore00_00_00
+{
+[DelayOff][STYLE:SIGN][...]
+Best time beating this Pit:
+             [Down:05][Size:17:17][PushColor][Color:19]0[Var:00]:0[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT][END]
+}
+
+% Ruby King Cutscene
+#new:Script:Map $Script_Cutscene_RubyKing
+{
+	% Hide Player
+	Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+	Call    HidePlayerShadow ( .True )
+	Call	DisablePlayerPhysics ( .True )
+	Call	SetPlayerFlagBits ( 00000020 .True ) % DisableSpeakIcon
+	% Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+	% Set camera pos
+	Call     GetNpcPos 			( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -72` % x
+	Call     UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call     SetCamSpeed 	( .Cam:Default *Fixed[10.0] )				% Speed to Zoom to Target
+	Call     SetCamDistance ( .Cam:Default 400` )						% Cam Zoom
+	Call     SetCamPosB  	( .Cam:Default -200` -800` )				% Set Cam Cordinates, you need to set this manually
+	Call     SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+	Call     PanToTarget 	( .Cam:Default 00000000 00000001 )
+	% Set Npcs Positions
+	% Cheato
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -54` % x
+	Call	SetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	% Fishmael
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -56` % x
+	Add		*Var[2] -27` % z
+	Call	SetNpcPos ( .Npc_Fishmael *Var[0] *Var[1] *Var[2] )
+	% Oaklie
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -35` % x
+	Add		*Var[2] 12` % z
+	Call	SetNpcPos ( .Npc_Oaklie *Var[0] *Var[1] *Var[2] )
+	% Chuck
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 37` % x
+	Add		*Var[2] -22` % z
+	Call	SetNpcPos ( .Npc_Chuck *Var[0] *Var[1] *Var[2] )
+	% Ruby King
+	Call	GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -11` % x
+	Add		*Var[1] 64` % y
+	Add		*Var[2] -17` % z
+	Call	SetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+	Call    802CFD30 ( .Npc_RubyK 7 7F .False .False .False ) % set alpha
+	% Ruby king fly around everyone
+	Call	SetNpcSpeed ( .Npc_RubyK *Fixed[3.0] )
+	Call	SetNpcAnimation ( .Npc_RubyK 007F1519 ) % O_O!
+	Thread
+		Loop
+			Call	GetNpcPos ( .Npc_Fishmael *Var[0] *Var[1] *Var[2] )
+			Add		*Var[1] 64` % y
+			Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 0 10` .Easing:Linear )
+			%
+			Call	GetNpcPos ( .Npc_Chuck *Var[0] *Var[1] *Var[2] )
+			Add		*Var[1] 64` % y
+			Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 0 -10` .Easing:Linear )
+		EndLoop
+	EndThread
+	Wait	40`
+	% everyone !
+	Call    PlaySoundAtNpc 	( .Npc_Cheato 0262 .Default ) % !
+	Call    ShowEmote   	( .Npc_Cheato .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Call    ShowEmote   	( .Npc_Fishmael .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Call    ShowEmote   	( .Npc_Oaklie .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Call    ShowEmote   	( .Npc_Chuck .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+	Wait	20`
+	Call	GotoMap ( $ASCII_pt1_6 2 )
+	Return
+	End
+}
+
+#new:ASCII $ASCII_pt1_6
+{ "pt1_6" }
+
+#export $Script_ReadSign_pt00
+#export $Script_Cutscene_RubyKing
+
+%==================
+% Fishmael
+%==================
+
+% The only thing from him placed here is the cheats script
+
+#new:Script:Map $Script_CheckCheatosCheats
+{
+	Exec	$Script_FormatNumbers_Global % *out = var0
+	% Check which word is time to write now
+	Call 	$ReadAddress ( $Data_CheatsQueue 2 *Var[1] 0 .False )
+	If *Var[1] != .False
+		% Check 2nd word
+		Call 	$ReadAddress ( $Data_CheatsQueue 2 *Var[1] 4 .False )
+		If *Var[1] != .False
+			Call 	$WriteAddress ( $Data_CheatsQueue 2 *Var[0] 8 .False ) % Write 3rd Word
+		Else
+			Call 	$WriteAddress ( $Data_CheatsQueue 2 *Var[0] 4 .False ) % Write 2nd Word
+			Return
+		EndIf
+	Else
+		Call 	$WriteAddress ( $Data_CheatsQueue 2 *Var[0] 0 .False ) % Write 1st Word
+		Return
+	EndIf
+	Call 	$ReadAddress ( $Data_CheatsQueue 2 *Var[0] 0 .False ) % Read 1st Word
+	Call 	$ReadAddress ( $Data_CheatsQueue 2 *Var[1] 4 .False ) % Read 2nd Word
+	Call 	$ReadAddress ( $Data_CheatsQueue 2 *Var[2] 8 .False ) % Read 3rd Word
+	% Black Pit Cheat Codes
+	Switch *Var[0]
+		% Restore Classic Badges by reading all badges' flags
+		Case == 5245`
+			If *Var[1] == 5354`
+				If *Var[2] == 4246` % 5245 5354 4246 = "RESTBF" in Decoded Tex (RESTBF=RestoreBadgesFlags)
+					Exec $Script_CheckBadgeFlags
+					Call PlaySound ( 2005 )
+				EndIf
+			EndIf
+		% Unlock the Maze
+		Case == 5244`
+			If *Var[1] == 4953`
+				If *Var[2] == 5452` % 5244 4953 5452 = "RDISTR" in Decoded Tex (RDISTR=Roguelike Dungeon Is True)
+					Set	*Flag_DungeonOpened .True
+					Call PlaySound ( 026B )
+				EndIf
+			EndIf
+		Case == 4250`
+			Switch *Var[1]
+				% Unlock the Black Pit
+				Case  == 4954`
+					If *Var[2] == 2055` % 4250 4954 2055 = "BPIT U" in Decoded Tex (BPIT U=Black Pit Unlocked)
+						Set *BlackPit_Unlocked .True
+						Call PlaySound ( 0063 )
+					EndIf
+				/% Unlock everything
+				Case == 5545`
+					If *Var[2] == 5645` % 4250 5545 5645 = "BPUEVE" in Decoded Tex (BPUEVE=Black Pit Unlock Everything)
+						Set	*Flag_DungeonOpened .True
+						Set *BlackPit_Unlocked .True
+						Call 	$WriteAddress ( 8010F292 0 50` 0 .False ) % HP
+						Call 	$WriteAddress ( 8010F292 0 50` 1 .False ) % Max HP 1
+						Call 	$WriteAddress ( 8010F292 0 50` 2 .False ) % Max HP 2
+						Call 	$WriteAddress ( 8010F295 0 50` 0 .False ) % FP
+						Call 	$WriteAddress ( 8010F295 0 50` 1 .False ) % Max FP 1
+						Call 	$WriteAddress ( 8010F295 0 50` 2 .False ) % Max FP 2
+						Call 	$WriteAddress ( 8010F51E 0 7 0 .False )   % Star Spirits
+						Call 	$WriteAddress ( 8010F520 1 700 0 .False ) % Star Power
+						% Partners
+						Call 	$WriteAddress ( 8010F2AC 1 0102 0 .False ) % Goombario
+						Call 	$WriteAddress ( 8010F2B4 1 0102 0 .False ) % Kooper
+						Call 	$WriteAddress ( 8010F2BC 1 0102 0 .False ) % Bombette
+						Call 	$WriteAddress ( 8010F2C4 1 0102 0 .False ) % Parakarry
+						Call 	$WriteAddress ( 8010F2EC 1 0102 0 .False ) % Bow
+						Call 	$WriteAddress ( 8010F2D4 1 0102 0 .False ) % Watt
+						Call 	$WriteAddress ( 8010F2DC 1 0102 0 .False ) % Sushie
+						Call 	$WriteAddress ( 8010F2E4 1 0102 0 .False ) % Lakilester
+						% Coins
+						Call	AddCoin ( 9999` )
+						Call 	$WriteAddress ( 803560DC 2 9999999` 0 .False ) % Bank Account
+						Call 	PlaySound ( 208E )
+					EndIf%/
+			EndSwitch
+		% Unlock Eldstar
+		Case == 4544`
+			If *Var[1] == 5354`
+				If *Var[2] == 4152` % 4544 5354 4152 = "EDSTAR" in Decoded Tex (EDSTAR=Eldstar)
+					Call 	$WriteAddress ( 8010F51E 0 1 0 .False )   % Star Spirits
+					Call 	$WriteAddress ( 8010F520 1 100 0 .False ) % Star Power
+					Call 	PlaySound ( 20D5 )
+				EndIf
+			EndIf
+		/% Activate God Mode
+		Case == 4749`
+			If *Var[1] == 5354`
+				If *Var[2] == 5255` % 4749 5354 5255 = "GISTRU" in Decoded Tex (GISTRU=God Mode Is True)
+					Set *Flag_Debugger .True
+					Call 	PlaySound ( 20DB )
+				EndIf
+			EndIf%/
+	EndSwitch
+	% Nuke everything
+	Call 	$WriteAddress ( $Data_CheatsQueue 2 .False 0 .False )
+	Call 	$WriteAddress ( $Data_CheatsQueue 2 .False 4 .False )
+	Call 	$WriteAddress ( $Data_CheatsQueue 2 .False 8 .False )
+	Return
+	End
+}
+
+#new:Data $Data_CheatsQueue
+{ 00000000 00000000 00000000 }
+
+% *out = var0
+#new:Script:Map $Script_FormatNumbers_Global
+{
+	Set	.Amount .Default
+	% Load each cursor on the following vars
+	Set *Var[0] .CursorL
+	Set *Var[1] .CursorM
+	Set *Var[2] .CursorR
+	Set *Var[3] .CursorRR
+	% Format each var
+	Mul *Var[0] 1000` 	% thousands
+	Mul *Var[1] 100` 	% hundreds
+	Mul *Var[2] 10` 	% tens
+	Mul *Var[3] 1 		% units % isn't neccesary but whatever
+	% Sum everything and add to Amount
+	Add *Var[0] *Var[1]
+	Add *Var[0] *Var[2]
+	Add *Var[0] *Var[3]
+	Return
+	End
+}
+
+#define .CursorL 	*MapVar[5]
+#define .CursorM 	*MapVar[6]
+#define .CursorR 	*MapVar[7]
+#define .CursorRR 	*MapVar[C]
+#define .Amount	 	*MapVar[8]
+
+#export $Script_CheckCheatosCheats
+#export $Data_CheatsQueue

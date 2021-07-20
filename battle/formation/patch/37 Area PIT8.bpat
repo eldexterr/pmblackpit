@@ -1,0 +1,359 @@
+#import LoadBtGeometry.bpat
+% This file have all bosses in the mod
+
+% ====================================================
+% Formations
+% ====================================================
+
+#import 31_Bonetail.bpat
+#import 31_RubyKing.bpat
+
+#import 33_BanditBoss.bpat
+#import 33_Mistar.bpat
+#import 37_Dimentio1.bpat
+#import 37_Dimentio2.bpat
+#import 37_Dimentio3.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000001 $Formation_Bonetail   $Stage_Pit4 00000000
+00000000 00000001 $Formation_BanditBoss $Stage_Pit1 00000000
+00000000 00000001 $Formation_RubyKing   $Stage_Pit4 00000000
+00000000 00000001 $Formation_Mistar     $Stage_Mze2 00000000
+00000000 00000001 $Formation_Dimentio1  $Stage_bp_bt2 00000000
+00000000 00000001 $Formation_Dimentio2  $Stage_bp_bt3 00000000
+00000000 00000001 $Formation_Dimentio3  $Stage_bp_bt2_Final 00000000
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_Bonetail
+{
+$31_Bonetail 		$Main_Body 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_BanditBoss
+{
+$33_BanditBoss 		00000002 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_RubyKing
+{
+    $31_RubyKing $KingPos 0000000A 00000000 00000000 00000000 00000000
+    $31_RubyBitA $BitAPos 00000009 00000000 00000000 00000000 00000000
+    $31_RubyBitB $BitBPos 00000008 00000000 00000000 00000000 00000000
+    $31_RubyBitC $BitCPos 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_Mistar
+{
+$33_Mistar 		00000002 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_Dimentio1
+{
+$37_Dimentio1 		00000002 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_Dimentio2
+{
+$37_Dimentio2 		00000006 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_Dimentio3
+{
+$37_Dimentio3 		00000006 00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Vector3D $Main_Body
+{
+	84` 30` 0
+}
+
+#new:Vector3D $KingPos
+{
+	70` 0` 5`
+}
+
+#new:Vector3D $BitAPos
+{
+    10` 35` -5`
+}
+
+#new:Vector3D $BitBPos
+{
+    112` 52` -5`
+}
+
+#new:Vector3D $BitCPos
+{
+    42` 85` -10`
+}
+
+% ====================================================
+% Stages
+% ====================================================
+
+#new:StageTable $StageTable 
+{
+"pt1_6" $Stage_Pit1
+"pt51_56" $Stage_Pit2
+"pt81_86" $Stage_Pit3
+"pt_100" $Stage_Pit4
+"mze_11" $Stage_Mze2
+00000000 00000000 
+}
+
+#new:Stage $Stage_Pit1
+{
+"tik_tex"
+"pit_bt01_shape"
+"pit_bt01_hit"
+$Script_BeforeBattle_Bandit
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Pit2
+{
+"tik_tex"
+"pit_bt02_shape"
+"pit_bt02_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Pit3
+{
+"tik_tex"
+"pit_bt03_shape"
+"pit_bt03_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Pit4
+{
+"tik_tex"
+"pit_bt04_shape"
+"pit_bt04_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Mze2
+{
+"tik_tex"
+"mze_bt02_shape"
+"mze_bt02_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_bp_bt2
+{
+"arn_tex"
+"bp_bt02_shape"
+"bp_bt02_hit"
+$Script_BeforeBattle_Dimentio1
+$Script_AfterBattle_Dimentio
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_bp_bt2_Final
+{
+"arn_tex"
+"bp_bt02_shape"
+"bp_bt02_hit"
+$Script_BeforeBattle_Dimentio1
+$Script_AfterBattle_Dimentio3
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_bp_bt3
+{
+"arn_tex"
+"bp_bt03_shape"
+"bp_bt03_hit"
+$Script_BeforeBattle_Dimentio2
+$Script_AfterBattle_Dimentio2
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $Script_BeforeBattle_Dimentio1
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Call	EnableGroup ( C .False ) % ~Model:cube
+	Exec 	$Script_TexturePanning_bp_bt1
+	Return
+	End
+}
+
+#new:Script $Script_BeforeBattle_Dimentio2
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Call	EnableGroup ( 3 .False ) % ~Model:cube
+	Exec 	$Script_TexturePanning_bp_bt2
+	Return
+	End
+}
+
+#new:Script $Script_TexturePanning_bp_bt1
+{
+    Call     EnableTexPanning 	( B .True ) % ~Model:cubeFX
+	Thread
+		Set  *Var[0]  0 % panner id
+		% Texture Pan Rate
+		Set  *Var[1]  194` 		% Main U
+		Set  *Var[2]  172`      % Main V
+		Set  *Var[3]  -172`	    % Aux U
+		Set  *Var[4]  -172`	    % Aux V
+		% Delay Between Updates
+		Set  *Var[5]  .False	% Main U
+		Set  *Var[6]  .False	% Main V
+		Set  *Var[7]  .False	% Aux U
+		Set  *Var[8]  .False	% Aux V
+		% Initial Offset
+		Set  *Var[9]  .False	% Main U 
+		Set  *Var[A]  .False	% Main V
+		Set  *Var[B]  .False 	% Aux U
+		Set  *Var[C]  .False 	% Aux V
+		Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+	EndThread
+	Return
+	End
+}
+
+#new:Script $Script_TexturePanning_bp_bt2
+{
+    Call     EnableTexPanning 	( 0 .True ) % ~Model:dimensional_cube
+	Thread
+		Set  *Var[0]  .Default % panner id
+		% Texture Pan Rate
+		Set  *Var[1]  -366` 	% Main U
+		Set  *Var[2]  602`      % Main V
+		Set  *Var[3]  43` 	    % Aux U
+		Set  *Var[4]  323` 	    % Aux V
+		% Delay Between Updates
+		Set  *Var[5]  .False	% Main U
+		Set  *Var[6]  .False	% Main V
+		Set  *Var[7]  .False	% Aux U
+		Set  *Var[8]  .False	% Aux V
+		% Initial Offset
+		Set  *Var[9]  .False	% Main U 
+		Set  *Var[A]  .False	% Main V
+		Set  *Var[B]  .False 	% Aux U
+		Set  *Var[C]  .False 	% Aux V
+		Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+	EndThread
+	Call     EnableTexPanning 	( 2 .True ) % ~Model:cubeFX
+	Set  *Var[0]  1 % panner id
+	% Texture Pan Rate
+	Set  *Var[1]  194` 		% Main U
+	Set  *Var[2]  172`      % Main V
+	Set  *Var[3]  -172`	    % Aux U
+	Set  *Var[4]  -172`	    % Aux V
+	% Delay Between Updates
+	Set  *Var[5]  .False	% Main U
+	Set  *Var[6]  .False	% Main V
+	Set  *Var[7]  .False	% Aux U
+	Set  *Var[8]  .False	% Aux V
+	% Initial Offset
+	Set  *Var[9]  .False	% Main U 
+	Set  *Var[A]  .False	% Main V
+	Set  *Var[B]  .False 	% Aux U
+	Set  *Var[C]  .False 	% Aux V
+	Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+	Return
+	End
+}
+
+#new:Script $Script_BeforeBattle_Bandit
+{
+    Exec    $Script_InitBMap % Loaded from LoadBtGeometry.bpat
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Return
+	End
+}
+
+#new:Script $Script_BeforeBattle
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle
+{
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_Dimentio
+{
+	% Player died?
+	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False )
+	If *Var[0] == 0
+		Call	GotoMap ( "pre_03" 9 )
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_Dimentio2
+{
+	% Dimentio2, player died?
+	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False )
+	If *Var[0] == 0
+		Call	GotoMap ( "pre_03" A )
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_Dimentio3
+{
+	Set 	*Flag_FinalBattle_End .False
+	Set 	*Flag_FinalBattle .False
+	Call	StopSound ( 0207 ) % charge sound
+	Call 	$WriteAddress ( 8010F2A2 0 *LastPartner_Final .False .False ) % Restore partner
+	Set 	*LastPartner_Final 0
+	Call    GotoMapSpecial ( "pre_03" 8 5 )
+	Return
+	End
+}

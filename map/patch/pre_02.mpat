@@ -1,0 +1,659 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 1
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	     A0, 800B0CF0
+LIA 	     A1, "tik_tex" 
+JAL 	     ~Func:sprintf
+RESERVED
+CLEAR 	V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( FFFFFFFF )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default )
+Call    SetCamEnabled       	( .Cam:Default .True )
+Call    SetCamLeadPlayer      ( .Cam:Default .False )
+Call    SetMusicTrack 	     ( .Default .Song:StarWayOpens 00000003 00000008 )
+Call    EnableGroup           ( ~Model:Light .False )
+Call    $Function_LoadStarPoints ( *Var[0] )
+% Which Star Spirit will be unlocked now
+Switch  *StarSpirits
+     Case == 0 % The player doesn't have any star spirits
+          If *Var[0] >= 50` % Star Points
+               Set  *MapVar[0] 1
+          EndIf
+     Case == 1
+          If *Var[0] >= 100`
+               Set  *MapVar[0] 2
+          EndIf
+     Case == 2
+          If *Var[0] >= 200`
+               Set  *MapVar[0] 3
+          EndIf
+     Case == 3
+          If *Var[0] >= 350`
+               Set  *MapVar[0] 4
+          EndIf
+     Case == 4
+          If *Var[0] >= 500`
+               Set  *MapVar[0] 5
+          EndIf
+     Case == 5
+          If *Var[0] >= 650`
+               Set  *MapVar[0] 6
+          EndIf
+     Case == 6
+          If *Var[0] >= 800`
+               Set  *MapVar[0] 7
+          EndIf
+     Case == 7
+          If *Flag_Cheev_Global_01 == .True
+               If *Flag_GoldenLS2 == .False
+                    Set  *MapVar[0] 8
+               EndIf
+          EndIf
+EndSwitch
+% If a Star Spirit is waiting for the player
+If *MapVar[0] != 0
+     Call EnableGroup         ( ~Model:NoLight .False )
+     Call EnableGroup         ( ~Model:Light .True )
+     Bind $Script_StarSpirit .Trigger:FloorPressA ~Collider:StarPlatform 00000001 00000000 
+EndIf
+Exec    $Script_MakeEntities
+Exec    $Script_EnableTexPanning
+Set	   *Var[0] $Script_MakeExits
+Exec    EnterWalk
+Wait    1
+Return
+End
+}
+
+#new:Script $Script_StarSpirit
+{
+Exec $PlayerStopUsingPartner
+Call DisablePlayerInput  ( .True )
+Call AdjustCam         ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[350.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+% Adjust Mario's Yaw
+Call GetPlayerPos ( *Var[0] .False .False )
+If *Var[0] >= 0
+     Call InterpPlayerYaw ( 90` 0 ) % look to the left
+Else
+     Call InterpPlayerYaw ( -90` 0 ) % look to the right
+EndIf
+Wait	10`
+Exec $MovePartnerBehindMario
+% Getting the Golden Life Shroom
+If *MapVar[0] == 8
+     Call GetPlayerPos ( *Var[1] *Var[2] *Var[3] )
+     Set  *Var[4] *Var[2]
+     Add  *Var[2] 70`
+     Call	PlaySoundAtPlayer	( 0241 .Default ) % Focus
+     Call PlayEffect  	     ( ~FX:Sparkles:Star *Var[1] *Var[2] *Var[3] 20` )
+     Add  *Var[4] 55`
+     Call DropItemEntity      ( 000B *Var[1] *Var[4] *Var[3] .ItemSpawnMode:Fall_NeverVanish *Flag_GoldenLS2 )
+     Wait 8
+     Call ShowGotItem ( 000B .True 0 )
+     Call AddKeyItem ( 000B ) % add Golden LS
+     Set  *Flag_GoldenLS2 .True
+     Set  *Flag_GoldenLS  .True % activate shroom
+     Wait 10`
+     % Tornado Jump
+     Call GetPlayerPos ( *Var[1] *Var[2] *Var[3] )
+     Set  *Var[4] *Var[2]
+     Add  *Var[2] 70`
+     Call	PlaySoundAtPlayer	( 0241 .Default ) % Focus
+     Call PlayEffect  	     ( ~FX:Sparkles:Star *Var[1] *Var[2] *Var[3] 20` )
+     Add  *Var[4] 55`
+     Call DropItemEntity      ( 0131 *Var[1] *Var[4] *Var[3] .ItemSpawnMode:Fall_NeverVanish .False )
+     Wait 8
+     Goto LoadSP
+EndIf
+Call SetPlayerAnimation  ( .PlayerAnim:GotItem )
+Call	PlaySoundAtPlayer	( 0241 .Cam:Default ) % Focus
+Call GetPlayerPos        ( *Var[0] *Var[1] *Var[2] )
+Add  *Var[1]  25`
+Call PlayEffect  	     ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+Wait 30`
+Call GetPlayerPos        ( *Var[0] *Var[1] *Var[2] )
+Call SetPlayerAnimation  ( 0001002C )
+Call	PlaySoundAtPlayer	( 0139 .Default ) % Getting Star Power 1
+Set  *Var[3]  *Var[1] 
+Add  *Var[0]  5
+Add  *Var[1]  50`
+Add  *Var[2]  10`
+Add  *Var[3]  30`
+Loop 6 
+     Call     PlayEffect  	( 17` 3 *Var[0] *Var[1] *Var[2] 20` )
+     Wait     6
+     Call     PlayEffect  	( ~FX:Sparkles:Random *Var[0] *Var[3] *Var[2] 20` )
+     Wait     6
+EndLoop
+Wait 20`
+Call GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+Add  *Var[1]  20`
+Call	PlaySoundAtPlayer	( 0188 .Default ) % Getting Star Power 2
+Call PlayEffect  	     ( ~FX:EnergyWaveOut:Grey *Var[0] *Var[1] *Var[2] 1 30` )
+Wait 40`
+Switch *MapVar[0]
+     Case == 1 % Eldstar
+          Set  *StarSpirits 1
+          Call ShowMessageAtScreenPos 	( 001D0191 A0 28 ) % Mario can now use the Star Spirit's Power in battl ...
+          Call $Function_SetStarPower ( 1 )
+          Set  *GameByte[000] B6 % to show the saved star spirits on the file select screen
+     Case == 2 % Mamar
+          Set  *StarSpirits 2
+          Call ShowMessageAtScreenPos 	( 001D0192 A0 28 )
+          Call $Function_SetStarPower ( 2 )
+          Set  *GameByte[000] CD
+     Case == 3 %
+          Set  *StarSpirits 3
+          Call ShowMessageAtScreenPos 	( 001D0193 A0 28 )
+          Call $Function_SetStarPower ( 3 )
+          Set  *GameByte[000] F4
+     Case == 4 % Muskular
+          Set  *StarSpirits 4
+          Call ShowMessageAtScreenPos 	( 001D0194 A0 28 )
+          Call $Function_SetStarPower ( 4 )
+          Set  *GameByte[000] 08
+     Case == 5 % Misstar
+          Set  *StarSpirits 5
+          Call ShowMessageAtScreenPos 	( 001D0195 A0 28 )
+          Call $Function_SetStarPower ( 5 )
+          Set  *GameByte[000] 28
+     Case == 6 % Klevar
+          Set  *StarSpirits 6
+          Call ShowMessageAtScreenPos 	( 001D0196 A0 28 )
+          Call $Function_SetStarPower ( 6 )
+          Set  *GameByte[000] 3C
+     Case == 7 % Kalmar
+          Set  *StarSpirits 7
+          Call ShowMessageAtScreenPos 	( 001D0197 A0 28 )
+          Call $Function_SetStarPower ( 7 )
+          Set  *GameByte[000] 5A
+     Case == 8 % Golden Life Shroom
+EndSwitch
+% Check if another Star Spirit can be unlocked
+Label   LoadSP
+Call    $Function_LoadStarPoints ( *Var[0] )
+Switch  *StarSpirits
+     Case == 1
+          If *Var[0] >= 100`
+               Set  *MapVar[0] 2
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 2
+          If *Var[0] >= 200`
+               Set  *MapVar[0] 3
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 3
+          If *Var[0] >= 350`
+               Set  *MapVar[0] 4
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 4
+          If *Var[0] >= 500`
+               Set  *MapVar[0] 5
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 5
+          If *Var[0] >= 650`
+               Set  *MapVar[0] 6
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 6
+          If *Var[0] >= 800`
+               Set  *MapVar[0] 7
+               Set *Var[0] .True
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 7
+          If *Flag_Cheev_Global_01 == .True % all challenges unlocked?
+               If *Flag_GoldenLS2 == .False % the player don't have the golden LS?
+                    Set  *MapVar[0] 8
+                    Set *Var[0] .True
+               Else
+                    Set *Var[0] .False
+               EndIf
+          Else
+               Set *Var[0] .False
+          EndIf
+     Case == 8
+          Set *Var[0] .False
+EndSwitch
+If *Var[0] == .False
+     Call EnableGroup         ( ~Model:NoLight .True )
+     Call EnableGroup         ( ~Model:Light .False )
+     Unbind
+EndIf
+Call SetPlayerAnimation  ( 00010002 ) % idle
+Call ResetCam    	     ( .Cam:Default 10` ) % Reset the camera back to normal % camID Speed
+Wait 15`
+Set  *Flag_Cheev_Global_04 .True % Challenge Completed
+If *StarSpirits == 7
+     Set  *Flag_Cheev_Global_05 .True % Challenge Completed
+EndIf
+Call DisablePlayerInput  ( .False )
+Return
+End
+}
+
+#new:Function $Function_LoadStarPoints
+{
+PUSH    RA, V0, V1, A1, A2, A3
+LAHU    A2, 8035612E % Star Points
+LW      A1, C (A0)
+JAL     ~Func:set_variable
+LW      A1, 0 (A1)
+JPOP    RA, V0, V1, A1, A2, A3
+}
+
+#new:Function $Function_SetStarPower
+{
+PUSH    A0
+LW      T0, C (A0)
+LW      T0, 0 (T0)
+SAB     T0, 8010F520 % Star Power
+SAB     R0, 8010F521
+SAB     T0, 8010F51E % Star Spirits
+POP     A0
+JR      RA
+ADDIU   V0, R0, 2
+}
+
+% Texture Panning
+#new:Script $Script_EnableTexPanning
+{
+    Call     EnableTexPanning 	( ~Model:tower1 .True )
+    Call     EnableTexPanning 	( ~Model:tower2 .True )
+    Call     EnableTexPanning 	( ~Model:tower3 .True )
+    Call     EnableTexPanning 	( ~Model:tower4 .True )
+    Call     EnableTexPanning 	( ~Model:tower5 .True )
+    Call     EnableTexPanning 	( ~Model:tower1_water .True )
+    Call     EnableTexPanning 	( ~Model:tower2_water .True )
+    Call     EnableTexPanning 	( ~Model:tower3_water .True )
+    Call     EnableTexPanning 	( ~Model:tower4_water .True )
+    Call     EnableTexPanning 	( ~Model:tower5_water .True )
+	Thread
+		Set  *Var[0]  .Cam:Default % panner id
+		Set  *Var[1]  0 	    % x scroll
+		Set  *Var[2]  -415`     % y scroll
+		Set  *Var[3]  0 	    % x scroll (aux)
+		Set  *Var[4]  0 	    % y scroll (aux)
+		Set  *Var[5]  .False 
+		Set  *Var[6]  .True
+		Set  *Var[7]  .False 
+		Set  *Var[8]  .False 
+		Set  *Var[9]  .False 
+		Set  *Var[A]  .False 
+		Set  *Var[B]  .False 
+		Set  *Var[C]  .False 
+		Exec     $Script_80244A70 
+    EndThread
+    Call     EnableTexPanning 	( ~Model:water .True )
+	Thread
+		Set  *Var[0]  1     	% panner id
+		Set  *Var[1]  54` 	    % x scroll
+		Set  *Var[2]  -108`     % y scroll
+		Set  *Var[3]  0 	    % x scroll (aux)
+		Set  *Var[4]  0 	    % y scroll (aux)
+		Set  *Var[5]  .False 
+		Set  *Var[6]  .True
+		Set  *Var[7]  .False 
+		Set  *Var[8]  .False 
+		Set  *Var[9]  .False 
+		Set  *Var[A]  .False 
+		Set  *Var[B]  .False 
+		Set  *Var[C]  .False 
+		Exec     $Script_80244A70 
+	EndThread
+	Return
+	End
+}
+
+	#new:Script $Script_80244A70
+{
+	SetGroup 0
+	If  *Var[5]  ==  .True
+		If  *Var[6]  ==  .True 
+			If  *Var[7]  ==  .True 
+				If  *Var[8]  ==  .True 
+					Call     $Function_802402E0
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call     $Function_80240404
+	Return
+	End
+}
+   
+   #new:Function $Function_80240404
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 70 (S0)
+   18:  SW        R0, 74 (S0)
+   1C:  SW        R0, 78 (S0)
+   20:  SW        R0, 7C (S0)
+        .o24
+   24:  LW        V0, 70 (S0)
+   28:  BNE       V0, R0, .o64
+   2C:  NOP
+   30:  LW        V1, A8 (S0)
+   34:  LW        V0, 88 (S0)
+   38:  ADDU      V1, V1, V0
+   3C:  BGEZ      V1, .o50
+   40:  SW        V1, A8 (S0)
+   44:  LUI       V0, 2
+   48:  BEQ       R0, R0, .o60
+   4C:  ADDU      V0, V1, V0
+        .o50
+   50:  LUI       A0, 2
+   54:  SLT       V0, A0, V1
+   58:  BEQ       V0, R0, .o64
+   5C:  SUBU      V0, V1, A0
+        .o60
+   60:  SW        V0, A8 (S0)
+        .o64
+   64:  LW        V0, 74 (S0)
+   68:  BNE       V0, R0, .oA4
+   6C:  NOP
+   70:  LW        V1, AC (S0)
+   74:  LW        V0, 8C (S0)
+   78:  ADDU      V1, V1, V0
+   7C:  BGEZ      V1, .o90
+   80:  SW        V1, AC (S0)
+   84:  LUI       V0, 2
+   88:  BEQ       R0, R0, .oA0
+   8C:  ADDU      V0, V1, V0
+        .o90
+   90:  LUI       A0, 2
+   94:  SLT       V0, A0, V1
+   98:  BEQ       V0, R0, .oA4
+   9C:  SUBU      V0, V1, A0
+        .oA0
+   A0:  SW        V0, AC (S0)
+        .oA4
+   A4:  LW        V0, 78 (S0)
+   A8:  BNE       V0, R0, .oE4
+   AC:  NOP
+   B0:  LW        V1, B0 (S0)
+   B4:  LW        V0, 90 (S0)
+   B8:  ADDU      V1, V1, V0
+   BC:  BGEZ      V1, .oD0
+   C0:  SW        V1, B0 (S0)
+   C4:  LUI       V0, 2
+   C8:  BEQ       R0, R0, .oE0
+   CC:  ADDU      V0, V1, V0
+        .oD0
+   D0:  LUI       A0, 2
+   D4:  SLT       V0, A0, V1
+   D8:  BEQ       V0, R0, .oE4
+   DC:  SUBU      V0, V1, A0
+        .oE0
+   E0:  SW        V0, B0 (S0)
+        .oE4
+   E4:  LW        V0, 7C (S0)
+   E8:  BNE       V0, R0, .o124
+   EC:  NOP
+   F0:  LW        V1, B4 (S0)
+   F4:  LW        V0, 94 (S0)
+   F8:  ADDU      V1, V1, V0
+   FC:  BGEZ      V1, .o110
+  100:  SW        V1, B4 (S0)
+  104:  LUI       V0, 2
+  108:  BEQ       R0, R0, .o120
+  10C:  ADDU      V0, V1, V0
+        .o110
+  110:  LUI       A0, 2
+  114:  SLT       V0, A0, V1
+  118:  BEQ       V0, R0, .o124
+  11C:  SUBU      V0, V1, A0
+        .o120
+  120:  SW        V0, B4 (S0)
+        .o124
+  124:  LW        A0, 84 (S0)
+  128:  JAL       8011BC1C
+  12C:  LW        A1, A8 (S0)
+  130:  LW        A0, 84 (S0)
+  134:  JAL       8011BC34
+  138:  LW        A1, AC (S0)
+  13C:  LW        A0, 84 (S0)
+  140:  JAL       8011BC4C
+  144:  LW        A1, B0 (S0)
+  148:  LW        A0, 84 (S0)
+  14C:  JAL       8011BC64
+  150:  LW        A1, B4 (S0)
+  154:  LW        V0, 70 (S0)
+  158:  LW        V1, 78 (S0)
+  15C:  LW        A0, 98 (S0)
+  160:  ADDIU     V0, V0, 1
+  164:  SW        V0, 70 (S0)
+  168:  LW        V0, 74 (S0)
+  16C:  ADDIU     V1, V1, 1
+  170:  SW        V1, 78 (S0)
+  174:  LW        V1, 70 (S0)
+  178:  ADDIU     V0, V0, 1
+  17C:  SW        V0, 74 (S0)
+  180:  LW        V0, 7C (S0)
+  184:  SLT       V1, V1, A0
+  188:  ADDIU     V0, V0, 1
+  18C:  BNE       V1, R0, .o198
+  190:  SW        V0, 7C (S0)
+  194:  SW        R0, 70 (S0)
+        .o198
+  198:  LW        V0, 74 (S0)
+  19C:  LW        V1, 9C (S0)
+  1A0:  SLT       V0, V0, V1
+  1A4:  BEQL      V0, R0, .o1AC
+  1A8:  SW        R0, 74 (S0)
+        .o1AC
+  1AC:  LW        V0, 78 (S0)
+  1B0:  LW        V1, A0 (S0)
+  1B4:  SLT       V0, V0, V1
+  1B8:  BEQL      V0, R0, .o1C0
+  1BC:  SW        R0, 78 (S0)
+        .o1C0
+  1C0:  LW        V0, 7C (S0)
+  1C4:  LW        V1, A4 (S0)
+  1C8:  SLT       V0, V0, V1
+  1CC:  BEQL      V0, R0, .o1D4
+  1D0:  SW        R0, 7C (S0)
+        .o1D4
+  1D4:  LW        RA, 14 (SP)
+  1D8:  LW        S0, 10 (SP)
+  1DC:  DADDU     V0, R0, R0
+  1E0:  JR        RA
+  1E4:  ADDIU     SP, SP, 18
+}
+   
+   #new:Function $Function_802402E0
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  SW        RA, 14 (SP)
+   10:  LW        V1, A8 (S0)
+   14:  LW        V0, 88 (S0)
+   18:  ADDU      V1, V1, V0
+   1C:  BGEZ      V1, .o30
+   20:  SW        V1, A8 (S0)
+   24:  LUI       V0, 2
+   28:  BEQ       R0, R0, .o40
+   2C:  ADDU      V0, V1, V0
+        .o30
+   30:  LUI       A0, 2
+   34:  SLT       V0, A0, V1
+   38:  BEQ       V0, R0, .o44
+   3C:  SUBU      V0, V1, A0
+        .o40
+   40:  SW        V0, A8 (S0)
+        .o44
+   44:  LW        V1, AC (S0)
+   48:  LW        V0, 8C (S0)
+   4C:  ADDU      V1, V1, V0
+   50:  BGEZ      V1, .o64
+   54:  SW        V1, AC (S0)
+   58:  LUI       V0, 2
+   5C:  BEQ       R0, R0, .o74
+   60:  ADDU      V0, V1, V0
+        .o64
+   64:  LUI       A0, 2
+   68:  SLT       V0, A0, V1
+   6C:  BEQ       V0, R0, .o78
+   70:  SUBU      V0, V1, A0
+        .o74
+   74:  SW        V0, AC (S0)
+        .o78
+   78:  LW        V1, B0 (S0)
+   7C:  LW        V0, 90 (S0)
+   80:  ADDU      V1, V1, V0
+   84:  BGEZ      V1, .o98
+   88:  SW        V1, B0 (S0)
+   8C:  LUI       V0, 2
+   90:  BEQ       R0, R0, .oA8
+   94:  ADDU      V0, V1, V0
+        .o98
+   98:  LUI       A0, 2
+   9C:  SLT       V0, A0, V1
+   A0:  BEQ       V0, R0, .oAC
+   A4:  SUBU      V0, V1, A0
+        .oA8
+   A8:  SW        V0, B0 (S0)
+        .oAC
+   AC:  LW        V1, B4 (S0)
+   B0:  LW        V0, 94 (S0)
+   B4:  ADDU      V1, V1, V0
+   B8:  BGEZ      V1, .oCC
+   BC:  SW        V1, B4 (S0)
+   C0:  LUI       V0, 2
+   C4:  BEQ       R0, R0, .oDC
+   C8:  ADDU      V0, V1, V0
+        .oCC
+   CC:  LUI       A0, 2
+   D0:  SLT       V0, A0, V1
+   D4:  BEQ       V0, R0, .oE0
+   D8:  SUBU      V0, V1, A0
+        .oDC
+   DC:  SW        V0, B4 (S0)
+        .oE0
+   E0:  LW        A0, 84 (S0)
+   E4:  JAL       8011BC1C
+   E8:  LW        A1, A8 (S0)
+   EC:  LW        A0, 84 (S0)
+   F0:  JAL       8011BC34
+   F4:  LW        A1, AC (S0)
+   F8:  LW        A0, 84 (S0)
+   FC:  JAL       8011BC4C
+  100:  LW        A1, B0 (S0)
+  104:  LW        A0, 84 (S0)
+  108:  JAL       8011BC64
+  10C:  LW        A1, B4 (S0)
+  110:  LW        RA, 14 (SP)
+  114:  LW        S0, 10 (SP)
+  118:  DADDU     V0, R0, R0
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 18
+}
+
+#new:Script $Script_MakeEntities
+{
+Call     MakeEntity 	( .Entity:Signpost 	~Vec4d:Sign1 80000000 )
+Call     AssignScript 	( $Script_Sign )
+Return
+End
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Exit0 1 0
+Return
+End
+}
+
+#new:Script $Script_Exit0
+{
+Call     UseExitHeading  	( 3C 0 )
+Exec     80285CF4 
+Call     GotoMap         	( "pre_01" 1 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Sign
+{
+Call     DisablePlayerInput	( .True )
+Call     ShowMessageAtScreenPos     	( $String_About 000000A0 00000028 )
+Call     DisablePlayerInput	( .False )
+Return
+End
+}
+
+#string $String_About
+{
+[DelayOff][STYLE:SIGN][...]
+Welcome to the Star Shrine.
+[WAIT][NEXT][...]
+[DelayOff]This shrine is used to revere,
+The Star Spirits.
+[WAIT][NEXT][...]
+[DelayOff]If you have [PushColor][Color:19]enough Star Points[PopColor]
+you will [PushColor][Color:19]feel the power[PopColor] of the
+Star Spirits in your prayers.
+[WAIT][END]
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the Star Shrine.
+[WAIT][NEXT][...]
+You can get new Star Powers if
+you have enough
+Star Points.
+[WAIT][NEXT][...]
+When you can do that, a light will
+appear in the middle of the room.
+[WAIT][END]
+}

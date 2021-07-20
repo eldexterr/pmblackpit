@@ -1,0 +1,366 @@
+#import LoadBadgeLists.mpat % Load the custom Badges list for every chest floor
+
+#new:Script $GetBadge
+{
+	Set *Var[1] *PitMapID
+	If *MapVar[6] == 1 % If the player have just saved a partner
+		Goto Start
+	EndIf
+	%%
+	%Check if the player is arriving for 1st time in that chest floor
+	%to give a partner and a badge or only a badge
+	%%0
+	%% Roguelike Checks
+	If *Flag_Mode_Rogue == .True
+		% If a partner has just been saved
+		If *MapVar[6] == .True
+			Goto Start
+		EndIf
+		Switch *PitMapID
+			% This floors doesn't give partners
+			Case == 80` % Only on Hard and Very-Hard
+				If *PitDifficulty > 0
+					Goto Start
+				EndIf
+				Goto 80_Normal
+			Case == 90`
+				Goto Start
+			Case == 100`
+				Goto ClassicChecks
+			Default % all other chest floors
+				% Get Random Partner
+				Label 80_Normal
+				Call RandInt ( 7 *Var[0] )
+				Switch *Var[0]
+					Case == 0 % Goombario
+						If *Flag_Goombario2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] B
+					Case == 1 % Kooper
+						If *Flag_Kooper2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] C
+					Case == 2 % Bombette
+						If *Flag_Bombette2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] D
+					Case == 3 % Parakarry
+						If *Flag_Parakarry2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] E
+					Case == 4 % Bow
+						If *Flag_Bow2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] 10
+					Case == 5 % Watt
+						If *Flag_Watt2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] 11
+					Case == 6 % Sushie
+						If *Flag_Sushie2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] 12
+					Case == 7 % Lakilester
+						If *Flag_Lakilester2 != .False
+							Jump $GetBadge
+						EndIf
+						Set *MapVar[2] 13
+				EndSwitch
+		EndSwitch
+		Set *MapVar[1] .Default
+		Set *MapVar[5] 7 % Badge List
+		Set	*MapFlag[1] .True % Used to handle the blue switch
+		Return
+	EndIf
+	% Classic Mode checks
+	Label ClassicChecks
+	Switch *PitMapID
+		Case == 10` % pit10
+			If *Flag_Goombario == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] B
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True % Used to handle the blue switch
+				Return
+			EndIf
+		Case == 20` % pit20
+			If *Flag_Kooper == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] C
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 30` % pit30
+			If *Flag_Bombette == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] D
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 40` % pit40
+			If *Flag_Parakarry == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] E
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 50` % pit50		
+			If *Flag_StrangeSack == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] F
+				Set *MapVar[5] 7 % Badge List
+				Return
+			EndIf
+		Case == 60` % pit60
+			If *Flag_Bow == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] 10
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 70` % pit70
+			If *Flag_Watt == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] 11
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 80` % pit80
+			If *Flag_Sushie == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] 12
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 90` % pit90
+			If *Flag_Lakilester == .False
+				Set *MapVar[1] 00000000 
+				Set *MapVar[2] 13
+				Set *MapVar[5] 7 % Badge List
+				Set	*MapFlag[1] .True
+				Return
+			EndIf
+		Case == 100` % pit100
+			% Check if is the 1st time beating the pit in classic or rogue
+			If *Flag_Mode_Classic == .False
+				If *Flag_BonetailRemains == .False
+					Set *MapVar[1] 000D % Item ID
+					Set *MapVar[2] FB
+					Set *MapVar[5] 7 % Badge List
+					% Used to toggle the blue switch in chest floors, isn't neccesary in floor 100
+					% Set	*MapFlag[1] .True 
+					Return
+				EndIf
+			Else % Roguelike Mode
+				If *Flag_RubyCrown == .False
+					Set *MapVar[1] 000C % Item ID
+					Set *MapVar[2] FC
+					Set *MapVar[5] 7 % Badge List
+					Return
+				Else
+					% Get the badge like if you was on classic
+					Set *MapFlag[01] .True % Remember to set the pit mode back to Roguelike
+					Set	*Flag_Mode_Classic 0
+					Set *Flag_Mode_Rogue .False
+				EndIf
+			EndIf
+	EndSwitch
+	%%
+	%If Mario have already got a partner in that floor
+	%the game will check now if the player have all badges
+	%%
+	Label Start
+	%Bypass everything if roguelike is activated
+	If *Flag_Mode_Rogue == .True
+		Goto	Roguelike
+	EndIf
+	Set *Var[0] .Default
+	Add *Var[0] *Flag_Hammer_Throw
+	Add *Var[0] *Flag_Pretty_Lucky
+	Add *Var[0] *Flag_Chill_Out
+	Add *Var[0] *Flag_Money_Money
+	Add *Var[0] *Flag_PayOff
+	Add *Var[0] *Flag_Spin_Smash
+	%Add *Var[0] *Flag_Runaway_Pay
+	Add *Var[0] *Flag_SSmashChg
+	Add *Var[0] *Flag_Peekaboo
+	Add *Var[0] *Flag_LuckyDay
+	Add *Var[0] *Flag_SlowGo
+	Add *Var[0] *Flag_PowerSmash 
+	Add *Var[0] *Flag_DDownPound 
+	Add *Var[0] *Flag_SpikeShield 
+	Add *Var[0] *Flag_SmashCharge 
+	Add *Var[0] *Flag_Refund 
+	Add *Var[0] *Flag_MegaJump 
+	Add *Var[0] *Flag_MegaSmash 
+	Add *Var[0] *Flag_HappyHeartA 
+	Add *Var[0] *Flag_HappyHeartB 
+	Add *Var[0] *Flag_FireShield 
+	Add *Var[0] *Flag_GroupFocus 
+	Add *Var[0] *Flag_ShrinkStomp 
+	Add *Var[0] *Flag_TripleDip 
+	Add *Var[0] *Flag_MegaQuake 
+	Add *Var[0] *Flag_DizzyStomp 
+	Add *Var[0] *Flag_SleepStomp 
+	Add *Var[0] *Flag_ZapTap 
+	Add *Var[0] *Flag_DodgeMaster 
+	Add *Var[0] *Flag_HappyFlowerA 
+	Add *Var[0] *Flag_HappyFlowerB 
+	Add *Var[0] *Flag_DeepFocusA 
+	Add *Var[0] *Flag_DeepFocusB 
+	Add *Var[0] *Flag_DeepFocusC 
+	Add *Var[0] *Flag_JumpCharge 
+	Add *Var[0] *Flag_SJumpChg 
+	%Add *Var[0] *Flag_FeelingFine % scrapped badge
+	Add *Var[0] *Flag_IcePower 
+	Add *Var[0] *Flag_PowerPlusA 
+	Add *Var[0] *Flag_PowerPlusB 
+	Add *Var[0] *Flag_PDownDUp 
+	Add *Var[0] *Flag_DefendPlus 
+	Add *Var[0] *Flag_CloseCall 
+	Add *Var[0] *Flag_FlowerFinder 
+	Add *Var[0] *Flag_HeartFinder 
+	Add *Var[0] *Flag_FlowerSaverA 
+	Add *Var[0] *Flag_FlowerSaverB 
+	Add *Var[0] *Flag_PowerJump 
+	Add *Var[0] *Flag_DizzyAttack 
+	Add *Var[0] *Flag_Multibounce 
+	Add *Var[0] *Flag_PUpDDown 
+	Add *Var[0] *Flag_DDownJump 
+	Add *Var[0] *Flag_PowerRush 
+	Add *Var[0] *Flag_DoubleDip 
+	Add *Var[0] *Flag_PowerQuake 
+	Add *Var[0] *Flag_QuakeHammer 
+	Add *Var[0] *Flag_QuickChange 
+	Add *Var[0] *Flag_HPDrain 
+	Add *Var[0] *Flag_DamageDodgeA 
+	Add *Var[0] *Flag_DamageDodgeB 
+	Add *Var[0] *Flag_LastStand 
+	Add *Var[0] *Flag_PowerBounce 
+	Add *Var[0] *Flag_MegaRush 
+	Add *Var[0] *Flag_AllorNothing
+	If *Var[0] >= 62` % the player have all badges
+		If *Flag_Coins1 == .False
+		%% Set the "cutscene" when Mario got all badges
+			Set *MapVar[1] 00000000 
+			Set *MapVar[2] FE % *Coins 1st Trigger
+			Set *MapVar[5] 7 % Badge List
+			Return
+		Else
+		%% The chest now only give coins to Mario
+			Set *MapVar[1] 00000000 
+			Set *MapVar[2] FF % *Coins 2nd Trigger
+			Set *MapVar[5] 7 % Badge List
+			Return
+		EndIf
+	EndIf
+	%%
+	%The game will now load the badge to put in the chest;
+	%Every chest floor have diferent conditions to spawn rare badges
+	%ej. The 100th floor give more S Tier Badges, and the 10th doesn't give S at all.
+	%%
+	%Add 	*BadgeList 1
+	Label	Roguelike
+	If *Flag_Mode_Rogue == .True
+		Jump $BadgeListRogue
+	EndIf
+	Switch *PitMapID
+		Case == 10` % pit10
+			Set		*BadgeListTierS 100` 
+			Set		*BadgeListTierA 98`
+			Set		*BadgeListTierB 94`
+			Set		*BadgeListTierC 90`
+			Set		*BadgeListTierD 75`
+			Set		*BadgeListTierE 45`
+			Set		*BadgeListTierF 0`
+		Case == 20` % pit20
+			Set		*BadgeListTierS 100` 
+			Set		*BadgeListTierA 98`
+			Set		*BadgeListTierB 94`
+			Set		*BadgeListTierC 90`
+			Set		*BadgeListTierD 75`
+			Set		*BadgeListTierE 45`
+			Set		*BadgeListTierF 0`
+		Case == 30` % pit30
+			Set		*BadgeListTierS 98` 
+			Set		*BadgeListTierA 96`
+			Set		*BadgeListTierB 92`
+			Set		*BadgeListTierC 87`
+			Set		*BadgeListTierD 68`
+			Set		*BadgeListTierE 39`
+			Set		*BadgeListTierF 0`
+		Case == 40` % pit40
+			Set		*BadgeListTierS 97` 
+			Set		*BadgeListTierA 93`
+			Set		*BadgeListTierB 88`
+			Set		*BadgeListTierC 81`
+			Set		*BadgeListTierD 61`
+			Set		*BadgeListTierE 30`
+			Set		*BadgeListTierF 0`
+		Case == 50` % pit50		
+			Set		*BadgeListTierS 97` 
+			Set		*BadgeListTierA 91`
+			Set		*BadgeListTierB 84`
+			Set		*BadgeListTierC 74`
+			Set		*BadgeListTierD 53`
+			Set		*BadgeListTierE 22`
+			Set		*BadgeListTierF 0`
+		Case == 60` % pit60
+			Set		*BadgeListTierS 96` 
+			Set		*BadgeListTierA 90`
+			Set		*BadgeListTierB 80`
+			Set		*BadgeListTierC 65`
+			Set		*BadgeListTierD 44`
+			Set		*BadgeListTierE 18`
+			Set		*BadgeListTierF 0`
+		Case == 70` % pit70
+			Set		*BadgeListTierS 95` 
+			Set		*BadgeListTierA 87`
+			Set		*BadgeListTierB 70`
+			Set		*BadgeListTierC 50`
+			Set		*BadgeListTierD 30`
+			Set		*BadgeListTierE 10`
+			Set		*BadgeListTierF 0`
+		Case == 80` % pit80
+			Set		*BadgeListTierS 90` 
+			Set		*BadgeListTierA 75`
+			Set		*BadgeListTierB 55`
+			Set		*BadgeListTierC 30`
+			Set		*BadgeListTierD 15`
+			Set		*BadgeListTierE 5`
+			Set		*BadgeListTierF 0`
+		Case == 90` % pit90
+			Set		*BadgeListTierS 85` 
+			Set		*BadgeListTierA 60`
+			Set		*BadgeListTierB 40`
+			Set		*BadgeListTierC 20`
+			Set		*BadgeListTierD 10`
+			Set		*BadgeListTierE 5`
+			Set		*BadgeListTierF 0`
+		Case == 100` % pit100
+			Set		*BadgeListTierS 65` 
+			Set		*BadgeListTierA 35`
+			Set		*BadgeListTierB 15`
+			Set		*BadgeListTierC 10`
+			Set		*BadgeListTierD 5`
+			Set		*BadgeListTierE 1`
+			Set		*BadgeListTierF 0`
+	EndSwitch
+	ExecWait $BadgeList
+	Return
+	End
+}
+ 

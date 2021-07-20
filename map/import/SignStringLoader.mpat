@@ -1,0 +1,203 @@
+	#new:Function $GetFloorSign
+{
+	PUSH a1, a2, v0, ra % Store current register values
+	LAB a2, 8035601A % Load Pit MapID in a2
+	LIO a1, FE363C81 % Load Var[1]
+	JAL ~Func:set_variable
+	NOP
+	POP a1, a2, v0, ra % Restore registers
+	JR RA
+	NOP
+}
+	
+	#new:Function $GetFloorSign_Rogue % Use the Normal Paper Mario Map ID Address instead
+{
+	PUSH a1, a2, v0, ra % Store current register values
+	LAB a2, 800740B1 % Load MapID in a2
+	LIO a1, FE363C81 % Load Var[1]
+	JAL ~Func:set_variable
+	NOP
+	POP a1, a2, v0, ra % Restore registers
+	JR RA
+	NOP
+}
+	
+	%% Load the tattle for the normal floors
+	
+#new:Function $Function_GetTattle1
+{
+	LABU 	T0, 8035601A  % *PitMapID
+	SLTI 	T1, T0, 100` % Check if the player is in a floor below 100
+	ADDIU 	T2, T0, 1
+	BEQ 	T1, T2, .Tattle3 % Check if was true, if was, go to .Tattle3
+	NOP
+	.Tattle3 % for pit80-99
+	SLTI 	T1, T0, 80`  % Check if the player is in a floor below 80
+	BEQ 	T1, T2, .Tattle2 % if not set MapTattle3 as current tattle, if yes go to .Tattle2
+	NOP
+	LIO     V0, $MapTattle3
+	BEQ 	R0, R0, .End
+	NOP
+	.Tattle2 % for pit50-79
+	SLTI 	T1, T0, 50` % Check if the player is in a floor below 50
+	BEQ 	T1, T2, .Tattle1 % if not set MapTattle2 as current tattle, if yes go to .Tattle1
+	NOP
+	LIO     V0, $MapTattle2
+	BEQ 	R0, R0, .End
+	NOP
+	.Tattle1 % for pit01-49
+	LIO		V0, $MapTattle1 % If the player is in a floor below 100, below 80 and below 50
+	.End
+	JR      RA
+	NOP
+}
+
+% Load the tattle for the chest floors
+
+	#new:Function $Function_GetTattle2
+{
+	LABU 	T0, 8035601A  % *PitMapID
+	ADDIU 	T1, R0, 10` % Creating comparison for pit10
+	BEQ 	T1, T0, .Tattle1 % Pit MapID is equal to 10? (pit10)
+	NOP
+	BEQ 	R0, R0, .Tattle2 % If wasn't go to tattle2
+	NOP
+	.Tattle1 % pit10
+	LIO     V0, $MapTattle4
+	BEQ 	R0, R0, .End
+	NOP
+	.Tattle2 % pit20-90
+	LIO		V0, $MapTattle5
+	.End
+	JR      RA
+	NOP
+}
+	
+	#new:Script $Script_ReadSign
+{
+	SetGroup 0
+	SuspendAll .True
+	Set *Var[0] *MapVar[1] %% Save the current Map in Var0
+	Call 	$GetFloorSign ( *Var[1] )
+	Call     SetMessageValue 	( *Var[1] 0 )
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignString 000000A0 00000028 )
+	ResumeAll .True
+	Call     DisablePlayerInput	( .False )
+	Return
+	End	
+}
+	
+	%%
+	%Strings
+	%%
+	
+	#string $SignString
+{
+	[DelayOff][STYLE:SIGN][...]
+	[Func_29:FF]
+	Level [Var:00]
+	[DelayOn][WAIT][END]
+}
+
+	/% About to reach Beta Note (in spanish because i want to express myself better):
+	A la verga an sido un chingo de cosas que e emprendido, ya ni recordaba
+	cuando el Pit tenia mas de 100 pisos, ahorita que lo pienso no mames jaja
+	%/
+	#string $SignStringBug % This one was used only for pit841 (Pit MapID 84`), when the pit was having +100 maps
+{
+	[DelayOff][STYLE:SIGN][...]
+	[Func_29:FF]
+	If you arrived to this floor
+	please contact the developer.
+	Btw you'r game will crash if
+	you beat the enemy :)
+	[DelayOn][WAIT][END]
+}
+	
+	#string $MapTattle1 % for pit01-49
+{
+	[STYLE:TATTLE][...]
+	[Func_2B]This is the Pit of 100 Trials.
+	That pipe just seems to lead
+	down forever...
+	[WAIT][NEXT][...]
+	Still, the air seems kinda
+	fresh here, I guess it's flowing
+	down from above, huh?
+	[WAIT][END]
+}
+
+	#string $MapTattle2 % for pit50-79
+{
+	[STYLE:TATTLE][...]
+	[Func_2B]This is the Pit of 100 Trials.
+	We just gotta keep on fighting
+	and descending...
+	[WAIT][NEXT][...]
+	But this endless repetition of
+	rooms is starting to totally wear me
+	out, y'know?
+	[WAIT][NEXT][...]
+	I guess we gotta soldier
+	on, though...
+	[WAIT][END]
+}
+
+	#string $MapTattle3 % for pit80-99
+{
+	[STYLE:TATTLE][...]
+	[Func_2B]This is the Pit of 100 Trials.
+	We've come pretty far, looks like.
+	The air's getting super-dank...
+	[WAIT][NEXT][...]
+	Who knows how deep it goes, but
+	let's keep going as long as we can...
+	[WAIT][END]
+}
+
+	% for pit10
+	
+	#string $MapTattle4
+{
+	[STYLE:TATTLE][...]
+	[Func_2B]This is the Pit of 100 Trials,
+	but I don't see any enemies
+	in this room.
+	[WAIT][NEXT][...]
+	At least there's a pipe to
+	take us back to the
+	entrance if you wanna bail.
+	[WAIT][NEXT][...]
+	Then again, we'd have to
+	fight our way back down to
+	this level again...
+	[WAIT][NEXT][...]
+	Better think it through
+	before we do anything hasty,
+	know what I mean?
+	[WAIT][END]
+}
+
+	% for pit20-90
+
+	#string $MapTattle5
+{
+	[STYLE:TATTLE][...]
+	[Func_2B]This is an intermediate floor
+	in the Pit of 100 Trials.
+	These appear every 10 floors
+	[WAIT][NEXT][...]
+	At least there's a pipe to
+	take us back to the
+	entrance if you wanna bail.
+	[WAIT][NEXT][...]
+	Then again, we'd have to
+	fight our way back down to
+	this level again...
+	[WAIT][NEXT][...]
+	Better think it through
+	before we do anything hasty,
+	know what I mean?
+	[WAIT][END]
+}

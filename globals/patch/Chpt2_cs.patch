@@ -1,0 +1,348 @@
+% This file holds one of the last cutscene in the game, is played in Floor 85
+% Because those floors have some many code, I just placed the cutscene here to don't
+% break Roguelike Mode because the amount of code.
+
+#define .Npc_RubyK 0
+#define .Npc_Koopa 1
+#define .Npc_Bzzap 2
+%
+#define .Npc_Soul1 3
+#define .Npc_Soul2 4
+#define .Npc_Soul3 5
+#define .Npc_Soul4 6
+#define .Npc_Soul5 7
+#define .Npc_Soul6 8
+
+#new:Script $Script_Cutscene_Ending_5
+{
+    Exec    $Script_CameraFollows_King
+    % The king look around
+    Call    InterpNpcYaw ( .Npc_RubyK 90` 0 )
+    Wait    20`
+    Call    InterpNpcYaw ( .Npc_RubyK -90` 0 )
+    Wait    20`
+    Call    SpeakToPlayer	( .Npc_RubyK 007F150D 007F150D 00000004 $String_Ending_King1 )
+    Wait    20`
+    Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+    Add		*Var[1] 50` % y
+    Thread
+        Call 	NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 100` 0 .Easing:Linear )
+    EndThread
+    Call    SetNpcAnimation ( .Npc_RubyK 007F151F ) % raise hands
+    Wait    8
+    Exec    $Script_LoopShakeCam
+    Call    SetNpcAnimation ( .Npc_RubyK 007F151D ) % charge attack
+    Call    PlaySound ( 0207 ) % charge sfx
+    Wait    25`
+    % Spawn a lot of particles
+    Loop 10`
+        % x
+        Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+        Call    RandInt ( 40` *Var[4] )
+        Call    RandInt ( 1 *Var[5] )
+        If *Var[5] != 0
+            Mul *Var[4] -1 % turn var4 as negative
+        EndIf
+        Add     *Var[0] *Var[4] % x
+        % z
+        Call    RandInt ( 40` *Var[4] )
+        Call    RandInt ( 1 *Var[5] )
+        If *Var[5] != 0
+            Mul *Var[4] -1 % turn var4 as negative
+        EndIf
+        Add     *Var[2] *Var[4] % z
+        Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[0] *Var[1] *Var[2] -29` 10` 2 ) % X/Y/Z, emitter radius, emitter height, num particles
+        Wait    10`
+    EndIf
+    Thread
+        Call    SetNpcVar ( .Npc_RubyK 1 .True )
+        Loop
+            % x
+            Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+            Call    RandInt ( 40` *Var[4] )
+            Call    RandInt ( 1 *Var[5] )
+            If *Var[5] != 0
+                Mul *Var[4] -1 % turn var4 as negative
+            EndIf
+            Add     *Var[0] *Var[4] % x
+            % z
+            Call    RandInt ( 40` *Var[4] )
+            Call    RandInt ( 1 *Var[5] )
+            If *Var[5] != 0
+                Mul *Var[4] -1 % turn var4 as negative
+            EndIf
+            Add     *Var[2] *Var[4] % z
+            Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[0] *Var[1] *Var[2] -29` 10` 2 ) % X/Y/Z, emitter radius, emitter height, num particles
+            Wait    5
+            Call    GetNpcVar ( .Npc_RubyK 1 *Var[0] )
+            If *Var[0] == .False
+                BreakLoop
+            EndIf
+        EndLoop
+    EndThread
+    Wait    25`
+    Call    SpeakToPlayer	( .Npc_RubyK 007F151D 007F151D 00000004 $String_Ending_King2 )
+    Wait    10`
+    % The king free all souls
+    Call    SetNpcVar ( .Npc_RubyK 1 .False ) % stop sparkles FX
+    Call    SetNpcVar ( .Npc_RubyK 2 .False ) % stop shaking the cam
+    Call	StopSound ( 0207 ) % charge sound
+    % FXs
+    Call    PlaySound ( 2121 )
+    Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 45` % y
+    Call    PlayEffect ( ~FX:RadialFlowOut:ThickLines *Var[0] *Var[1] *Var[2] 2 50` .False .False .False .False ) % XYZ Size Time
+    Call    PlayEffect ( ~FX:RadialFlowOut:RedEnergy *Var[0] *Var[1] *Var[2] 2 30` .False .False .False .False ) % XYZ Size Time
+    Wait    30`
+    Thread
+        Call    ShakeCam ( .Cam:Default 0 15` *Fixed[1.0] )
+    EndThread
+    Call    SetNpcAnimation ( .Npc_RubyK 007F151E ) % arms raised (horizontally)
+    Call    PlayEffect ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 35` .False .False .False .False .False ) % XYZ Size
+    Call    PlayEffect ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] 30` 30` 10` 10` .False .False ) % XYZ XSize YSize Amount Time
+    Call    PlayEffect ( ~FX:EnergyShockwave *Var[0] *Var[1] *Var[2] 1 10` .False .False .False .False ) % XYZ Size Time
+    Wait    10`
+    % Fade screen
+    Call 	$WriteAddress ( 8015C790 2 D0D0D000 .False .False ) % Set fade color as D0D0D0 (RGB)
+    SetF	*Var[0] *Fixed[25.0]  % speed
+    SetF	*Var[1] *Fixed[255.0] % fully dark
+    ExecWait $Script_FadeScreenOut
+    %%%%%%%
+    % All souls start to fly away
+    % ignore all collisions when using NpcFlyTo
+    Call    SetNpcFlagBits ( .Npc_Soul1 00000940 .True )
+    Call    SetNpcFlagBits ( .Npc_Soul2 00000940 .True )
+    Call    SetNpcFlagBits ( .Npc_Soul3 00000940 .True )
+    Call    SetNpcFlagBits ( .Npc_Soul4 00000940 .True )
+    Call    SetNpcFlagBits ( .Npc_Soul5 00000940 .True )
+	Call    SetNpcFlagBits ( .Npc_Soul6 00000940 .True )
+    Exec    $Script_Cutscene_SoulFlies_1
+    Exec    $Script_Cutscene_SoulFlies_2
+    Exec    $Script_Cutscene_SoulFlies_3
+    Exec    $Script_Cutscene_SoulFlies_4
+    Exec    $Script_Cutscene_SoulFlies_5
+    Exec    $Script_Cutscene_SoulFlies_6
+    Exec    $Script_EmitterEmbers_RubyKing
+    Call    PlaySound ( 2122 )
+    Call    SetNpcAnimation ( .Npc_RubyK 007F150D ) % idle
+    Wait    45`
+    Thread % Fade Screen Brightness
+        SetF	*Var[0] *Fixed[10.0] % speed
+        SetF	*Var[1] *Fixed[5.0]  % fully bright
+        ExecWait $Script_FadeScreenIn
+    EndThread
+    Wait    30`
+    Exec    $Script_NpcFlyTo_RubyKing
+    Wait    30`
+    % The king fades
+    Thread
+		Set	*Var[0] 7F
+		Loop
+			Add	*Var[0] -12`
+			If	*Var[0] <= 0
+				Call    802CFD30 ( .Npc_RubyK 7 0 .False .False .False ) % set alpha
+				BreakLoop
+			EndIf
+			Call    802CFD30 ( .Npc_RubyK 7 *Var[0] .False .False .False ) % set alpha
+			Wait	1
+		EndLoop
+    EndThread
+    Wait    15`
+    Call    PlaySoundAtNpc ( .Npc_RubyK 0188 0 )
+    Call    GotoMapSpecial ( $bp_04 1 7 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcFlyTo_RubyKing
+{
+    Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] -40`
+    Call    NpcFlyTo ( .Npc_RubyK *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:ASCII $bp_04
+{ "bp_04" }
+
+#new:Script $Script_LoopShakeCam
+{
+    Call    SetNpcVar ( .Npc_RubyK 2 .True )
+    Loop
+        Call    ShakeCam ( .Cam:Default 0 2 *Fixed[0.5] )
+        Wait    2
+        Call    GetNpcVar ( .Npc_RubyK 2 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_EmitterEmbers_RubyKing
+{
+    Loop
+        Call    GetNpcPos    ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+        Add     *Var[2] 56` % z
+        Call    PlayEffect  	( ~FX:EmitterVolume:Embers *Var[0] *Var[1] *Var[2] 256` 160` *Fixed[1.0] 7 30` 0 0 0 0 )
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_1
+{
+    Loop
+        Set *Var[5] .Npc_Soul1 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_2
+{
+    Loop
+        Set *Var[5] .Npc_Soul2 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_3
+{
+    Loop
+        Set *Var[5] .Npc_Soul3 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_4
+{
+    Loop
+        Set *Var[5] .Npc_Soul4 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_5
+{
+    Loop
+        Set *Var[5] .Npc_Soul5 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies_6
+{
+    Loop
+        Set *Var[5] .Npc_Soul6 % npcID
+        ExecWait $Script_Cutscene_SoulFlies
+        Wait 1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_SoulFlies
+{
+    % Souls flies away
+    Set *Var[6] -720`   % x
+    Set *Var[7] 226`    % y
+    Set *Var[8] 34`     % z
+    % get soul random spawn pos
+    Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+    % x
+    Call    RandInt ( 190` *Var[3] )
+    Call    RandInt ( 1 *Var[4] )
+    If *Var[4] != 0
+        Mul *Var[3] -1 % Set value as negative
+    EndIf
+    Add     *Var[0] *Var[3] % x
+    % z
+    Call    RandInt ( 100` *Var[3] )
+    Call    RandInt ( 1 *Var[4] )
+    If *Var[4] != 0
+        Mul *Var[3] -1 % Set value as negative
+    EndIf
+    Add     *Var[2] *Var[3] % z
+    Add     *Var[1] -52` % y
+    Call    SetNpcPos ( *Var[5] *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcSpeed ( *Var[5] *Fixed[2.0] )
+    Thread % Fade Spirit
+		Set	*Var[0] 0
+		Loop
+			Add *Var[0] 5
+			If *Var[0] >= FF
+				Call    802CFD30 ( *Var[5] 7 FF .False .False .False )
+				BreakLoop
+			EndIf
+			Call    802CFD30 ( *Var[5] 7 *Var[0] .False .False .False )
+			Wait    1
+		EndLoop
+	EndThread
+    Call    NpcFlyTo ( *Var[5] *Var[6] *Var[7] *Var[8] 0 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_CameraFollows_King
+{
+    Call    SetNpcVar ( .Npc_RubyK 0 .True )
+    Loop
+        Call    GetNpcPos ( .Npc_RubyK *Var[0] *Var[1] *Var[2] )
+        Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+        Call    SetCamSpeed 	( .Cam:Default *Fixed[20.0] )				% Speed to Pan to Target
+        Call    SetCamDistance  ( .Cam:Default 350` )						% Cam Zoom
+        %Call    SetCamPosB  	( .Cam:Default -200` -800` )				% Set Cam Cordinates
+        Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID, int X, int Y, int Z
+        Call    PanToTarget 	( .Cam:Default .Easing:Linear 00000001 )
+        Wait    1
+        Call    GetNpcVar ( .Npc_RubyK 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+%% Ending %%
+
+#string $String_Ending_King1
+{
+[STYLE:INSPECT][...]
+All of those people should be
+praying for all of you guys.
+[WAIT][NEXT][...]
+I think it's time to finally put
+all those poor souls at peace.
+[WAIT][END]
+}
+
+#string $String_Ending_King2
+{
+[STYLE:INSPECT][...]
+I hope this is enough for you
+Mario!
+[WAIT][NEXT][...]
+All of you are free now!
+[WAIT][END]
+}
+
+#export $Script_Cutscene_Ending_5

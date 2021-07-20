@@ -1,0 +1,31 @@
+% The crash screen now display "!SEND THIS TO DEXTER!"
+% Plus the build version
+
+@Hook 7A34 % 8002C634
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    ORI     A0, R0, 003A % x
+    ORI     A1, R0, 000A % y
+    LIO     A2, $ASCII_SendThisToDex
+    JAL     ~Func:crash_printf_string
+    RESERVED
+    ORI     A0, R0, 00C0 % x
+    ORI     A1, R0, 00E3 % y
+    LIO     A2, $ASCII_Version
+    JAL     ~Func:crash_printf_string
+    RESERVED
+    POP     RA, A0, A1, A2, A3, V0, V1
+    ADDIU	A0, R0, 001E
+    J       8002C63C
+    ADDIU	A1, R0, 00AA
+}
+
+#new:ASCII $ASCII_SendThisToDex
+{
+"X___X !SEND THIS TO DEXTER! X___X"
+}
+
+#new:ASCII $ASCII_Version
+{
+"BLACK PIT V1.1.1"
+}

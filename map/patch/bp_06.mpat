@@ -1,0 +1,393 @@
+% The tree map, used in the game ending and in the intro
+
+% npc id
+#define .Npc_Cheato 0
+#define .Npc_Mario 0
+#define .Npc_Fishmael 1
+#define .Npc_Oaklie 2
+#define .Npc_Chuck 3
+#define .Npc_Mistar 4
+#define .Npc_RKing 5
+#define .Npc_Bonetail 6
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 2
+[MapTattle]  00000000
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % Game Intro
+~Vec4f:Entry1 % Game Ending
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH    RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "kmr_tex" 
+JAL 	~Func:sprintf
+RESERVED
+CLEAR 	V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    GetEntryID ( *Var[0] )
+If *Var[0] == 1 % Ending
+    Call    MakeNpcs ( 0 $NpcGroupList )
+    Exec    $Script_TheEnd
+Else % Intro
+    Call    EnableGroup ( ~Model:boarded_floor .False )
+    Call    MakeNpcs ( 0 $NpcGroupList_Mario )
+    Exec    $Script_Intro_MarioFalls
+    Wait    7
+EndIf
+Return
+End
+}
+
+% I used a Mario Npc because Npcs can use NpcFlyTo, and something like PlayerFlyTo doesn't exist
+#new:Script $Script_Intro_MarioFalls
+{
+    Call    DisablePlayerInput ( .True )
+    Call    DisablePlayerPhysics ( .True )
+    % Hide player
+    Call    $WriteBitFlag ( 8010EFCC .False 2 5 .True ) % hide player
+    Call    HidePlayerShadow ( .True )
+    Call    EnableNpcShadow ( .Npc_Mario .False )
+    Call    SetNpcAnimation ( .Npc_Mario 00F20004 ) % falling
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -25` % x
+    Add     *Var[1] 0 % y
+    Call    SetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+    Call    GetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -10` % x
+    Add     *Var[1] -56` % y
+    Thread
+        Wait    10`
+        Call    PlaySoundAtNpc  ( .Npc_Mario 0262 0 ) % !
+        Call    ShowEmote   	( .Npc_Mario .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+        Wait    20`
+        Call	PlaySound ( 0188 )
+        Call    ClearAmbientSounds ( 5 )
+        Wait    5
+        Call    GotoMapSpecial ( "pt_255" 2 7 )
+    EndThread
+    Call    SetNpcFlagBits ( .Npc_Mario 00000900 .True ) % ignore horizontal collisions when using NpcFlyTo
+    Call    NpcFlyTo ( .Npc_Mario *Var[0] *Var[1] *Var[2] 300` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:NpcGroupList $NpcGroupList_Mario
+{
+00000001 $NpcGroup_Mario 	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Mario
+{
+% Mario
+00000000 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroupList
+{
+00000007 $NpcGroup_TheEnd 	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_TheEnd
+{
+% Cheato
+00000000 $NpcSettings_Generic ~Vec3f:Cheato
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 
+00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 00AE0002 
+00000000 00000000 00000000 00000000
+% Fishmael
+00000001 $NpcSettings_Generic ~Vec3f:Fishmael
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 
+008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 008D0003 
+00000000 00000000 00000000 00000000
+% Oaklie
+00000002 $NpcSettings_Generic ~Vec3f:Oaklie
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 00BE0001 
+00000000 00000000 00000000 00000000
+% Chuck
+00000003 $NpcSettings_Generic ~Vec3f:Chuck
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 
+00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 00AF0002 
+00000000 00000000 00000000 00000000
+% Mistar
+00000004 $NpcSettings_Generic ~Vec3f:mistar
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00000000 00000000 00000000 00000000
+% Ruby King
+00000005 $NpcSettings_Generic ~Vec3f:rking
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 007F1504 
+00000000 00000000 00000000 00000000
+% Bonetail
+00000006 $NpcSettings_Generic ~Vec3f:bonetail
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 
+00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 00EF0004 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_Oaklie_WalkAnimation
+{
+    Loop
+        Call    SetNpcAnimation ( .Npc_Oaklie 00BE0003 ) % jump
+        Wait    10`
+        Call    SetNpcAnimation ( .Npc_Oaklie 00BE0004 ) % jump2
+        Wait    1
+        Call    SetNpcAnimation ( .Npc_Oaklie 00BE0004 ) % jump3
+        Wait    8
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_TheEnd
+{
+    Call    DisablePlayerInput ( .True )
+    % hide partner and player
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+    Call    $WriteBitFlag ( 8010EFCC .False 2 5 .True ) % hide player
+    Call    HidePlayerShadow ( .True )
+    % Set King and Bonetail transparencies
+    Call    802CFD30 ( .Npc_RKing 7 7F .False .False .False )
+    Call    802CFD30 ( .Npc_Bonetail 7 7F .False .False .False )
+    Exec    $Script_Oaklie_WalkAnimation
+    % Set Npc Flags
+    % Enable Npcs gravity
+    Call    SetNpcFlagBits ( .Npc_Cheato 00000200 .True )
+    Call    SetNpcFlagBits ( .Npc_Fishmael 00000200 .True )
+    Call    SetNpcFlagBits ( .Npc_Oaklie 00000200 .True )
+    Call    SetNpcFlagBits ( .Npc_Chuck 00000200 .True )
+    Exec    $Script_NpcMoveTo_Cheato
+    Exec    $Script_NpcMoveTo_Fishmael
+    Exec    $Script_NpcMoveTo_Oaklie
+    Exec    $Script_NpcMoveTo_Chuck
+    Exec    $Script_NpcMoveTo_Mistar
+    Exec    $Script_KingDisappears
+    Wait    40`
+    % Pan the camera above, by reading the new camera zone below the player
+    Call    SetZoneEnabled ( ~Zone:Default .False )
+    Call    ResetCam ( .Cam:Default *Fixed[0.7] )
+    Wait    170`
+    Call    GotoMapSpecial ( "pre_03" 7 7 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Cheato
+{
+    Call    GetNpcPos ( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -220` % x
+    Call    SetNpcSpeed ( .Npc_Cheato *Fixed[1.2] )
+    Call    NpcMoveTo ( .Npc_Cheato *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Fishmael
+{
+    Call    GetNpcPos ( .Npc_Fishmael *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -220` % x
+    Call    SetNpcSpeed ( .Npc_Fishmael *Fixed[1.2] )
+    Call    NpcMoveTo ( .Npc_Fishmael *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Oaklie
+{
+    Call    GetNpcPos ( .Npc_Oaklie *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -220` % x
+    Call    SetNpcSpeed ( .Npc_Oaklie *Fixed[1.2] )
+    Call    NpcMoveTo ( .Npc_Oaklie *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Chuck
+{
+    Call    GetNpcPos ( .Npc_Chuck *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -220` % x
+    Call    SetNpcSpeed ( .Npc_Chuck *Fixed[1.2] )
+    Call    NpcMoveTo ( .Npc_Chuck *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Mistar
+{
+    Wait    120`
+    Thread
+		Call     $Function_LoadPath ( 80` )
+	EndThread
+	Call    LoadPath    	( 80` $VectorList_mistar_patch 5 0 ) % Speed, VectorPointer, NumOfVectors, ?
+	Label   LoadNextPatchPos
+	Call    GetNextPathPos
+	Call    SetNpcPos   	( .Npc_Mistar *Var[1] *Var[2] *Var[3] )
+	Wait    1
+	If  *Var[0]  ==  .True
+		Goto     LoadNextPatchPos
+	EndIf
+    Return
+    End
+}
+
+#new:Script $Script_KingDisappears
+{
+    Wait    190`
+    Call    GetNpcPos   ( .Npc_RKing *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  ( ~FX:PinkSparkles *Var[0] *Var[1] *Var[2] *Var[0] *Var[1] *Var[2] )
+    Call    GetNpcPos   ( .Npc_Bonetail *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  ( ~FX:PinkSparkles *Var[0] *Var[1] *Var[2] *Var[0] *Var[1] *Var[2] )
+    Set     *Var[0] 7F
+    Loop
+        Sub *Var[0] 5
+        If *Var[0] <= 0
+            Call    802CFD30 ( .Npc_RKing 7 0 .False .False .False )
+            Call    802CFD30 ( .Npc_Bonetail 7 0 .False .False .False )
+            BreakLoop
+        EndIf
+        Call    802CFD30 ( .Npc_RKing 7 *Var[0] .False .False .False )
+        Call    802CFD30 ( .Npc_Bonetail 7 *Var[0] .False .False .False )
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:VectorList $VectorList_mistar_patch
+{
+	%~Path3f:mistar_patch
+	125.000000 497.000000  9.000000
+	34.000000	508.000000 9.000000
+	-16.000000	500.000000 9.000000
+    -68.000000	483.000000 9.000000
+    -160.000000	423.000000 9.000000
+}
+
+#new:Function $Function_LoadPath
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S3, 2C (SP)
+    8:  DADDU     S3, A0, R0
+    C:  SW        S0, 20 (SP)
+   10:  DADDU     S0, A1, R0
+   14:  ADDIU     A0, R0, 1
+   18:  SW        RA, 30 (SP)
+   1C:  SW        S2, 28 (SP)
+   20:  JAL       ~Func:get_npc_unsafe
+   24:  SW        S1, 24 (SP)
+   28:  LW        V1, C (S3)
+   2C:  DADDU     A0, S3, R0
+   30:  LW        A1, 0 (V1)
+   34:  JAL       ~Func:get_variable
+   38:  DADDU     S2, V0, R0
+   3C:  BEQ       S0, R0, .o48
+   40:  SW        V0, 74 (S3)
+   44:  SW        R0, 70 (S3)
+        .o48
+   48:  LUI       V0, 6666
+   4C:  LW        A0, 70 (S3)
+   50:  ORI       V0, V0, 6667
+   54:  MULT      A0, V0
+   58:  SRA       V0, A0, 1F
+   5C:  MFHI      T0
+   60:  SRA       V1, T0, 1
+   64:  SUBU      V1, V1, V0
+   68:  SLL       V0, V1, 2
+   6C:  ADDU      V0, V0, V1
+   70:  BNE       A0, V0, .oE0
+   74:  LUI       V0, 20
+   78:  ORI       V0, V0, 2
+   7C:  ADDIU     S1, SP, 1A
+   80:  ADDIU     S0, SP, 18
+   84:  SW        S1, 10 (SP)
+   88:  SW        V0, 14 (SP)
+   8C:  LW        A2, 40 (S2)
+   90:  LWC1      F12, 38 (S2)
+   94:  LWC1      F14, 3C (S2)
+   98:  JAL       80149E04
+   9C:  DADDU     A3, S0, R0
+   A0:  LUI       A1, 43FA
+   A4:  LW        V0, 74 (S3)
+   A8:  DADDU     A0, R0, R0
+   AC:  SW        V0, 10 (SP)
+   B0:  LW        A3, 70 (S3)
+   B4:  JAL       ~Func:update_lerp
+   B8:  DADDU     A2, R0, R0
+   BC:  ADDIU     A0, R0, 295
+   C0:  TRUNC.W.S F2, F0
+   C4:  MFC1      A3, F2
+   C8:  NOP
+   CC:  SLL       A3, A3, 10
+   D0:  LBU       A1, 1 (S0)
+   D4:  LBU       A2, 1 (S1)
+   D8:  JAL       ~Func:_play_sound
+   DC:  SRA       A3, A3, 10
+        .oE0
+   E0:  LW        V1, 70 (S3)
+   E4:  LW        V0, 74 (S3)
+   E8:  ADDIU     V1, V1, 1
+   EC:  SLT       V0, V0, V1
+   F0:  SW        V1, 70 (S3)
+   F4:  LW        RA, 30 (SP)
+   F8:  LW        S3, 2C (SP)
+   FC:  LW        S2, 28 (SP)
+  100:  LW        S1, 24 (SP)
+  104:  LW        S0, 20 (SP)
+  108:  SLL       V0, V0, 1
+  10C:  JR        RA
+  110:  ADDIU     SP, SP, 38
+}

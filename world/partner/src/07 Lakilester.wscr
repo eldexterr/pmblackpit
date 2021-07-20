@@ -1,0 +1,2919 @@
+% Script File: 07 Lakilester.wscr
+% Decoded from: 320C50 to 323A50 (07 Lakilester)
+
+% Origin: HEURISTIC
+#new:Function $Function_802BD100
+{
+	ADDIU     SP, SP, FFE0
+	ADDIU     A0, R0, FFFC
+	SW        S1, 14 (SP)
+	LIA       S1, 8010EFC8
+	SW        RA, 18 (SP)
+	JAL       ~Func:get_npc_unsafe
+	SW        S0, 10 (SP)
+	LW        V1, 0 (S1)
+	COPY      S0, V0
+	ANDI      V0, V1, 4000
+	BEQ       V0, R0, .o70
+	LUI       V0, 4
+	LWC1      F2, 54 (S1)
+	AND       V0, V1, V0
+	BEQ       V0, R0, .o58
+	ADDIU     A0, S0, 38
+	LIF       F0, 0.5
+	NOP
+	MUL.S     F2, F2, F0
+	NOP
+	.o58
+	MFC1      A2, F2
+	LW        A3, A0 (S1)
+	JAL       ~Func:add_vec2D_polar
+	ADDIU     A1, S0, 40
+	LWC1      F0, 80 (S1)
+	SWC1      F0, C (S0)
+	.o70
+	ADDIU     A0, S1, 28
+	LAW       V0, 802BFF18
+	LIO       AT, 3EAE147B
+	MTC1      AT, F0
+	LWC1      F2, 38 (S0)
+	LUI       A2, 4000
+	LAW       V1, 80077410
+	BLTZL     V0, .oA0
+	SUBU      V0, R0, V0
+	.oA0
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	SLL       V0, V1, 2
+	MUL.S     F4, F4, F0
+	NOP
+	SWC1      F2, 28 (S1)
+	LWC1      F0, 3C (S0)
+	LIF       F2, 10.0
+	ADDU      V0, V0, V1
+	ADD.S     F0, F0, F2
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	ADD.S     F0, F0, F4
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SWC1      F0, 2C (S1)
+	LWC1      F0, 40 (S0)
+	SLL       V0, V0, 3
+	SWC1      F0, 30 (S1)
+	LTW       A3, V0 (800B1DEC)
+	JAL       ~Func:add_vec2D_polar
+	ADDIU     A1, S1, 30
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_Init
+{
+	LWC1      F0, 38 (A0)
+	LWC1      F2, 3C (A0)
+	LWC1      F4, 40 (A0)
+	ADDIU     V0, R0, 26
+	SH        V0, A8 (A0)
+	ADDIU     V0, R0, 24
+	SH        V0, A6 (A0)
+	LUI       V0, 1
+	SW        V0, 80 (A0)
+	ADDIU     V0, R0, 1
+	SAW       R0, 802BFF18
+	SAW       R0, 802BFF04
+	SAW       R0, 802BFF08
+	SAW       R0, 802BFF0C
+	SAW       V0, 802BFF10
+	SAW       R0, 802BFF1C
+	SAW       R0, 802BFF20
+	SAW       R0, 802BFF24
+	SAW       R0, 802BFF28
+	SWC1      F0, 60 (A0)
+	SWC1      F2, 64 (A0)
+	JR        RA
+	SWC1      F4, 68 (A0)
+}
+
+#new:Function $Function_802BD29C
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 14 (SP)
+	SW        S0, 10 (SP)
+	BEQ       A1, R0, .o1C
+	LW        S0, 14C (A0)
+	JAL       800EECC4
+	COPY      A0, S0
+	.o1C
+	JAL       800EECE8
+	COPY      A0, S0
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	SLTU      V0, R0, V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802BD2D4
+{
+	ADDIU     SP, SP, FFC8
+	SW        S0, 18 (SP)
+	LIA       S0, 8010F290
+	SW        RA, 28 (SP)
+	SW        S3, 24 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	SDC1      F20, 30 (SP)
+	LW        S1, 14C (A0)
+	BEQ       A1, R0, .o50
+	COPY      A0, S1
+	JAL       ~Func:enable_partner_flying
+	ADDIU     A1, R0, 1
+	LAW       A0, $???_802BFE7C
+	JAL       ~Func:mem_clear
+	ADDIU     A1, R0, 1C
+	SAW       R0, 8010C954
+	.o50
+	LUI       V1, 1
+	LW        V0, 314 (S0)
+	LIA       S3, 8010C954
+	ADDIU     V0, V0, 1
+	SW        V0, 314 (S0)
+	LW        V0, 0 (S1)
+	LW        S2, 0 (S3)
+	OR        V0, V0, V1
+	BNE       S2, R0, .o94
+	SW        V0, 0 (S1)
+	JAL       ~Func:update_player_move_history
+	COPY      A0, S1
+	JAL       800ED5D0
+	COPY      A0, S1
+	BEQ       R0, R0, .o384
+	CLEAR     V0
+	.o94
+	LIA       S0, $???_802BFE7C
+	LW        A0, 0 (S0)
+	LW        V1, 4 (A0)
+	ADDIU     A1, R0, 1
+	BEQ       V1, A1, .o16C
+	SLTI      V0, V1, 2
+	BEQ       V0, R0, .oC8
+	ADDIU     V0, R0, 2
+	BEQ       V1, R0, .oE0
+	CLEAR     V0
+	BEQ       R0, R0, .o384
+	NOP
+	.oC8
+	BEQ       V1, V0, .o334
+	ADDIU     V0, R0, 3
+	BEQ       V1, V0, .o354
+	CLEAR     V0
+	BEQ       R0, R0, .o384
+	NOP
+	.oE0
+	SW        A1, 4 (A0)
+	LW        V0, 0 (S1)
+	SW        V0, 8 (A0)
+	LWC1      F12, 38 (S1)
+	LWC1      F14, 40 (S1)
+	LW        A2, 48 (S2)
+	JAL       ~Func:dist2D
+	LW        A3, 50 (S2)
+	LW        V0, 0 (S0)
+	ABS.S     F0, F0
+	SWC1      F0, C (V0)
+	LWC1      F12, 48 (S2)
+	LWC1      F14, 50 (S2)
+	LW        A2, 38 (S1)
+	JAL       ~Func:atan2
+	LW        A3, 40 (S1)
+	LUI       A0, 4
+	ADDIU     V0, R0, 78
+	LW        V1, 0 (S0)
+	LIF       F2, 6.0
+	LIF       F4, 50.0
+	ORI       A0, A0, 148
+	SWC1      F0, 10 (V1)
+	SWC1      F2, 14 (V1)
+	SWC1      F4, 18 (V1)
+	SW        V0, 0 (V1)
+	LW        V0, 0 (S1)
+	ADDIU     V1, R0, FDFF
+	OR        V0, V0, A0
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	LIA       S0, $???_802BFE7C
+	.o16C
+	LW        V0, 0 (S0)
+	LIO       AT, 40C90FD0
+	MTC1      AT, F0
+	LWC1      F12, 10 (V0)
+	MUL.S     F12, F12, F0
+	NOP
+	ADDIU     A1, SP, 10
+	LIF       F0, 360.0
+	ADDIU     A2, SP, 14
+	JAL       ~Func:sin_cos_rad
+	DIV.S     F12, F12, F0
+	LW        V0, 0 (S0)
+	LWC1      F2, 10 (SP)
+	LWC1      F0, C (V0)
+	MUL.S     F2, F2, F0
+	NOP
+	LWC1      F0, 48 (S2)
+	ADD.S     F0, F0, F2
+	SWC1      F0, 38 (S1)
+	LWC1      F2, 14 (SP)
+	LWC1      F0, C (V0)
+	MUL.S     F2, F2, F0
+	NOP
+	LWC1      F0, 50 (S2)
+	SUB.S     F0, F0, F2
+	SWC1      F0, 40 (S1)
+	LWC1      F0, 10 (V0)
+	LWC1      F12, 14 (V0)
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F0, F12
+	LW        S0, 0 (S0)
+	LIF       F2, 20.0
+	LWC1      F4, C (S0)
+	C.LT.S    F2, F4
+	NOP
+	BC1F      .o21C
+	SWC1      F0, 10 (S0)
+	LIF       F0, 1.0
+	BEQ       R0, R0, .o248
+	SUB.S     F0, F4, F0
+	.o21C
+	LIF       F0, 19.0
+	NOP
+	C.LT.S    F4, F0
+	NOP
+	BC1F      .o24C
+	NOP
+	LIF       F0, 1.0
+	NOP
+	ADD.S     F0, F4, F0
+	.o248
+	SWC1      F0, C (S0)
+	.o24C
+	LIA       S0, $???_802BFE7C
+	LW        V0, 0 (S0)
+	LIO       AT, 40C90FD0
+	MTC1      AT, F0
+	LWC1      F12, 18 (V0)
+	MUL.S     F12, F12, F0
+	NOP
+	LIF       F20, 360.0
+	JAL       ~Func:sin_rad
+	DIV.S     F12, F12, F20
+	LW        V0, 0 (S0)
+	LIF       F4, 3.0
+	LWC1      F2, 18 (V0)
+	ADD.S     F2, F2, F4
+	LIF       F6, 150.0
+	NOP
+	C.LT.S    F6, F2
+	SWC1      F2, 18 (V0)
+	MUL.S     F2, F0, F4
+	NOP
+	BC1TL     .o2B8
+	SWC1      F6, 18 (V0)
+	.o2B8
+	LWC1      F0, 3C (S1)
+	ADD.S     F0, F0, F2
+	LW        V0, 0 (S0)
+	SWC1      F0, 3C (S1)
+	LWC1      F12, 10 (V0)
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F20, F12
+	LW        V0, 0 (S0)
+	SWC1      F0, 34 (S1)
+	LWC1      F0, 14 (V0)
+	LAD       F2, $ConstDouble_802BFEF0
+	CVT.D.S   F0, F0
+	ADD.D     F0, F0, F2
+	LIF       F2, 40.0
+	CVT.S.D   F0, F0
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o310
+	SWC1      F0, 14 (V0)
+	SWC1      F2, 14 (V0)
+	.o310
+	LW        V1, 0 (S0)
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, FFFF
+	BNE       V0, R0, .o380
+	SW        V0, 0 (V1)
+	LW        V0, 4 (V1)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .o380
+	SW        V0, 4 (V1)
+	.o334
+	LW        V0, 8 (A0)
+	SW        V0, 0 (S1)
+	LW        V0, 4 (A0)
+	ADDIU     V1, R0, 1E
+	SW        V1, 0 (A0)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .o380
+	SW        V0, 4 (A0)
+	.o354
+	JAL       ~Func:update_player_move_history
+	COPY      A0, S1
+	JAL       800ED5D0
+	COPY      A0, S1
+	LW        V1, 0 (S0)
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, FFFF
+	BNE       V0, R0, .o380
+	SW        V0, 0 (V1)
+	SW        R0, 4 (V1)
+	SW        R0, 0 (S3)
+	.o380
+	CLEAR     V0
+	.o384
+	LW        RA, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F20, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+#new:Function $Function_802BD678
+{
+	ADDIU     SP, SP, FFE8
+	LIA       A1, 8010C954
+	SW        RA, 10 (SP)
+	LW        V0, 0 (A1)
+	BEQ       V0, R0, .o38
+	NOP
+	LAW       V1, $???_802BFE7C
+	LW        V0, 8 (V1)
+	SW        R0, 0 (A1)
+	SW        V0, 0 (A0)
+	JAL       ~Func:clear_partner_move_history
+	SW        R0, 4 (V1)
+	.o38
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802BD6BC
+{
+	ADDIU     SP, SP, FFC0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        S1, 14 (SP)
+	COPY      S1, A1
+	SDC1      F20, 20 (SP)
+	MTC1      R0, F20
+	LIA       V1, 8010EBB0
+	SW        RA, 18 (SP)
+	SDC1      F26, 38 (SP)
+	SDC1      F24, 30 (SP)
+	SDC1      F22, 28 (SP)
+	LH        V0, 4 (V1)
+	MOV.S     F12, F20
+	MTC1      V0, F24
+	NOP
+	CVT.S.W   F24, F24
+	LH        V0, 6 (V1)
+	MFC1      A2, F24
+	MTC1      V0, F26
+	NOP
+	CVT.S.W   F26, F26
+	NEG.S     F22, F26
+	MFC1      A3, F22
+	JAL       ~Func:atan2
+	MOV.S     F14, F20
+	LAF       F12, 800B1DEC
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F0, F12
+	MOV.S     F12, F20
+	MOV.S     F14, F20
+	MFC1      A2, F24
+	MFC1      A3, F22
+	JAL       ~Func:dist2D
+	MOV.S     F22, F0
+	LIF       F3, 1.875
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	C.LE.D    F2, F0
+	NOP
+	BC1F      .oF8
+	SWC1      F22, 0 (S0)
+	MUL.S     F0, F24, F24
+	NOP
+	MUL.S     F2, F26, F26
+	NOP
+	ADD.S     F0, F0, F2
+	LIO       AT, 453D1000
+	MTC1      AT, F2
+	LIF       F20, 3.0
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .oF8
+	NOP
+	LIF       F20, 6.0
+	NOP
+	.oF8
+	SWC1      F20, 0 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F26, 38 (SP)
+	LDC1      F24, 30 (SP)
+	LDC1      F22, 28 (SP)
+	LDC1      F20, 20 (SP)
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_802BD7DC
+{
+	ADDIU     SP, SP, FF98
+	SW        RA, 5C (SP)
+	SW        S4, 58 (SP)
+	SW        S3, 54 (SP)
+	SW        S2, 50 (SP)
+	SW        S1, 4C (SP)
+	SW        S0, 48 (SP)
+	SDC1      F20, 60 (SP)
+	JAL       ~Func:get_npc_unsafe
+	ADDIU     A0, R0, FFFC
+	LIA       S0, 8010EFC8
+	COPY      S2, V0
+	LW        V1, 4 (S0)
+	LUI       V0, 2000
+	AND       V0, V1, V0
+	BEQ       V0, R0, .o60
+	COPY      S3, S0
+	LIO       V0, DFFFFFFF
+	AND       V0, V1, V0
+	SW        V0, 4 (S0)
+	BEQ       R0, R0, .o19C
+	ADDIU     V0, R0, 1
+	.o60
+	CLEAR     S4
+	ADDIU     S1, SP, 28
+	COPY      A0, S1
+	ADDIU     S0, SP, 2C
+	LAW       V1, 80077410
+	LUI       A2, 4000
+	LIF       F20, 16.0
+	LIF       F2, 7.0
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	LTW       A3, V0 (800B1DEC)
+	COPY      A1, S0
+	SWC1      F20, 34 (SP)
+	LWC1      F0, 64 (S2)
+	LWC1      F4, 28 (S3)
+	LWC1      F6, 30 (S3)
+	ADD.S     F0, F0, F2
+	SWC1      F4, 28 (SP)
+	SWC1      F6, 2C (SP)
+	JAL       ~Func:add_vec2D_polar
+	SWC1      F0, 30 (SP)
+	COPY      A0, S3
+	COPY      A1, S1
+	ADDIU     A2, SP, 30
+	COPY      A3, S0
+	ADDIU     V0, SP, 34
+	SW        V0, 10 (SP)
+	ADDIU     V0, SP, 38
+	SW        V0, 14 (SP)
+	ADDIU     V0, SP, 3C
+	SW        V0, 18 (SP)
+	ADDIU     V0, SP, 40
+	SW        V0, 1C (SP)
+	ADDIU     V0, SP, 44
+	JAL       800DE46C
+	SW        V0, 20 (SP)
+	LWC1      F0, 34 (SP)
+	C.LE.S    F0, F20
+	NOP
+	BC1F      .o198
+	COPY      S0, V0
+	BLTZ      S0, .o198
+	ANDI      V0, S0, 4000
+	BEQ       V0, R0, .o154
+	NOP
+	JAL       801106A4
+	COPY      A0, S0
+	ADDIU     V0, V0, FFD2
+	SLTIU     V0, V0, 2
+	BNE       V0, R0, .o19C
+	COPY      V0, S4
+	.o154
+	JAL       ~Func:get_collider_type_by_id
+	COPY      A0, S0
+	ANDI      S0, V0, FF
+	ADDIU     V0, S0, FFFF
+	SLTIU     V0, V0, 3
+	BNE       V0, R0, .o19C
+	COPY      V0, S4
+	ADDIU     V0, R0, 5
+	BEQ       S0, V0, .o19C
+	COPY      V0, S4
+	LWC1      F0, 28 (SP)
+	LWC1      F2, 30 (SP)
+	LWC1      F4, 2C (SP)
+	ADDIU     S4, R0, 1
+	SWC1      F0, 60 (S2)
+	SWC1      F2, 64 (S2)
+	SWC1      F4, 68 (S2)
+	.o198
+	COPY      V0, S4
+	.o19C
+	LW        RA, 5C (SP)
+	LW        S4, 58 (SP)
+	LW        S3, 54 (SP)
+	LW        S2, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	LDC1      F20, 60 (SP)
+	JR        RA
+	ADDIU     SP, SP, 68
+}
+
+#new:Function $Function_802BD99C
+{
+	ADDIU     SP, SP, FFA8
+	SW        S1, 4C (SP)
+	COPY      S1, A0
+	SW        S0, 48 (SP)
+	LIA       S0, 802BFF24
+	LIA       A0, 8010EFC8
+	ADDIU     V0, SP, 34
+	SW        A2, 34 (SP)
+	ADDIU     A2, SP, 2C
+	ADDIU     A3, SP, 30
+	SW        RA, 50 (SP)
+	SW        R0, 0 (S0)
+	LWC1      F4, 28 (A0)
+	LWC1      F0, 2C (A0)
+	MTC1      A1, F8
+	LWC1      F2, 30 (A0)
+	ADD.S     F0, F0, F8
+	ADDIU     A1, SP, 28
+	SWC1      F4, 28 (SP)
+	SWC1      F2, 30 (SP)
+	SWC1      F0, 2C (SP)
+	SW        V0, 10 (SP)
+	ADDIU     V0, SP, 38
+	SW        V0, 14 (SP)
+	ADDIU     V0, SP, 3C
+	SW        V0, 18 (SP)
+	ADDIU     V0, SP, 40
+	SW        V0, 1C (SP)
+	ADDIU     V0, SP, 44
+	JAL       800DE46C
+	SW        V0, 20 (SP)
+	BLTZL     V0, .oE0
+	CLEAR     V0
+	LWC1      F6, 2C (SP)
+	LWC1      F0, 64 (S1)
+	SUB.S     F4, F6, F0
+	MTC1      R0, F0
+	NOP
+	C.EQ.S    F4, F0
+	NOP
+	BC1T      .oE0
+	ADDIU     V0, R0, 1
+	CVT.D.S   F0, F4
+	LIF       F3, 2.5625
+	MTC1      R0, F2
+	ABS.D     F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1FL     .oE0
+	CLEAR     V0
+	TRUNC.W.S F8, F4
+	SWC1      F8, 0 (S0)
+	SWC1      F6, 64 (S1)
+	.oE0
+	LW        RA, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	JR        RA
+	ADDIU     SP, SP, 58
+}
+
+#new:Function $Function_802BDA90
+{
+	ADDIU     SP, SP, FFC0
+	SW        S0, 30 (SP)
+	COPY      S0, A0
+	SW        RA, 34 (SP)
+	SDC1      F20, 38 (SP)
+	LWC1      F12, C (S0)
+	LH        V0, A6 (S0)
+	LIO       AT, 3F4CCCCD
+	MTC1      AT, F2
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MUL.S     F20, F0, F2
+	JAL       ~Func:clamp_angle
+	NOP
+	LWC1      F2, 38 (S0)
+	LWC1      F4, 64 (S0)
+	LWC1      F6, 40 (S0)
+	ADDIU     A1, SP, 20
+	SWC1      F2, 20 (SP)
+	SWC1      F4, 24 (SP)
+	SWC1      F6, 28 (SP)
+	SW        R0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A2, SP, 24
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	SWC1      F20, 1C (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDD94
+	ADDIU     A3, SP, 28
+	BEQ       V0, R0, .oC0
+	ADDIU     V1, R0, 9FFF
+	LW        V0, 0 (S0)
+	LAHU      V1, 8010C97A
+	LWC1      F0, 20 (SP)
+	LWC1      F2, 28 (SP)
+	ORI       V0, V0, 6000
+	SW        V0, 0 (S0)
+	SH        V1, 86 (S0)
+	SWC1      F0, 38 (S0)
+	BEQ       R0, R0, .oCC
+	SWC1      F2, 40 (S0)
+	.oC0
+	LW        V0, 0 (S0)
+	AND       V0, V0, V1
+	SW        V0, 0 (S0)
+	.oCC
+	LWC1      F0, C (S0)
+	LIF       F12, 45.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F0, F12
+	LWC1      F2, 38 (S0)
+	LWC1      F4, 64 (S0)
+	LWC1      F6, 40 (S0)
+	ADDIU     A1, SP, 20
+	SWC1      F2, 20 (SP)
+	SWC1      F4, 24 (SP)
+	SWC1      F6, 28 (SP)
+	SW        R0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A2, SP, 24
+	SWC1      F20, 1C (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDAE4
+	ADDIU     A3, SP, 28
+	BEQ       V0, R0, .o150
+	ADDIU     V1, R0, DFFF
+	LWC1      F0, 20 (SP)
+	LW        V0, 0 (S0)
+	LWC1      F2, 28 (SP)
+	ORI       V0, V0, 2000
+	SWC1      F0, 38 (S0)
+	BEQ       R0, R0, .o158
+	SWC1      F2, 40 (S0)
+	.o150
+	LW        V0, 0 (S0)
+	AND       V0, V0, V1
+	.o158
+	SW        V0, 0 (S0)
+	LWC1      F0, C (S0)
+	LIF       F12, 45.0
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F0, F12
+	LWC1      F2, 38 (S0)
+	LWC1      F4, 64 (S0)
+	LWC1      F6, 40 (S0)
+	ADDIU     A1, SP, 20
+	SWC1      F2, 20 (SP)
+	SWC1      F4, 24 (SP)
+	SWC1      F6, 28 (SP)
+	SW        R0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A2, SP, 24
+	SWC1      F20, 1C (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDAE4
+	ADDIU     A3, SP, 28
+	BEQ       V0, R0, .o1E0
+	ADDIU     V1, R0, DFFF
+	LWC1      F0, 20 (SP)
+	LW        V0, 0 (S0)
+	LWC1      F2, 28 (SP)
+	ORI       V0, V0, 2000
+	SWC1      F0, 38 (S0)
+	BEQ       R0, R0, .o1E8
+	SWC1      F2, 40 (S0)
+	.o1E0
+	LW        V0, 0 (S0)
+	AND       V0, V0, V1
+	.o1E8
+	SW        V0, 0 (S0)
+	LWC1      F12, C (S0)
+	LIF       F0, 45.0
+	NOP
+	ADD.S     F12, F12, F0
+	LIF       F0, 180.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F12, F0
+	LWC1      F2, 38 (S0)
+	LWC1      F4, 64 (S0)
+	LWC1      F6, 40 (S0)
+	ADDIU     A1, SP, 20
+	SWC1      F2, 20 (SP)
+	SWC1      F4, 24 (SP)
+	SWC1      F6, 28 (SP)
+	SW        R0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A2, SP, 24
+	SWC1      F20, 1C (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDC44
+	ADDIU     A3, SP, 28
+	BEQ       V0, R0, .o284
+	ADDIU     V1, R0, DFFF
+	LW        V0, 0 (S0)
+	LWC1      F0, 20 (SP)
+	LWC1      F2, 28 (SP)
+	ORI       V0, V0, 2000
+	SW        V0, 0 (S0)
+	SWC1      F0, 38 (S0)
+	BEQ       R0, R0, .o290
+	SWC1      F2, 40 (S0)
+	.o284
+	LW        V0, 0 (S0)
+	AND       V0, V0, V1
+	SW        V0, 0 (S0)
+	.o290
+	LWC1      F12, C (S0)
+	LIF       F0, 45.0
+	NOP
+	SUB.S     F12, F12, F0
+	LIF       F0, 180.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F12, F0
+	LWC1      F2, 38 (S0)
+	LWC1      F4, 64 (S0)
+	LWC1      F6, 40 (S0)
+	ADDIU     A1, SP, 20
+	SWC1      F2, 20 (SP)
+	SWC1      F4, 24 (SP)
+	SWC1      F6, 28 (SP)
+	SW        R0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A2, SP, 24
+	SWC1      F20, 1C (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDC44
+	ADDIU     A3, SP, 28
+	BEQ       V0, R0, .o328
+	ADDIU     V1, R0, DFFF
+	LW        V0, 0 (S0)
+	LWC1      F0, 20 (SP)
+	LWC1      F2, 28 (SP)
+	ORI       V0, V0, 2000
+	SW        V0, 0 (S0)
+	SWC1      F0, 38 (S0)
+	BEQ       R0, R0, .o334
+	SWC1      F2, 40 (S0)
+	.o328
+	LW        V0, 0 (S0)
+	AND       V0, V0, V1
+	SW        V0, 0 (S0)
+	.o334
+	LW        RA, 34 (SP)
+	LW        S0, 30 (SP)
+	LDC1      F20, 38 (SP)
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_802BDDD8
+{
+	ADDIU     SP, SP, FF80
+	SW        S2, 60 (SP)
+	COPY      S2, A0
+	ADDIU     A0, SP, 28
+	SDC1      F20, 78 (SP)
+	MTC1      R0, F20
+	ADDIU     A1, SP, 2C
+	SW        RA, 70 (SP)
+	SW        S5, 6C (SP)
+	SW        S4, 68 (SP)
+	SW        S3, 64 (SP)
+	SW        S1, 5C (SP)
+	SW        S0, 58 (SP)
+	SWC1      F20, 28 (SP)
+	JAL       $Function_802BD6BC
+	SWC1      F20, 2C (SP)
+	LH        A0, 84 (S2)
+	JAL       ~Func:get_collider_type_by_id
+	NOP
+	LIA       S4, 8010EFC8
+	LIA       S5, 8015A550
+	ANDI      V0, V0, FF
+	ADDIU     V1, R0, 3
+	BNE       V0, V1, .o88
+	NOP
+	LWC1      F0, 2C (SP)
+	LIF       F2, 0.5
+	NOP
+	MUL.S     F0, F0, F2
+	NOP
+	SWC1      F0, 2C (SP)
+	.o88
+	LAF       F2, 802BFF28
+	LIF       F0, 20.0
+	NOP
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .oCC
+	NOP
+	LWC1      F0, 2C (SP)
+	LIO       AT, 3F4CCCCD
+	MTC1      AT, F2
+	NOP
+	MUL.S     F0, F0, F2
+	NOP
+	SWC1      F0, 2C (SP)
+	.oCC
+	LWC1      F0, 2C (SP)
+	C.EQ.S    F0, F20
+	NOP
+	BC1T      .o174
+	SWC1      F0, 18 (S2)
+	LIA       V0, 802BFF1C
+	LIA       A3, 802BFF20
+	LW        V1, 0 (V0)
+	LW        A0, 0 (A3)
+	ADDIU     V1, V1, 1
+	SW        V1, 0 (V0)
+	ADDIU     V0, A0, 1
+	ANDI      V1, V1, 7
+	BNE       V1, R0, .o174
+	SW        V0, 0 (A3)
+	SLTI      V0, V0, 78
+	BEQL      V0, R0, .o11C
+	SW        R0, 0 (A3)
+	.o11C
+	LW        A3, 0 (A3)
+	SLTI      V0, A3, 3C
+	BEQ       V0, R0, .o13C
+	CLEAR     A0
+	MFC1      A1, F20
+	LUI       A2, 42C8
+	BEQ       R0, R0, .o14C
+	ADDIU     V0, R0, 3C
+	.o13C
+	ADDIU     A3, A3, FFC4
+	LUI       A1, 42C8
+	MFC1      A2, F20
+	ADDIU     V0, R0, 3C
+	.o14C
+	JAL       ~Func:update_lerp
+	SW        V0, 10 (SP)
+	TRUNC.W.S F10, F0
+	MFC1      A3, F10
+	ADDIU     A0, R0, 295
+	CLEAR     A1
+	ADDIU     A2, R0, 40
+	SLL       A3, A3, 10
+	JAL       ~Func:_play_sound
+	SRA       A3, A3, 10
+	.o174
+	LWC1      F0, 38 (S2)
+	LWC1      F2, 64 (S2)
+	LWC1      F4, 40 (S2)
+	LH        V0, A6 (S2)
+	SWC1      F0, 30 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F2, 34 (SP)
+	SWC1      F4, 38 (SP)
+	SWC1      F0, 10 (SP)
+	LWC1      F0, C (S2)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S2)
+	ADDIU     A1, SP, 30
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	ADDIU     A2, SP, 34
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDAE4
+	ADDIU     A3, SP, 38
+	BEQ       V0, R0, .o21C
+	NOP
+	LIA       V0, 8010EBB0
+	LW        V0, C (V0)
+	ANDI      V0, V0, 8000
+	BEQ       V0, R0, .o214
+	ADDIU     V1, S5, A
+	LAHU      V0, 8010C97A
+	BEQ       R0, R0, .o21C
+	SH        V0, 0 (V1)
+	.o214
+	ADDIU     V0, R0, FFFF
+	SH        V0, 0 (V1)
+	.o21C
+	LWC1      F2, 2C (SP)
+	MTC1      R0, F0
+	NOP
+	C.EQ.S    F2, F0
+	NOP
+	BC1T      .o4AC
+	ADDIU     S3, SP, 30
+	LWC1      F0, 28 (SP)
+	LWC1      F2, 38 (S2)
+	LWC1      F4, 64 (S2)
+	LWC1      F6, 40 (S2)
+	LWC1      F8, 18 (S2)
+	SWC1      F0, C (S2)
+	SWC1      F2, 30 (SP)
+	SWC1      F4, 34 (SP)
+	SWC1      F6, 38 (SP)
+	SWC1      F8, 10 (SP)
+	LWC1      F0, C (S2)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S2)
+	ADDIU     A1, SP, 30
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	ADDIU     A2, SP, 34
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDD94
+	ADDIU     A3, SP, 38
+	BEQ       V0, R0, .o304
+	NOP
+	LAW       V0, 802BFF10
+	BEQ       V0, R0, .o2C8
+	NOP
+	LAHU      V0, 8010C97A
+	SH        V0, 0 (S5)
+	.o2C8
+	LWC1      F0, 30 (SP)
+	LWC1      F6, 38 (S2)
+	LWC1      F2, 38 (SP)
+	SUB.S     F0, F0, F6
+	LWC1      F4, 40 (S2)
+	LIF       F8, 5.0
+	SUB.S     F2, F2, F4
+	DIV.S     F0, F0, F8
+	ADD.S     F6, F6, F0
+	DIV.S     F2, F2, F8
+	ADD.S     F4, F4, F2
+	SWC1      F6, 38 (S2)
+	BEQ       R0, R0, .o328
+	SWC1      F4, 40 (S2)
+	.o304
+	LW        A1, 18 (S2)
+	LW        A2, 28 (SP)
+	JAL       ~Func:npc_move_heading
+	COPY      A0, S2
+	LAW       V0, 802BFF10
+	BEQ       V0, R0, .o328
+	ADDIU     V0, R0, FFFF
+	SH        V0, 0 (S5)
+	.o328
+	LWC1      F12, C (S2)
+	LIF       F20, 30.0
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F12, F20
+	ADDIU     S3, SP, 30
+	COPY      A1, S3
+	LWC1      F2, 38 (S2)
+	LWC1      F4, 64 (S2)
+	LWC1      F6, 40 (S2)
+	LWC1      F8, 18 (S2)
+	ADDIU     S1, SP, 34
+	SWC1      F0, 28 (SP)
+	SWC1      F2, 30 (SP)
+	SWC1      F4, 34 (SP)
+	SWC1      F6, 38 (SP)
+	SWC1      F8, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S2)
+	COPY      A2, S1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	ADDIU     S0, SP, 38
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDAE4
+	COPY      A3, S0
+	BEQ       V0, R0, .o3EC
+	NOP
+	LWC1      F0, 30 (SP)
+	LWC1      F6, 38 (S2)
+	LWC1      F2, 38 (SP)
+	SUB.S     F0, F0, F6
+	LWC1      F4, 40 (S2)
+	LIF       F8, 5.0
+	SUB.S     F2, F2, F4
+	DIV.S     F0, F0, F8
+	ADD.S     F6, F6, F0
+	DIV.S     F2, F2, F8
+	ADD.S     F4, F4, F2
+	SWC1      F6, 38 (S2)
+	SWC1      F4, 40 (S2)
+	.o3EC
+	LWC1      F12, C (S2)
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F12, F20
+	LWC1      F2, 38 (S2)
+	LWC1      F4, 64 (S2)
+	LWC1      F6, 40 (S2)
+	LWC1      F8, 18 (S2)
+	SWC1      F0, 28 (SP)
+	SWC1      F2, 30 (SP)
+	SWC1      F4, 34 (SP)
+	SWC1      F6, 38 (SP)
+	SWC1      F8, 10 (SP)
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S2)
+	COPY      A1, S3
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	COPY      A2, S1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDAE4
+	COPY      A3, S0
+	BEQ       V0, R0, .o49C
+	COPY      A0, S2
+	LWC1      F0, 30 (SP)
+	LWC1      F6, 38 (S2)
+	LWC1      F2, 38 (SP)
+	SUB.S     F0, F0, F6
+	LWC1      F4, 40 (S2)
+	LIF       F8, 5.0
+	SUB.S     F2, F2, F4
+	DIV.S     F0, F0, F8
+	ADD.S     F6, F6, F0
+	DIV.S     F2, F2, F8
+	ADD.S     F4, F4, F2
+	SWC1      F6, 38 (S2)
+	SWC1      F4, 40 (S2)
+	.o49C
+	JAL       8003D660
+	ADDIU     A1, R0, 1
+	BEQ       R0, R0, .o60C
+	NOP
+	.o4AC
+	COPY      A1, S3
+	LIF       F6, 90.0
+	LWC1      F0, 38 (S2)
+	LWC1      F2, 64 (S2)
+	LWC1      F4, 40 (S2)
+	LIF       F20, 4.0
+	ADDIU     S1, SP, 34
+	SWC1      F6, 28 (SP)
+	SWC1      F0, 30 (SP)
+	SWC1      F2, 34 (SP)
+	SWC1      F4, 38 (SP)
+	SWC1      F20, 10 (SP)
+	SWC1      F6, 14 (SP)
+	LH        V0, A8 (S2)
+	COPY      A2, S1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	ADDIU     S0, SP, 38
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDAE4
+	COPY      A3, S0
+	BEQ       V0, R0, .o564
+	NOP
+	LWC1      F0, 30 (SP)
+	LWC1      F6, 38 (S2)
+	LWC1      F2, 38 (SP)
+	SUB.S     F0, F0, F6
+	LWC1      F4, 40 (S2)
+	LIF       F8, 5.0
+	SUB.S     F2, F2, F4
+	DIV.S     F0, F0, F8
+	ADD.S     F6, F6, F0
+	DIV.S     F2, F2, F8
+	ADD.S     F4, F4, F2
+	SWC1      F6, 38 (S2)
+	SWC1      F4, 40 (S2)
+	.o564
+	LIF       F6, 270.0
+	LWC1      F0, 38 (S2)
+	LWC1      F2, 64 (S2)
+	LWC1      F4, 40 (S2)
+	SWC1      F6, 28 (SP)
+	SWC1      F0, 30 (SP)
+	SWC1      F2, 34 (SP)
+	SWC1      F4, 38 (SP)
+	SWC1      F20, 10 (SP)
+	SWC1      F6, 14 (SP)
+	LH        V0, A8 (S2)
+	COPY      A1, S3
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S2)
+	COPY      A2, S1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S2)
+	JAL       800DDAE4
+	COPY      A3, S0
+	BEQ       V0, R0, .o60C
+	NOP
+	LWC1      F0, 30 (SP)
+	LWC1      F6, 38 (S2)
+	LWC1      F2, 38 (SP)
+	SUB.S     F0, F0, F6
+	LWC1      F4, 40 (S2)
+	LIF       F8, 5.0
+	SUB.S     F2, F2, F4
+	DIV.S     F0, F0, F8
+	ADD.S     F6, F6, F0
+	DIV.S     F2, F2, F8
+	ADD.S     F4, F4, F2
+	SWC1      F6, 38 (S2)
+	SWC1      F4, 40 (S2)
+	.o60C
+	JAL       $Function_802BDA90
+	COPY      A0, S2
+	ADDIU     S0, SP, 30
+	COPY      A0, S0
+	ADDIU     S1, SP, 38
+	COPY      A1, S1
+	LIF       F0, 12.0
+	LUI       A2, 4000
+	LWC1      F2, 64 (S2)
+	LH        V0, A8 (S2)
+	LAW       V1, 80077410
+	MOV.S     F20, F0
+	LWC1      F0, 14 (S2)
+	ADDIU     V0, V0, 2
+	SUB.S     F2, F2, F0
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	SWC1      F0, 3C (SP)
+	SWC1      F2, 64 (S2)
+	MOV.S     F0, F2
+	LTW       A3, V0 (800B1DEC)
+	LWC1      F2, 28 (S4)
+	LWC1      F4, 30 (S4)
+	ADD.S     F0, F0, F20
+	SWC1      F2, 30 (SP)
+	SWC1      F4, 38 (SP)
+	JAL       ~Func:add_vec2D_polar
+	SWC1      F0, 34 (SP)
+	COPY      A0, S4
+	COPY      A1, S0
+	ADDIU     A2, SP, 34
+	COPY      A3, S1
+	ADDIU     V0, SP, 3C
+	SW        V0, 10 (SP)
+	ADDIU     V0, SP, 40
+	SW        V0, 14 (SP)
+	ADDIU     V0, SP, 44
+	SW        V0, 18 (SP)
+	ADDIU     V0, SP, 48
+	SW        V0, 1C (SP)
+	ADDIU     V0, SP, 4C
+	JAL       800DE46C
+	SW        V0, 20 (SP)
+	JAL       ~Func:get_player_normal_pitch
+	COPY      S0, V0
+	MTC1      R0, F2
+	SAF       F0, 802BFF28
+	C.EQ.S    F0, F2
+	NOP
+	BC1T      .o714
+	NOP
+	LIF       F20, 32.0
+	.o714
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o78C
+	NOP
+	BLTZ      S0, .o78C
+	ADDIU     A1, SP, 50
+	LIO       AT, 40C90FD0
+	MTC1      AT, F12
+	NOP
+	MUL.S     F12, F0, F12
+	NOP
+	LIF       F0, 360.0
+	ADDIU     A2, SP, 54
+	JAL       ~Func:sin_cos_rad
+	DIV.S     F12, F12, F0
+	LWC1      F2, 50 (SP)
+	LWC1      F0, 54 (SP)
+	LWC1      F4, 5C (S4)
+	DIV.S     F2, F2, F0
+	MUL.S     F2, F2, F4
+	NOP
+	LWC1      F0, 3C (S2)
+	CVT.D.S   F0, F0
+	CVT.D.S   F2, F2
+	ABS.D     F2, F2
+	ADD.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 3C (S2)
+	.o78C
+	LWC1      F0, 3C (SP)
+	C.LE.S    F0, F20
+	NOP
+	BC1F      .o854
+	NOP
+	BLTZ      S0, .o854
+	COPY      A0, S0
+	LWC1      F0, 38 (S2)
+	TRUNC.W.S F10, F0
+	MFC1      V0, F10
+	NOP
+	SH        V0, 16 (S4)
+	LWC1      F0, 3C (S2)
+	TRUNC.W.S F10, F0
+	MFC1      V0, F10
+	NOP
+	SH        V0, 18 (S4)
+	LWC1      F0, 40 (S2)
+	SH        A0, 2 (S5)
+	LWC1      F2, 34 (SP)
+	LWC1      F4, 30 (SP)
+	LWC1      F6, 38 (SP)
+	TRUNC.W.S F10, F0
+	MFC1      V0, F10
+	NOP
+	SH        V0, 1A (S4)
+	SH        A0, 84 (S2)
+	SWC1      F2, 64 (S2)
+	SWC1      F4, 60 (S2)
+	SWC1      F6, 68 (S2)
+	SW        R0, 14 (S2)
+	JAL       ~Func:get_collider_type_by_id
+	SH        R0, C0 (S4)
+	ANDI      V0, V0, FF
+	ADDIU     V1, R0, 3
+	BNE       V0, V1, .o840
+	LUI       V0, 8
+	LWC1      F0, 2C (SP)
+	LIF       F2, 0.5
+	NOP
+	MUL.S     F0, F0, F2
+	NOP
+	BEQ       R0, R0, .o848
+	ORI       V0, V0, 6
+	.o840
+	LWC1      F0, 2C (SP)
+	ORI       V0, V0, 5
+	.o848
+	SW        V0, 28 (S2)
+	BEQ       R0, R0, .o8A0
+	SWC1      F0, 18 (S2)
+	.o854
+	LHU       V0, C0 (S4)
+	ADDIU     V1, R0, FFFF
+	SH        V1, 2 (S5)
+	ADDIU     V0, V0, 1
+	SH        V0, C0 (S4)
+	LWC1      F0, 14 (S2)
+	LAD       F2, $ConstDouble_802BFEF8
+	CVT.D.S   F0, F0
+	ADD.D     F0, F0, F2
+	SH        V1, 84 (S2)
+	LIF       F2, 12.0
+	CVT.S.D   F0, F0
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o8A0
+	SWC1      F0, 14 (S2)
+	SWC1      F2, 14 (S2)
+	.o8A0
+	LW        RA, 70 (SP)
+	LW        S5, 6C (SP)
+	LW        S4, 68 (SP)
+	LW        S3, 64 (SP)
+	LW        S2, 60 (SP)
+	LW        S1, 5C (SP)
+	LW        S0, 58 (SP)
+	LDC1      F20, 78 (SP)
+	JR        RA
+	ADDIU     SP, SP, 80
+}
+
+#new:Function $Function_802BE6A0
+{
+	ADDIU     SP, SP, FFB0
+	COPY      A2, A0
+	LIA       A0, 8010EFC8
+	ADDIU     A1, SP, 28
+	SW        RA, 48 (SP)
+	LH        V0, B0 (A0)
+	LWC1      F0, 2C (A0)
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	ADD.S     F0, F0, F2
+	ADDIU     A3, SP, 2C
+	SWC1      F2, 30 (SP)
+	SWC1      F0, 0 (A2)
+	LWC1      F0, 28 (A0)
+	LWC1      F2, 30 (A0)
+	ADDIU     V0, SP, 30
+	SWC1      F0, 28 (SP)
+	SWC1      F2, 2C (SP)
+	SW        V0, 10 (SP)
+	ADDIU     V0, SP, 34
+	SW        V0, 14 (SP)
+	ADDIU     V0, SP, 38
+	SW        V0, 18 (SP)
+	ADDIU     V0, SP, 3C
+	SW        V0, 1C (SP)
+	ADDIU     V0, SP, 40
+	JAL       800DE46C
+	SW        V0, 20 (SP)
+	LW        RA, 48 (SP)
+	JR        RA
+	ADDIU     SP, SP, 50
+}
+
+#new:Function $Function_802BE724
+{
+	ADDIU     SP, SP, FFA0
+	SW        S4, 40 (SP)
+	COPY      S4, A0
+	LIO       V1, FFBFFFFF
+	SW        S2, 38 (SP)
+	LIA       S2, 8010EFC8
+	SW        S5, 44 (SP)
+	LIA       S5, 8010EBB0
+	SW        RA, 48 (SP)
+	SW        S3, 3C (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	SDC1      F22, 58 (SP)
+	SDC1      F20, 50 (SP)
+	LW        V0, 4 (S2)
+	LW        S1, 14C (S4)
+	AND       V0, V0, V1
+	BEQ       A1, R0, .o270
+	SW        V0, 4 (S2)
+	JAL       $Function_802BD678
+	COPY      A0, S1
+	LW        V0, 4 (S2)
+	LUI       V1, 10
+	AND       V0, V0, V1
+	BNE       V0, R0, .oDA0
+	ADDIU     V0, R0, 2
+	ADDIU     V1, R0, FFBF
+	LW        V0, 0 (S1)
+	LWC1      F0, 38 (S1)
+	LWC1      F2, 3C (S1)
+	LWC1      F4, 40 (S1)
+	LAW       A0, 8007419C
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	SWC1      F0, 60 (S1)
+	SWC1      F2, 64 (S1)
+	SWC1      F4, 68 (S1)
+	LB        V0, 7D (A0)
+	BNE       V0, R0, .oC0
+	LUI       V1, 20
+	LW        V0, 4 (S2)
+	AND       V0, V0, V1
+	BEQ       V0, R0, .oE4
+	ADDIU     V0, R0, 28
+	.oC0
+	LW        V1, 4 (S2)
+	LUI       V0, 20
+	AND       V0, V1, V0
+	BEQ       V0, R0, .oE0
+	LUI       V0, FFDF
+	ORI       V0, V0, FFFF
+	AND       V0, V1, V0
+	SW        V0, 4 (S2)
+	.oE0
+	ADDIU     V0, R0, 64
+	.oE4
+	SAW       V0, 802BFF14
+	LB        V0, 1 (S5)
+	BNE       V0, R0, .o148
+	ADDIU     A0, R0, 21
+	LAW       V0, 8007419C
+	LB        V0, 7D (V0)
+	BNE       V0, R0, .o270
+	ADDIU     V0, R0, 21
+	LB        V1, B4 (S2)
+	BEQ       V1, V0, .o138
+	NOP
+	BEQ       V1, R0, .o138
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .o138
+	ADDIU     V0, R0, 2
+	BEQ       V1, V0, .o138
+	ADDIU     V0, R0, 8
+	BNE       V1, V0, .oDA0
+	ADDIU     V0, R0, 2
+	.o138
+	LW        V0, 0 (S2)
+	ORI       V0, V0, 100
+	BEQ       R0, R0, .o270
+	SW        V0, 0 (S2)
+	.o148
+	SB        R0, 1 (S5)
+	LW        V0, 0 (S2)
+	ADDIU     V1, R0, FEFF
+	AND       V0, V0, V1
+	SW        V0, 0 (S2)
+	LW        V0, 0 (S1)
+	ADDIU     S0, R0, FFB7
+	AND       V0, V0, S0
+	ORI       V0, V0, 100
+	JAL       ~Func:set_action_state
+	SW        V0, 0 (S1)
+	LIO       A0, 0008000E
+	JAL       800DFF78
+	RESERVED
+	LIO       A1, 00080005
+	LIO       V1, 00400100
+	LW        V0, 0 (S1)
+	LIF       F4, 3.0
+	AND       V0, V0, S0
+	OR        V0, V0, V1
+	LAW       V1, 8007419C
+	ADDIU     S3, R0, 1
+	SW        A1, 28 (S1)
+	SAW       S3, 802BFF0C
+	SW        V0, 0 (S1)
+	ADDIU     V0, R0, 8
+	SB        V0, 3 (S5)
+	SB        S3, 0 (S5)
+	SB        R0, 7D (V1)
+	LWC1      F0, 28 (S2)
+	LWC1      F2, 64 (S1)
+	LUI       A0, 8
+	SWC1      F0, 38 (S1)
+	SWC1      F2, 3C (S1)
+	MOV.S     F0, F2
+	LIF       F2, 10.0
+	LWC1      F6, 30 (S2)
+	ADD.S     F0, F0, F2
+	SW        A1, 28 (S1)
+	SWC1      F6, 40 (S1)
+	SWC1      F0, 2C (S2)
+	SWC1      F4, 18 (S1)
+	SW        R0, 14 (S1)
+	LWC1      F0, 80 (S2)
+	ORI       A0, A0, E
+	JAL       800DFF78
+	SWC1      F0, C (S1)
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 21
+	JAL       ~Func:disable_player_static_collisions
+	NOP
+	LIA       S0, 802BFF04
+	LW        V0, 0 (S0)
+	SAW       S3, 802BFF08
+	BNE       V0, R0, .o254
+	NOP
+	JAL       ~Func:disable_player_input
+	NOP
+	SW        S3, 0 (S0)
+	.o254
+	LW        V0, 0 (S1)
+	SAW       R0, 802BFF18
+	SAW       S3, 802BFF14
+	ORI       V0, V0, 40
+	SW        V0, 0 (S1)
+	.o270
+	LIA       S0, 802BFF14
+	LW        V1, 0 (S0)
+	ADDIU     V0, R0, 28
+	BEQ       V1, V0, .o298
+	ADDIU     V0, R0, 29
+	BEQ       V1, V0, .o2F0
+	ADDIU     V0, R0, 64
+	BEQ       R0, R0, .o3C4
+	NOP
+	.o298
+	LW        V1, 0 (S2)
+	ANDI      V0, V1, 800
+	BNE       V0, R0, .o2B4
+	ADDIU     V0, R0, FEFF
+	LB        V0, 15 (S2)
+	BEQ       V0, R0, .o2C4
+	ADDIU     V0, R0, FEFF
+	.o2B4
+	AND       V0, V1, V0
+	SW        V0, 0 (S2)
+	.o2BC
+	BEQ       R0, R0, .oDA0
+	ADDIU     V0, R0, 2
+	.o2C4
+	ADDIU     V0, R0, 3
+	JAL       ~Func:disable_player_input
+	SW        V0, 74 (S4)
+	SW        V0, 78 (S4)
+	LW        V0, 0 (S0)
+	ADDIU     V1, R0, 1
+	SAW       V1, 802BFF04
+	ADDU      V0, V0, V1
+	BEQ       R0, R0, .o3B4
+	SW        V0, 0 (S0)
+	.o2F0
+	LW        A0, 0 (S2)
+	ANDI      V0, A0, 800
+	BEQ       V0, R0, .o328
+	ADDIU     V0, R0, FEFF
+	LIA       S0, 802BFF04
+	LW        V1, 0 (S0)
+	AND       V0, A0, V0
+	BEQ       V1, R0, .o2BC
+	SW        V0, 0 (S2)
+	JAL       ~Func:enable_player_input
+	NOP
+	BEQ       R0, R0, .o2BC
+	SW        R0, 0 (S0)
+	.o328
+	LW        V0, 4 (S2)
+	LUI       V1, 10
+	AND       V0, V0, V1
+	BEQ       V0, R0, .o368
+	NOP
+	LB        V1, 15 (S2)
+	LW        V0, 78 (S4)
+	SLT       V0, V0, V1
+	BEQ       V0, R0, .oCFC
+	ADDIU     V0, R0, 2
+	JAL       ~Func:enable_player_input
+	NOP
+	SAW       R0, 802BFF04
+	BEQ       R0, R0, .oCFC
+	ADDIU     V0, R0, 2
+	.o368
+	LW        V0, 74 (S4)
+	BNE       V0, R0, .o3B0
+	ADDIU     V0, V0, FFFF
+	LB        V1, 15 (S2)
+	LW        V0, 78 (S4)
+	SLT       V0, V0, V1
+	BEQ       V0, R0, .o3A8
+	ADDIU     V0, R0, 64
+	JAL       ~Func:enable_player_input
+	NOP
+	ADDIU     V0, R0, 2
+	LW        V1, 0 (S2)
+	SAW       R0, 802BFF04
+	BEQ       R0, R0, .oD04
+	ADDIU     A0, R0, FEFF
+	.o3A8
+	BEQ       R0, R0, .o3B4
+	SW        V0, 0 (S0)
+	.o3B0
+	SW        V0, 74 (S4)
+	.o3B4
+	LIA       S0, 802BFF14
+	LW        V1, 0 (S0)
+	ADDIU     V0, R0, 64
+	.o3C4
+	BEQ       V1, V0, .o440
+	SLTI      V0, V1, 65
+	BEQ       V0, R0, .o410
+	ADDIU     V0, R0, 3
+	BEQ       V1, V0, .o96C
+	SLTI      V0, V1, 4
+	BEQ       V0, R0, .o3F4
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .o88C
+	NOP
+	BEQ       R0, R0, .oC38
+	NOP
+	.o3F4
+	ADDIU     V0, R0, 4
+	BEQ       V1, V0, .oAD4
+	ADDIU     V0, R0, 5
+	BEQ       V1, V0, .oAF0
+	COPY      A0, S2
+	BEQ       R0, R0, .oC38
+	NOP
+	.o410
+	ADDIU     V0, R0, 66
+	BEQ       V1, V0, .o5D4
+	SLT       V0, V1, V0
+	BNE       V0, R0, .o5BC
+	ADDIU     A0, R0, 2081
+	ADDIU     V0, R0, 67
+	BEQ       V1, V0, .o5E8
+	ADDIU     V0, R0, 68
+	BEQ       V1, V0, .o824
+	NOP
+	BEQ       R0, R0, .oC38
+	NOP
+	.o440
+	JAL       ~Func:disable_player_static_collisions
+	ADDIU     S0, R0, 1
+	LIA       S3, 802BFF04
+	LW        V0, 0 (S3)
+	SAW       S0, 802BFF08
+	BNE       V0, R0, .o474
+	LUI       A1, 40
+	JAL       ~Func:disable_player_input
+	NOP
+	SW        S0, 0 (S3)
+	LIO       A1, 00400100
+	ADDIU     A0, R0, 21
+	ADDIU     V1, R0, FFF7
+	MTC1      R0, F20
+	LW        V0, 0 (S1)
+	LIF       F22, 90.0
+	AND       V0, V0, V1
+	OR        V0, V0, A1
+	JAL       ~Func:set_action_state
+	SW        V0, 0 (S1)
+	SAW       S0, 802BFF0C
+	JAL       800EF4E0
+	CLEAR     S0
+	LWC1      F0, 28 (S2)
+	SWC1      F0, 60 (S1)
+	LWC1      F0, 2C (S2)
+	SWC1      F0, 64 (S1)
+	LWC1      F0, 30 (S2)
+	SWC1      F0, 68 (S1)
+	LUI       A0, 1
+	ADDIU     A1, SP, 20
+	LWC1      F0, 60 (S1)
+	LWC1      F2, 64 (S1)
+	LWC1      F4, 68 (S1)
+	LWC1      F6, 18 (S1)
+	ADDIU     A2, SP, 24
+	SWC1      F0, 20 (SP)
+	SWC1      F2, 24 (SP)
+	SWC1      F4, 28 (SP)
+	SWC1      F6, 10 (SP)
+	SWC1      F20, 14 (SP)
+	LH        V0, A8 (S1)
+	ADDIU     A3, SP, 28
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S1)
+	ADDIU     S0, S0, 1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	JAL       800DDC44
+	SWC1      F0, 1C (SP)
+	SLTI      V0, S0, 4
+	LWC1      F0, 20 (SP)
+	LWC1      F2, 24 (SP)
+	LWC1      F4, 28 (SP)
+	ADD.S     F20, F20, F22
+	SWC1      F0, 60 (S1)
+	SWC1      F2, 64 (S1)
+	BNE       V0, R0, .o4C8
+	SWC1      F4, 68 (S1)
+	LWC1      F12, 38 (S1)
+	LWC1      F14, 40 (S1)
+	MFC1      A2, F0
+	MFC1      A3, F4
+	JAL       ~Func:atan2
+	NOP
+	LIO       V1, 00080005
+	LIO       A0, 00010006
+	SWC1      F0, C (S1)
+	LIF       F0, 8.0
+	LIO       AT, 3FB33333
+	MTC1      AT, F2
+	ADDIU     V0, R0, C
+	SH        V0, 8E (S1)
+	SW        V1, 28 (S1)
+	SWC1      F0, 1C (S1)
+	JAL       800DFEFC
+	SWC1      F2, 14 (S1)
+	ADDIU     V0, R0, 65
+	SAW       V0, 802BFF14
+	BEQ       R0, R0, .oC38
+	NOP
+	CLEAR     A1
+	JAL       ~Func:play_sound_at_npc
+	ADDIU     A2, R0, FFFC
+	LIO       A0, 00010007
+	JAL       800DFEFC
+	RESERVED
+	LIA       V1, 802BFF14
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, 1
+	SW        V0, 0 (V1)
+	LW        V0, 0 (S2)
+	ANDI      V0, V0, 800
+	BNE       V0, R0, .oBDC
+	ADDIU     V0, R0, A
+	LWC1      F0, 60 (S1)
+	LWC1      F10, 38 (S1)
+	LH        V0, 8E (S1)
+	SUB.S     F0, F0, F10
+	LWC1      F8, 40 (S1)
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	DIV.S     F0, F0, F2
+	ADD.S     F10, F10, F0
+	LWC1      F0, 68 (S1)
+	LWC1      F6, 3C (S1)
+	SUB.S     F0, F0, F8
+	LWC1      F2, 64 (S1)
+	SUB.S     F2, F2, F6
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	DIV.S     F0, F0, F4
+	ADD.S     F8, F8, F0
+	MOV.S     F0, F4
+	DIV.S     F2, F2, F0
+	ADD.S     F6, F6, F2
+	LWC1      F2, 1C (S1)
+	SWC1      F10, 38 (S1)
+	SWC1      F8, 40 (S1)
+	SWC1      F6, 3C (S1)
+	LH        V0, B0 (S2)
+	LWC1      F0, 2C (S2)
+	MTC1      V0, F16
+	NOP
+	CVT.S.W   F16, F16
+	SLL       V0, V0, 1
+	MFC1      A1, F16
+	MTC1      V0, F16
+	NOP
+	CVT.S.W   F16, F16
+	ADD.S     F0, F0, F2
+	MFC1      A2, F16
+	COPY      A0, S1
+	JAL       $Function_802BD99C
+	SWC1      F0, 2C (S2)
+	LWC1      F0, 2C (S2)
+	LAF       F2, 802BFF24
+	CVT.S.W   F2, F2
+	ADD.S     F0, F0, F2
+	ADDIU     S0, S1, 38
+	SWC1      F0, 2C (S2)
+	LWC1      F4, 3C (S1)
+	LWC1      F0, 14 (S1)
+	ADD.S     F4, F4, F2
+	LWC1      F2, 1C (S1)
+	MTC1      R0, F20
+	SUB.S     F2, F2, F0
+	ADDIU     S3, S1, 40
+	SWC1      F4, 3C (S1)
+	C.LE.S    F2, F20
+	NOP
+	BC1F      .o6F8
+	SWC1      F2, 1C (S1)
+	LIO       A0, 00010008
+	JAL       800DFEFC
+	RESERVED
+	LHU       V0, 8E (S1)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S1)
+	SLL       V0, V0, 10
+	SRA       V1, V0, 10
+	BLEZ      V1, .o764
+	ADDIU     V0, R0, 1
+	BNE       V1, V0, .oC38
+	NOP
+	COPY      A0, S0
+	LAW       V0, 80077410
+	LUI       A2, C000
+	SLL       V1, V0, 2
+	ADDU      V1, V1, V0
+	SLL       V1, V1, 2
+	SUBU      V1, V1, V0
+	SLL       V0, V1, 3
+	ADDU      V1, V1, V0
+	SLL       V1, V1, 3
+	LTW       A3, V1 (800B1DEC)
+	JAL       ~Func:add_vec2D_polar
+	COPY      A1, S3
+	BEQ       R0, R0, .oC38
+	NOP
+	LWC1      F2, 3C (S1)
+	LIF       F0, 10.0
+	NOP
+	ADD.S     F2, F2, F0
+	LWC1      F0, 5C (S2)
+	ADDIU     A0, R0, 21
+	SWC1      F2, 2C (S2)
+	SWC1      F0, 18 (S1)
+	SWC1      F20, 14 (S1)
+	LWC1      F0, 80 (S2)
+	ADDIU     V0, R0, 3
+	SH        V0, 8E (S1)
+	JAL       ~Func:set_action_state
+	SWC1      F0, C (S1)
+	LIO       A0, 0008000E
+	JAL       800DFF78
+	RESERVED
+	JAL       ~Func:disable_player_shadow
+	NOP
+	ADDIU     V0, R0, 8
+	SB        V0, 3 (S5)
+	ADDIU     V0, R0, 1
+	LIF       F12, 2.0
+	ADDIU     V1, R0, FEFF
+	SB        V0, 0 (S5)
+	LW        V0, 0 (S2)
+	LAW       A0, 8007419C
+	AND       V0, V0, V1
+	SW        V0, 0 (S2)
+	ADDIU     V0, R0, 2
+	SB        R0, 7D (A0)
+	SAW       R0, 802BFF18
+	SAW       V0, 802BFF0C
+	JAL       $Function_802BFB44
+	NOP
+	ADDIU     V0, R0, 68
+	SAW       V0, 802BFF14
+	LW        V0, 4 (S2)
+	LUI       V1, 40
+	OR        V0, V0, V1
+	BEQ       R0, R0, .oC38
+	SW        V0, 4 (S2)
+	LW        V0, 0 (S2)
+	ANDI      V0, V0, 800
+	BEQ       V0, R0, .o83C
+	ADDIU     V0, R0, A
+	BEQ       R0, R0, .oC38
+	SW        V0, 0 (S0)
+	LHU       V0, 8E (S1)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S1)
+	SLL       V0, V0, 10
+	BEQ       V0, R0, .o87C
+	ADDIU     V1, R0, 1
+	LW        V0, C (S5)
+	ANDI      V0, V0, 4004
+	BEQ       V0, R0, .oC38
+	NOP
+	JAL       $Function_802BD7DC
+	NOP
+	BEQ       V0, R0, .oC38
+	ADDIU     V0, R0, 3
+	BEQ       R0, R0, .oC38
+	SW        V0, 0 (S0)
+	LW        V0, 0 (S1)
+	SW        V1, 0 (S0)
+	ORI       V0, V0, 40
+	SW        V0, 0 (S1)
+	JAL       $Function_802BDDD8
+	COPY      A0, S1
+	LUI       V1, 40
+	LIA       A0, 802BFF18
+	LW        V0, 4 (S2)
+	LIF       F2, 2.0
+	OR        V0, V0, V1
+	SW        V0, 4 (S2)
+	LW        V1, 0 (A0)
+	LWC1      F0, 64 (S1)
+	ADDIU     V0, V1, 1
+	ADD.S     F0, F0, F2
+	SW        V0, 0 (A0)
+	SLTI      V0, V0, A
+	BNE       V0, R0, .o8DC
+	SWC1      F0, 3C (S1)
+	ADDIU     V0, V1, FFEF
+	SW        V0, 0 (A0)
+	LB        V0, 14 (S5)
+	BNE       V0, R0, .o8F0
+	NOP
+	LWC1      F0, C (S1)
+	SWC1      F0, 80 (S2)
+	LW        V0, 0 (S2)
+	ANDI      V0, V0, 800
+	BNE       V0, R0, .oBDC
+	ADDIU     V0, R0, A
+	LW        V0, C (S5)
+	ANDI      V0, V0, 4004
+	BEQ       V0, R0, .oC38
+	NOP
+	JAL       $Function_802BD7DC
+	NOP
+	BEQ       V0, R0, .o930
+	ADDIU     V0, R0, 3
+	SAW       V0, 802BFF14
+	BEQ       R0, R0, .oC38
+	NOP
+	LW        V0, 4 (S2)
+	LUI       V1, 4000
+	AND       V0, V0, V1
+	BNE       V0, R0, .o958
+	LUI       V1, BFFF
+	ADDIU     A0, R0, 21D
+	CLEAR     A1
+	JAL       ~Func:play_sound_at_npc
+	ADDIU     A2, R0, FFFC
+	LUI       V1, BFFF
+	LW        V0, 4 (S2)
+	ORI       V1, V1, FFFF
+	AND       V0, V0, V1
+	BEQ       R0, R0, .oC38
+	SW        V0, 4 (S2)
+	LW        V0, 0 (S1)
+	ADDIU     V1, R0, FFBF
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	LW        V0, 0 (S2)
+	ORI       V0, V0, 100
+	JAL       $Function_802BD7DC
+	SW        V0, 0 (S2)
+	LIA       V0, 800B1D80
+	LWC1      F2, A8 (S2)
+	LIF       F6, 90.0
+	LWC1      F4, 6C (V0)
+	C.LE.S    F6, F2
+	NOP
+	BC1F      .o9E8
+	NOP
+	LIF       F0, 270.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o9E8
+	NOP
+	LIF       F0, 180.0
+	NOP
+	ADD.S     F0, F4, F0
+	BEQ       R0, R0, .oA04
+	SUB.S     F20, F0, F6
+	MTC1      R0, F0
+	NOP
+	ADD.S     F0, F4, F0
+	LIF       F2, 90.0
+	NOP
+	SUB.S     F20, F0, F2
+	SWC1      F20, C (S1)
+	LWC1      F12, 28 (S2)
+	LWC1      F14, 30 (S2)
+	LW        A2, 60 (S1)
+	JAL       ~Func:dist2D
+	LW        A3, 68 (S1)
+	LWC1      F12, 28 (S2)
+	LWC1      F14, 30 (S2)
+	LW        A2, 60 (S1)
+	LW        A3, 68 (S1)
+	JAL       ~Func:atan2
+	SWC1      F0, 2C (SP)
+	LWC1      F4, 64 (S1)
+	LWC1      F2, 3C (S1)
+	SWC1      F0, C (S1)
+	LIO       AT, 3F99999A
+	MTC1      AT, F0
+	ADDIU     V0, R0, E
+	SH        V0, 8E (S1)
+	C.LT.S    F2, F4
+	NOP
+	BC1F      .oA84
+	SWC1      F0, 14 (S1)
+	SUB.S     F0, F4, F2
+	LIF       F2, 14.0
+	LIF       F4, 6.0
+	DIV.S     F0, F0, F2
+	BEQ       R0, R0, .oA90
+	ADD.S     F0, F0, F4
+	LIF       F0, 6.0
+	NOP
+	SWC1      F0, 1C (S1)
+	LIO       A0, 00010006
+	LH        V0, 8E (S1)
+	LWC1      F0, 2C (SP)
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	DIV.S     F0, F0, F2
+	JAL       800DFEFC
+	SWC1      F0, 18 (S1)
+	LIA       V1, 802BFF14
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .oC38
+	SW        V0, 0 (V1)
+	LIO       A0, 00010007
+	JAL       800DFEFC
+	RESERVED
+	LW        V0, 0 (S0)
+	ADDIU     V0, V0, 1
+	SW        V0, 0 (S0)
+	COPY      A0, S2
+	LIA       T0, 800B1D80
+	ADDIU     A1, SP, 20
+	ADDIU     S4, SP, 24
+	COPY      A2, S4
+	ADDIU     A3, SP, 28
+	ADDIU     S0, S2, 28
+	LHU       V0, 2 (T0)
+	ADDIU     S3, S2, 30
+	ORI       V0, V0, 1
+	SH        V0, 2 (T0)
+	LWC1      F0, 2C (S2)
+	LWC1      F2, 1C (S1)
+	LH        V0, B0 (S2)
+	LWC1      F8, 28 (S2)
+	ADD.S     F0, F0, F2
+	LIF       F2, 0.5
+	MTC1      V0, F12
+	NOP
+	CVT.S.W   F12, F12
+	MUL.S     F12, F12, F2
+	NOP
+	LWC1      F10, 30 (S2)
+	COPY      V1, V0
+	SWC1      F0, 2C (S2)
+	MTC1      V1, F0
+	NOP
+	CVT.S.W   F0, F0
+	MUL.S     F0, F0, F2
+	NOP
+	LAW       V1, 80077410
+	LWC1      F4, 2C (S2)
+	LIF       F2, 90.0
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	ADDU      V0, V0, T0
+	LWC1      F6, 6C (V0)
+	ADD.S     F4, F4, F0
+	LWC1      F0, A8 (S2)
+	ADDIU     V0, SP, 2C
+	SWC1      F8, 20 (SP)
+	SUB.S     F0, F0, F2
+	SWC1      F10, 28 (SP)
+	SWC1      F12, 2C (SP)
+	ADD.S     F20, F0, F6
+	SWC1      F4, 24 (SP)
+	SW        V0, 10 (SP)
+	JAL       ~Func:collision_check_above
+	SWC1      F20, 14 (SP)
+	BLTZ      V0, .oBEC
+	ADDIU     V0, R0, A
+	SAW       V0, 802BFF14
+	BEQ       R0, R0, .oC38
+	NOP
+	COPY      A0, S0
+	LWC1      F0, 1C (S1)
+	LWC1      F2, 14 (S1)
+	LW        A2, 18 (S1)
+	SUB.S     F0, F0, F2
+	LW        A3, C (S1)
+	COPY      A1, S3
+	JAL       ~Func:add_vec2D_polar
+	SWC1      F0, 1C (S1)
+	JAL       800E4AD8
+	CLEAR     A0
+	JAL       $Function_802BE6A0
+	COPY      A0, S4
+	BLTZ      V0, .oC38
+	ADDIU     V0, R0, A
+	LWC1      F0, 24 (SP)
+	SAW       V0, 802BFF14
+	SWC1      F0, 2C (S2)
+	LWC1      F0, 28 (S2)
+	LIA       V0, 800B1D80
+	SWC1      F0, 60 (V0)
+	LWC1      F0, 30 (S2)
+	LWC1      F2, 64 (S1)
+	LIA       S0, 802BFF14
+	SWC1      F0, 68 (V0)
+	SWC1      F2, 64 (V0)
+	LW        V1, 0 (S0)
+	ADDIU     V0, R0, A
+	BNE       V1, V0, .oD2C
+	ADDIU     V0, R0, B
+	LIO       V0, FFBFFFB7
+	LW        V1, 0 (S1)
+	LIA       A1, 802BFF08
+	SAW       R0, 802BFF0C
+	LW        A0, 0 (A1)
+	AND       V1, V1, V0
+	BEQ       A0, R0, .oCA4
+	SW        V1, 0 (S1)
+	JAL       ~Func:enable_player_static_collisions
+	SW        R0, 0 (A1)
+	JAL       ~Func:enable_player_shadow
+	NOP
+	LAW       V0, 8007419C
+	SB        R0, 7D (V0)
+	LW        V0, 0 (S2)
+	ANDI      V0, V0, 800
+	BEQ       V0, R0, .oD10
+	NOP
+	LIA       V1, 802BFF04
+	LW        V0, 0 (V1)
+	SB        R0, 3 (S5)
+	BEQ       V0, R0, .oCE8
+	SB        R0, 0 (S5)
+	JAL       ~Func:enable_player_input
+	SW        R0, 0 (V1)
+	JAL       ~Func:clear_partner_move_history
+	COPY      A0, S1
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 15
+	ADDIU     V0, R0, 1
+	LW        V1, 0 (S2)
+	ADDIU     A0, R0, FEFF
+	AND       V1, V1, A0
+	BEQ       R0, R0, .oDA0
+	SW        V1, 0 (S2)
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 8
+	JAL       ~Func:gravity_use_fall_parms
+	NOP
+	ADDIU     V0, R0, B
+	BEQ       R0, R0, .oD9C
+	SW        V0, 0 (S0)
+	BNE       V1, V0, .oDA0
+	CLEAR     V0
+	LIO       V1, FFBFFFB7
+	ADDIU     A0, R0, FEFF
+	LW        V0, 0 (S1)
+	LIA       A1, 802BFF04
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	SB        R0, 3 (S5)
+	SB        R0, 0 (S5)
+	LW        V0, 0 (S2)
+	LW        V1, 0 (A1)
+	AND       V0, V0, A0
+	BEQ       V1, R0, .oD78
+	SW        V0, 0 (S2)
+	JAL       ~Func:enable_player_input
+	SW        R0, 0 (A1)
+	LAW       V0, 8007419C
+	COPY      A0, S1
+	JAL       ~Func:clear_partner_move_history
+	SB        R0, 7D (V0)
+	JAL       800EF3D4
+	ADDIU     A0, R0, 2
+	BEQ       R0, R0, .oDA0
+	ADDIU     V0, R0, 1
+	CLEAR     V0
+	LW        RA, 48 (SP)
+	LW        S5, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	LDC1      F22, 58 (SP)
+	LDC1      F20, 50 (SP)
+	JR        RA
+	ADDIU     SP, SP, 60
+}
+
+#new:Function $Function_802BF4F0
+{
+	ADDIU     SP, SP, FFB8
+	SW        S2, 38 (SP)
+	LIA       S2, 8010EFC8
+	SW        S3, 3C (SP)
+	LIA       S3, 8010EBB0
+	SW        RA, 40 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	BEQ       A1, R0, .o7C
+	LW        S0, 14C (A0)
+	LAW       V0, 802BFF0C
+	BNE       V0, R0, .o44
+	CLEAR     V1
+	ADDIU     V1, R0, 3
+	.o44
+	SAW       V1, 802BFF00
+	JAL       800EE994
+	COPY      A0, S0
+	JAL       $Function_802BD7DC
+	NOP
+	LIO       V0, FFBFFFFF
+	LW        V1, 4 (S2)
+	LW        A0, 0 (S2)
+	AND       V1, V1, V0
+	ORI       A0, A0, 100
+	SW        V1, 4 (S2)
+	SW        A0, 0 (S2)
+	.o7C
+	LIA       S1, 802BFF00
+	LW        V1, 0 (S1)
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .o20C
+	SLTI      V0, V1, 2
+	BEQ       V0, R0, .oAC
+	ADDIU     V0, R0, 2
+	BEQ       V1, R0, .oBC
+	NOP
+	BEQ       R0, R0, .o348
+	NOP
+	.oAC
+	BEQ       V1, V0, .o224
+	NOP
+	BEQ       R0, R0, .o348
+	NOP
+	.oBC
+	JAL       $Function_802BD7DC
+	NOP
+	LIA       V0, 800B1D80
+	LWC1      F2, A8 (S2)
+	LIF       F6, 90.0
+	LWC1      F4, 6C (V0)
+	C.LE.S    F6, F2
+	NOP
+	BC1F      .o120
+	NOP
+	LIF       F0, 270.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o120
+	NOP
+	LIF       F0, 180.0
+	NOP
+	ADD.S     F0, F4, F0
+	BEQ       R0, R0, .o13C
+	SUB.S     F0, F0, F6
+	.o120
+	MTC1      R0, F0
+	NOP
+	ADD.S     F0, F4, F0
+	LIF       F2, 90.0
+	NOP
+	SUB.S     F0, F0, F2
+	.o13C
+	SWC1      F0, C (S0)
+	LWC1      F12, 28 (S2)
+	LWC1      F14, 30 (S2)
+	LW        A2, 60 (S0)
+	JAL       ~Func:dist2D
+	LW        A3, 68 (S0)
+	SWC1      F0, 2C (SP)
+	LWC1      F0, 64 (S0)
+	LWC1      F2, 3C (S0)
+	ADDIU     V0, R0, E
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o194
+	SH        V0, 8E (S0)
+	SUB.S     F0, F0, F2
+	LIF       F2, 14.0
+	LIF       F4, 6.0
+	DIV.S     F0, F0, F2
+	BEQ       R0, R0, .o1A0
+	ADD.S     F0, F0, F4
+	.o194
+	LIF       F0, 6.0
+	NOP
+	.o1A0
+	SWC1      F0, 1C (S0)
+	LIO       AT, 3F99999A
+	MTC1      AT, F0
+	LW        A2, 60 (S0)
+	LW        A3, 68 (S0)
+	LH        V0, 8E (S0)
+	SWC1      F0, 14 (S0)
+	LWC1      F0, 2C (SP)
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	DIV.S     F0, F0, F2
+	SWC1      F0, 18 (S0)
+	LWC1      F12, 28 (S2)
+	JAL       ~Func:atan2
+	LWC1      F14, 30 (S2)
+	LIO       A0, 00010006
+	JAL       800DFEFC
+	SWC1      F0, C (S0)
+	LIA       V1, 802BFF00
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .o348
+	SW        V0, 0 (V1)
+	.o20C
+	LIO       A0, 00010007
+	JAL       800DFEFC
+	RESERVED
+	LW        V0, 0 (S1)
+	ADDIU     V0, V0, 1
+	SW        V0, 0 (S1)
+	.o224
+	LWC1      F0, 2C (S2)
+	LWC1      F2, 1C (S0)
+	ADD.S     F0, F0, F2
+	ADDIU     A0, S2, 28
+	SWC1      F0, 2C (S2)
+	LWC1      F0, 1C (S0)
+	LWC1      F2, 14 (S0)
+	LW        A2, 18 (S0)
+	SUB.S     F0, F0, F2
+	LW        A3, C (S0)
+	ADDIU     A1, S2, 30
+	JAL       ~Func:add_vec2D_polar
+	SWC1      F0, 1C (S0)
+	JAL       800E4AD8
+	CLEAR     A0
+	LWC1      F2, 1C (S0)
+	MTC1      R0, F0
+	NOP
+	C.LE.S    F2, F0
+	NOP
+	BC1F      .o2BC
+	CLEAR     A0
+	LW        V0, 0 (S2)
+	ORI       V0, V0, 4
+	SW        V0, 0 (S2)
+	LWC1      F0, 1C (S0)
+	LIF       F3, -2.5625
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1F      .o2BC
+	NOP
+	LIF       F0, -10.0
+	NOP
+	SWC1      F0, 1C (S0)
+	.o2BC
+	LWC1      F2, 28 (S2)
+	LH        V0, B0 (S2)
+	LWC1      F0, 30 (S2)
+	ADDIU     A1, SP, 20
+	SWC1      F0, 28 (SP)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F2, 20 (SP)
+	LWC1      F2, 2C (S2)
+	LH        V0, B0 (S2)
+	ADD.S     F2, F2, F0
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	ADDIU     V0, SP, 2C
+	SWC1      F0, 2C (SP)
+	SWC1      F2, 24 (SP)
+	SW        V0, 10 (SP)
+	LWC1      F0, C (S0)
+	ADDIU     A2, SP, 24
+	SWC1      F0, 14 (SP)
+	LH        V0, A6 (S0)
+	ADDIU     A3, SP, 28
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	JAL       800DC778
+	SWC1      F0, 18 (SP)
+	BEQ       V0, R0, .o348
+	ADDIU     V0, R0, 3
+	LWC1      F0, 24 (SP)
+	SAW       V0, 802BFF00
+	SWC1      F0, 2C (S2)
+	.o348
+	LIA       V0, 800B1D80
+	LWC1      F0, 28 (S2)
+	LWC1      F2, 2C (S2)
+	LWC1      F4, 30 (S2)
+	LIA       S1, 802BFF00
+	SWC1      F0, 60 (V0)
+	SWC1      F2, 64 (V0)
+	SWC1      F4, 68 (V0)
+	LW        V1, 0 (S1)
+	ADDIU     V0, R0, 4
+	BEQ       V1, V0, .o480
+	SLTI      V0, V1, 5
+	BEQ       V0, R0, .o398
+	ADDIU     V0, R0, 3
+	BEQ       V1, V0, .o3AC
+	CLEAR     V0
+	BEQ       R0, R0, .o4F4
+	NOP
+	.o398
+	ADDIU     V0, R0, 5
+	BEQ       V1, V0, .o4DC
+	NOP
+	BEQ       R0, R0, .o4F4
+	CLEAR     V0
+	.o3AC
+	ADDIU     V0, R0, FFB7
+	LIA       A1, 802BFF08
+	LW        V1, 0 (S0)
+	LW        A0, 0 (A1)
+	AND       V1, V1, V0
+	BEQ       A0, R0, .o3D4
+	SW        V1, 0 (S0)
+	JAL       ~Func:enable_player_static_collisions
+	SW        R0, 0 (A1)
+	.o3D4
+	JAL       ~Func:enable_player_shadow
+	NOP
+	LW        V0, 0 (S2)
+	ANDI      V0, V0, 800
+	BEQ       V0, R0, .o438
+	NOP
+	LIA       V1, 802BFF04
+	LW        V0, 0 (V1)
+	SB        R0, 3 (S3)
+	BEQ       V0, R0, .o40C
+	SB        R0, 0 (S3)
+	JAL       ~Func:enable_player_input
+	SW        R0, 0 (V1)
+	.o40C
+	LAW       V0, 8007419C
+	SB        R0, 7D (V0)
+	SAW       R0, 802BFF0C
+	JAL       ~Func:clear_partner_move_history
+	COPY      A0, S0
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 15
+	BEQ       R0, R0, .o4F4
+	ADDIU     V0, R0, 1
+	.o438
+	LAW       V0, 802BFF0C
+	BNE       V0, R0, .o458
+	NOP
+	JAL       800E4744
+	NOP
+	BEQ       R0, R0, .o468
+	NOP
+	.o458
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 8
+	JAL       ~Func:gravity_use_fall_parms
+	NOP
+	.o468
+	LIA       V1, 802BFF00
+	LW        V0, 0 (V1)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .o4F0
+	SW        V0, 0 (V1)
+	.o480
+	ADDIU     V0, R0, FEFF
+	LIA       A1, 802BFF04
+	SB        R0, 3 (S3)
+	SB        R0, 0 (S3)
+	LW        V1, 0 (S2)
+	LW        A0, 0 (A1)
+	AND       V1, V1, V0
+	BEQ       A0, R0, .o4B0
+	SW        V1, 0 (S2)
+	JAL       ~Func:enable_player_input
+	SW        R0, 0 (A1)
+	.o4B0
+	LAW       V0, 8007419C
+	SB        R0, 7D (V0)
+	SAW       R0, 802BFF0C
+	JAL       ~Func:clear_partner_move_history
+	COPY      A0, S0
+	LW        V0, 0 (S1)
+	ADDIU     V0, V0, 1
+	BEQ       R0, R0, .o4F0
+	SW        V0, 0 (S1)
+	.o4DC
+	JAL       800EE9B8
+	COPY      A0, S0
+	COPY      V1, V0
+	BNE       V1, R0, .o4F4
+	ADDIU     V0, R0, 1
+	.o4F0
+	CLEAR     V0
+	.o4F4
+	LW        RA, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_???_D
+{
+	LAW       V0, 802BFF0C
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        S1, 14 (SP)
+	LIA       S1, 8010EBB0
+	BEQ       V0, R0, .o84
+	SW        RA, 18 (SP)
+	ADDIU     V1, S1, 18
+	COPY      V0, S0
+	ADDIU     A0, S0, 340
+	.o34
+	LW        A1, 0 (V0)
+	LW        A2, 4 (V0)
+	LW        A3, 8 (V0)
+	LW        T0, C (V0)
+	SW        A1, 0 (V1)
+	SW        A2, 4 (V1)
+	SW        A3, 8 (V1)
+	SW        T0, C (V1)
+	ADDIU     V0, V0, 10
+	BNE       V0, A0, .o34
+	ADDIU     V1, V1, 10
+	ADDIU     V0, R0, 1
+	JAL       ~Func:enable_player_static_collisions
+	SB        V0, 1 (S1)
+	JAL       ~Func:enable_player_input
+	NOP
+	JAL       ~Func:set_action_state
+	CLEAR     A0
+	JAL       ~Func:clear_partner_move_history
+	COPY      A0, S0
+	.o84
+	ADDIU     V0, R0, 8
+	SB        V0, 3 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	SAW       R0, 802BFF18
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_???_E
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	LIA       S0, 8010EBB0
+	SW        RA, 14 (SP)
+	LB        V0, 1 (S0)
+	BEQ       V0, R0, .o8C
+	NOP
+	LAW       V0, 802BFF0C
+	BEQ       V0, R0, .o8C
+	ADDIU     V0, S0, 18
+	ADDIU     V1, S0, 358
+	.o34
+	LW        A1, 0 (V0)
+	LW        A2, 4 (V0)
+	LW        A3, 8 (V0)
+	LW        T0, C (V0)
+	SW        A1, 0 (A0)
+	SW        A2, 4 (A0)
+	SW        A3, 8 (A0)
+	SW        T0, C (A0)
+	ADDIU     V0, V0, 10
+	BNE       V0, V1, .o34
+	ADDIU     A0, A0, 10
+	ADDIU     V0, R0, 1
+	LAW       V1, 8007419C
+	ADDIU     A0, R0, 21
+	JAL       ~Func:set_action_state
+	SB        V0, 7D (V1)
+	SB        R0, 3 (S0)
+	JAL       ~Func:disable_player_input
+	SB        R0, 0 (S0)
+	JAL       ~Func:use_partner_ability
+	NOP
+	.o8C
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802BFB44
+{
+	ADDIU     SP, SP, FFE8
+	LIA       A1, 8010EFC8
+	LAW       V1, 80077410
+	MFC1      A2, F12
+	ADDIU     A0, A1, 28
+	SW        RA, 10 (SP)
+	SLL       V0, V1, 2
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 2
+	SUBU      V0, V0, V1
+	SLL       V1, V0, 3
+	ADDU      V0, V0, V1
+	SLL       V0, V0, 3
+	LTW       A3, V0 (800B1DEC)
+	JAL       ~Func:add_vec2D_polar
+	ADDIU     A1, A1, 30
+	LW        RA, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802BFBA0
+{
+	ADDIU     SP, SP, FFD8
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        S0, 10 (SP)
+	COPY      S0, A1
+	ADDIU     A0, R0, FFFC
+	SW        RA, 24 (SP)
+	SW        S4, 20 (SP)
+	SW        S2, 18 (SP)
+	JAL       ~Func:get_npc_unsafe
+	SW        S1, 14 (SP)
+	LIA       S4, 8010EBB0
+	LIA       S2, 8010EFC8
+	BEQ       S0, R0, .o48
+	COPY      S1, V0
+	SW        R0, 70 (S3)
+	.o48
+	LW        S0, 70 (S3)
+	BEQ       S0, R0, .o64
+	ADDIU     V0, R0, 1
+	BEQ       S0, V0, .o200
+	CLEAR     V0
+	BEQ       R0, R0, .o294
+	NOP
+	.o64
+	LW        V0, B4 (S3)
+	BNE       V0, R0, .oA8
+	NOP
+	LWC1      F0, 28 (S2)
+	LIF       F2, 10.0
+	SWC1      F0, 38 (S1)
+	SWC1      F0, 60 (S1)
+	LWC1      F0, 3C (S1)
+	LWC1      F4, 30 (S2)
+	ADD.S     F0, F0, F2
+	SWC1      F4, 40 (S1)
+	SWC1      F4, 68 (S1)
+	JAL       800EB7CC
+	SWC1      F0, 2C (S2)
+	BEQ       R0, R0, .oF4
+	NOP
+	.oA8
+	JAL       ~Func:set_action_state
+	ADDIU     A0, R0, 21
+	JAL       ~Func:disable_player_static_collisions
+	NOP
+	JAL       ~Func:disable_player_input
+	NOP
+	LWC1      F0, 28 (S2)
+	LIF       F2, 10.0
+	SWC1      F0, 38 (S1)
+	SWC1      F0, 60 (S1)
+	LWC1      F0, 2C (S2)
+	SWC1      F0, 3C (S1)
+	SWC1      F0, 64 (S1)
+	LWC1      F4, 30 (S2)
+	ADD.S     F0, F0, F2
+	SWC1      F4, 40 (S1)
+	SWC1      F4, 68 (S1)
+	SWC1      F0, 2C (S2)
+	.oF4
+	LWC1      F6, 88 (S3)
+	CVT.S.W   F6, F6
+	MFC1      A2, F6
+	LWC1      F6, 90 (S3)
+	CVT.S.W   F6, F6
+	LW        V0, 94 (S3)
+	MFC1      A3, F6
+	SW        V0, 74 (S3)
+	LWC1      F12, 38 (S1)
+	LWC1      F14, 40 (S1)
+	JAL       ~Func:atan2
+	ADDIU     S0, S3, 98
+	MOV.S     F2, F0
+	SWC1      F2, C (S1)
+	LW        V0, B4 (S3)
+	BEQ       V0, R0, .o184
+	ADDIU     A0, R0, 295
+	MTC1      R0, F0
+	NOP
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o188
+	CLEAR     A1
+	LIF       F0, 180.0
+	NOP
+	C.LE.S    F2, F0
+	NOP
+	BC1F      .o188
+	NOP
+	TRUNC.W.S F6, F2
+	MFC1      V0, F6
+	NOP
+	SH        V0, 8A (S1)
+	ADDIU     V0, R0, 1
+	SH        V0, 88 (S1)
+	.o184
+	CLEAR     A1
+	.o188
+	JAL       ~Func:play_sound_at_npc
+	ADDIU     A2, R0, FFFC
+	LUI       V0, 8
+	LIF       F12, 2.0
+	ORI       V0, V0, E
+	SW        V0, B8 (S2)
+	LW        V0, 0 (S2)
+	LUI       V1, 1000
+	SH        R0, BC (S2)
+	OR        V0, V0, V1
+	JAL       $Function_802BFB44
+	SW        V0, 0 (S2)
+	LAW       V1, 8007419C
+	ADDIU     V0, R0, 1
+	SB        V0, 7D (V1)
+	LW        V0, 0 (S1)
+	ORI       V0, V0, 100
+	SW        V0, 0 (S1)
+	LWC1      F0, 0 (S0)
+	ADDIU     V0, R0, 1
+	SW        R0, 14 (S1)
+	SAW       R0, 802BFF10
+	SAW       R0, 802BFF18
+	SWC1      F0, 18 (S1)
+	BEQ       R0, R0, .o290
+	SW        V0, 70 (S3)
+	.o200
+	LW        A1, 18 (S1)
+	LW        A2, C (S1)
+	JAL       ~Func:npc_move_heading
+	COPY      A0, S1
+	LWC1      F0, 38 (S1)
+	LIF       F2, 10.0
+	SWC1      F0, 28 (S2)
+	LWC1      F0, 3C (S1)
+	ADD.S     F0, F0, F2
+	LIF       F12, 2.0
+	SWC1      F0, 2C (S2)
+	LWC1      F0, 40 (S1)
+	SWC1      F0, 30 (S2)
+	LWC1      F0, C (S1)
+	JAL       $Function_802BFB44
+	SWC1      F0, 80 (S2)
+	LW        V0, 74 (S3)
+	ADDIU     V0, V0, FFFF
+	BNE       V0, R0, .o290
+	SW        V0, 74 (S3)
+	LW        V0, B4 (S3)
+	BEQ       V0, R0, .o288
+	ADDIU     A0, R0, 21
+	JAL       ~Func:set_action_state
+	SB        S0, 1 (S4)
+	SB        R0, 3 (S4)
+	JAL       ~Func:use_partner_ability
+	SB        R0, 0 (S4)
+	JAL       ~Func:enable_player_static_collisions
+	NOP
+	JAL       ~Func:enable_player_input
+	NOP
+	.o288
+	BEQ       R0, R0, .o294
+	ADDIU     V0, R0, 2
+	.o290
+	CLEAR     V0
+	.o294
+	LW        RA, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+PADDING: 802BFE54 to 802BFE60 (003239A4 to 003239B0)
+00000000 00000000 00000000
+
+#new:Script $Script_???_A
+{
+    Call  $Function_802BD29C ( )
+    Return
+    End
+}
+
+#new:Unknown $???_802BFE7C
+{
+    802BFF30
+}
+
+#new:Script $Script_???_B
+{
+    Call  $Function_802BD2D4 ( )
+    Return
+    End
+}
+
+#new:Script $Script_UseAbility
+{
+    Call  $Function_802BE724 ( )
+    Return
+    End
+}
+
+#new:Script $Script_???_D
+{
+    Call  $Function_802BF4F0 ( )
+    Return
+    End
+}
+
+#new:Script $Script_???_X
+{
+    Call  $Function_802BFBA0 ( )
+    Return
+    End
+}
+
+#new:ConstDouble $ConstDouble_802BFEF0
+{
+    0.800000d
+}
+
+#new:ConstDouble $ConstDouble_802BFEF8
+{
+    1.800000d
+}
+

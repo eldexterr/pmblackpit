@@ -1,0 +1,409 @@
+#new:Script $ShopperInteraction
+{
+      If *PitMapID == 0 % Floor Zero
+            ExecWait $Script_Interact_Rowf_FloorZero
+            Return
+      EndIf
+	Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $ShopperWelcome ) 
+	Call     ShowChoice  	( 001E0014 ) % Yes No 
+	If  *Var[0]  ==  1 
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $ShopperBye2 ) 
+		Return
+	EndIf
+	Call     $LoadCoins ( *Var[0] )
+	If  *Var[0]  ==  0
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $NoCoins ) 
+		Return
+	EndIf
+	Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $ShopperAccepted )
+	Label    Start
+	Call     ShowCoinCounter 	( .True )
+      Call     $LoadInventory
+	Call     ShowCoinCounter 	( .False )
+	If  *Var[0]  ==  -1 
+		Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $ShopperBye1 ) 
+		Return
+	EndIf
+	Call     $LoadCoins ( *Var[3] )
+	If  *Var[3]  <  *Var[1] 
+		Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $Rowf_NoSpace )
+		Goto 	Start
+	EndIf
+	Call     SetMessageString 	( *Var[4] 0 )
+	Call     SetMessageValue 	( *Var[1] 1 )
+	Call     SetMessageValue 	( *Var[5] 2 )
+	If  *Var[1]  ==  1
+		Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $ShopperBuying ) 
+	Else
+		Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $ShopperBuying ) 
+	EndIf
+	Set  *Var[3]  *Var[0] 
+	Call     ShowChoice  	( 001E000D ) % Yes No 
+	If  *Var[0]  ==  00000001 
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $ShopperCancel ) 
+		Goto 	Start
+	EndIf
+	Call     $InventoryAvailability
+	If  *Var[0]  ==  0
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 00080007 ) % Oh, this is unfortunate... You have too much stuff ...
+		Return
+	EndIf
+	Call     CloseMessage
+	Mul      *Var[1]  -1
+	Call     AddCoin 	( *Var[1] )
+	Set  *Var[0]  *Var[3] 
+	Set  *Var[1]  9
+      ExecWait $GotItem
+      Set   *Flag_Cheev_Global_08 .True % Challenge Completed
+      Add   *RowfPurchases 1
+      If    *RowfPurchases >= 50`
+            Set   *Flag_Cheev_Global_09 .True % Challenge Completed
+            If    *RowfPurchases >= 100`
+                  Set      *Flag_Cheev_Global_10 .True % Challenge Completed
+            EndIf
+      EndIf
+      % Roguelike Challenges
+      If *Flag_Mode_Rogue == .True
+            Add *Rogue_RowfPurchases 1
+            If *Rogue_RowfPurchases >= 30`
+                  Set *Flag_Cheev_Rogue_10 .True % Challenge Completed
+            EndIf
+      EndIf
+	Call     AddBadge    	( *Var[0] *Var[1] )
+	Call     $LoadCoins ( *Var[0] )
+	Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $AfterBuying )
+	Call     ShowChoice  	( 001E000D ) % Yes No 
+	If  *Var[0]  ==  1
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $ShopperBye2 )
+		Return
+	EndIf
+	Call	CloseMessage
+	Goto 	Start
+	Return
+	End
+}
+
+#new:Script $Script_Interact_Rowf_FloorZero
+{
+      Label    Start
+      Call     $LoadInventory
+	If  *Var[0]  ==  -1
+		Return
+	EndIf
+	Call     $LoadCoins ( *Var[3] )
+	If  *Var[3]  <  *Var[1]
+		Goto 	Start
+	EndIf
+	Call     SetMessageString 	( *Var[4] 0 )
+	Call     SetMessageValue 	( *Var[1] 1 )
+	Call     SetMessageValue 	( *Var[5] 2 )
+      Call     SpeakToPlayer 	( 00000009 00A7000C 00A70009 00000000 $ShopperBuying ) 
+	Set      *Var[3]  *Var[0] 
+	Call     ShowChoice  	( 001E000D ) % Yes No 
+	If  *Var[0]  ==  1 % No
+		Call     ContinueSpeech 	( 00000009 00A7000C 00A70009 00000000 $ShopperCancel ) 
+		Goto 	Start
+	EndIf
+	Call     CloseMessage
+      % Set Badge Flags
+      Switch *Var[3] % Var3 = itemID
+            % Hard
+            Case == .Item:GroupFocus
+                  Set *Flag_GroupFocus2 .True
+            Case == .Item:FireShield
+                  Set *Flag_FireShield2 .True
+            Case == .Item:HappyHeartA
+                  Set *Flag_HappyHeartA2 .True
+            Case == .Item:HappyFlowerA
+                  Set *Flag_HappyFlowerA2 .True
+            Case == .Item:Multibounce
+                  Set *Flag_Multibounce2 .True
+            Case == .Item:DizzyAttack
+                  Set *Flag_DizzyAttack2 .True
+            % Very Hard
+            Case == .Item:FlowerSaverA
+                  Set *Flag_FlowerSaverA2 .True
+            Case == .Item:HeartFinder
+                  Set *Flag_HeartFinder2 .True
+            Case == .Item:FlowerFinder
+                  Set *Flag_FlowerFinder2 .True
+            Case == .Item:CloseCall
+                  Set *Flag_CloseCall2 .True
+            Case == .Item:DefendPlusA
+                  Set *Flag_DefendPlus2 .True
+            Case == .Item:PowerPlusA
+                  Set *Flag_PowerPlusA2 .True
+      EndSwitch
+	Set  *Var[0]  *Var[3]
+      Call     ShowGotItem 	( *Var[0] 00000001 00000000 )
+	Call	   $Function_ActivateBadge2 % Activate the badge automatically
+      % Rowf Dissapears
+      Call  GetNpcPos ( .Npc:Self *Var[0] *Var[1] *Var[2] )
+      Add   *Var[2] 1 % z
+      Call  PlayEffect 	( ~FX:BigSmokePuff *Var[0] *Var[1] *Var[2] ) % ~Vec3d:Switch
+      Call  PlaySound  	( .Sound:SmokeBurst )
+      Wait  2
+      Call  SetNpcPos ( .Npc:Self 0 -1000` 0 )
+      Return
+      End
+}
+
+% Set the current prices by reading the current floor
+#new:Script $Script_SetInventoryPrices
+{
+If *PitMapID == 0
+      If *PitDifficulty == 1 % Hard
+            Set *MapVar[4] 9
+      Else % Very-Hard
+            Set *MapVar[4] A
+      EndIf
+EndIf
+Switch *MapVar[4]
+      Case == 0
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory1 .False .False )
+      Case == 1
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory2 .False .False )
+      Case == 2
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory3 .False .False )
+      Case == 3
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory4 .False .False )
+      Case == 4
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory5 .False .False )
+      Case == 5
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory6 .False .False )
+      Case == 6
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory7 .False .False )
+      Case == 7
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory8 .False .False )
+      Case == 8
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory9 .False .False )
+      % Floor Zero Inventories
+      Case == 9 % Hard
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory_Zero_1 .False .False )
+      Case == A % Very Hard
+            Call $WriteAddress ( $RowfsInventoryPointer 2 $ShopperInventory_Zero_2 .False .False )
+EndSwitch
+% Copy all data to InventoryX
+Set   *Var[1] 0
+Loop 18` % because 18 words need to be copied to InventoryX
+      Call $ReadAddress ( $RowfsInventoryPointer 2 *Var[0] *Var[1] .True )
+      Call $WriteAddress ( $ShopperInventoryX 2 *Var[0] *Var[1] .False )
+      Add *Var[1] 4 % read next word
+EndLoop
+Set   *Var[1] 4
+Loop 6 % because there 6 items in all inventories
+      Call $ReadAddress ( $ShopperInventoryX 2 *Var[0] *Var[1] .False )
+      If *Flag_Mode_Rogue == .True
+            Set *Var[2] 10` % aument each price by 10 on each floor
+      Else
+            Set *Var[2] 30` % aument each price by 30 on each floor
+      EndIf
+      Switch *PitMapID
+            Case == 10`
+            Case == 20`
+                  Mul *Var[2] 1
+            Case == 30`
+                  Mul *Var[2] 2
+            Case == 40`
+                  Mul *Var[2] 3
+            Case == 50`
+                  Mul *Var[2] 4
+            Case == 60`
+                  Mul *Var[2] 5
+            Case == 70`
+                  Mul *Var[2] 6
+            Case == 80`
+                  Mul *Var[2] 7
+            Case == 90`
+                  Mul *Var[2] 8
+      EndSwitch
+      If *PitMapID > 10`
+            Add *Var[0] *Var[2]
+      EndIf
+      Call  $WriteAddress ( $ShopperInventoryX 2 *Var[0] *Var[1] .False ) % save new price
+      % read next item
+      Add   *Var[1] C
+EndLoop
+Return
+End
+}
+
+#new:Function $InventoryAvailability
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  SW        RA, 14 (SP)
+    C:  JAL       ~Func:get_item_empty_count
+   10:  DADDU     S0, A0, R0
+   14:  SW        V0, 84 (S0)
+   18:  LW        RA, 14 (SP)
+   1C:  LW        S0, 10 (SP)
+   20:  ADDIU     V0, R0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+   
+#new:Function $LoadCoins 
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  LAH       A2, 8010F29C
+   14:  JAL       ~Func:set_variable
+   18:  LW        A1, 0 (V0)
+   1C:  LW        RA, 10 (SP)
+   20:  ADDIU     V0, R0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+   
+#new:Function $LoadInventory
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S3, 1C (SP)
+    8:  DADDU     S3, A0, R0
+    C:  SW        S6, 28 (SP)
+   10:  LIA       S6, 8010F28D % This Line load the players coins (The Two LHU commands below do a offset to the coins address)
+   18:  SW        RA, 34 (SP)
+   1C:  SW        S8, 30 (SP)
+   20:  SW        S7, 2C (SP)
+   24:  SW        S5, 24 (SP)
+   28:  SW        S4, 20 (SP)
+   2C:  SW        S2, 18 (SP)
+   30:  SW        S1, 14 (SP)
+   34:  BEQ       A1, R0, .o130
+   38:  SW        S0, 10 (SP)
+   3C:  JAL       ~Func:heap_malloc
+   40:  ADDIU     A0, R0, 330
+   44:  SW        V0, 78 (S3)
+   48:  DADDU     S5, V0, R0
+   4C:  DADDU     S4, R0, R0
+   50:  DADDU     S2, S4, R0
+   54:  LIO       S7, *Flag_Merlow_Badge_00
+   5C:  LIA       S8, 8008A680
+        LIO       S1, $ShopperInventoryX
+   6C:  DADDU     S0, S5, R0
+        .o70
+   70:  DADDU     A0, R0, R0
+   74:  JAL       ~Func:get_variable
+   78:  ADDU      A1, S2, S7
+   7C:  BNEL      V0, R0, .o108
+   80:  ADDIU     S2, S2, 1
+   84:  LW        V0, 0 (S1)
+   88:  LIA       A2, 800878E0
+   90:  SLL       V0, V0, 5
+   94:  ADDU      V0, V0, A2
+   98:  LH        V1, 4 (V0)
+   9C:  SW        S2, 108 (S0)
+   A0:  LW        V0, 0 (V0)
+   A4:  SLL       V1, V1, 3
+   A8:  ADDU      A0, V1, S8
+   AC:  SW        V0, 84 (S0)
+   B0:  LW        V0, 0 (A0)
+   B4:  SW        V0, 0 (S0)
+   B8:  LHU       V0, F (S6) % This line turn on the available items (Name) 1
+   BC:  LW        V1, 4 (S1)
+   C0:  SLT       V0, V0, V1
+   C4:  XORI      V0, V0, 1
+   C8:  SW        V0, 18C (S0)
+   CC:  LHU       V0, F (S6) % Related to track if player have enough coins?
+   D0:  LW        V1, 4 (S1)
+   D4:  SLT       V0, V0, V1
+   D8:  BEQ       V0, R0, .oEC
+   DC:  NOP
+   E0:  LW        V0, 4 (A0)
+   E4:  SW        R0, 18C (S0)
+   E8:  SW        V0, 0 (S0)
+        .oEC
+   EC:  LW        V0, 8 (S1)
+   F0:  SW        V0, 294 (S0)
+   F4:  LW        V0, 4 (S1)
+   F8:  ADDIU     S4, S4, 1
+   FC:  SW        V0, 210 (S0)
+  100:  ADDIU     S0, S0, 4
+  104:  ADDIU     S2, S2, 1
+        .o108
+  108:  SLTI      V0, S2, 6 %Total Items in the List,if the inventory list have a bigger one the game will crash
+  10C:  BNE       V0, R0, .o70
+  110:  ADDIU     S1, S1, C
+  114:  DADDU     A0, S5, R0
+  118:  ADDIU     V0, R0, 5 % This Line is to make appear the List Box style you want
+  11C:  SW        V0, 318 (A0)
+  120:  SW        S4, 324 (A0)
+  124:  JAL       800F4E40
+  128:  SW        R0, 328 (A0)
+  12C:  SW        R0, 70 (S3)
+        .o130
+  130:  LW        V0, 70 (S3)
+  134:  LW        S5, 78 (S3)
+  138:  BNE       V0, R0, .o15C
+  13C:  ADDIU     V0, V0, 1
+  140:  LH        V0, 32C (S5)
+  144:  BEQ       V0, R0, .o16C
+  148:  SW        V0, 74 (S3)
+  14C:  JAL       800F13B0
+  150:  NOP
+  154:  LW        V0, 70 (S3)
+  158:  ADDIU     V0, V0, 1
+        .o15C
+  15C:  SW        V0, 70 (S3)
+  160:  SLTI      V0, V0, 14
+  164:  BEQ       V0, R0, .o174
+  168:  NOP
+        .o16C
+  16C:  BEQ       R0, R0, .o224
+  170:  DADDU     V0, R0, R0
+        .o174
+  174:  JAL       800F1538
+  178:  NOP
+  17C:  LW        V1, 74 (S3)
+  180:  ADDIU     V0, R0, FF
+  184:  BEQ       V1, V0, .o210
+  188:  ADDIU     V0, V1, FFFF
+  18C:  SLL       V0, V0, 2
+  190:  ADDU      V0, S5, V0
+  194:  LW        S2, 108 (V0)
+        LIO       V0, $ShopperInventoryX
+  1A0:  SLL       V1, S2, 1
+  1A4:  ADDU      V1, V1, S2
+  1A8:  SLL       V1, V1, 2
+  1AC:  ADDU      V1, V1, V0
+  1B0:  LW        V0, 0 (V1)
+  1B4:  SW        V0, 84 (S3)
+  1B8:  LW        V0, 4 (V1)
+  1BC:  SW        S2, 8C (S3)
+  1C0:  SW        V0, 88 (S3)
+  1C4:  LW        V0, 0 (V1)
+  1C8:  SLL       V0, V0, 5
+  1CC:  LTW       V0, V0 (800878E0)
+  1D8:  SW        V0, 94 (S3)
+  1DC:  LW        V0, 0 (V1)
+  1E0:  SLL       V0, V0, 5
+  1E4:  LTBU      V1, V0 (800878FA)
+  1F0:  SLL       V0, V1, 2
+  1F4:  ADDU      V0, V0, V1
+  1F8:  SLL       V0, V0, 2
+  1FC:  LTB       V0, V0 (8008F072)
+  208:  BEQ       R0, R0, .o218
+  20C:  SW        V0, 98 (S3)
+        .o210
+  210:  ADDIU     V0, R0, FFFF
+  214:  SW        V0, 84 (S3)
+        .o218
+  218:  JAL       ~Func:heap_free
+  21C:  LW        A0, 78 (S3)
+  220:  ADDIU     V0, R0, 2
+        .o224
+  224:  LW        RA, 34 (SP)
+  228:  LW        S8, 30 (SP)
+  22C:  LW        S7, 2C (SP)
+  230:  LW        S6, 28 (SP)
+  234:  LW        S5, 24 (SP)
+  238:  LW        S4, 20 (SP)
+  23C:  LW        S3, 1C (SP)
+  240:  LW        S2, 18 (SP)
+  244:  LW        S1, 14 (SP)
+  248:  LW        S0, 10 (SP)
+  24C:  JR        RA
+  250:  ADDIU     SP, SP, 38
+}

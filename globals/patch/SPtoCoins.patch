@@ -1,0 +1,109 @@
+% This patch give you coins instead of Star Points when Mario win a battle
+
+#new:Function $IsBadgeEquiped
+{
+PUSH	S1, S2, S3
+.Init
+LIO		S2, 8010F498	% position in list
+ADDIU	S3, S2, 78		% end of list
+.Loop
+LH		S1, 0 (S2)
+BEQL	A0, S1, .End
+ADDIU	A0, R0, 1 % return true
+BNE		S2, S3, .Loop
+ADDIU	S2, S2, 2
+ADDIU	A0, R0, 0 % return false
+.End
+POP		S1, S2, S3
+JR		RA
+NOP
+}
+
+%%
+
+@Function 16EEC8 % 802405E8 % Remove the 100 cap when getting SPs
+{
+NOP
+}
+
+@Function 16EF88 % 802406A8 % Make appear the bar with the SPs inside when "X Star Points!" appears
+{
+NOP
+}
+
+@Function 16F1CC % 802408EC % Make appear the gained SPs icons
+{
+NOP
+}
+
+@Function 18C798 % 8025DEB8 % Make "X Star Points!" appear
+{
+NOP
+}
+
+@Function 18CD20 % 8025E440 % Store the Exp as Coins
+{
+LHU	V0, 000C (S5)
+}
+
+@Function 18CD00 % 8025E420 % needed to get the correct sp value at the moment a battle ends
+{ NOP }
+
+@Hook 16EEB8 % 802405D8 % Lock current gained coins to 255 if the player got 255+ coins
+{
+PUSH    T0
+ADDIU	V0, V0, 0001
+% V0 = Current Gained
+SLTIU	T0, V0, 100	 	% Current Coins are less than 256?
+BNE		T0, R0, .End
+NOP
+ORI 	V0, R0, FF	 	% Set gained to 255
+.End
+POP     T0
+J       802405E0
+SB	    V0, 0078 (T3)
+}
+
+@Hook 18CD30 % 8025E450 % Store the Exp as Coins
+{
+ADDIU	SP, SP, -30
+SW		A0, 0010 (SP)
+SW		S0, 0014 (SP)
+SW		S1, 0018 (SP)
+SW		S2, 001C (SP)
+SW		RA, 0020 (SP)
+SWC1	F0, 0024 (SP)
+SWC1	F1, 0028 (SP)
+% PUSH	%
+LAHU	S0, 8010F29C 	% Load Current Coins
+LABU	S1, 800DC0E8 	% Current Coins gained in battle
+/%
+% The code that check if you beated this battle without getting hurt
+% is at Tracking Values.patch (@Hook 18CBA4)
+%/
+% Add GainedCoins in this battle to TotalGainedCoins
+LAHU	S2, 8010F2AA	% Total Gained Coins in actual Pit playthrough
+ADDU	S2, S2, S1
+SAH		S2, 8010F2AA
+ADDU	S0, S0, S1
+SLTIU	S2, S0, 270F 	% Current Coins are less than 9999?
+BNE		S2, R0, .StoreCoins
+NOP
+ORI 	S0, R0, 270F 	% Lock the coin value to 9999 if the player got +999 coins
+.StoreCoins
+ADDIU	S1, R0, 0
+SAB		S1, 800DC0E8 % Set current gained coins to 0 to just add the final coin value and stop adding more coins
+SAH		S0, 8010F29C % current coins
+%	POP		%
+LW		A0, 0010 (SP)
+LW		S0, 0014 (SP)
+LW		S1, 0018 (SP)
+LW		S2, 001C (SP)
+LW		RA, 0020 (SP)
+LWC1	F0, 0024 (SP)
+LWC1	F1, 0028 (SP)
+ADDIU	SP, SP, 30
+LW		V0, 0000 (V1)
+J		8025E458
+NOP
+}

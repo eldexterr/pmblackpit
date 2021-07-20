@@ -1,0 +1,339 @@
+% Automatically dumped from section 08
+
+#new:Actor $08_GoombarioTutor2 {
+% stats
+[Index]        9Fb 
+[Level]        99`b 
+[MaxHP]        99`b 
+[Coins]         0`b 
+[Flags]       00240000 
+[StatusTable] $StatusTable_80218298_08 
+% ai
+[PartsCount]    1`s 
+[PartsTable]  $PartsTable_80218344_08 
+[Script]      $Script_Init_80218390_08 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce] 100`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         24`b  32`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  20`b % dx dy
+[StatusIcon]   10`b  20`b % dx dy
+}
+
+#new:Function $Function_80218000_08 {
+	ADDIU     SP, SP, FFE0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        A0, 148 (A0)
+	JAL       ~Func:get_actor
+	COPY      S0, A1
+	BEQ       S0, R0, .o2C
+	COPY      S1, V0
+	SAW       R0, $End[0]
+	.o2C
+	LIA       S0, $End[0]
+	LW        V0, 0 (S0)
+	ADDIU     V0, V0, F
+	MTC1      V0, F12
+	NOP
+	CVT.S.W   F12, F12
+	JAL       ~Func:clamp_angle
+	SW        V0, 0 (S0)
+	TRUNC.W.S F4, F0
+	MFC1      V0, F4
+	LIO       AT, 40C90FD0
+	MTC1      AT, F0
+	MTC1      V0, F12
+	NOP
+	CVT.S.W   F12, F12
+	MUL.S     F12, F12, F0
+	NOP
+	LIF       F0, 360.0
+	SW        V0, 0 (S0)
+	JAL       ~Func:sin_rad
+	DIV.S     F12, F12, F0
+	LIF       F2, 3.0
+	NOP
+	MUL.S     F0, F0, F2
+	NOP
+	TRUNC.W.S F4, F0
+	MFC1      V1, F4
+	NOP
+	SB        V1, 19A (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802180C8_08 {
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:status_menu_start_blinking_sp
+	NOP
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802180E8_08 {
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:status_menu_stop_blinking_sp
+	NOP
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80218158_08 {
+	LIA       V0, 800DC070
+	SB        R0, 4C (V0)
+	SB        R0, 5C (V0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80218170_08 {
+	LIA       A2, 800DC070
+	BEQ       A1, R0, .o14
+	ADDIU     V0, R0, A
+	SW        V0, 70 (A0)
+	.o14
+	LW        V0, 4 (A2)
+	ADDIU     V1, R0, FFFD
+	AND       V0, V0, V1
+	SW        V0, 4 (A2)
+	LW        V0, 70 (A0)
+	BNE       V0, R0, .o38
+	ADDIU     V0, V0, FFFF
+	JR        RA
+	ADDIU     V0, R0, 2
+	.o38
+	SW        V0, 70 (A0)
+	JR        RA
+	CLEAR     V0
+}
+
+#new:IdleAnimations $IdleAnimations_80218280_08 {
+.Status:Normal    00120001
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_8021828C_08 {
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:StatusTable $StatusTable_80218298_08 {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep       0`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       0`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    0`
+.Status:Shrink      0`
+.Status:Stop        0`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_80218344_08 {
+00800000 01000000 001800FF $IdleAnimations_80218280_08 $DefenseTable_8021828C_08 00000000 00000000 00000000 00000000 
+}
+
+#new:Script $Script_Init_80218390_08 {
+    Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_80218414_08 )
+    Call  BindIdle  ( .Actor:Self $Script_Idle_802183E8_08 )
+    Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80218404_08 )
+    Exec  $Script_80218424_08 
+    Return
+    End
+}
+
+#new:Script $Script_Idle_802183E8_08 {
+    Call  $Function_80218000_08 ( )
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_80218404_08 {
+    Return
+    End
+}
+
+#new:Script $Script_TakeTurn_80218414_08 {
+    Return
+    End
+}
+
+#new:Script $Script_80218424_08 {
+    Call  SetBattleFlagBits ( 02000000 .True )
+    Call  $Function_80218158_08 ( )
+    Call  8026E198  ( 0000000D )
+    Call  SetAnimation      ( .Actor:Player 00000000 00010002 )
+    Wait  15`
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  ActorSpeak        ( 000C0114 .Actor:Self 00000001 00120002 00120001 ) % Now, Mario. This is your gauge for Star Energy.
+    Thread
+        Call  EnableActorBlur   ( .Actor:Self 00000001 )
+        Call  SetGoalPos        ( .Actor:Self FFFFFF92 00000064 00000000 )
+        Call  FlyToGoal ( .Actor:Self 00000014 00000000 .Easing:CosInOut )
+        Call  EnableActorBlur   ( .Actor:Self 00000000 )
+        Call  SetAnimation      ( .Actor:Player 00000000 0001002A )
+    EndThread
+    Wait  10`
+    Call  $Function_802180C8_08 ( )
+    Wait  120`
+    Call  $Function_802180E8_08 ( )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  SetGoalToHome ( .Actor:Self )
+    Call  EnableActorBlur   ( .Actor:Self 00000001 )
+    Call  FlyToGoal     ( .Actor:Self 00000014 00000000 .Easing:CosInOut )
+    Call  EnableActorBlur   ( .Actor:Self 00000000 )
+    Call  ActorSpeak    ( 000C0115 .Actor:Self 00000001 00120002 00120001 ) % See? You can check to see how much Star Energy you ...
+    Wait  10`
+    Call  SetAnimation  ( .Actor:Player 00000000 0001002A )
+    Call  $Function_802180C8_08 ( )
+    Wait  120`
+    Call  $Function_802180E8_08 ( )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  ActorSpeak    ( 000C0116 .Actor:Self 00000001 00120002 00120001 ) % Next, allow me to explain about Star Powers. First ...
+    Wait  10`
+    Call  8026E020      ( 00000100 )
+    Call  8026E038      ( 00000002 )
+    Call  8026E198      ( 00000012 )
+    Set   *Var[0]  000000FF 
+    Loop  0000000A 
+        Sub   *Var[0]  00000019 
+        If  *Var[0]  <  00000000 
+            Set   *Var[0]  00000000 
+        EndIf
+        Call  SetPartAlpha  ( .Actor:Self 00000001 *Var[0] )
+        Wait  1`
+    EndLoop
+    Call  SetPartAlpha      ( .Actor:Self 00000001 00000000 )
+    Call  SetActorFlagBits  ( .Actor:Self 00000004 .True )
+    Thread
+        Call  $Function_80218170_08 ( )
+    EndThread
+    Call  8026E198  ( 00000016 )
+    Set   *Var[0]  00000000 
+    Loop  0000000A 
+        Add   *Var[0]  00000019 
+        If  *Var[0]  >  000000FF 
+            Set   *Var[0]  000000FF 
+        EndIf
+        Call  SetPartAlpha  ( .Actor:Self 00000001 *Var[0] )
+        Wait  1`
+    EndLoop
+    Call  SetPartAlpha  ( .Actor:Self 00000001 000000FF )
+    Call  SetActorFlagBits  ( .Actor:Self 00000004 .False )
+    Call  ActorSpeak    ( 000C0117 .Actor:Self 00000001 00120002 00120001 ) % See? Both HP and FP have recovered 5 points each.  ...
+    Wait  10`
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  SetAnimation  ( .Actor:Player 00000000 0001002A )
+    Call  $Function_802180C8_08 ( )
+    Wait  120`
+    Call  $Function_802180E8_08 ( )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  ActorSpeak    ( 000C0118 .Actor:Self 00000001 00120002 00120001 ) % Usually, your partner's turn would come next, and  ...
+    Wait  10`
+    Call  8026E16C      ( 00000006 )
+    Call  8026E198      ( 00000005 )
+    Wait  20`
+    Call  ActorSpeak    ( 000C0119 .Actor:Self 00000001 00120002 00120001 ) % OK. It's Mario's turn. Now, pay attention to the S ...
+    Wait  10`
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Thread
+        Call  EnableActorBlur   ( .Actor:Self 00000001 )
+        Call  SetGoalPos        ( .Actor:Self FFFFFF92 00000064 00000000 )
+        Call  FlyToGoal ( .Actor:Self 00000014 00000000 .Easing:CosInOut )
+        Call  EnableActorBlur   ( .Actor:Self 00000000 )
+        Call  SetAnimation      ( .Actor:Player 00000000 0001002A )
+    EndThread
+    Wait  10`
+    Call  SetAnimation  ( .Actor:Player 00000000 0001002A )
+    Call  $Function_802180C8_08 ( )
+    Wait  120`
+    Call  $Function_802180E8_08 ( )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  SetGoalToHome ( .Actor:Self )
+    Call  EnableActorBlur   ( .Actor:Self 00000001 )
+    Call  FlyToGoal     ( .Actor:Self 00000014 00000000 .Easing:CosInOut )
+    Call  EnableActorBlur   ( .Actor:Self 00000000 )
+    Call  ActorSpeak    ( 000C011A .Actor:Self 00000001 00120002 00120001 ) % Did you notice that the amount of Star Energy incr ...
+    Wait  10`
+    Call  ActorSpeak    ( 000C011B .Actor:Self 00000001 00120002 00120001 ) % Next, I'm going to teach you about another Star Po ...
+    Wait  10`
+    Call  8026E020      ( 00000100 )
+    Call  8026E038      ( 00000001 )
+    Call  $Function_80218158_08 ( )
+    Call  8026E198      ( 00000012 )
+    Set   *Var[0]  000000FF 
+    Loop  0000000A 
+        Sub   *Var[0]  00000019 
+        If  *Var[0]  <  00000000 
+            Set   *Var[0]  00000000 
+        EndIf
+        Call  SetPartAlpha  ( .Actor:Self 00000001 *Var[0] )
+        Wait  1`
+    EndLoop
+    Call  SetPartAlpha      ( .Actor:Self 00000001 00000000 )
+    Call  SetActorFlagBits  ( .Actor:Self 00000004 .True )
+    Thread
+        Call  $Function_80218170_08 ( )
+    EndThread
+    Call  8026E198  ( 00000016 )
+    Set   *Var[0]  00000000 
+    Loop  0000000A 
+        Add   *Var[0]  00000019 
+        If  *Var[0]  >  000000FF 
+            Set   *Var[0]  000000FF 
+        EndIf
+        Call  SetPartAlpha  ( .Actor:Self 00000001 *Var[0] )
+        Wait  1`
+    EndLoop
+    Call  SetPartAlpha  ( .Actor:Self 00000001 000000FF )
+    Call  SetActorFlagBits  ( .Actor:Self 00000004 .False )
+    Call  ActorSpeak    ( 000C011C .Actor:Self 00000001 00120002 00120001 ) % Did you notice how much the Star Energy increased? ...
+    Wait  10`
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  SetAnimation  ( .Actor:Player 00000000 0001002A )
+    Call  $Function_802180C8_08 ( )
+    Wait  120`
+    Call  $Function_802180E8_08 ( )
+    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+    Call  ActorSpeak    ( 000C011D .Actor:Self 00000001 00120002 00120001 ) % You should also remember that you can replenish yo ...
+    Call  8026E198      ( 00000000 )
+    Call  8026E16C      ( 0000001E )
+    Wait  00002710 
+    Return
+    End
+}
+

@@ -1,0 +1,591 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 00000000
+[EntryList] $EntryList
+[EntryCount] 5
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % Left
+~Vec4f:Entry1 % Black Pit
+~Vec4f:Entry2 % Short-cut
+~Vec4f:Entry3 % Save Block
+~Vec4f:Entry4 % Dead
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "arn_tex"
+JAL 	~Func:sprintf
+RESERVED
+CLEAR   V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 ) % black
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    SetMusicTrack 		 ( .Default A4 00000000 00000008 ) % Black Pit Theme
+Call    EnableModel ( ~Model:doorL2 .False )
+Call    EnableModel ( ~Model:doorR2 .False )
+If  *BlackPit_BluePipe == .False
+    Call    EnableModel ( ~Model:dokan_e2 .False )
+    Call 	ModifyColliderFlags ( .False ~Collider:exit2 7FFFFE00 )
+    Call 	ModifyColliderFlags ( .False ~Collider:o307 7FFFFE00 )
+EndIf
+Exec    $Script_Init_TexturePanning
+Exec    $Script_MakeEntities
+Exec    $TrackEntry
+Wait    5
+Return
+End
+}
+
+#new:Script $Script_Init_TexturePanning
+{
+    Call     EnableTexPanning 	( ~Model:bg .True )
+	Thread
+		Set  *Var[0]  .Default % panner id
+		% Texture Pan Rate
+		Set  *Var[1]  452` 	    % Main U
+		Set  *Var[2]  280`      % Main V
+		Set  *Var[3]  0 	    % Aux U
+		Set  *Var[4]  0 	    % Aux V
+		% Delay Between Updates
+		Set  *Var[5]  .False	% Main U
+		Set  *Var[6]  .False	% Main V
+		Set  *Var[7]  .False	% Aux U
+		Set  *Var[8]  .False	% Aux V
+		% Initial Offset
+		Set  *Var[9]  .False	% Main U 
+		Set  *Var[A]  .False	% Main V
+		Set  *Var[B]  .False 	% Aux U
+		Set  *Var[C]  .False 	% Aux V
+		Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+    EndThread
+	Return
+	End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Call    MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+	Call    MakeEntity  	( .Entity:HealingBlock ~Vec4d:HealBlock 80000000 )
+    Bind    $Script_ReadSign ( .Trigger:WallPressA ~Collider:sign 00000001 00000000 )
+	Return
+	End
+}
+
+#new:Script $Script_ReadSign
+{
+    Call    DisablePlayerInput ( .True )
+    If	*BestTimeBP_Turns == .False % The player still hasn't beated the Black Pit
+        Call    ShowMessageAtScreenPos     	( $String_QuestionMarks 000000A0 00000028 )
+        Call    DisablePlayerInput ( .False )
+        Return
+    EndIf
+	Call	SetMessageValue 	( *BestTimeBP_HH 0 )
+    Call	SetMessageValue 	( *BestTimeBP_MM 1 )
+    Call	SetMessageValue 	( *BestTimeBP_SS 2 )
+    If *BestTimeRogue_HH > 9
+        Set *Var[A] $String_Highscore0_00_00
+        If *BestTimeRogue_MM > 9
+            Set *Var[A] $String_Highscore0_0_00
+            If *BestTimeRogue_SS > 9
+                Set *Var[A] $String_Highscore0_0_0
+            Else
+                Set *Var[A] $String_Highscore0_0_00
+            EndIf
+        Else
+            Set *Var[A] $String_Highscore0_00_00
+            If *BestTimeRogue_SS > 9
+                Set *Var[A] $String_Highscore0_00_0
+            Else
+                Set *Var[A] $String_Highscore0_00_00
+            EndIf
+        EndIf
+    Else
+        Set *Var[A] $String_Highscore00_00_00
+        If *BestTimeRogue_MM > 9
+            Set *Var[A] $String_Highscore00_0_00
+            If *BestTimeRogue_SS > 9
+                Set *Var[A] $String_Highscore00_0_0
+            Else
+                Set *Var[A] $String_Highscore00_0_00
+            EndIf
+        Else
+            Set *Var[A] $String_Highscore00_00_00
+            If *BestTimeRogue_SS > 9
+                Set *Var[A] $String_Highscore00_00_0
+            Else
+                Set *Var[A] $String_Highscore00_00_00
+            EndIf
+        EndIf
+    EndIf
+    Call    ShowMessageAtScreenPos     	( *Var[A] 000000A0 00000028 )
+    Call	SetMessageValue 	( *BestTimeBP_Turns 0 )
+    Call    SwitchMessage ( $String_TotalTurns )
+    Call    DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+#string $String_QuestionMarks
+{
+[DelayOff][STYLE:INSPECT][...]
+
+                  [Down:05]???
+[DelayOn][WAIT][END]
+}
+
+#string $String_TotalTurns
+{
+[NEXT][...]
+
+Total turns:  [Up:03][Size:17:17][PushColor][Color:07][Var:00][PopColor][SizeReset]
+[WAIT][END]
+}
+
+#string $String_Highscore0_0_0
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07][Var:00]:[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore00_0_0
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07]0[Var:00]:[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore0_00_0
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07][Var:00]:0[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore0_0_00
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07][Var:00]:[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore00_00_0
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07]0[Var:00]:0[Var:01]:[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore00_0_00
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07]0[Var:00]:[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore0_00_00
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07][Var:00]:0[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#string $String_Highscore00_00_00
+{
+[DelayOff][STYLE:INSPECT][...]
+Best time beating the Black Pit:
+             [Down:05][Size:17:17][PushColor][Color:07]0[Var:00]:0[Var:01]:0[Var:02][PopColor][SizeReset]
+[DelayOn][WAIT]
+[Func_04][END]
+}
+
+#new:Script $TrackEntry
+{
+    Call	GetLoadType 	( *Var[1] )
+	If	*Var[1] ==  1 % Game loaded
+        Exec    $Script_MakeExits
+        Exec    EnterSavePoint
+    Else
+        Call     GetEntryID  	( *Var[0] )
+        Switch *Var[0]
+            Case == 0 % Left
+                Set     *Var[0] $Script_MakeExits
+                Exec    EnterWalk
+            Case == 1 % Black Pit
+                Call    EnableModel ( ~Model:doorL .False )
+                Call    EnableModel ( ~Model:doorR .False )
+                Call    EnableModel ( ~Model:doorL2 .True )
+                Call    EnableModel ( ~Model:doorR2 .True )
+                Set     *Var[2] ~Model:doorL2
+                Set     *Var[3] ~Model:doorR2
+                ExecWait EnterDoubleDoor
+                Call    EnableModel ( ~Model:doorL .True )
+                Call    EnableModel ( ~Model:doorR .True )
+                Call    EnableModel ( ~Model:doorL2 .False )
+                Call    EnableModel ( ~Model:doorR2 .False )
+                Exec    $Script_MakeExits
+            Case == 2 % Pipe
+                Set     *Var[A]  ~Entry:Entry2 % Entry ID
+                Set     *Var[B]  ~Collider:exit2 % Collider ID
+                Exec    $Enter_HorizontalPipe
+                Exec    $Script_MakeExits
+            Case == 4 % 
+                % Nuke temporary highscore data
+                Set     *Flag_BlackPit .False
+                Call    $WriteAddress ( $Timer_Total 2 0 .False .False )
+                Call    $WriteAddress ( $BP_TotalTurns 0 0 .False .False )
+                Call    DisablePlayerInput ( .True )
+                Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+                Call    SetPlayerAnimation ( 0001000F ) % Dead
+                Wait    32`
+                Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+                Call    SetPlayerAnimation ( 00010030 ) % Get Up
+                Wait    16`
+                Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+                Call    DisablePlayerInput ( .False )
+                Exec    $Script_MakeExits
+        EndSwitch
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Enter_HorizontalPipe
+{
+    Set     *MapVar[0] .True
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Add      *Var[1] -40` % y
+    Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Wait     4
+    Call     802D286C ( 00000100 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Loop 40` 
+        Add     *Var[1] 1 % y
+        Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+        Wait    1
+    EndLoop
+    Wait    5
+    Call    802D2520 ( 00010000 .False .False .False .False .False )
+	Call    SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call    DisablePlayerPhysics 	( .False )
+	Call    HidePlayerShadow 	( .False )
+    Loop
+        % Set MapVar0 always as false until the player falls
+        Call    $ReadAddress ( 8015A552 1 *Var[0] .False .False )
+        If *Var[0] == FFFF
+            Set     *MapVar[0] .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Leave_HorizontalPipe
+{
+    Call     DisablePartnerAI ( .True )
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Call     802D286C ( 00000800 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Thread
+        Loop 40`
+            Add     *Var[1] -1 % y
+            Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+            Wait    1
+        EndLoop
+    EndThread
+    Wait     25`
+    Return
+    End
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit0 00000001 00000000 % Left
+Bind     $Script_Exit1  .Trigger:WallPressA ~Collider:exit1 00000001 00000000 % Black Pit
+Bind     $Script_Exit2  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000 % Pipe
+Return
+End	
+}
+
+#new:Script $Script_Exit0
+{
+	Call     UseExitHeading  	( 60` 0 )
+	Exec     ExitWalk
+	Call     GotoMap	( "bp_00" 1 )
+	Wait     100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+    Call    DisablePlayerInput    ( .True )
+    Call    UseDoorSounds ( .DoorSounds:Metal )
+    Set     *Var[0] ~Entry:Entry1
+    Set     *Var[1] ~Collider:exit1
+    Set     *Var[2] ~Model:doorL
+    Set     *Var[3] ~Model:doorR
+    Exec    ExitDoubleDoor
+	Wait    17`
+	Call    GotoMap	( "bp_02" 0 )
+	Wait    100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit2
+{
+	Set  *Var[A]  ~Entry:Entry2 % Entry ID
+	Set  *Var[B]  ~Collider:exit2 % Collider ID
+    ExecWait $Script_TopPipe_TrackJoystick
+	Return
+	End
+}
+
+#new:Script $Script_TopPipe_TrackJoystick
+{
+	Call     $Function_TrackJoystick
+	If  *Var[0]  ==  .False
+		Return
+	EndIf
+    % If the player came from a pipe and hasn't leave the pipe
+    If *MapVar[0] == .True
+        Return
+    EndIf
+	Call     GetCurrentPartner ( *Var[0] )
+	If  *Var[0]  !=  .Partner:Empty
+		Call     GetCurrentPartnerID 	( *Var[1] )
+		If  *Var[1]  !=  .Partner:Watt
+			Return
+		Else
+			Call     802D2B6C
+			Call     DisablePlayerInput 	( .True )
+		EndIf
+	Else
+		Call     DisablePlayerInput 	( .True )
+	EndIf
+	Unbind
+	ExecWait    $Leave_HorizontalPipe
+    Call    GotoMap ( "bp_03" 1 )
+	Return
+	End
+}
+
+#new:Function $Function_TrackJoystick
+{
+    0:  LAH       V1, 8015A552
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  DADDU     S0, A0, R0
+   14:  SW        RA, 14 (SP)
+   18:  LW        V0, B0 (S0)
+   1C:  BEQ       V1, V0, .o2C
+   20:  ADDIU     V0, R0, 2
+   24:  BEQ       R0, R0, .oAC
+   28:  SW        R0, 84 (S0)
+        .o2C
+   2C:  LAW       V1, 8007419C
+   34:  LB        V0, 40 (V1)
+   38:  LB        A3, 44 (V1)
+   3C:  BLTZL     V0, .o44
+   40:  SUBU      V0, R0, V0
+        .o44
+   44:  BNE       V0, R0, .o54
+   48:  NOP
+   4C:  BEQL      A3, R0, .oAC
+   50:  DADDU     V0, R0, R0
+        .o54
+   54:  MTC1      V0, F4
+   58:  NOP
+   5C:  CVT.S.W   F4, F4
+   60:  MFC1      A2, F4
+   64:  MTC1      A3, F4
+   68:  NOP
+   6C:  CVT.S.W   F4, F4
+   70:  MTC1      R0, F12
+   74:  MFC1      A3, F4
+   78:  JAL       ~Func:atan2
+   7C:  MOV.S     F14, F12
+   80:  LIF       F2, 60.0
+   88:  NOP
+   8C:  C.LT.S    F0, F2
+   90:  NOP
+   94:  BC1F      .oA8
+   98:  ADDIU     V0, R0, 1
+   9C:  SW        V0, 84 (S0)
+   A0:  BEQ       R0, R0, .oAC
+   A4:  ADDIU     V0, R0, 2
+        .oA8
+   A8:  DADDU     V0, R0, R0
+        .oAC
+   AC:  LW        RA, 14 (SP)
+   B0:  LW        S0, 10 (SP)
+   B4:  JR        RA
+   B8:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SetAnimation
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       ~Func:clamp_angle
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}
+  
+#new:Function $Function_GetColliderPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]That's the main door to the
+Black Pit.
+[WAIT][NEXT][...]
+We aren't really sure of how
+deep this place will be.
+[WAIT][NEXT][...]
+So remember to be prepared
+for anything!
+[WAIT][END]
+}

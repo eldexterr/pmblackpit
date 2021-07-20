@@ -1,0 +1,40 @@
+% Model IDs
+#define .Model:pt1 9
+#define .Model:pt2 11
+#define .Model:pt3 19
+%
+#define .Model:Events:Chill 1A
+#define .Model:Events:Burn 1B
+#define .Model:Events:Rain 1C
+#define .Model:Events 1D
+
+#new:Script $Script_InitBMap
+{
+	Call EnableGroup ( .Model:pt1 .False )
+	Call EnableGroup ( .Model:pt2 .False )
+	Call EnableGroup ( .Model:pt3 .False )
+	Switch *PitMapID
+		Case > 80`
+			Call EnableGroup ( .Model:pt3 .True )
+		Case > 50`
+			Call EnableGroup ( .Model:pt2 .True )
+		Default
+			Call EnableGroup ( .Model:pt1 .True )
+	EndSwitch
+	% Events
+	Call EnableGroup ( .Model:Events .False )
+	If *PitFlag == .True
+		If *Flag_Event == .True
+			Switch *EventToLoad
+				Case == 1 % Rain
+					Call EnableModel ( .Model:Events:Rain .True )
+				Case == 2 % Burn
+					Call EnableModel ( .Model:Events:Burn .True )
+				Case == 3 % Chill
+					Call EnableModel ( .Model:Events:Chill .True )
+			EndSwitch
+		EndIf
+	EndIf
+	Return
+	End
+}

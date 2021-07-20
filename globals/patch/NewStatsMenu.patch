@@ -1,0 +1,828 @@
+% This file rebuilds the stats menu
+
+% This hook use this data to calculate the coordinates
+% for all elements in the stats menu, the y position is
+% still calculated like always with the 2 bytes at 8010EF8E
+#new:Data $Data_FirstBox_Coords % HP
+{
+    000F0000 005A001B 17FF0000
+%   XXXX0000 XXXXYYYY SSOO
+%   Pos      Size     Style Opacity
+}
+
+/%
+8010EF8E [2 Bytes] - stats bar y offset
+FFC9 (-100) % top
+0012 (18) % lowest
+%/
+
+% Draw all new boxes (placed where the 1st half of the stats menu was before)
+@Hook 81B60 % 800E86B0
+{
+    PUSH    RA, A0, A1, A2, A3, T0, T1, S0
+    % Draw HP Box
+    LIO     S0, $Data_FirstBox_Coords
+    LH      A0, 0 (S0) % x
+    LAH     A1, 8010EF8E % stats bar y offset
+    LHU     A2, 4 (S0) % SizeX
+    LHU     A3, 6 (S0) % SizeY
+    LBU     T0, 8 (S0) % Style
+    JAL     $DrawBox
+    LBU     T1, 9 (S0) % Opacity
+    % Draw FP Box
+    LH      A0, 0 (S0)
+    ADDI    A0, A0, 57 % x
+    LAH     A1, 8010EF8E % stats bar y offset
+    LHU     A2, 4 (S0) % SizeX
+    ADDI    A2, A2, FFF4 % -12`
+    LHU     A3, 6 (S0) % SizeY
+    LBU     T0, 8 (S0)
+    ADDI    T0, T0, 1 % Style
+    JAL     $DrawBox
+    LBU     T1, 9 (S0) % Opacity
+    % Draw SP/Coins Box
+    LH      A0, 0 (S0)
+    ADDI    A0, A0, A0 % x
+    LAH     A1, 8010EF8E % stats bar y offset
+    LHU     A2, 4 (S0) 
+    ADDI    A2, A2, 2C % SizeX
+    LHU     A3, 6 (S0) % SizeY
+    LBU     T0, 8 (S0)
+    ADDI    T0, T0, 2 % Style
+    JAL     $DrawBox
+    LBU     T1, 9 (S0) % Opacity
+    % Draw Star Power Box if the player have at least 1 star spirit
+    LABU    A0, 8010F51E % Star Spirits
+    BEQ     A0, R0, .End
+    NOP
+    LH      A0, 0 (S0) % x
+    LAH     A1, 8010EF8E % stats bar y offset
+    ADDI    A1, A1, 16 % y
+    LHU     A2, 4 (S0) 
+    ADDI    A2, A2, 4C % SizeX
+    LHU     A3, 6 (S0) % SizeY
+    ADDI    A3, A3, FFFB % -7`
+    LBU     T0, 8 (S0)
+    ADDI    T0, T0, 3 % Style
+    JAL     $DrawBox
+    LBU     T1, 9 (S0) % Opacity
+    .End
+    POP     RA, A0, A1, A2, A3, T0, T1, S0
+    J       800E86B8 
+    NOP
+}
+
+% Disable the 2nd half of the stats menu
+@Function 81BBC % 800E870C
+{
+    NOP
+}
+
+%==================
+% Recolor all boxes
+%==================
+
+% Don't crash the game after trying to load box style 0x17 or above
+@Function 8E7C0 % 800F5310
+{
+    SLTIU   V0, A1, 101` % set cap to 100 styles
+}
+
+% Load new styles
+@Hook 8E810 % 800F5360
+{
+    % A1 - Box Style ID
+    % Check if the ID is above 0x16, so is one of our new styles
+    SLTIU   V0, A1, 17
+    BNE     V0, R0, .VanillaStyle
+    NOP
+    % get new style
+    ORI     V0, R0, 17
+    BEQ     A1, V0, .HPBox
+    ORI     V0, R0, 18
+    BEQ     A1, V0, .FPBox
+    ORI     V0, R0, 19
+    BEQ     A1, V0, .CoinsBox
+    ORI     V0, R0, 1A
+    BEQ     A1, V0, .StarBox
+    NOP
+    BEQ     R0, R0, .VanillaStyle
+    NOP
+    % T1 = Box Data Pointer
+    .HPBox
+    LIO     T1, $BoxData_HP
+    BEQ     R0, R0, .End
+    RESERVED
+    .FPBox
+    LIO     T1, $BoxData_FP
+    BEQ     R0, R0, .End
+    RESERVED
+    .CoinsBox
+    LIO     T1, $BoxData_Coins
+    BEQ     R0, R0, .End
+    RESERVED
+    .StarBox
+    LIO     T1, $BoxData_StarPower
+    BEQ     R0, R0, .End
+    RESERVED
+    % If was one of the vanilla styles
+    .VanillaStyle
+    SLL	    V0, A1, 1
+    ADDU	V0, V0, A1
+    SLL	    V0, V0, 2
+    SUBU	V0, V0, A1
+    ADDU	T1, V0, V1
+    .End
+    J   800F5374
+    NOP
+}
+
+%==================
+% New Styles Data
+
+#new:Data $BoxData_HP
+{
+    01b  % texture
+    08`b % Box Type
+    01b  % ??
+    EDb 87b 87b FFb % Box Color 1 - RGBA
+    69b 29b 29b FFb % Box Color 2 - RGBA
+    00b  % unused
+}
+
+#new:Data $BoxData_FP
+{
+    01b  % texture
+    08`b % Box Type
+    01b  % ??
+    E8b E7b A2b FFb % Box Color 1 - RGBA
+    61b 60b 38b FFb % Box Color 2 - RGBA
+    00b  % unused
+}
+
+#new:Data $BoxData_Coins
+{
+    01b  % texture
+    08`b % Box Type
+    01b  % ??
+    98b C8b A6b FFb % Box Color 1 - RGBA
+    42b 4Db 3Fb FFb % Box Color 2 - RGBA
+    00b  % unused
+}
+
+#new:Data $BoxData_StarPower
+{
+    01b  % texture
+    08`b % Box Type
+    01b  % ??
+    EFb C4b A8b FFb % Box Color 1 - RGBA
+    4Db 89b 8Db FFb % Box Color 2 - RGBA
+    00b  % unused
+}
+
+%=========================
+% Move everything to make space for all the new stuff
+%=========================
+
+% Heart Icon
+@Function 81C60 % 800E87B0
+{
+    ADDIU	A1, A1, 000A % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 000D % y pos
+}
+
+% Flower Icon
+@Function 81D38 % 800E8888
+{
+    ADDIU	A1, A1, 0063 % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 000D % y pos
+}
+
+% HP 00/00
+@Function 81C8C % 800E87DC
+{
+    ADDIU	A1, A1, 0016 % x pos
+    ADDIU	A2, A2, 0008 % y pos
+    JAL	    ~Func:status_menu_draw_stat
+    SW	    V0, 0010 (SP)
+}
+
+% FP 00/00
+@Function 81D64 % 800E88B4
+{
+    ADDIU	A1, A1, 0070 % x pos
+    ADDIU	A2, A2, 0008 % y pos
+    JAL	    ~Func:status_menu_draw_stat
+    SW	    V0, 0010 (SP)
+}
+
+% Star Points Icon
+@Function 81DDC % 800E892C
+{
+    ADDIU	A1, A1, 00B3 % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 000E % y pos
+}
+
+% Star Points' Bubble Icon
+@Function 81E00 % 800E8950
+{
+    ADDIU	A1, A1, 00B3 % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 0009 % y pos
+}
+
+% Coin Icon
+@Function 81EB4 % 800E8A04
+{
+    ADDIU	A1, A1, 00EA % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 000E % y pos
+}
+
+% Coins x0000
+@Function 81F04 % 800E8A54
+{
+    ADDIU	A1, A1, 00EF % x pos
+    JAL	    ~Func:status_menu_draw_number
+    ADDIU	A2, A2, 0008 % y pos
+}
+
+% Star Power
+@Function 81F5C % 800E8AAC
+{
+    ADDIU	S5, V0, 0021 % y pos
+}
+
+%=========================
+% Change the HP and FP icons to the animated ones
+%=========================
+
+% This icons are kinda big with their original icon scripts
+% So I made this ones with a smaller size.
+%
+% The original script for this icon is at 80407548
+#new:Data $IconScript_HealBoxHeart
+{
+00000008
+00000006 % SetSize
+00000003
+00000002 % Icon size
+0000000D 00000008 0002E900 0002EB00
+00000000 00000000 0000000D 00000005
+0002EB20 0002ED20 00000001 00000001
+0000000D 00000008 0002ED40 0002EF40
+00000002 00000002 00000003 00000000
+}
+
+% The original script for this icon is at 80407608
+#new:Data $IconScript_FPPickup
+{
+00000008
+00000006 % SetSize
+00000003
+00000002 % Icon Size
+0000000D 00000008 0002EF60 0002F160
+00000003 00000003 0000000D 00000005
+0002F180 0002F380 00000004 00000004
+0000000D 00000008 0002F3A0 0002F5A0
+00000005 00000005 00000003 00000000
+}
+
+% HP
+@Function 80F0C % 800E7A5C
+{
+    LIO    A0, $IconScript_HealBoxHeart % Heal Box's Heart - Icon Script Address
+    JAL    ~Func:create_icon
+    RESERVED
+}
+
+% FP
+@Function 80F6C % 800E7ABC
+{
+    LIO    A0, $IconScript_FPPickup % FP Overworld Pickup - Icon Script Address
+    JAL    ~Func:create_icon
+    RESERVED
+}
+
+%=========================
+% Disable "HP" and "FP" icons
+%=========================
+
+% Disable the "HP" icon
+@Function 81C48 % 800E8798
+{
+    NOP
+}
+
+% Disable the "FP" icon
+@Function 81D20 % 800E8870
+{
+    NOP
+}
+
+%=========================
+% Add the Life Shroom and the Star Icons
+%=========================
+
+% =================
+% Life Shroom slot
+
+% Icon Scripts for each Life shroom and the star
+
+% original script is at 800E8864
+#new:Data $IconScript_LifeShroom
+{
+00000008
+00000007 % "SetIconSize" (I disabled all this animations commands to get a SetIconSize basically see below)
+00000003 00000002
+0000000D 0000003C 00023E80 00024080
+00000004 00000004 00000003 00000000
+}
+
+% original script is at 8040C2B8
+#new:Data $IconScript_FP_LifeShroom
+{
+00000008
+00000007 % "SetIconSize"
+00000003 00000002
+0000000D 0000003C 00024C00 00024E00
+00000007 00000007 00000003 00000000
+}
+
+% original script is at 8040C258
+#new:Data $IconScript_Ultra_LifeShroom
+{
+00000008
+00000007 % "SetIconSize"
+00000003 00000002
+0000000D 0000003C 000249C0 00024BC0
+00000008 00000008 00000003 00000000
+}
+
+% original script is at 8040C0A8
+#new:Data $IconScript_LifeShroomBandW
+{
+00000008
+00000007 % "SetIconSize"
+00000003 00000002
+0000000D 0000003C 00023E80 000240A0
+00000006 0000000A 00000003 00000000
+}
+
+% original script is at 80108974
+#new:Data $IconScript_Star
+{
+00000008
+00000007 % "SetIconSize"
+00000003 00000002
+00000002 0000003C 800FB7E0 800FB9E0
+00000003 00000000
+}
+
+% 00 = None
+%
+% 01 = LS
+%
+% 02 = FP
+%
+% 03 = Ultra
+#new:Data $CurrentLSIcon
+{ 00000000 00000000 }
+% XX00YYYY ZZZZ
+% XX= LsType
+% YYYY= Star iconIndex (Overworld)
+% ZZZZ= Star iconIndex (Battle)
+
+#export $CurrentLSIcon
+
+% Create the Life Shroom and the Star icons after loading the last icon for the stats menu
+@Hook 81134 % 800E7C84 % Overworld
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    % =======
+    % Make Star Icon
+    LIO     A0, $IconScript_Star
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $CurrentLSIcon
+    SH      S0, 2 (A0) % save star iconIndex
+    % ======
+    % Make all Life Shrooms icons
+    LIO     A0, $IconScript_LifeShroomBandW
+    JAL     $CreateIcon
+    RESERVED
+    % Change Icon Palette
+    LIO     A1, FAAFAF00 % RGB
+    JAL     $SetIconPalette
+    COPY    A0, S0 % copy index to A0
+    LIO     A0, $IconScript_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $IconScript_FP_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $IconScript_Ultra_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    PUSH    RA
+    % restore vanilla code
+    JAL	    800F0D5C
+    NOP
+    POP     RA
+    J       800E7C8C
+    NOP
+}
+
+% Create the Life Shroom, Star and the Coin icons after loading the last icon for the stats menu
+@Hook 16CC6C % 8023E38C % Battle
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    % =======
+    % Make Star Icon
+    LIO     A0, $IconScript_Star
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $CurrentLSIcon
+    SH      S0, 4 (A0) % save star iconIndex
+    % ======
+    % Make all Life Shrooms icons
+    LIO     A0, $IconScript_LifeShroomBandW
+    JAL     $CreateIcon
+    RESERVED
+    % Change Icon Palette
+    LIO     A1, FAAFAF00 % RGB
+    JAL     $SetIconPalette
+    COPY    A0, S0 % copy index to A0
+    LIO     A0, $IconScript_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $IconScript_FP_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $IconScript_Ultra_LifeShroom
+    JAL     $CreateIcon
+    RESERVED
+    % =======
+    % Make Coin Icon
+    LIO     A0, 80407344 % coin's icon script
+    JAL     $CreateIcon
+    RESERVED
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    % restore vanilla code
+    LIO     V0, 8023F088
+    J       8023E394
+    RESERVED
+}
+
+% a0 = iconScript
+%
+% save iconIndex in s0
+#new:Function $CreateIcon
+{
+    PUSH    RA, A0, A1, A2, A3, V0
+    JAL     ~Func:create_icon
+    NOP
+    COPY    S0, V0 % save iconIndex in S0
+    ADDIU	A1, R0, 0080
+    JAL	    ~Func:set_icon_flags
+    COPY    A0, S0 % load iconIndex
+    ADDIU	A1, R0, 8000
+    JAL	    ~Func:clear_icon_flags
+    COPY    A0, S0 % load iconIndex
+    POP     RA, A0, A1, A2, A3, V0
+    JR      RA
+    NOP
+}
+
+% A0 = iconIndex
+%
+% A1 = Palette
+#new:Function $SetIconPalette
+{
+    % Check if the player is in the overworld or inside a battle
+    LABU    V1, 80074094 % 0 = Overworld / 1=Battle
+    LUI     V0, 8015
+    % Load overworld Icon Table
+    BEQL    V1, R0, .IconTableLoaded
+    ADDIU   V0, V0, 6F60
+    % Load battle Icon Table
+    ADDIU   V0, V0, 7494
+    .IconTableLoaded
+    BEQ     V1, R0, .UseOverworldTable
+    NOP
+    % Battle Table, the ID for icon #0 is 80D for the battle icons
+    ORI     T0, R0, 80D
+    SUBU    A0, A0, T0 % convert iconIndex from battle to overworld
+    .UseOverworldTable
+    ORI     V1, R0, 4
+    MULTU   A0, V1 % throw result in LO
+    MFLO    A0
+    ADDU    V0, V0, A0 % get icon pointer
+    LW      V0, 0 (V0) % follow pointer
+    % save new palette
+    SRL     T0, A1, 24`
+    SB      T0, 4B (V0) % save red
+    SLL     T0, A1, 8
+    SRL     T0, T0, 24`
+    SB      T0, 4C (V0) % save blue
+    SLL     T0, A1, 16`
+    SRL     T0, T0, 24`
+    SB      T0, 4D (V0) % save green
+    JR      RA
+    NOP
+}
+
+%=========================
+% Set Size and Pos for the the Life Shrooms and the Star Icons
+%=========================
+
+/% % Patching a way to draw an icon with whatever size you want:
+
+The Life Shroom Icon is still kinda big even when setting his size to 2 instead of 3, and when using 1 as size it appears bugged
+
+The sprite size can be found in $iconPointer(0x28) (the one from the current icons on screen table (80156F60))
+But the thing is, this data is only readed when using a few commands from an Icon Script, and the commands
+are size animations so isn't like for example you put 1.0 and that will be the size of the icon.
+
+This patch disables those animations but makes it possible to change the size of an icon however you want
+I don't remember the game even using any of those animations, so I hope this doesn't cause some problems.
+
+This one was the only way I found to achieve this tho.
+
+To change an icon size use command 7 or 16 for the game to toogle the icon bitflag
+used to read the size data from $iconPointer(0x28)
+%/
+
+% draw_icon_1 - Don't play an animation when the game tries to read an icon size
+% nuke 10 functions placed here
+@Data D7DB4 % 801416B4
+{
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+00000000 00000000
+}
+
+% draw_icon_1 - don't overwrite the size data
+@Function D82CC % 80141BCC
+{
+NOP
+}
+
+% draw_icon_1 - IconBytecode - Command #7 and 16 - don't overwrite the size data
+@Function D82F0 % 80141BF0
+{
+NOP
+}
+
+% A0 = iconIndex
+%
+% A1 = Width (Float)
+%
+% A2 = Length (Float)
+#new:Function $SetIconSize
+{
+    % Check if the player is in the overworld or inside a battle
+    LABU    V1, 80074094 % 0 = Overworld / 1=Battle
+    LUI     V0, 8015
+    % Load overworld Icon Table
+    BEQL    V1, R0, .IconTableLoaded
+    ADDIU   V0, V0, 6F60
+    % Load battle Icon Table
+    ADDIU   V0, V0, 7494
+    .IconTableLoaded
+    BEQ     V1, R0, .UseOverworldTable
+    NOP
+    % Battle Table, the ID for icon #0 is 80D for the battle icons
+    ORI     T0, R0, 80D
+    SUBU    A0, A0, T0 % convert iconIndex from battle to overworld
+    .UseOverworldTable
+    ORI     V1, R0, 4
+    MULTU   A0, V1 % throw result in LO
+    MFLO    A0
+    ADDU    V0, V0, A0 % get icon pointer
+    LW      V0, 0 (V0) % follow pointer
+    % save the new icon size
+    SW      A1, 28 (V0) % save new width
+    JR      RA
+    SW      A2, 2C (V0) % save new lenght
+}
+
+#export $CreateIcon
+#export $SetIconPalette
+#export $SetIconSize
+
+% ==============
+% Change Life Shrooms and Star size and positions
+
+% I placed the code that set the size and the final position
+% for the Life Shrooms icons and the Star Icon at the one from
+% the current Star Points.
+@Hook 81E30 % 800E8980
+{
+    %======================
+    % Change Life Shroom Size, Pos and render the current Ls icon
+    %======================
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    JAL     $StatsMenu_UpdateCurrentLS % check if the player got a new Ls
+    NOP
+    % load current Ls
+    LIO     V1, $CurrentLSIcon
+    LBU     V0, 0 (V1)
+    % The player is in the overworld or inside a battle?
+    LABU    T0, 80074094 % 0 = Overworld / 1=Battle
+    BEQL    T0, R0, .StarIconIndexLoaded
+    LHU     V1, 2 (V1) % Load battle index
+    LHU     V1, 4 (V1) % Load battle index
+    .StarIconIndexLoaded
+    % V0 = current Ls
+    % V1 = star iconIndex (used to know the Ls icon index)
+    % get iconIndex for actual Ls
+    ORI     A0, R0, 1
+    ADDU    A0, A0, V0
+    ADDU    V0, V1, A0
+    COPY    A0, V0
+    % a0 = current Ls iconIndex
+    COPY    S0, A0 % save it in s0 too
+    ADDIU	A1, A1, 004A % x
+    JAL     ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 000E % y
+    % Change Size
+    LIO     A1, 41700000 % 15.0 % Width
+    LIO     A2, 41700000 % 15.0 % Lenght
+    JAL     $SetIconSize
+    COPY    A0, S0
+    % draw icon
+    JAL	    ~Func:draw_icon_1
+    COPY    A0, S0
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    %======================
+    % Change Star Size, Pos and render the icon
+    %======================
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    LIO     A0, $CurrentLSIcon
+    % The player is in the overworld or inside a battle?
+    LABU    T0, 80074094 % 0 = Overworld / 1=Battle
+    BEQL    T0, R0, .StarIconIndexLoaded2
+    LHU     S0, 2 (A0) % Load battle index
+    LHU     S0, 4 (A0) % Load battle index
+    .StarIconIndexLoaded2
+    COPY    A0, S0
+    % The player have at least one Star Spirit?
+    LABU    V0, 8010F51E % Star Spirits
+    BEQL    V0, R0, .HideStarIcon
+    ADDI	A1, R0, FFEC % -20`
+    ADDIU	A1, A1, 000A % x
+    .HideStarIcon
+    JAL     ~Func:set_icon_render_pos
+    ADDIU	A2, A2, 0020 % y
+    % Change Size
+    LIO     A1, 41A00000 % 20.0 % Width
+    LIO     A2, 41A00000 % 20.0 % Lenght
+    JAL     $SetIconSize
+    COPY    A0, S0
+    % draw icon
+    JAL	    ~Func:draw_icon_1
+    COPY    A0, S0
+    % Clean Star Meter bars, brown outlines
+    JAL     $Function_StarMeter_RemoveBrownOutline
+    NOP
+    %= Inside a Battle - Set the 2nd coin icon pos
+    LABU    V0, 80074094 % 0 = Overworld / 1=Battle
+    BEQ     V0, R0, .POP
+    NOP
+    %======================
+    % Set coin icon pos
+    %======================
+    % the one that actually renders the icon is in MiscHook.patch at $Function_Print_Coins
+    % load icon's iconIndex by loading Star Icon's index
+    LIO     A0, $CurrentLSIcon
+    LHU     A0, 4 (A0)
+    ADDIU   A0, A0, 5 % Star's Index (+5) = coin's iconIndex (why 5? because there's 4 Life shrooms icons)
+    ADDIU	A1, R0, 00FC % x pos
+    JAL	    ~Func:set_icon_render_pos
+    ADDIU	A2, R0, 00D4 % y pos
+    .POP
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    %======================
+    % vanilla code - Star Points x000 pos
+    %======================
+    ADDIU	A1, A1, 00B8 % x pos
+    JAL	    ~Func:status_menu_draw_number
+    ADDIU	A2, A2, 0008 % y pos
+    J       800E898C
+    NOP
+}
+
+#new:Function $StatsMenu_UpdateCurrentLS
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1
+    % Check if the player got or lost his life shroom to change the icon in real time
+    % S0 = Loop counter
+    CLEAR   S0
+    .CheckNextLS
+    BEQL    S0, R0, .FindItem
+    ORI     A0, R0, 0095 % LifeShroom
+    ORI     A0, R0, 1
+    BEQL    S0, A0, .FindItem
+    ORI     A0, R0, 00A0 % FP LifeShroom
+    ORI     A0, R0, 2
+    BEQL    S0, A0, .FindItem
+    ORI     A0, R0, 009F % Ultra LifeShroom
+    .FindItem
+    JAL	    ~Func:find_item % a0=item : v0= slotNumber (-1 if not found)
+    NOP
+    ADDIU   S0, S0, 1
+    % The player holds this LS?
+    LIO     A0, -1
+    BEQ     V0, A0, .DontHoldThisLS
+    NOP
+    % The player holds this LS, which one is?
+    ORI     A0, R0, 1
+    BEQL    S0, A0, .CheckLSStatus
+    NOP
+    ORI     A0, R0, 2
+    BEQ     S0, A0, .CheckLSStatus
+    NOP
+    ORI     A0, R0, 3
+    BEQ     S0, A0, .CheckLSStatus
+    NOP
+    % already checked for all life shrooms?
+    .DontHoldThisLS
+    ORI     A0, R0, 3
+    BEQL    S0, A0, .CheckLSStatus
+    ORI     A0, R0, 0
+    % Check next LS
+    BEQ     R0, R0, .CheckNextLS
+    NOP
+    % The current life shroom has changed?
+    .CheckLSStatus
+    COPY    S1, A0
+    LABU    V0, $CurrentLSIcon
+    % V0 = Icon in Stats Menu
+    % S1 = Life Shroom in inventory
+    BEQ     V0, S1, .End % mario still has his ls
+    RESERVED
+    % The player don't have the same life shroom
+    .UpdateIcon
+    % Get Script to load
+    BEQ     S1, R0, .UpdatewNoLS
+    NOP
+    ORI     A0, R0, 1
+    BEQ     A0, S1, .UpdatewLS
+    ORI     A0, R0, 2
+    BEQ     A0, S1, .UpdatewFPLS
+    ORI     A0, R0, 3
+    BEQ     A0, S1, .UpdatewULS
+    NOP
+    .UpdatewNoLS
+    SAB     R0, $CurrentLSIcon
+    BEQ     R0, R0, .End
+    NOP
+    .UpdatewLS
+    ORI     A0, R0, 1
+    SAB     A0, $CurrentLSIcon
+    BEQ     R0, R0, .End
+    NOP
+    .UpdatewFPLS
+    ORI     A0, R0, 2
+    SAB     A0, $CurrentLSIcon
+    BEQ     R0, R0, .End
+    NOP
+    .UpdatewULS
+    ORI     A0, R0, 3
+    SAB     A0, $CurrentLSIcon
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1
+    JR      RA
+    NOP
+}
+
+%==================
+% Clean all icons
+% Remove the brown parts from the icons
+%==================
+
+% I placed this function in Hook 81C3C
+#new:Function $Function_StarMeter_RemoveBrownOutline
+{
+    % I tried using @Data to nuke everything but star rod
+    % just doesn't do it, I dunno why.
+    %
+    % I even open the rom in a hex editor and poked the data i was trying to patch
+    % and it worked, looks like star rod just doesn't patch it
+    SAW     R0, 80100734 % Bar 1
+    SAW     R0, 80100774 % Bar 3
+    SAW     R0, 801007B4 % Bar 2
+    SAW     R0, 801007F4 % Bar 4
+    SAW     R0, 80100834 % Bar 5
+    SAW     R0, 80100874 % Bar 6
+    SAW     R0, 801008B4 % Bar 7
+    JR      RA
+    RESERVED
+}
+
+% For all the other icons I just used Photoshop to edit each one from mods\image\misc\ui

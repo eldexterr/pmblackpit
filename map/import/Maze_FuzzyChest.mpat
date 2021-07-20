@@ -1,0 +1,422 @@
+% This file has all the code related to the fuzzies' chest inside the maze
+
+% Entites Code
+#new:Script $Script_MakeEntities_FuzzyFloor
+{
+% Spawn Chest
+If *AreaByte[0] == 0 % Left
+    Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestL 80000000 )
+Else % Right
+    Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestR 80000000 )
+EndIf
+Call AssignFlag *Flag_Maze_SpecialChest2
+Call AssignScript ( $Script_UseChest_Fuzzy )
+Return
+End
+}
+
+% Give between 50 - 55 star pieces
+#new:Script $Script_UseChest_Fuzzy
+{
+Call    $WriteAddress ( 8010EF90 2 00000001 0 .False ) % Force status menu to appear
+Call    RandInt ( 5 *Var[1] )
+Set     *Var[0] 50`
+Add     *Var[0] *Var[1]
+Call    $ReadAddress ( 80356130 1 *Var[1] 0 .False ) % get temporary Star Pieces
+Add     *Var[0] *Var[1]
+If  *Var[0] > 999` % temp star pieces cap
+    Set *Var[0] 999`
+EndIf
+Call    $WriteAddress ( 80356130 1 *Var[0] 0 .False ) % Save new ammount
+% Give more O²
+Call    $ReadAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+Add     *Var[0] 16` % Fuzzy's Chest give x2 O² compared to common chests
+If *Var[0] > 208`
+    Set *Var[0] 208` % 208` = Full timer
+EndIf
+Call    $WriteAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+% the inputs and the timer becomes disabled in MiscHooks.patch (@Hook 108A84)
+Set     *Flag_Cheev_Dungeon_01 .True
+Exec    $Script_Cheev_Dungeon_03
+Call    DisablePlayerInput ( .False ) % enable inputs
+Set     *Flag_DungeonPause .False % resume timer
+Return
+End
+}
+
+% Get total amount of chest on this playthough
+% and check if the player already opened all of them.
+#new:Script $Script_Cheev_Dungeon_03
+{
+    % Check amount of chests from trap rooms
+    Set *Var[5] 0
+    Set *Var[1] 0
+    Loop 10`
+        Call $ReadAddress ( $Data_TrapPointers 2 *Var[0] *Var[1] .False )
+        Call $ReadAddress ( *Var[0] 0 *Var[2] 2 .False )
+        % var2 = chest spawn pos
+        If *Var[2] != 0
+            If *Var[2] == 10`
+                Add *Var[5] 2
+            Else
+                Add *Var[5] 1
+            EndIf
+        EndIf
+        Add *Var[1] 4
+        Wait 1
+    EndLoop
+    % add special chests
+    Add *Var[5] 2
+    % add for battle floors
+    Add *Var[5] 10`
+    % check if chests are possible to spawn on mistar's room
+    If  *AreaFlag[00E] != .True
+        If  *Flag_Mistar == .True
+            Add *Var[5] 2
+        EndIf
+    EndIf
+    Add *Maze_ChestsOpened_CurrentP 1
+    If *Maze_ChestsOpened_CurrentP == *Var[5]
+        Set *Flag_Cheev_Dungeon_03 .True
+    EndIf
+    Return
+    End
+}
+
+#new:IntTable $Data_TrapPointers
+{
+    $Maze_Trap2_Data  $Maze_Trap4_Data  $Maze_Trap6_Data  $Maze_Trap8_Data
+    $Maze_Trap10_Data $Maze_Trap12_Data $Maze_Trap14_Data $Maze_Trap16_Data
+    $Maze_Trap17_Data $Maze_Trap19_Data
+}
+
+% Fuzzy's Code
+#new:NpcGroupList $NpcGroupList_Fuzzies
+{
+00000001 $NpcGroup_Fuzzy1 00000000
+00000001 $NpcGroup_Fuzzy2 00000000
+00000001 $NpcGroup_Fuzzy3 00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Fuzzy1 {
+00000000 $NpcSettings_Fuzzy ~Vec3f:Fuzzy1
+19700F00 $Script_Init_Fuzzy 00000000 00000000 00000000
+~NoDrops
+~Movement:Fuzzy1
+~AnimationTable:Fuzzy1 % .Sprite:Fuzzy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Fuzzy2 {
+00000001 $NpcSettings_Fuzzy ~Vec3f:Fuzzy1
+19700F00 $Script_Init_Fuzzy 00000000 00000000 00000000
+~NoDrops
+~Movement:Fuzzy1
+~AnimationTable:Fuzzy1 % .Sprite:Fuzzy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_Fuzzy3 {
+00000002 $NpcSettings_Fuzzy ~Vec3f:Fuzzy1
+19700F00 $Script_Init_Fuzzy 00000000 00000000 00000000
+~NoDrops
+~Movement:Fuzzy1
+~AnimationTable:Fuzzy1 % .Sprite:Fuzzy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Fuzzy {
+00000000 00140016 00000000 00000000 00000000 80077F70 00000000 8007809C
+00000000 00000000 00060000
+}
+
+#new:Script $Script_Init_Fuzzy {
+    Call  BindNpcIdle   ( .Npc:Self $Script_Idle_FuzzyPath )
+    Call  BindNpcHit    ( .Npc:Self $Script_Hit_Fuzzy )
+    Return
+    End
+}
+
+#new:Script $Script_Idle_FuzzyPath {
+    % Set Spawn Position
+    Call  GetSelfNpcID ( *Var[4] )
+    Switch *Var[4] % Fuzzy ID
+        Case == 0 % Fuzzy #1
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 1 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[E] $IntTable_Fuzzy1_PatchA
+                Case == 1
+                    Set *Var[E] $IntTable_Fuzzy1_PatchB
+                Case == 2
+                    Set *Var[E] $IntTable_Fuzzy1_PatchC
+                Case == 3
+                    Set *Var[E] $IntTable_Fuzzy1_PatchD
+            EndSwitch
+        Case == 1 % Fuzzy #2
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 2 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[E] $IntTable_Fuzzy2_PatchA
+                Case == 1
+                    Set *Var[E] $IntTable_Fuzzy2_PatchB
+                Case == 2
+                    Set *Var[E] $IntTable_Fuzzy2_PatchC
+                Case == 3
+                    Set *Var[E] $IntTable_Fuzzy2_PatchD
+            EndSwitch
+        Case == 2 % Fuzzy #3
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 3 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[E] $IntTable_Fuzzy3_PatchA
+                Case == 1
+                    Set *Var[E] $IntTable_Fuzzy3_PatchB
+                Case == 2
+                    Set *Var[E] $IntTable_Fuzzy3_PatchC
+                Case == 3
+                    Set *Var[E] $IntTable_Fuzzy3_PatchD
+            EndSwitch
+    EndSwitch
+    UseIntBuffer  *Var[E]
+    Set   *Var[1]  200`
+    Get2Int  *Var[0] *Var[2]
+    Call  GetSelfNpcID ( *Var[4] )
+    Switch *Var[4]
+        Case == 0 % Fuzzy #1
+            Set *Var[5] *Flag_Maze_Fuzzy1
+        Case == 1 % Fuzzy #2
+            Set *Var[5] *Flag_Maze_Fuzzy2
+        Case == 2 % Fuzzy #3
+            Set *Var[5] *Flag_Maze_Fuzzy3
+    EndSwitch
+    If *Var[5] == .False % Fuzzy hasen't been defeated
+        Call  SetNpcPos ( *Var[4] *Var[0] *Var[1] *Var[2] )
+    Else % hide fuzzy
+        Set     *Var[1] -1000`
+        Call  SetNpcPos ( *Var[4] *Var[0] *Var[1] *Var[2] )
+        Return
+    EndIf
+    Label  0
+    UseIntBuffer  *Var[E]
+    % Get Amount of Loops
+    % It depends on the Path
+    Call  GetSelfNpcID ( *Var[4] )
+    Switch *Var[4] % Fuzzy ID
+        Case == 0 % Fuzzy #1
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 1 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[5] E
+                Case == 1
+                    Set *Var[5] 17
+                Case == 2
+                    Set *Var[5] A
+                Case == 3
+                    Set *Var[5] 8
+            EndSwitch
+        Case == 1 % Fuzzy #2
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 2 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[5] D
+                Case == 1
+                    Set *Var[5] D
+                Case == 2
+                    Set *Var[5] 10
+                Case == 3
+                    Set *Var[5] 4
+            EndSwitch
+        Case == 2 % Fuzzy #3
+            Call $ReadAddress ( $Maze_ChestData_Special2 0 *Var[5] 3 .False )
+            Switch *Var[5] % get path ID
+                Case == 0
+                    Set *Var[5] 9
+                Case == 1
+                    Set *Var[5] 2
+                Case == 2
+                    Set *Var[5] 15
+                Case == 3
+                    Set *Var[5] 5
+            EndSwitch
+    EndSwitch
+    % *Var[5] = Amount of Loops
+    %Set *Var[5] E % testing
+    Loop  *Var[5] % amount of fuzzy's jumps
+        Set   *Var[1]  0
+        Get2Int  *Var[0] *Var[2]
+        Call  RandInt   ( 10` *Var[3] )
+        Add   *Var[3]  15`
+        Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+        Call  NpcJump0  ( .Npc:Self *Var[0] *Var[1] *Var[2] *Var[3] )
+    EndLoop
+    Goto  0
+    Return
+    End
+}
+
+% All paths are in mze_06 as markers too
+
+% Fuzzy 1
+#new:IntTable $IntTable_Fuzzy1_PatchA {
+-169` -155` -152` -75` -173` 11` -146` 111`
+-77` 143` 35` 145` 134` 134` 179` 77`
+189` -1` 160` -120` 127` -164` 33` -198`
+-61` -205` -121` -135`
+}
+
+#new:IntTable $IntTable_Fuzzy1_PatchB {
+-169` -155` -121` -161` -89` -193` -55`
+-210` 44` -211` 81` -193` 121` -174`
+156` -148` 192` -109` -177` -36` 197` 61`
+168` 146` 110` 129` 60` 143` 23` 125`
+-30` 147` -66` 128` -104` 149` -173` 122`
+-161` 47` -184` -35` -163` -104` -187` -118`
+}
+
+#new:IntTable $IntTable_Fuzzy1_PatchC {
+-169` -155` -73` -203` 90` -205`
+154` -152` 191` -1` 160` 139`
+82` 149` -80` 148` -169` 123`
+-195` -31`
+}
+
+#new:IntTable $IntTable_Fuzzy1_PatchD {
+-122` -165` -99` -168` -34` -192` -113` -154`
+114` -188` 115` -229` 178` -178` 112` -165`
+}
+
+% Fuzzy 2
+#new:IntTable $IntTable_Fuzzy2_PatchA {
+-137` -3` -79` -116` -32` -164` 37` -153`
+110` -118` 143` -27` 153` 63` 95` 112`
+-2` 120` -122` 101` -97` 84` -137` 80`
+-97` 63`
+}
+
+#new:IntTable $IntTable_Fuzzy2_PatchB {
+-48` -148` 74` -108` -106` -68` 159` -51`
+144` -16` 167` -10` -155` 26` 154` 46`
+-130` 75` 77` 97` -144` 5` 145` -81`
+-126` -89`
+}
+
+#new:IntTable $IntTable_Fuzzy2_PatchC {
+110` -118` 102` -127` 120` -125` 145` 82`
+136` 98` 133` 83` 146` 97` -28` 130`
+-128` 107` -130` 95` -115` 103` -142` 84`
+-84` -132` -73` -145` -69` -132` -87` -144`
+}
+
+#new:IntTable $IntTable_Fuzzy2_PatchD {
+-128` -3` 1 -158` 145` 1 0 126`
+}
+
+% Fuzzy 3
+#new:IntTable $IntTable_Fuzzy3_PatchA {
+-107` -3` -50` -82` 2` -36` 67` -93`
+97` 2` 45` 85` 0 48` -38` 83`
+-75` 46`
+}
+
+#new:IntTable $IntTable_Fuzzy3_PatchB {
+-37` 0 37` 0
+}
+
+#new:IntTable $IntTable_Fuzzy3_PatchC {
+-107` -3` -31` 90` 53` 89` 112` 47`
+113` -17` 93` -79` 33` -122` -54` -96`
+-72` -18` -27` 77` 55` 64` 101` 16`
+87` -37` 28` -86` -45` -71` -11` 37`
+48` 29` 71` 1 43` -43` -11` -34`
+32` 2
+}
+
+#new:IntTable $IntTable_Fuzzy3_PatchD {
+-107` -3` 107` -56` -52` 93` -7` -120`
+82` 71`
+}
+
+/%
+#new:IntTable ByteStruct {
+Jumps postions work like this, he will jump on that exact
+position and then to the next one and so on in an infinite loop.
+
+Byte struct % each jump use 8 bytes
+[ Jump1_XPos Jump1_ZPos ][ Jump2_XPos Jump2_ZPos ]>[Jump3,4,5,6>>>24](and so on)
+[ XXXXXXXX   ZZZZZZZZ   ][ XXXXXXXX   ZZZZZZZZ   ]
+}
+
+[FFFFFF01 0000018F][ FFFFFF9C 000001AE ][FFFFFFA5 000001DB][ 00000000 000001D6]
+[00000038 000001D6][ 00000078 000001D6 ][000000C8 000001D9][ 000000FA 00000190]
+[00000134 0000016A][ 00000172 00000118 ][000001BE 000000EC][ 000001BC 0000006E]
+[000001C0 00000035][ 0000014A 0000003C ][00000111 0000004A][ 000000C8 00000050]
+[00000087 0000006C][ 0000001E 0000008C ][FFFFFFD1 000000B9][ FFFFFF9C 000000F0]
+[FFFFFF56 00000144][ FFFFFF2E 00000168]
+%/
+
+#new:Script $Script_Hit_Fuzzy {
+    Call  BindNpcAI ( .Npc:Self $Script_NpcAI_FuzzyHit )
+    Call  SetSelfEnemyFlagBits  ( 1F000000 00000001 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcAI_FuzzyHit {
+    % Set Fuzzy Flag
+    Call  GetSelfNpcID ( *Var[4] )
+    Switch *Var[4]
+        Case == 0 % Fuzzy #1
+            Set *Flag_Maze_Fuzzy1 .True
+        Case == 1 % Fuzzy #2
+            Set *Flag_Maze_Fuzzy2 .True
+        Case == 2 % Fuzzy #3
+            Set *Flag_Maze_Fuzzy3 .True
+    EndSwitch
+    % Unlock the Chest?
+    Set *Var[0] *Flag_Maze_Fuzzy1
+    Add *Var[0] *Flag_Maze_Fuzzy2
+    Add *Var[0] *Flag_Maze_Fuzzy3
+    If *Var[0] >= 3
+        If *AreaByte[0] == 0 % Left
+            Call    ModifyColliderFlags ( .False ~Collider:ChestL 7FFFFE00 )
+        Else % Right
+            Call    ModifyColliderFlags ( .False ~Collider:ChestR 7FFFFE00 )
+        EndIf
+    EndIf
+    Call  GetNpcPos ( .Npc:Self *Var[0] *Var[1] *Var[2] )
+    Thread
+        Call  MakeItemEntity    ( .Item:Coin *Var[0] *Var[1] *Var[2] .ItemSpawnMode:Toss_SpawnAlways .False )
+    EndThread
+    Call  SetNpcAnimation   ( .Npc:Self 002B0008 )
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 25` )
+    Add   *Var[0]  40`
+    Add   *Var[2]  -40`
+    Call  SetNpcAnimation   ( .Npc:Self 002B0008 )
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 15` )
+    Add   *Var[0]  30`
+    Add   *Var[2]  -30`
+    Call  SetNpcAnimation   ( .Npc:Self 002B0009 )
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 13` )
+    Add   *Var[0]  20`
+    Add   *Var[2]  -20`
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 11` )
+    Add   *Var[0]  10`
+    Add   *Var[2]  10`
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 9 )
+    Add   *Var[0]  80`
+    Add   *Var[2]  -80`
+    Call  SetNpcAnimation   ( .Npc:Self 002B0003 )
+    Call  PlaySoundAtNpc    ( .Npc:Self 0332 .Default )
+    Call  NpcJump0          ( .Npc:Self *Var[0] 0 *Var[2] 15` )
+    Call  EnableNpcShadow   ( .Npc:Self .False )
+    Call  SetNpcPos         ( .Npc:Self 0 -1000` 0 ) % hide fuzzy
+    Return
+    End
+}

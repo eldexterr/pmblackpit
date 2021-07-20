@@ -1,0 +1,3902 @@
+% Dimentio's room
+
+% partners
+#define .Npc_Goombario 0
+#define .Npc_Kooper 1
+#define .Npc_Bombette 2
+#define .Npc_Parakarry 3
+#define .Npc_Bow 4
+#define .Npc_Watt 5
+#define .Npc_Sushie 6
+#define .Npc_Lakilester 7
+#define .Npc_Mistar 8
+#define .Npc_Mario 9
+% Dimentio
+#define .Npc_Dimentio1 A
+#define .Npc_Dimentio2 B
+#define .Npc_Dimentio3 C
+% Ruby King
+#define .Npc:RubyKing D
+% Spirits
+#define .Npc_Spirit1 E
+#define .Npc_Spirit2 F
+#define .Npc_Spirit3 10
+#define .Npc_Spirit4 11
+#define .Npc_Spirit5 12
+#define .Npc_Spirit6 13
+% Spirits (Decoration)
+#define .Npc_SpiritFX1 14
+#define .Npc_SpiritFX2 15
+#define .Npc_SpiritFX3 16
+#define .Npc_SpiritFX4 17
+#define .Npc_SpiritFX5 18
+#define .Npc_SpiritFX6 19
+% models
+#define .Model:portal1 13
+#define .Model:portal2 100
+#define .Model:portal3 101
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 00000000
+[EntryList] $EntryList
+[EntryCount] 5
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1 % After the King release all souls
+~Vec4f:Entry2 % After Dimentio gets defeated
+~Vec4f:Dead1 % 3 % Restart Dimentio phase 1
+~Vec4f:Dead2 % 4 % Restart Dimentio phase 2
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "arn_tex"
+JAL 	~Func:sprintf
+RESERVED
+CLEAR   V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 ) % black
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    GetEntryID ( *Var[0] )
+If *Var[0] == 0 % ~Entry:Entry0
+    Call    FadeOutMusic	   ( 0 1 ) % Stop Music
+EndIf
+Bind    $Script_Door  .Trigger:WallPressA ~Collider:exit0 00000001 00000000
+Exec    $Script_TexturePanning_Dimentio2
+Call    EnableGroup     ( ~Model:dimentio2 .False )
+Call    EnableGroup     ( ~Model:hammers .False )
+Call    EnableModel     ( ~Model:portal1 .False )
+Call    MakeNpcs ( 0 $NpcGroupList_bp04 )
+Exec    $TrackEntry
+Wait    5
+Return
+End
+}
+
+% Texture Panning
+#new:Script $Script_TexturePanning_Dimentio2
+{
+    Call     EnableTexPanning 	( ~Model:dimensional_cube .True )
+	Thread
+		Set  *Var[0]  .Default % panner id
+		% Texture Pan Rate
+		Set  *Var[1]  -366` 	    % Main U
+		Set  *Var[2]  602`         % Main V
+		Set  *Var[3]  43` 	    % Aux U
+		Set  *Var[4]  323` 	    % Aux V
+		% Delay Between Updates
+		Set  *Var[5]  .False	% Main U
+		Set  *Var[6]  .False	% Main V
+		Set  *Var[7]  .False	% Aux U
+		Set  *Var[8]  .False	% Aux V
+		% Initial Offset
+		Set  *Var[9]  .False	% Main U 
+		Set  *Var[A]  .False	% Main V
+		Set  *Var[B]  .False 	% Aux U
+		Set  *Var[C]  .False 	% Aux V
+		Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+    EndThread
+	Return
+	End
+}
+
+#new:Script $Script_Door
+{
+    Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos  ( $String_Door 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+    Return
+    End
+}
+
+#string $String_Door
+{
+[DelayOff][STYLE:INSPECT][...]
+Can't seem to open...
+[DelayOn][WAIT][END]
+}
+
+#new:NpcGroupList $NpcGroupList_bp04
+{
+0000000A $NpcGroup_Heroes 	    00000000
+00000001 $NpcGroup_Dimentio1	37040000
+00000001 $NpcGroup_Dimentio2	37050000
+00000001 $NpcGroup_Dimentio3	37060000
+00000001 $NpcGroup_RubyKing	    00000000
+00000006 $NpcGroup_Spirits	    00000000
+00000006 $NpcGroup_SpiritsDecoration 00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Heroes
+{
+% Goombario
+00000000 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00000000 00000000 00000000 00000000
+% Kooper
+00000001 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00000000 00000000 00000000 00000000
+% Bombette
+00000002 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00000000 00000000 00000000 00000000
+% Parakarry
+00000003 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00000000 00000000 00000000 00000000
+% Bow
+00000004 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00000000 00000000 00000000 00000000
+% Watt
+00000005 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00000000 00000000 00000000 00000000
+% Sushie
+00000006 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 
+000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 000F0001 
+00000000 00000000 00000000 00000000
+% Lakilester
+00000007 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00000000 00000000 00000000 00000000
+% Mistar
+00000008 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401 
+00000000 00000000 00000000 00000000
+% Mario
+00000009 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 
+00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 00F20000 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Dimentio1
+{
+% Npc_Dimentio1
+0000000A $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_NPC_Init_Dimentio1 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Dimentio2
+{
+% Npc_Dimentio2
+0000000B $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_NPC_Init_Dimentio2 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Dimentio3
+{
+% Npc_Dimentio3
+0000000C $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_NPC_Init_Dimentio3 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_RubyKing
+{
+% Npc:RubyKing
+0000000D $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Spirits
+{
+% Npc_Spirit1
+0000000E $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit2
+0000000F $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit3
+00000010 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit4
+00000011 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit5
+00000012 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_Spirit6
+00000013 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_SpiritsDecoration
+{
+% Npc_SpiritFX1
+00000014 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX2
+00000015 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX3
+00000016 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX4
+00000017 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX5
+00000018 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+% Npc_SpiritFX6
+00000019 $NpcSettings_Generic 0.0 -1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 
+00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000 00F30000
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $TrackEntry
+{
+    Call     GetEntryID  	( *Var[0] )
+    Switch *Var[0]
+        Case == 0 % Left
+            Bind     $Script_Cutscene_bp_Dimentio1  .Trigger:FloorAbove ~Collider:start_cutscene 00000001 00000000
+            Call    TeleportPartnerToPlayer
+        Case == 1 % After the King release all souls
+            Exec    $Script_Cutscene_Ending_6
+        Case == 2 % After Dimentio gets defeated
+            Exec    $Script_Cutscene_Ending_7
+        % Player died agaisnt Dimentio
+        Case == 3 % Restart from Phase 1
+            Call    DisablePlayerInput ( .True )
+            Call    InterpPlayerYaw ( 90` 0 )
+            % Restore Items, HP, FP how they was at this moment
+            Call    $Function_Restore_Items_1
+            Call    $Function_Restore_HPFP_1
+            Call    $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
+            % Set everyone pos
+            % mistar
+            Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Add     *Var[0] -20` % x
+            Add		*Var[1] 20` % mistar y pos
+            Add     *Var[2] 20` % z
+            Call    SetNpcAnimation ( .Npc_Mistar 00201402 ) % idle (angry)
+            Call	SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcYaw ( .Npc_Mistar 90` )
+            Call    SetPlayerAnimation ( 00010006 ) % angry
+            % Dimentio
+            Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Add     *Var[0] 70` % x
+            Call	SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F00001 ) % idle (floor)
+            % Partner
+            Call    $ReadAddress ( $PlayerData_Misc_Checkpoint1 0 *Var[0] 2 .False )
+            Call    GetCurrentPartnerID ( *Var[1] )
+            If *Var[0] != *Var[1]
+                Call	$DespawnPartner
+                Call	$RespawnPartner  ( *Var[0] )
+                Wait    30`
+            EndIf
+            Exec    $MovePartnerBehindMario
+            Call	SpeakToPlayer	( .Npc_Dimentio1 00F00015 00F00001 00000000 $String_bp_FinalBoss_Dimentio8 )
+            Call    SetNpcVar ( .Npc_Dimentio1 0 .True ) % Start Battle
+        Case == 4 % Restart from Phase 2
+            Call    DisablePlayerInput ( .True )
+            Call    DisablePartnerAI ( 0 )
+            Call    InterpPlayerYaw ( -90` 0 )
+            Call    EnableGroup ( ~Model:main .False )
+            Call    EnableGroup ( ~Model:dimentio2 .True )
+            % Restore Items, HP, FP how they was at this moment
+            Call    $Function_Restore_Items_2
+            Call    $Function_Restore_HPFP_2
+            Call    $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
+            % Set everyone pos
+            % mistar
+            Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Add     *Var[0] -20` % x
+            Add		*Var[1] 20` % mistar y pos
+            Add     *Var[2] 20` % z
+            Call	SetNpcAnimation	( .Npc_Mistar 00201408 ) % charging
+            Call	SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcYaw ( .Npc_Mistar 90` )
+            % Dimentio
+            Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Add     *Var[0] 70` % x
+            Add     *Var[1] 50`  % y
+            Call	SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % Idle (Flying)
+            % partner
+            Call    $ReadAddress ( $PlayerData_Misc_Checkpoint2 0 *Var[0] 2 .False )
+            Call    GetCurrentPartnerID ( *Var[1] )
+            If *Var[0] != *Var[1]
+                Call	$DespawnPartner
+                Call	$RespawnPartner  ( *Var[0] )
+                Wait    30`
+            Else
+                Wait    10`
+            EndIf
+            Exec    $MovePartnerInFrontOfMario
+            Call	SpeakToPlayer	( .Npc_Mistar 0020140D 00201408 00000000 $String_bp_FinalBoss_Mistar6 )
+            Set     *Var[0] .PlayerAnim:NodYes
+            Set     *Var[1] .False
+            Set     *Var[2] 35`
+            ExecWait $SetPlayerAnimation
+            Call    SetPlayerAnimation ( 00010006 ) % angry
+            Call    InterpPlayerYaw ( 90` 0 )
+            Wait    7
+            Call    SetNpcFlagBits ( .Npc_Dimentio2 01000100 .True ) % turn off collisions and make npc invisible
+            Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcPos ( .Npc_Dimentio2 *Var[0] *Var[1] *Var[2] )
+            Call    SetNpcVar ( .Npc_Dimentio2 0 .True ) % Start Battle
+    EndSwitch
+    Return
+    End
+}
+
+#new:Function $Function_SaveItems_Checkpoint1
+{
+    LIO     T0, 8010F444 % 1st Item Slot
+    LIO     T2, $PlayerData_Items_Checkpoint1 % 1st Item Slot (backup)
+    LIO     T3, 8010F46C % "21th" Item Slot
+    .Loop
+    LHU     T1, 0 (T0)
+    SH      T1, 0 (T2)
+    % read next item slot
+    ADDIU   T0, T0, 2
+    BNE     T0, T3 .Loop
+    ADDIU   T2, T2, 2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_SaveItems_Checkpoint2
+{
+    LIO     T0, 8010F444 % 1st Item Slot
+    LIO     T2, $PlayerData_Items_Checkpoint2 % 1st Item Slot (backup)
+    LIO     T3, 8010F46C % "21th" Item Slot
+    .Loop
+    LHU     T1, 0 (T0)
+    SH      T1, 0 (T2)
+    % read next item slot
+    ADDIU   T0, T0, 2
+    BNE     T0, T3 .Loop
+    ADDIU   T2, T2, 2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_SaveMisc_Checkpoint1
+{
+    LIO     T1, $PlayerData_Misc_Checkpoint1
+    LABU    T0, 8010F292 % Current HP
+    SB      T0, 0 (T1) % save HP
+    LABU    T0, 8010F295 % Current FP
+    SB      T0, 1 (T1) % save FP
+    LABU    T0, 8010F2A2 % Current Partner
+    SB      T0, 2 (T1) % save partner
+    LAHU    T0, 8010F520 % Star Power
+    SH      T0, 4 (T1) % save partner
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_SaveMisc_Checkpoint2
+{
+    LIO     T1, $PlayerData_Misc_Checkpoint2
+    LABU    T0, 8010F292 % Current HP
+    SB      T0, 0 (T1) % save HP
+    LABU    T0, 8010F295 % Current FP
+    SB      T0, 1 (T1) % save FP
+    LABU    T0, 8010F2A2 % Current Partner
+    SB      T0, 2 (T1) % save partner
+    LAHU    T0, 8010F520 % Star Power
+    SH      T0, 4 (T1) % save partner
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_Restore_Items_1
+{
+    LIO     T0, $PlayerData_Items_Checkpoint1 % 1st Item Slot (backup)
+    LIO     T2, 8010F444 % 1st Item Slot
+    LIO     T3, 8010F46C % "21th" Item Slot
+    .Loop
+    LHU     T1, 0 (T0)
+    SH      T1, 0 (T2)
+    % read next item slot
+    ADDIU   T2, T2, 2
+    BNE     T2, T3 .Loop
+    ADDIU   T0, T0, 2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_Restore_Items_2
+{
+    LIO     T0, $PlayerData_Items_Checkpoint2 % 1st Item Slot (backup)
+    LIO     T2, 8010F444 % 1st Item Slot
+    LIO     T3, 8010F46C % "21th" Item Slot
+    .Loop
+    LHU     T1, 0 (T0)
+    SH      T1, 0 (T2)
+    % read next item slot
+    ADDIU   T2, T2, 2
+    BNE     T2, T3 .Loop
+    ADDIU   T0, T0, 2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_Restore_HPFP_1
+{
+    LIO     T1, $PlayerData_Misc_Checkpoint1
+    LBU     T0, 0 (T1) % load HP
+    SAB     T0, 8010F292 % save current HP
+    LBU     T0, 1 (T1) % load FP
+    SAB     T0, 8010F295 % save current FP
+    LHU     T0, 4 (T1) % load star power
+    SAH     T0, 8010F520 % save star power
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $Function_Restore_HPFP_2
+{
+    LIO     T1, $PlayerData_Misc_Checkpoint2
+    LBU     T0, 0 (T1) % load HP
+    SAB     T0, 8010F292 % save current HP
+    LBU     T0, 1 (T1) % load FP
+    SAB     T0, 8010F295 % save current FP
+    LHU     T0, 4 (T1) % load star power
+    SAH     T0, 8010F520 % save star power
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+#new:Function $RespawnPartner
+{
+	PUSH	RA
+	LW      V0, C (A0)
+    JAL     ~Func:get_variable
+   	LW      A1, 0 (V0)
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA
+   	ADDIU   V0, R0, 2
+   	JR      RA
+	NOP
+}
+	   
+#new:Function $DespawnPartner
+{
+    PUSH	RA
+    LW      V0, C (A0)
+    LAB     A2, 8010F2A2
+    JAL     ~Func:set_variable
+    LW      A1, 0 (V0)
+    POP		RA
+    JR      RA
+    ADDIU   V0, R0, 2
+}
+
+%======================
+% Cutscenes Scripts
+%======================
+
+#new:Script $Script_Cutscene_bp_Dimentio1
+{
+    Unbind
+    Call    DisablePlayerInput ( .True )
+    ExecWait $PlayerStopUsingPartner
+    Exec    $MovePartnerBehindMario
+    % Spawn Mistar
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Set		*Var[3] *Var[1]
+    Add     *Var[0] -20` % x
+	Add		*Var[3] 20` % mistar y pos
+    Add		*Var[1] 30` % sparke fx y pos
+    Add     *Var[2] 20` % z
+    Call    SetNpcAnimation ( .Npc_Mistar 00201402 ) % idle (angry)
+	Call	SetNpcPos ( .Npc_Mistar *Var[0] *Var[3] *Var[2] )
+	Call	PlaySound	 ( 0241 ) % Focus
+    Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+    Wait    10`
+    %%%
+    Call	SpeakToPlayer	( .Npc_Mistar 0020140D 00201402 00000004 $String_bp_FinalBoss_Mistar1 )
+    Call    SetCamSpeed 	    ( .Cam:Default *Fixed[3.0] )
+    Call    SetCamLeadPlayer    ( .Cam:Default .True )
+    Call    SetPlayerSpeed ( *Fixed[2.0] )
+    Call    SetNpcSpeed ( .Npc_Mistar *Fixed[2.0] )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Set     *Var[4] *Var[0]
+    Add     *Var[4] 43` % mistar x
+    Add     *Var[0] 60` % x
+    Add     *Var[1] 20` % y
+    Set     *Var[3] *Var[2]
+    Add     *Var[3] 20` % mistar z
+    Thread
+        Call    NpcFlyTo ( .Npc_Mistar *Var[4] *Var[1] *Var[3] 0 0 .Easing:Linear )
+    EndThread
+    Call    PlayerMoveTo ( *Var[0] *Var[2] 0 )
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio1_2 *Var[A]
+    Exec	$SkipCutscene_Dimentio1_2
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 50` % y
+    Call    PlaySound ( 0201 )
+    Call    NpcFlyTo ( .Npc_Mistar *Var[0] *Var[1] *Var[2] 40` 0 .Easing:Linear )
+    Call    StopSound ( 0201 )
+    Call    SetNpcAnimation ( .Npc_Mistar 00201421 ) % ouch
+    Wait    20`
+    Thread % rotate Mistar
+        SetF    *Var[1] *Fixed[0.0]
+        Loop
+            Call    GetNpcVar ( .Npc_Mistar 0 *Var[0] )
+            If *Var[0] == .True
+                Call    SetNpcVar ( .Npc_Mistar 0 .False )
+                Call    SetNpcRotation ( .Npc_Mistar .False .False .False )
+                BreakLoop
+            EndIf
+            AddF    *Var[1] *Fixed[18.0]
+            Call    SetNpcRotation ( .Npc_Mistar .False .False *Var[1] )
+            Wait 1
+        EndLoop
+    EndThread
+    SetF    *Var[0] *Fixed[1.0] % x
+    SetF    *Var[1] *Fixed[1.0] % y
+    Loop 3
+        Call    PlaySound ( 00DA )
+        Loop 4 % add x
+            AddF    *Var[0] *Fixed[0.3] % x
+            Call    SetNpcScale ( .Npc_Mistar *Var[0] *Var[1] *Fixed[1.0] )
+            Wait    1
+        EndLoop
+        Call    PlaySound ( 00DA )
+        Loop 4 % sub x
+            SubF    *Var[0] *Fixed[0.3] % x
+            Call    SetNpcScale ( .Npc_Mistar *Var[0] *Var[1] *Fixed[1.0] )
+            Wait    1
+        EndLoop
+        Call    PlaySound ( 00DA )
+        Loop 4 % add y
+            AddF    *Var[1] *Fixed[0.3] % x
+            Call    SetNpcScale ( .Npc_Mistar *Var[0] *Var[1] *Fixed[1.0] )
+            Wait    1
+        EndLoop
+        Call    PlaySound ( 00DA )
+        Loop 4 % sub y
+            SubF    *Var[1] *Fixed[0.3] % x
+            Call    SetNpcScale ( .Npc_Mistar *Var[0] *Var[1] *Fixed[1.0] )
+            Wait    1
+        EndLoop
+    EndLoop
+    Call    SetNpcVar ( .Npc_Mistar 0 .True )
+    Call    SetNpcScale ( .Npc_Mistar *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+    Call    SetNpcAnimation ( .Npc_Mistar 00201411 ) % beat
+    Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] -50` % y
+    Call    NpcFlyTo ( .Npc_Mistar *Var[0] *Var[1] *Var[2] 20` 0 .Easing:Linear )
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio1_3 *Var[A]
+    Exec	$SkipCutscene_Dimentio1_3
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    % Dimentio descends
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] .False *Var[2] )
+    Call    GetPlayerPos ( .False *Var[1] .False )
+    Call    NpcFlyTo ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] 50` 0 .Easing:Linear )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00012 ) % Sky to Floor
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00001 ) % idle (floor)
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00015 00F00001 00000000 $String_bp_FinalBoss_Dimentio8 )
+    % Save player current Items, HP, FP, used by the checkpoint system
+    Call    $Function_SaveItems_Checkpoint1
+    Call    $Function_SaveMisc_Checkpoint1
+    Call    SetNpcVar ( .Npc_Dimentio1 0 .True ) % Start Battle
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio1_2
+{
+    Call	ShowMessageAtScreenPos ( $String_bp_FinalBoss_Dimentio1 000000A0 00000028 )
+    % Zoom camera
+    Call    GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[1] 28` % y
+    Call    SetMusicTrack 	    ( 0 A5 0 8 ) % MusicPlayer ID, .Song:Dimentios_Theme, Variation, Volume
+    Wait    20`
+    % Dimentio Appears
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 70` % x
+    Add     *Var[1] 50`  % y
+    Call    SetNpcYaw ( .Npc_Dimentio1 -90` )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00010 ) % Reappears (Flying)
+    Call    SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Call    PlaySoundAtNpc  ( .Npc_Dimentio1 019E 0 )
+    % mario !
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % angry
+    Wait    7
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00006 ) % hand raised (flying)
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00006 00F00006 00000000 $String_bp_FinalBoss_Dimentio2 )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00008 ) % hide hand
+    Wait    25`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % Idle (Flying)
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio3 )
+    Call	SpeakToPlayer	( .Npc_Mistar 0020140D 00201402 00000004 $String_bp_FinalBoss_Mistar2 )
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio4 )
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio5 )
+	ChildThread % show sparkles on dimentio's hand
+		Call	 GetNpcPos 	  ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+    EndChildThread
+    Call	PlaySoundAtNpc ( .Npc_Dimentio1 0378 0 )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00006 ) % rise hand (Flying)
+    Wait    25`
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00006 00F00006 00000000 $String_bp_FinalBoss_Dimentio6 )
+    % Mistar Spell
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00007 ) % throw spell (Flying)
+    Wait    12`
+    ChildThread
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00008 ) % hide hand
+        Wait    25`
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % Idle (Flying)
+    EndChildThread
+    Call    InterpPlayerYaw ( -90` 0 )
+    % mario is worried
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 0001002B ) % surprised
+    % stretch Mistar
+    Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % surprised
+    Call    PlaySoundAtNpc  ( .Npc_Mistar 0262 .Default ) % !
+	Call    ShowEmote   	( .Npc_Mistar .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Wait    25`
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio1_3
+{
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % angry
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio7 )
+    Call	SpeakToPlayer	( .Npc_Mistar 00201411 00201411 00000000 $String_bp_FinalBoss_Mistar3 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Set     *Var[0] .PlayerAnim:NodYes
+    Set     *Var[1] .False
+    Set     *Var[2] 35`
+    ExecWait $SetPlayerAnimation
+    Call    SetNpcAnimation ( .Npc_Mistar 00201408 ) % charging
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % angry
+    Call    InterpPlayerYaw ( 90` 0 )
+    Wait    7
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio1_2
+{
+	Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % Set Dimentio Pos
+            Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            Add     *Var[0] 70` % x
+            Add     *Var[1] 50`  % y
+            Call    SetNpcYaw ( .Npc_Dimentio1 -90` )
+            Call    SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+            % set animations
+            Call    SetPlayerAnimation ( 0001002B ) % surprised
+            Call    InterpPlayerYaw ( -90` 0 )
+            Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % surprised
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % Idle (Flying)
+            % set track
+            Call    SetMusicTrack 	    ( 0 A5 0 8 ) % MusicPlayer ID, .Song:Dimentios_Theme, Variation, Volume
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Dimentio1_3
+{
+	Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % set animations
+            Call    SetPlayerAnimation ( 00010006 ) % angry
+            Call    InterpPlayerYaw ( 90` 0 )
+            Call    SetNpcAnimation ( .Npc_Mistar 00201408 ) % charging
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio2
+{
+    Call    SetNpcAnimation ( .Npc_Mistar 00201408 ) % charging attack
+    % Dimentio ascends
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00011 ) % Ground to Sky
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] .False *Var[2] )
+    Call    GetPlayerPos ( .False *Var[1] .False )
+    Add     *Var[1] 40` % y
+    Call    NpcFlyTo ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] 50` 0 .Easing:Linear )
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio2_2 *Var[A]
+    Exec	$SkipCutscene_Dimentio2_2
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    Call    FadeOutMusic ( .Default 1 ) % Stop Music
+	Call    GetNpcPos 	( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+	Add  	*Var[1]  15` % y
+	Add  	*Var[2]  5   % z
+    Call    PlayEffect  		( ~FX:EnergyShockwave *Var[0] *Var[1] *Var[2] *Fixed[1.0] 60` 0 0 0 0 0 0 0 )
+    % Fade screen to white
+    Call 	$WriteAddress ( 8015C790 2 D0D0D000 .False .False ) % Set fade color as D0D0D0 (RGB)
+    SetF	*Var[0] *Fixed[25.0]  % speed
+    SetF	*Var[1] *Fixed[255.0] % fully white
+    ExecWait $Script_FadeScreenOut
+    % Set Partner pos
+    Call    DisablePartnerAI ( 0 )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -6` % x
+    Add     *Var[2] -2` % z
+    Call    SetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+    % Set Mistar pos
+    Call    SetNpcAnimation ( .Npc_Mistar 00201411 ) % >_<
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -2` % x
+    Add     *Var[1] 11` % y
+    Add     *Var[2] 7 % z
+    Call    SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Wait    60`
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Thread % Mario's sparkles
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .True
+                Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 10`  % y
+                Add		*Var[2] 0 % z
+                Call    PlayEffect  	  ( ~FX:RedShimmer:Spiral *Var[0] *Var[1] *Var[2] -16` 21` 2 ) % XYZ, emitter radius, emitter height, num particles
+                Wait 	9
+            Else
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndThread
+    SetF	*Var[0] *Fixed[15.0] % speed
+    SetF	*Var[1] *Fixed[5.0]  % fully bright
+    ExecWait $Script_FadeScreenIn
+    Call    SetMusicTrack 	( .Default A5 .Default 8 ) % MusicPlayer ID, .Song:Dimentios_Theme, Variation, Volume
+    Call 	$WriteAddress ( 8015C790 2 00000000 .False .False ) % Set fade color as Black
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio2_3 *Var[A]
+    Exec	$SkipCutscene_Dimentio2_3
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    % partner moves
+    Exec    $MovePartnerBehindMario
+    % Mistar Moves
+    Call    SetNpcAnimation ( .Npc_Mistar 00201401 ) % idle (happy)
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -20` % x
+	Add		*Var[1] 20` % mistar y pos
+    Add     *Var[2] 20` % z
+    Call    NpcFlyTo ( .Npc_Mistar *Var[0] *Var[1] *Var[2] 15` 0 .Easing:Linear )
+    Call    InterpNpcYaw ( .Npc_Mistar 90` 0 )
+    % zoom camera
+    Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[300.0] *Fixed[20.0] *Fixed[-7.0] ) % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio2_4 *Var[A]
+    Exec	$SkipCutscene_Dimentio2_4
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    % key items appears
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -15` % x
+    Add     *Var[1] 37`  % y
+    Call    DropItemEntity ( 000C *Var[0] *Var[1] *Var[2] 1 .False ) % ruby crown
+    Set     *Var[5] *Var[0] % save itemEntityID in var5
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 15` % x
+    Add     *Var[1] 40`  % y
+    Call    DropItemEntity ( 000D *Var[0] *Var[1] *Var[2] 1 .False ) % bonetail remains
+    Wait    15`
+    Call	SpeakToPlayer	( .Npc_Mistar 00201409 00201401 00000000 $String_bp_FinalBoss_Mistar5 )
+    Call    RemoveItemEntity ( *Var[5] )
+    Add     *Var[5] 1
+    Call    RemoveItemEntity ( *Var[5] )
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio2_5 *Var[A]
+    Exec	$SkipCutscene_Dimentio2_5
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    % dimentio's portals
+    Thread % show sparkles on dimentio's hand
+		Call	 GetNpcPos 	  ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+		Add	*Var[0] -30` % x
+		Add	*Var[1] -6` % y
+		Loop 5
+			Add 	*Var[0] 3 % x
+			Add 	*Var[1] 5 % y
+			Call    PlayEffect  	  ( ~FX:RedShimmer:Burst *Var[0] *Var[1] *Var[2] -45` 20` 1 ) % XYZ, emitter radius, emitter height, num particles
+			Wait 	2
+		EndLoop
+    EndThread
+    Call	PlaySoundAtNpc ( .Npc_Dimentio1 0378 0 )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00006 ) % rise hand (Flying)
+    Wait    25`
+    Thread
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00007 ) % throw spell (Flying)
+        Wait    12`
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00008 ) % hide hand
+        Wait    25`
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % Idle (Flying)
+    EndThread
+    % portals animations
+    % clone portals
+    Call    CloneModel ( ~Model:portal1 .Model:portal2 )
+    Call    CloneModel ( ~Model:portal1 .Model:portal3 )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 24` % y
+    Add     *Var[2] 20` % z
+    Call    TranslateModel ( ~Model:portal1 *Var[0] *Var[1] *Var[2] )
+    Call    ScaleModel ( ~Model:portal1 *Fixed[0.0] *Fixed[0.0] *Fixed[0.0] ) % Initial Size
+    Call    ScaleModel ( .Model:portal2 *Fixed[0.0] *Fixed[0.0] *Fixed[0.0] )
+    Call    ScaleModel ( .Model:portal3 *Fixed[0.0] *Fixed[0.0] *Fixed[0.0] )
+    Call    EnableModel ( ~Model:portal1 .True )
+    Call    EnableModel ( .Model:portal2 .True )
+    Call    EnableModel ( .Model:portal3 .True )
+    % set other 2 portals positions
+    % partner
+    Call    GetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+    Call	IsCurrentPartnerFlying ( *Var[3] )
+	If *Var[3] == .False % is flying
+        Add     *Var[1] 18` % y
+    Else
+        Add     *Var[1] 8` % y
+    EndIf
+    Add     *Var[2] 20` % z
+    Call    TranslateModel ( .Model:portal2 *Var[0] *Var[1] *Var[2] )
+    % mistar
+    Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 12` % y
+    Add     *Var[2] 8` % z
+    Call    TranslateModel ( .Model:portal3 *Var[0] *Var[1] *Var[2] )
+    Wait    1
+    % Start Animation
+    Call    PlaySound ( 0185 )
+    SetF    *Var[4] *Fixed[0.0]
+    Set     *Var[0] 12` % amount of loops % 12 = Fixed[1.2]
+    Loop *Var[0]
+        % set models positions - 1
+        % mario
+        Call    GetPlayerPos ( *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 24` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( ~Model:portal1 *Var[5] *Var[6] *Var[7] )
+        % partner
+        Call    GetNpcPos ( .Npc:Partner *Var[5] *Var[6] *Var[7] )
+        Call	IsCurrentPartnerFlying ( *Var[3] )
+        If *Var[3] == .False % is flying
+            Add     *Var[6] 18` % y
+        Else
+            Add     *Var[6] 8` % y
+        EndIf
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:portal2 *Var[5] *Var[6] *Var[7] )
+        % mistar
+        Call    GetNpcPos ( .Npc_Mistar *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 12` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:portal3 *Var[5] *Var[6] *Var[7] )
+        AddF    *Var[4] *Fixed[0.1]
+        Call    ScaleModel ( ~Model:portal1 *Var[4] *Var[4] *Fixed[1.0] )
+        Call    ScaleModel ( .Model:portal2 *Var[4] *Var[4] *Fixed[1.0] )
+        Call    ScaleModel ( .Model:portal3 *Var[4] *Var[4] *Fixed[1.0] )
+        If  *Var[0] == 1
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Call    StopSound ( 0185 )
+    Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % *O*
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 0001002B )
+    % mario !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    % mistar !
+    Call    ShowEmote   	( .Npc_Mistar .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    % partner
+    Call    DisablePartnerAI ( 0 )
+    Set     *Var[0] 4 % animationID / 4 = Hurt
+    Set     *Var[1] 1 % !
+    ExecWait $SetPartnerAnimation
+    Wait    25`
+    % End Animation
+    Call    PlaySound ( 0185 )
+    SetF    *Var[4] *Fixed[1.19531]
+    Set     *Var[0] 12` % amount of loops % 12 = Fixed[1.2]
+    Loop *Var[0]
+        % set models positions
+        % mario
+        Call    GetPlayerPos ( *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 24` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( ~Model:portal1 *Var[5] *Var[6] *Var[7] )
+        % partner
+        Call    GetNpcPos ( .Npc:Partner *Var[5] *Var[6] *Var[7] )
+        Call	IsCurrentPartnerFlying ( *Var[3] )
+        If *Var[3] == .False % is flying
+            Add     *Var[6] 18` % y
+        Else
+            Add     *Var[6] 8` % y
+        EndIf
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:portal2 *Var[5] *Var[6] *Var[7] )
+        % mistar
+        Call    GetNpcPos ( .Npc_Mistar *Var[5] *Var[6] *Var[7] )
+        Add     *Var[6] 12` % y
+        Add     *Var[7] 20` % z
+        Call    TranslateModel ( .Model:portal3 *Var[5] *Var[6] *Var[7] )
+        SubF    *Var[4] *Fixed[0.1]
+        Call    ScaleModel ( ~Model:portal1 *Var[4] *Var[4] *Fixed[1.0] )
+        Call    ScaleModel ( .Model:portal2 *Var[4] *Var[4] *Fixed[1.0] )
+        Call    ScaleModel ( .Model:portal3 *Var[4] *Var[4] *Fixed[1.0] )
+        If *Var[0] < 6 % Hide Sprites
+            Call    SetNpcFlagBits ( .Npc_Mistar 01000000 .True )
+            % Hide partner
+			Call	DisablePartnerAI ( 0 )
+			Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+            Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % player
+            Call    EnableNpcShadow ( .Npc_Mistar .False )
+            Call    HidePlayerShadow ( .True )
+        EndIf
+        If  *Var[0] == 1
+            Call    ScaleModel ( ~Model:portal1 *Fixed[0.0] *Fixed[0.0] *Fixed[1.0] )
+            Call    ScaleModel ( .Model:portal2 *Fixed[0.0] *Fixed[0.0] *Fixed[1.0] )
+            Call    ScaleModel ( .Model:portal3 *Fixed[0.0] *Fixed[0.0] *Fixed[1.0] )
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Call    StopSound ( 0185 )
+    % everyone has been warped to another dimension
+    % Fade screen to white
+    Call 	$WriteAddress ( 8015C790 2 D0D0D000 .False .False ) % Set fade color as D0D0D0 (RGB)
+    SetF	*Var[0] *Fixed[25.0]  % speed
+    SetF	*Var[1] *Fixed[255.0] % fully white
+    ExecWait $Script_FadeScreenOut
+    % unhide sprites
+    Call    SetNpcFlagBits ( .Npc_Mistar 01000000 .False )
+    Call	TeleportPartnerToPlayer % Make Partner appear
+	Exec 	$MovePartnerBehindMario
+    Call    $WriteBitFlag ( 8010EFCE .False .False 5 .False ) % player
+    Call    EnableNpcShadow ( .Npc_Mistar .True )
+    Call    HidePlayerShadow ( .False )
+    % set everyones animations
+    % partner
+    Set     *Var[0] 0 % animationID / 0 = idle
+    Set     *Var[1] .False
+    ExecWait $SetPartnerAnimation
+    Call    EnablePartnerAI
+    % mistar
+    Call	SetNpcAnimation	( .Npc_Mistar 00201408 ) % charging
+    % mario
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    FadeOutMusic ( .Default 1 ) % Stop Music
+    Call    PlaySound ( 0188 )
+    % Models
+    Call    EnableGroup ( ~Model:main .False )
+    Call    EnableGroup ( ~Model:dimentio2 .True )
+    Wait    60`
+    SetF	*Var[0] *Fixed[15.0] % speed
+    SetF	*Var[1] *Fixed[5.0]  % fully bright
+    ExecWait $Script_FadeScreenIn
+    Wait    10`
+    Call	SpeakToPlayer	( .Npc_Mistar 0020140D 00201408 00000000 $String_bp_FinalBoss_Mistar6 )
+    Set     *Var[0] .PlayerAnim:NodYes
+    Set     *Var[1] .False
+    Set     *Var[2] 35`
+    ExecWait $SetPlayerAnimation
+    Call    SetPlayerAnimation ( 00010006 ) % angry
+    Call    InterpPlayerYaw ( 90` 0 )
+    Wait    7
+    Call    SetNpcFlagBits ( .Npc_Dimentio2 01000100 .True ) % turn off collisions and make npc invisible
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Dimentio2 *Var[0] *Var[1] *Var[2] )
+    Call    $Function_SaveItems_Checkpoint2
+    Call    $Function_SaveMisc_Checkpoint2
+    Call    SetNpcVar ( .Npc_Dimentio2 0 .True ) % Start Battle
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio2_2
+{
+    % Charge Attack
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00009 ) % raise hands
+    Wait    16`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000A ) % charging attack
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Call	PlaySoundAtNpc  ( .Npc_Dimentio1 0207 0 ) % charging sfx
+    ChildThread
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .True
+                Call	GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 20`  % y
+                Add		*Var[2] -17` % z
+                Call    PlayEffect  	( ~FX:GatherEnergyPink *Var[0] *Var[1] *Var[2] 5 19` 0 0 0 0 0 0 0 )
+                Wait 	9
+            Else
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndChildThread
+    % mario !
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    % mistar !
+    Call    ShowEmote   	( .Npc_Mistar .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % wtf
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010027 ) % running
+    Wait    10`
+    Call	SpeakToPlayer	( .Npc_Mistar 0020140C 0020140C 00000004 $String_bp_FinalBoss_Mistar4 )
+    Wait    25`
+    % Dimentio throw attack
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000B ) % throw attack
+	Call	StopSound ( 0207 ) % charge sound
+    Wait	5
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010014 ) % guard
+    Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % wtf
+    Call    PlaySoundAtNpc 	( .Npc_Dimentio1 2122 0 )
+    Call    SetNpcVar   ( .Npc_Dimentio1 F .False ) % turn charge fx off
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio2_3
+{
+    Wait    25`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000C ) % throw attack - end
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio9 )
+    % mario ?
+    Call    PlaySoundAtPlayer ( 0263 .Default ) % ?
+    Call    ShowEmote       ( .Default .Emote:Question -45` 20` 0 0 0 0 0 )
+    % mistar ?
+    Call    ShowEmote   	( .Npc_Mistar .Emote:Question 45` 20` 1 0 0 0 0 )
+    % partner ?
+    Call    ShowEmote   	( .Npc:Partner .Emote:Question -45` 20` 1 0 0 0 0 )
+    Wait    25`
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio2_4
+{
+    Wait    5
+    Call    InterpPlayerYaw ( -90` 0 )
+    Wait    15`
+    Call    InterpPlayerYaw ( 90` 0 )
+    Wait    15`
+    Call    InterpPlayerYaw ( -90` 0 )
+    Wait    15`
+    % mario !
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Wait    10`
+    Call    SetNpcVar ( .Npc_Dimentio1 F .False ) % stop sparkles fx
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 0006000C ) % arms rised
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio2_5
+{
+    Call    InterpPlayerYaw ( 90` 0 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % angry
+    Call    ResetCam    ( .Cam:Default *Fixed[10.0] )
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio10 )
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio2_2
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % set animations
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetPlayerAnimation ( 00010014 ) % guard
+            Call    InterpPlayerYaw ( 90` 0 )
+            Call    SetNpcAnimation ( .Npc_Mistar 0020140C ) % wtf
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000B ) % throw attack
+            Call	StopSound ( 0207 ) % charge sound
+            Call    SetNpcVar   ( .Npc_Dimentio1 F .False ) % turn charge fx off
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio2_3
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % set animations
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio2_4
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % set animations
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetPlayerAnimation ( 0006000C ) % arms rised
+            Call    InterpPlayerYaw ( -90` 0 )
+            Call    SetNpcVar ( .Npc_Dimentio1 F .False ) % stop sparkles fx
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio2_5
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+            % set animations
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetPlayerAnimation ( 00010006 ) % angry
+            Call    InterpPlayerYaw ( 90` 0 )
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio3
+{
+    % Go back to Dimentio's room
+    Call    EnableGroup ( ~Model:main .True )
+    Call    EnableGroup ( ~Model:hammers .False )
+    Call    EnableGroup ( ~Model:dimentio2 .False )
+    % Set dimentio pos
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 70` % x
+    % Set yaws
+    Call    SetNpcYaw ( .Npc:Partner 90` )
+    Call    SetNpcYaw ( .Npc_Mistar 90` )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00018 ) % on the floor
+    Call    SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Call 	$WriteAddress ( 8015C790 2 00000000 .False .False ) % Set fade color as Black
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio3_2 *Var[A]
+    Exec	$SkipCutscene_Dimentio3_2
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    % Dimentio ascends
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0001A ) % tired idle (flying)
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] .False *Var[2] )
+    Call    GetPlayerPos ( .False *Var[1] .False )
+    Add     *Var[1] 40` % y
+    Call    NpcFlyTo ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] 50` 0 .Easing:Linear )
+    % Charge Attack
+    Call    SetNpcAnimation ( .Npc_Mistar 00201402 ) % angry idle
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0001A ) % tired
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio3_3 *Var[A]
+    Exec	$SkipCutscene_Dimentio3_3
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    Call    SetNpcVar ( .Npc_Dimentio1 E .True )
+    Thread % Mario's sparkles
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 E *Var[0] )
+            If *Var[0] == .True
+                Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 10`  % y
+                Add		*Var[2] 0 % z
+                Call    PlayEffect  	  ( ~FX:RedShimmer:Spiral *Var[0] *Var[1] *Var[2] -16` 21` 2 ) % X/Y/Z, emitter radius, emitter height, num particles
+                Wait 	9
+            Else
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndThread
+    % Dimentio throw attack
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000B ) % throw attack
+	Call	StopSound ( 0207 ) % charge sound
+    Wait	5
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010014 ) % guard
+    Call    PlaySoundAtNpc 	( .Npc_Dimentio1 2122 0 )
+    Call    SetNpcVar   ( .Npc_Dimentio1 F .False ) % turn charge fx off
+    Call    FadeOutMusic ( .Default 1 ) % Stop Music
+	Call    GetNpcPos 	( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+	Add  	*Var[1]  15` % y
+	Add  	*Var[2]  5   % z
+    Call    PlayEffect  		( ~FX:EnergyShockwave *Var[0] *Var[1] *Var[2] *Fixed[1.0] 60` 0 0 0 0 0 0 0 )
+    % Fade screen to white
+    Call 	$WriteAddress ( 8015C790 2 D0D0D000 .False .False ) % Set fade color as D0D0D0 (RGB)
+    SetF	*Var[0] *Fixed[25.0]  % speed
+    SetF	*Var[1] *Fixed[255.0] % fully white
+    ExecWait $Script_FadeScreenOut
+    %ExecWait $MovePartnerBehindMario    
+    Wait    60`
+    SetF	*Var[0] *Fixed[15.0] % speed
+    SetF	*Var[1] *Fixed[125.0] % brightness
+    ExecWait $Script_FadeScreenIn
+    % crown get destroyed
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -15` % x
+    Add     *Var[1] 37`  % y
+    Call    DropItemEntity ( 000C *Var[0] *Var[1] *Var[2] 1 .False ) % ruby crown
+    Set     *Var[5] *Var[0] % save itemEntityID in var5
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 15` % x
+    Add     *Var[1] 40`  % y
+    Call    DropItemEntity ( 000D *Var[0] *Var[1] *Var[2] 1 .False ) % bonetail remains
+    Set     *Var[6] *Var[5]
+    Add     *Var[6] 1
+    Loop 4 % items start blinking
+        Wait    10`
+        Call    SetItemFlags ( *Var[5] 00000001 .False )
+        Call    SetItemFlags ( *Var[6] 00000001 .False )
+        Call    PlaySound   ( 0005 )
+        Wait    10`
+        Call    SetItemFlags ( *Var[5] 00000001 .True )
+        Call    SetItemFlags ( *Var[6] 00000001 .True )
+    EndLoop
+    % destroyed
+    Call    RemoveItemEntity ( *Var[5] )
+    Add     *Var[5] 1
+    Call    RemoveItemEntity ( *Var[5] )
+    Call    PlaySound ( 03E5 ) % NpcDefeated
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -15` % x
+    Add     *Var[1] 37`  % y
+    Call    PlayEffect  ( ~FX:Stars:Circle *Var[0] *Var[1] *Var[2] 0 1 0 8 0 0 0 0 0 )
+    Add     *Var[1] -12` % y
+    Call    PlayEffect 	( ~FX:PinkSparkles *Var[0] *Var[1] *Var[2] *Var[0] *Var[1] *Var[2] )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 15` % x
+    Add     *Var[1] 40`  % y
+    Call    PlayEffect  ( ~FX:Stars:Circle *Var[0] *Var[1] *Var[2] 0 1 0 8 0 0 0 0 0 )
+    Add     *Var[1] -12` % y
+    Call    PlayEffect 	( ~FX:PinkSparkles *Var[0] *Var[1] *Var[2] *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcVar ( .Npc_Dimentio1 E .False ) % stop sparkles
+    % ruby king appears
+    % init king
+    Call    SetNpcFlagBits ( .Npc:RubyKing 00000100 .True ) % turn off npc collisions
+    Call    SetNpcAnimation ( .Npc:RubyKing 007F1520 ) % *O*
+    Call    InterpNpcYaw ( .Npc:RubyKing 90` 0 )
+    Call    802CFD30 ( .Npc:RubyKing 7 7F 0 0 0 ) % Set transparency
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -15` % x
+    Add     *Var[1] 37`  % y
+    Call    SetNpcPos ( .Npc:RubyKing *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -200` % x
+    Add     *Var[1] 80` % y
+    Call    SetNpcSpeed ( .Npc:RubyKing *Fixed[6.0] )
+    Call    NpcFlyTo ( .Npc:RubyKing *Var[0] *Var[1] *Var[2] 0 0 .Easing:Linear )
+    Call    SetMusicTrack 	( .Default A5 .Default 8 ) % MusicPlayer ID, .Song:Dimentios_Theme, Variation, Volume
+    Wait    25`
+    SetF	*Var[0] *Fixed[25.0] % speed
+    SetF	*Var[1] *Fixed[5.0] % fully bright
+    ExecWait $Script_FadeScreenIn
+    Call 	$WriteAddress ( 8015C790 2 00000000 .False .False ) % Set fade color as Black
+    %=================================================
+    Exec	$Script_Cutscene_bp_Dimentio3_4 *Var[A]
+    Exec	$SkipCutscene_Dimentio3_4
+    Loop
+        DoesScriptExist ( *Var[A] *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+    Set 	*Flag_Skip .False
+    Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+    %=================================================
+    Wait    10`
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % Ready to Jump
+    % charge attack
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00009 ) % raise hands
+    Wait    16`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000A ) % charging attack
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Thread
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .True
+                Call	GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 20`  % y
+                Add		*Var[2] -17` % z
+                Call    PlayEffect  	( ~FX:GatherEnergyPink *Var[0] *Var[1] *Var[2] 5 19` 0 0 0 0 0 0 0 )
+                Wait 	9
+            Else
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndThread
+    Wait    7
+    Call    SetNpcFlagBits ( .Npc_Dimentio3 01000100 .True ) % turn off collisions and make npc invisible
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Dimentio3 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcVar ( .Npc_Dimentio3 0 .True ) % Start Battle
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio3_2
+{
+    Wait    10`
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00019 00F00018 00000000 $String_bp_FinalBoss_Dimentio11 )
+    Wait    20`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00017 ) % tired1
+    Wait    1
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio3_3
+{
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00009 ) % raise hands
+    Wait    16`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000A ) % charging attack
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Call	PlaySoundAtNpc  ( .Npc_Dimentio1 0207 0 ) % charging sfx
+    Thread
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .True
+                Call	GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 20`  % y
+                Add		*Var[2] -17` % z
+                Call    PlayEffect  	( ~FX:GatherEnergyPink *Var[0] *Var[1] *Var[2] 5 19` 0 0 0 0 0 0 0 )
+                Wait 	9
+            Else
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndThread
+    Call	SpeakToPlayer	( .Npc_Mistar 00201409 00201401 00000004 $String_bp_FinalBoss_Mistar7 )
+    Wait    25`
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_bp_Dimentio3_4
+{
+    % mario ?
+    Call    PlaySoundAtPlayer ( 0263 .Default ) % ?
+    Call    ShowEmote       ( .Default .Emote:Question -45` 20` 0 0 0 0 0 )
+    % mistar ?
+    Call    ShowEmote   	( .Npc_Mistar .Emote:Question -45` 20` 1 0 0 0 0 )
+    Wait    25`
+    % Our heroes get hurt
+    % partner
+    Call    DisablePartnerAI ( 0 )
+    Set     *Var[0] 4 % animationID / 4 = Hurt
+    Set     *Var[1] .False
+    ExecWait $SetPartnerAnimation
+    % mistar
+    Call    SetNpcAnimation ( .Npc_Mistar 00201411 ) % ouch
+    % mario
+    Call    SetPlayerAnimation ( 00010002 ) % idle
+    Call    SetPlayerAnimation ( 00010017 ) % taking damage
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 13` % y
+    Call    PlayEffect   ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Call    GetNpcPos  ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect   ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Call    GetNpcPos  ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect   ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Wait    8
+    Call    SetPlayerAnimation ( 00010002 ) % idle    
+    Call    SetPlayerAnimation ( 00080003 ) % fall to the floor
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000C ) % throw attack - end
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+    Call	SpeakToPlayer	( .Npc_Mistar 00201411 00201411 00000004 $String_bp_FinalBoss_Mistar8 )
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio12 )
+    Wait    15`
+    Call    SetPlayerAnimation ( 00010002 ) % idle    
+    Call    SetPlayerAnimation ( 00010030 ) % waking up
+    Wait    15`
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010003 ) % tired
+    Wait    10`
+    Call    GetPlayerPos ( *Var[0] .False *Var[1] )
+    Add     *Var[0] 10` % x
+    Call    PlayerMoveTo ( *Var[0] *Var[1] 20` )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010003 ) % tired
+    Call    SetNpcAnimation ( .Npc_Mistar 00201416 ) % sad idle
+    Call	SpeakToPlayer	( .Npc_Mistar 00201416 00201416 00000004 $String_bp_FinalBoss_Mistar9 )
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_bp_FinalBoss_Dimentio13 )
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio3_2
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio3_3
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+            ExecWait $Script_FadeScreenOut
+            Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+            % set animations
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000A ) % charging attack
+            Call    SetNpcAnimation ( .Npc_Mistar 00201402 ) % angry idle
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+#new:Script $SkipCutscene_Dimentio3_4
+{
+    Set     *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+            ExecWait $Script_FadeScreenOut
+            Call    SetPlayerFlagBits ( 00005000 .False ) % Force PlayerMoveTo to stop
+            Call    DisablePartnerAI ( 0 )
+            % set player pos
+            Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] .False .False )
+            Call    GetPlayerPos ( .False *Var[1] *Var[2] )
+            Add     *Var[0] -60` % x
+            Call    SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+            % set animations
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetPlayerAnimation ( 00010003 ) % tired
+            Call    SetNpcAnimation ( .Npc_Mistar 00201416 ) % sad idle
+            Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+			% Fade Screen Brightness
+            SetF	*Var[0] *Fixed[25.0] % speed
+            SetF	*Var[1] *Fixed[5.0]  % fully bright
+            ExecWait $Script_FadeScreenIn
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+    Return
+    End
+}
+
+% Mario and their friends go back to dimentio's room
+% And they recieve power from all souls
+#new:Script $Script_Cutscene_Ending_6
+{
+    Call    $WriteAddress ( $PlayerData_Misc_Checkpoint1 0 *PlayerSkin 6 .False ) % save current palette
+    Set     *PlayerSkin .Default
+    Call    DisablePlayerInput ( .True )
+    Call    DisablePlayerPhysics ( .True )
+    % Init Npcs
+    % Set yaws
+    Call    InterpPlayerYaw ( 90` 0 )
+    Call    SetNpcYaw ( .Npc_Mistar 90` )
+    Call    SetNpcYaw ( .Npc:Partner 90` )
+    % Set Dimentio's pos
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 80` % x
+    Add     *Var[1] 50` % y
+    Call    SetNpcYaw ( .Npc_Dimentio1 -90` )
+    Call    SetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    % Set Mistar pos
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -20` % x
+    Add     *Var[1] 14` % y
+    Add     *Var[2] 2 % z
+    Call    SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    % Set Partner pos
+    Exec    $MovePartnerBehindMario
+    %
+    Exec    $Script_Cutscene_Ending_EmitterEmbers % Particles
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 0001000F ) % on the floor
+    Call    DisablePartnerAI ( 0 )
+    Set     *Var[0] 4 % animationID / 4 = Hurt
+    Set     *Var[1] .False
+    ExecWait $SetPartnerAnimation
+    % Charge Attack
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Call	PlaySoundAtNpc  ( .Npc_Dimentio1 0207 0 ) % charging sfx
+    Thread
+        Loop
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .True
+                Call	GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+                Add		*Var[0] 0 	 % x
+                Add		*Var[1] 20`  % y
+                Add		*Var[2] -17` % z
+                Call    PlayEffect  	( ~FX:GatherEnergyPink *Var[0] *Var[1] *Var[2] 5 19` 0 0 0 0 0 0 0 )
+                Wait 	9
+            Else
+                Call    StopSound ( 0207 ) % charge sfx
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+    EndThread
+    Call    SetNpcAnimation ( .Npc_Mistar 00201411 ) % ouch
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0000A ) % charging attack
+    Wait    35`
+    % Dimentio's ?
+    Call    SetNpcVar ( .Npc_Dimentio1 F .False ) % stop charging FX
+    Call    PlaySoundAtPlayer ( 0263 .Default ) % ?
+    Call    ShowEmote   	( .Npc_Dimentio1 .Emote:Question -45` 20` 1 0 0 0 0 )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00002 ) % idle (flying)
+    % Heroes get more power
+    Call    PlaySound ( 0378 ) % Healing
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  	( ~FX:EmitterVolume:GoldShimmer1 *Var[0] *Var[1] *Var[2] 20` 36` *Fixed[1.0] 13` 80` 0 0 0 0 )
+    Call    GetNpcPos       ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  	( ~FX:EmitterVolume:GoldShimmer1 *Var[0] *Var[1] *Var[2] 20` 36` *Fixed[1.0] 13` 80` 0 0 0 0 )
+    Call    GetNpcPos       ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+    Call    PlayEffect  	( ~FX:EmitterVolume:GoldShimmer1 *Var[0] *Var[1] *Var[2] 20` 36` *Fixed[1.0] 13` 80` 0 0 0 0 )
+    % set animations
+    Call    EnablePartnerAI
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010030 ) % waking up
+    Call    SetNpcAnimation ( .Npc_Mistar 00201401 ) % idle (happy)
+    Wait    14`
+    % ! ! !
+    Call    PlaySoundAtPlayer ( 0262 .Default ) % !
+    Call    ShowEmote       ( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+    Call    ShowEmote   	( .Npc_Mistar .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   	( .Npc:Partner .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    % Heroes look at all sides
+    Loop 2
+        Call    InterpNpcYaw ( .Npc_Mistar -90` 0 )
+        Call    InterpNpcYaw ( .Npc:Partner -90` 0 )
+        Call    InterpPlayerYaw ( -90` 0 )
+        Wait    20`
+        Call    InterpNpcYaw ( .Npc_Mistar 90` 0 )
+        Call    InterpNpcYaw ( .Npc:Partner 90` 0 )
+        Call    InterpPlayerYaw ( 90` 0 )
+        Wait    20`
+    EndLoop
+    Call    SpeakToPlayer	( .Npc_Mistar 0020140A 00201401 00000000 $String_Ending_Mistar1 )
+    Call    InterpPlayerYaw ( 90` 0 )
+    % Zoom camera towards Dimentio
+    Call    GetNpcPos 			( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 5 % y
+	Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call    SetCamSpeed 	( .Cam:Default *Fixed[10.0] )
+	Call    SetCamDistance  ( .Cam:Default 155` )						% Cam Zoom
+	Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID X Y Z
+	Call    PanToTarget 	( .Cam:Default 00000000 00000001 )
+    Wait    15`
+    Call	SpeakToPlayer	( .Npc_Dimentio1 00F00016 00F00002 00000000 $String_Ending_Dimentio1 )
+    Call    SetMusicTrack   ( 0 A9 0 8 ) % .Song:HeroesHealed
+    % Heroes beat the shit out of Dimentio
+    %
+    % Mario throws a hammer towards dimentio
+    Call    $ReadAddress ( 8010F291 0 *Var[0] .False .False )
+    Switch *Var[0] % current hammer
+        Case == 0 % Normal Hammer
+            Set *Var[9] ~Model:hammer1
+        Case == 1 % Super Hammer
+            Set *Var[9] ~Model:hammer2
+        Case == 2 % Ultra Hammer
+            Set *Var[9] ~Model:hammer3
+    EndSwitch
+    Call    EnableModel ( *Var[9] .True )
+    Call    PlaySound ( 03FA ) % throw
+    % hammer flies away towards Dimentio
+    %===============
+    Thread % rotate hammer
+        Call    SetNpcVar ( .Npc_Dimentio1 1 .True )
+        Set     *MapVar[A] 0
+        Loop
+            Add     *MapVar[A] 105`
+            Call    GetNpcVar ( .Npc_Dimentio1 1 *Var[0] )
+            Wait    1
+            If *Var[0] == .False
+                Set *MapVar[A] 0
+                BreakLoop
+            EndIf
+        EndLoop
+    EndThread
+    % Move hammer
+    Call  LoadPath  ( 7` $Path_Hammer1 4 .Easing:Linear )
+    Loop
+        Call  GetNextPathPos
+        Call  TranslateModel    ( *Var[9] *Var[1] *Var[2] *Var[3] )
+        Call  RotateModel       ( *Var[9] *MapVar[A] .False .False .True )
+        Wait  1
+        If  *Var[0]  ==  .False
+            Call    SetNpcVar ( .Npc_Dimentio1 1 .False )
+            BreakLoop
+        EndIf
+    EndLoop
+    %========
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetNpcPos  ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 16` % y
+    Call    PlayEffect   ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    % Dimentio flies away
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F00013 ) % hurt (flying)
+    Call    SetNpcSpeed ( .Npc_Dimentio1 *Fixed[6.0] )
+    Call    SetNpcVar ( .Npc_Dimentio1 F .True )
+    Exec    $Script_NpcMoveTo_Dimentio1
+    % Hammer flies away 2
+    %====================
+    Thread % rotate hammer
+        Call    SetNpcVar ( .Npc_Dimentio1 1 .True )
+        Set     *MapVar[A] 0
+        Loop
+            Add     *MapVar[A] 55`
+            Call    GetNpcVar ( .Npc_Dimentio1 1 *Var[0] )
+            Wait    1
+            If *Var[0] == .False
+                Set *MapVar[A] 0
+                BreakLoop
+            EndIf
+        EndLoop
+    EndThread
+    % Move hammer
+    Call  LoadPath  ( 12` $Path_Hammer2 4 .Easing:Linear )
+    Loop
+        Call  GetNextPathPos
+        Call  TranslateModel    ( *Var[9] *Var[1] *Var[2] *Var[3] )
+        Call  RotateModel       ( *Var[9] *MapVar[A] .False .False -1 )
+        Wait  1
+        If  *Var[0]  ==  .False
+            Call    SetNpcVar ( .Npc_Dimentio1 1 .False )
+            BreakLoop
+        EndIf
+    EndLoop
+    Call    EnableModel ( *Var[9] .False )
+    Wait    40`
+    % hide current partner
+    Call    SetNpcFlagBits ( .Npc:Partner 00000100 .True ) % disable collisions
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+    % set all partners positions
+    % mario npc
+    Call    SetNpcFlagBits ( .Npc_Mario 01000100 .True ) % invisible and disable collisions
+    Call    SetNpcYaw ( .Npc_Mario 90` )
+    % mistar
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -35` % x
+    Add     *Var[1] 15` % y
+    Add     *Var[2] 30` % z
+    Call    SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcAnimation ( .Npc_Mistar 00201408 ) % charging
+    Call    SetNpcFlagBits ( .Npc_Mistar 00000100 .True ) % disable collisions
+    Call    SetNpcFlagBits ( .Npc_Dimentio1 00000100 .True ) % disable collisions
+    % goombario
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -25` % x
+    Add     *Var[2] 10` % z
+    Call    SetNpcPos ( .Npc_Goombario *Var[0] *Var[1] *Var[2] )
+    % kooper
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 40` % x
+    Call    SetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    % bombette
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 65` % x
+    Add     *Var[2] -20` % z
+    Call    SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    % parakarry
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -15` % x
+    Add     *Var[1] 60` % y
+    Add     *Var[2] -10` % z
+    Call    SetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+    % bow
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -35` % x
+    Add     *Var[1] 30` % y
+    Call    SetNpcPos ( .Npc_Bow *Var[0] *Var[1] *Var[2] )
+    % watt
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -65` % x
+    Add     *Var[1] 35` % y
+    Call    SetNpcPos ( .Npc_Watt *Var[0] *Var[1] *Var[2] )
+    % sushie
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[2] 30` % z
+    Call    SetNpcPos ( .Npc_Sushie *Var[0] *Var[1] *Var[2] )
+    % lakilester
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[1] 40` % y
+    Add     *Var[2] -25` % z
+    Call    SetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+    % Pan camera towards our heroes
+    Call    SetZoneEnabled ( ~Zone:Default2 .False ) % read from Default 3
+    Call    GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+	Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call    SetCamSpeed 	( .Cam:Default *Fixed[10.0] )
+	Call    SetCamDistance  ( .Cam:Default 300` )						% Cam Zoom
+	Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID X Y Z
+    Call    PanToTarget 	( .Cam:Default 00000000 00000001 )
+    % Toggle Mario Player Sprite & Mario NPC visibilities
+    Exec    $Script_ToogleMariosVisibility
+    %
+    Exec    $Script_StickMarioNPCToPlayer
+    Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+    Switch *Var[0]
+        Case == 1 % Super Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F2000D )
+        Case == 2 % Ultra Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F20013 )
+        Default
+            Call    SetNpcAnimation ( .Npc_Mario 00F20007 )
+    EndSwitch
+    Wait    40`
+    % Toggle Mario Player Sprite & Mario NPC visibilities
+    Exec    $Script_ToogleMariosVisibility
+    %%%%
+    Call    SetNpcAnimation ( .Npc_Mario 00F20000 )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % Ready to Jump
+    % kooper enter his shell
+    Call    SetNpcAnimation ( .Npc_Kooper 0002000A ) % enter to shell
+    Wait    20`
+    % Sushie moves to her position
+    Thread
+        Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -55` % x
+        Call    SetNpcSpeed ( .Npc_Sushie *Fixed[3.0] )
+        Call    NpcMoveTo ( .Npc_Sushie *Var[0] *Var[2] 0 )
+        Call    InterpNpcYaw ( .Npc_Sushie 90` 0 )
+    EndThread
+    % Mario jump to kooper
+    Call    DisablePlayerPhysics ( .True )
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 14` % y
+    Call    SetPlayerJumpscale ( *Fixed[1.0] )
+    Call    PlayerJump ( *Var[0] *Var[1] *Var[2] 15` )
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010006 ) % Ready to Jump
+    % Sushie shots
+    Call    SetNpcAnimation ( .Npc_Sushie 000F0009 ) % charge
+    Wait    20`
+    Call    SetNpcAnimation ( .Npc_Sushie 000F000A ) % shot
+    Call    GetNpcPos ( .Npc_Sushie *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 10` % y
+    Call    GetNpcPos ( .Npc_Kooper *Var[3] *Var[4] *Var[5] )
+    Add     *Var[3] -7` % x
+    Call    PlaySound ( 0297 ) % Squirt
+    Call    PlayEffect    ( ~FX:Squirt:Waterbeam *Var[0] *Var[1] *Var[2] *Var[3] *Var[1] *Var[5] 2 5 0 0 0 0 ) % XYZ(Start Pos) XYZ(Target Pos) Size Weight
+    Wait    5
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    PlayEffect    ( ~FX:Firework:White *Var[3] *Var[1] *Var[5] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Call    SetNpcAnimation ( .Npc_Sushie 000F0001 ) % idle
+    Call    SetNpcAnimation ( .Npc_Kooper 00020009 ) % spinning
+    Call    PlaySound ( 200B ) % kooper dashing
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010005 ) % running
+    Exec    $Script_CameraFollowsPlayer
+    Exec    $Script_StickMarioToKooper
+    % Kooper moves
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 250` % x
+    Call    SetNpcSpeed ( .Npc_Kooper *Fixed[6.0] )
+    Call    NpcMoveTo ( .Npc_Kooper *Var[0] *Var[2] 0 )
+    Call    SetNpcVar ( .Npc_Kooper 2 1 )
+    Exec    $Script_NpcMoveTo_Kooper1
+    Exec    $Script_NpcMoveTo_Bombette1
+    Wait    10`
+    % Toggle Mario Player Sprite & Mario NPC visibilities
+    Exec    $Script_ToogleMariosVisibility
+    %
+    Call    SetNpcVar ( .Npc_Kooper 2 2 )
+    Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+    Switch *Var[0]
+        Case == 1 % Super Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F2000D )
+            Wait    20`
+            Call    SetNpcAnimation ( .Npc_Mario 00F2000E )
+        Case == 2 % Ultra Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F20013 )
+            Wait    20`
+            Call    SetNpcAnimation ( .Npc_Mario 00F20014 )
+        Default
+            Call    SetNpcAnimation ( .Npc_Mario 00F20007 )
+            Wait    20`
+            Call    SetNpcAnimation ( .Npc_Mario 00F20008 )
+    EndSwitch
+    Return
+    End
+}
+
+#new:VectorList $Path_Hammer1
+{
+    % ~Path3f:Path_Hammer1
+    -172.000000 10.000000 83.000000
+    -129.000000 19.000000 83.000000
+    -71.000000 33.000000 83.000000
+    -13.000000 46.000000 83.000000
+}
+
+#new:VectorList $Path_Hammer2
+{
+    % ~Path3f:Path_Hammer2
+    -13.000000 47.000000 73.000000
+    -31.000000 67.000000 73.000000
+    -52.000000 90.000000 73.000000
+    -71.000000 111.000000 73.000000
+}
+
+% Toogle Player Sprites and Mario NPC visibility
+#new:Script $Script_ToogleMariosVisibility
+{
+    Call    $ReadBitFlag ( 8010EFCE .False .False 5 *Var[0] )
+    If *Var[0] == .False % Player is visible
+        % Toggle Mario Player Sprite & Mario NPC visibilities
+        Call    $WriteBitFlag ( 8010EFCE .False .False 5 .True ) % Turn Player Invisible
+        Call    HidePlayerShadow ( .True )
+        Call    SetNpcFlagBits ( .Npc_Mario 01000000 .False ) % Make Mario NPC visible
+    Else % Player is invisible
+        % Toggle Mario Player Sprite & Mario NPC visibilities
+        Call    $WriteBitFlag ( 8010EFCE .False .False 5 .False ) % Turn Player visible
+        Call    HidePlayerShadow ( .False )
+        Call    SetNpcFlagBits ( .Npc_Mario 01000000 .True ) % Make Mario NPC invisible
+    EndIf
+    Return
+    End
+}
+
+% Mario has his Physics disabled to being able to be on the top of kooper
+% this script move the camera manually according to mario's pos
+#new:Script $Script_CameraFollowsPlayer
+{
+    Call    SetNpcVar ( .Npc_Kooper 0 .True )
+    Loop
+        Call    GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+        Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+        Call    SetCamSpeed 	( .Cam:Default *Fixed[10.0] )
+        Call    SetCamDistance  ( .Cam:Default 300` )						% Cam Zoom
+        Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID X Y Z
+        Call    PanToTarget 	( .Cam:Default 00000000 00000001 )
+        Call    GetNpcVar ( .Npc_Kooper 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Set Mario NPC's XYZ pos as the same as Mario (Player)
+#new:Script $Script_StickMarioNPCToPlayer
+{
+    Call    SetNpcVar ( .Npc_Mario 0 .True )
+    Loop
+        Call    GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+        Call    SetNpcPos 		( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+        Call    GetNpcVar ( .Npc_Mario 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Set Player pos the same as Mario NPC's XYZ pos, needed to update the camera
+#new:Script $Script_StickMarioToMarioNPC
+{
+    Call    SetNpcVar ( .Npc_Mario 1 .True )
+    Loop
+        Call    GetNpcPos 		( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+        Call    SetPlayerPos	( *Var[0] *Var[1] *Var[2] )        
+        Call    GetNpcVar ( .Npc_Mario 1 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Set Mario X and Z pos the same as Kooper
+#new:Script $Script_StickMarioToKooper
+{
+    Call    SetNpcVar ( .Npc_Kooper 1 .True )
+    % Dash SFX
+    Thread
+        Loop
+            Call    PlaySound ( 200C ) % kooper dashing2
+            Call    GetNpcVar ( .Npc_Kooper 1 *Var[0] )
+            If *Var[0] == .False
+                BreakLoop
+            EndIf
+            Wait    7
+        EndLoop
+    EndThread
+    Loop
+        Call    GetNpcPos 		( .Npc_Kooper *Var[0] .False *Var[2] )
+        Call    GetPlayerPos	( .False *Var[1] .False )
+        Call    GetNpcVar ( .Npc_Kooper 2 *Var[3] )
+        Switch *Var[3]
+            Case == 1 % Shell speed has decreased
+                Add     *Var[0] 5 % x
+            Case == 2 % Mario is holding his hammer
+                Add     *Var[0] 10` % x
+        EndSwitch
+        Call    SetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+        Call    GetNpcVar ( .Npc_Kooper 1 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Set Mario XYZ pos according to Parakarry's pos
+#new:Script $Script_StickMarioToParakarry
+{
+    Call    SetNpcVar ( .Npc_Parakarry 0 .True )
+    % Flying SFX
+    Thread
+        Loop
+            Call    PlaySound ( 2009 ) % carrying mario
+            Call    GetNpcVar ( .Npc_Parakarry 0 *Var[0] )
+            If *Var[0] == .False
+                BreakLoop
+            EndIf
+            Wait    4
+        EndLoop
+    EndThread
+    Loop
+        Call    GetNpcPos 		( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 4 % x
+        Add     *Var[1] -32` % y
+        Add     *Var[2] -1 % z
+        Call    SetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+        Call    GetNpcVar ( .Npc_Parakarry 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Set Mario XYZ pos according to Lakilester's pos
+#new:Script $Script_StickMarioNPCToLakilester
+{
+    Call    SetNpcVar ( .Npc_Lakilester 0 .True )
+    Loop
+        Call    GetNpcPos 		( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+        Add     *Var[1] 15` % y
+        Add     *Var[2] -2 % z
+        Call    SetNpcPos    ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+        Call    GetNpcVar ( .Npc_Lakilester 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% Play Lakilester's cloud sfx on loop
+#new:Script $Script_Lakilester_SFX
+{
+    Call    SetNpcVar ( .Npc_Lakilester 1 .True )
+    Loop
+        Call    PlaySoundAtNpc ( .Npc_Lakilester 0295 0 ) % cloud sfx
+        Call    GetNpcVar ( .Npc_Lakilester 1 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    7
+    EndLoop
+    Return
+    End
+    Return
+    End
+}
+
+#new:Script $Script_ShakeCam_Bombette
+{
+    Call    StopSound ( 0287 ) % Ssssh
+    Call    PlaySound ( 2018 ) % Boom!
+    % Boom! FX
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[2] -2 % z
+    Call    $PlayEffect_Explotion    ( *Var[0] *Var[1] *Var[2] ) % XYZ
+    Call    ShakeCam   	( .Cam:Default 0 20` *Fixed[1.5] )
+    Return
+    End
+}
+
+#new:Function $PlayEffect_Explotion
+{
+	ADDIU     SP, SP, FFC8
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F22, 30 (SP)
+	SDC1      F20, 28 (SP)
+	LW        S0, C (S1)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	LW        A1, 0 (S0)
+	ADDIU     S0, S0, 4
+	COPY      A0, S1
+	JAL       ~Func:get_variable
+	COPY      S3, V0
+	COPY      A0, S1
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	COPY      S0, V0
+	MTC1      S3, F20
+	NOP
+	CVT.S.W   F20, F20
+	COPY      S2, V0
+	MTC1      S2, F22
+	NOP
+	CVT.S.W   F22, F22
+	MTC1      S0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	JAL       80070130
+	CLEAR     A0
+	LAH       V1, 800DC1EC
+	ADDIU     V0, R0, 93
+	BEQ       V1, V0, .o120
+	SLTI      V0, V1, 94
+	BEQ       V0, R0, .oC0
+	ADDIU     V0, R0, 92
+	BEQ       V1, V0, .oD4
+	NOP
+	BEQ       R0, R0, .o1D0
+	NOP
+	.oC0
+	ADDIU     V0, R0, 94
+	BEQ       V1, V0, .o178
+	NOP
+	BEQ       R0, R0, .o1D0
+	NOP
+	.oD4
+	LW        V0, AC (S1)
+	BLEZ      V0, .o100
+	ADDIU     V0, S0, 14
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	BEQ       R0, R0, .o208
+	ADDIU     A0, R0, 1
+	.o100
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	BEQ       R0, R0, .o208
+	CLEAR     A0
+	.o120
+	LW        V0, AC (S1)
+	BLEZ      V0, .o14C
+	ADDIU     V0, S0, 14
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	BEQ       R0, R0, .o168
+	ADDIU     A0, R0, 1
+	.o14C
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	CLEAR     A0
+	.o168
+	JAL       800701F0
+	NOP
+	BEQ       R0, R0, .o214
+	ADDIU     A0, R0, 2017
+	.o178
+	LW        V0, AC (S1)
+	BLEZ      V0, .o1A4
+	ADDIU     V0, S0, 14
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	BEQ       R0, R0, .o1C0
+	ADDIU     A0, R0, 2
+	.o1A4
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A1, F20
+	MFC1      A3, F22
+	MFC1      A2, F0
+	ADDIU     A0, R0, 1
+	.o1C0
+	JAL       800701F0
+	NOP
+	BEQ       R0, R0, .o214
+	ADDIU     A0, R0, 2017
+	.o1D0
+	MTC1      S3, F0
+	NOP
+	CVT.S.W   F0, F0
+	ADDIU     V0, S0, 14
+	MFC1      A1, F0
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A2, F0
+	MTC1      S2, F0
+	NOP
+	CVT.S.W   F0, F0
+	MFC1      A3, F0
+	CLEAR     A0
+	.o208
+	JAL       800701F0
+	NOP
+	ADDIU     A0, R0, 2016
+	.o214
+	%JAL       ~Func:play_sound
+	%NOP
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F22, 30 (SP)
+	LDC1      F20, 28 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+#new:Script $Script_NpcMoveTo_Dimentio1
+{
+    % rotate Dimentio
+    Thread
+        Call    ShakeCam   	( .Cam:Default 0 5 *Fixed[0.3] ) % CamID ShakingType Duration Magnitude
+        Loop
+            Call    InterpNpcYaw ( .Npc_Dimentio1 90` 0 )
+            Wait    8
+            If *Var[0] == .False
+                Call    InterpNpcYaw ( .Npc_Dimentio1 -90` 0 )
+                BreakLoop
+            EndIf
+            Call    InterpNpcYaw ( .Npc_Dimentio1 -90` 0 )
+            Wait    8
+            Call    GetNpcVar ( .Npc_Dimentio1 F *Var[0] )
+            If *Var[0] == .False
+                Call    InterpNpcYaw ( .Npc_Dimentio1 -90` 0 )
+                BreakLoop
+            EndIf
+        EndLoop
+    EndThread
+    Call    GetNpcPos  ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 1340` % x
+    Call    NpcFlyTo ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] 0 15` .Easing:Linear )
+    Call    SetNpcVar ( .Npc_Dimentio1 F .False )
+    Call    SetNpcAnimation ( .Npc_Dimentio1 00F0001A ) % tired (flying)
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Kooper1
+{
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 1400` % x
+    Call    SetNpcSpeed ( .Npc_Kooper *Fixed[4.5] )
+    Call    NpcMoveTo ( .Npc_Kooper *Var[0] *Var[2] 0 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Bombette1
+{
+    Call    SetNpcAnimation ( .Npc_Bombette 00030007 ) % running
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -200` % x
+    Add     *Var[2] -30` % z
+    Call    SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 600` % x
+    Call    SetNpcSpeed ( .Npc_Bombette *Fixed[7.5] )
+    Call    NpcMoveTo ( .Npc_Bombette *Var[0] *Var[2] 0 )
+    % Bombette jumps
+    Call    SetNpcAnimation ( .Npc_Bombette 00030008 ) % running blast
+    Call    PlaySound ( 0287 ) % bombette charging
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 45` % x
+    Add     *Var[1] 25` % y
+    Thread
+        % Mario hammer bombette
+        Wait    2
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+        Switch *Var[0]
+            Case == 1 % Super Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F20010 )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F20011 )
+            Case == 2 % Ultra Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F20016 )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F20017 )
+            Default
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000A )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000B )
+        EndSwitch
+        Wait    10`
+        Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+        Switch *Var[0]
+            Case == 1 % Super Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000D )
+                Wait    20`
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000E )
+            Case == 2 % Ultra Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F20013 )
+                Wait    20`
+                Call    SetNpcAnimation ( .Npc_Mario 00F20014 )
+            Default
+                Call    SetNpcAnimation ( .Npc_Mario 00F20007 )
+                Wait    20`
+                Call    SetNpcAnimation ( .Npc_Mario 00F20008 )
+        EndSwitch
+    EndThread
+    Call    SetNpcJumpscale ( .Npc_Bombette *Fixed[3.0] )
+    Call    NpcJump0 ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 0 )    
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -10` % x
+    Add     *Var[1] 10` % y
+    Call    PlayEffect    ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    % bombette flies aways
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 300` % x
+    Add     *Var[1] 20` % y
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 20` 10` .Easing:Linear )
+    Exec    $Script_ShakeCam_Bombette
+    % bombette goes back to Mario
+    Call    SetNpcAnimation ( .Npc_Bombette 0003000A ) % falling
+    Call    InterpNpcYaw ( .Npc_Bombette -90` 0 )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 115` % x
+    Add     *Var[1] 2 % y
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 20` 50` .Easing:Linear )
+    Call    InterpNpcYaw ( .Npc_Bombette 90` 0 )
+    Call    SetNpcAnimation ( .Npc_Bombette 00030008 ) % running blast
+    Call    PlaySound ( 0287 ) % bombette charging
+    Exec    $Script_NpcMoveTo_Parakarry1
+    % 2ND HAMMER ATTACK
+    Thread
+        % Mario hammer bombette
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+        Switch *Var[0]
+            Case == 1 % Super Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F20010 )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F20011 )
+            Case == 2 % Ultra Hammer
+                Call    SetNpcAnimation ( .Npc_Mario 00F20016 )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F20017 )
+            Default
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000A )
+                Wait    1
+                Call    SetNpcAnimation ( .Npc_Mario 00F2000B )
+        EndSwitch
+        Wait    14`
+        Call    SetNpcVar ( .Npc_Kooper 2 1 )
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call    SetPlayerAnimation ( 00010005 ) % running
+        Exec    $Script_ToogleMariosVisibility
+        Exec    $Script_NpcMoveTo_Lakilester1
+        % Mario jumps to Parakarry 
+        Wait    10`
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call    SetPlayerAnimation ( 00010006 ) % Ready to Jump
+        Call    GetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 130` % x
+        Add     *Var[1] -33` % y
+        Call    SetPlayerJumpscale ( *Fixed[1.0] )
+        Call    SetNpcVar ( .Npc_Kooper 2 .False )
+        Call    SetNpcVar ( .Npc_Kooper 1 .False ) % Don't stick Mario to Kooper's pos anymore
+        Call    PlayerJump ( *Var[0] *Var[1] *Var[2] 10 )
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call    SetPlayerAnimation ( 00080005 ) % Grabbing Zipline
+        Call    SetNpcAnimation ( .Npc_Parakarry 0004000A ) % carrying (faster)
+        Exec    $Script_StickMarioToParakarry
+        Wait    8
+        % Mario jumps from Parakarry
+        Call    SetNpcVar ( .Npc_Parakarry 0 .False ) % Don't stick Mario to Parakarry anymore
+        Call    SetNpcAnimation ( .Npc_Parakarry 00040001 ) % idle
+        Call    SetNpcVar ( .Npc_Mario 0 .False ) % Don't stick Mario NPC to player's pos anymore
+        Call    SetNpcAnimation ( .Npc_Mario 00F20003 ) % Jumping
+        Exec    $Script_ToogleMariosVisibility % Make player invisible
+        Exec    $Script_StickMarioToMarioNPC % Stick Mario (Player) to Mario NPC positions
+        % The one jumping will be Mario NPC now, because he can use any animation while jumping
+        Call    GetNpcPos ( .Npc_Mario *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 70` % x
+        Add     *Var[1] 100` % y
+        Add     *Var[2] 40` % z 
+        Exec    $Script_MarioNPC_SetAnimations1
+        Call    NpcFlyTo ( .Npc_Mario *Var[0] *Var[1] *Var[2] 20` 10` .Easing:Linear )
+        % Mario jumps to Lakilester
+        Call    GetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 100` % x
+        Add     *Var[1] 15` % y
+        Add     *Var[2] -2 % z 
+        Call    SetNpcJumpscale ( .Npc_Mario *Fixed[1.0] )
+        Call    NpcJump1 ( .Npc_Mario *Var[0] *Var[1] *Var[2] 0 )
+        Exec    $Script_StickMarioNPCToLakilester
+        Exec    $Script_ShakeCam_Bombette
+        Exec    $Script_NpcMoveTo_Bombette2
+        % Dimentio get hurt
+        Call    SetNpcAnimation ( .Npc_Dimentio1 00F00014 ) % hurt (flying)
+        Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+        Add     *Var[1] 10` % y
+        Call    PlayEffect    ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+        %
+        Call    SetNpcAnimation ( .Npc_Mario 00F00002 ) % Ready to Jump
+        Wait    2
+        Call    SetNpcVar ( .Npc_Kooper 0 .False ) % camera stop following Mario (Player)
+        Call    SetNpcVar ( .Npc_Lakilester 0 .False ) % Mario NPC stop being attached to Lakilester
+        Wait    1
+        Exec    $Script_Cutscene_Ending_EndDimentio
+        % pan camera towards dimentio
+        Call    GetNpcPos 		( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+        Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+        Call    SetCamSpeed 	( .Cam:Default *Fixed[3.0] )
+        Call    SetCamDistance  ( .Cam:Default 300` )						% Cam Zoom
+        Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID X Y Z
+        Call    PanToTarget 	( .Cam:Default 00000000 00000001 )
+    EndThread
+    Call    SetNpcJumpscale ( .Npc_Bombette *Fixed[3.0] )
+    %Call    NpcJump0 ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 0 )
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -10` % x
+    Add     *Var[1] 10` % y
+    Call    PlayEffect    ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    % bombette flies aways
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 300` % x
+    Add     *Var[1] 20` % y
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 20` 10` .Easing:Linear )
+    Exec    $Script_ShakeCam_Bombette
+    Call    SetNpcPos ( .Npc_Bombette 0 -1000` 0 )
+    Call    SetNpcAnimation ( .Npc_Bombette 00030009 ) % Jump
+    % Last Bombette Attack
+    Wait    22`
+    % Set position before jumping
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 450` % x
+    Add     *Var[0] -60` % y
+    Call    SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    % Jump towards Mario
+    Call    InterpNpcYaw ( .Npc_Bombette -90` 0 )
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 150` % x
+    Add     *Var[1] 80` % y
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 20` 10` .Easing:Linear )
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -10` % x
+    Add     *Var[1] 10` % y
+    Call    PlayEffect    ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Call    SetNpcAnimation ( .Npc_Bombette 00030008 ) % running (turned on)
+    Call    InterpNpcYaw ( .Npc_Bombette 90` 0 )
+    Call    PlaySound ( 0287 ) % bombette charging
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 15` % x
+    Add     *Var[1] 15` % y
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 20` 10` .Easing:Linear )
+    Return
+    End
+}
+
+% Last Bombette's MoveTo
+#new:Script $Script_NpcMoveTo_Bombette2
+{
+    Thread % Rotate Bombette
+        Call    SetNpcVar ( .Npc_Bombette 0 .True )
+        Loop
+            Call    InterpNpcYaw ( .Npc_Bombette 90` 0 )
+            Wait    8
+            Call    GetNpcVar ( .Npc_Bombette 0 *Var[0] )
+            If *Var[0] == .False
+                Call    InterpNpcYaw ( .Npc_Bombette -90` 0 )
+                BreakLoop
+            EndIf
+            Call    InterpNpcYaw ( .Npc_Bombette -90` 0 )
+            Wait    8
+            Call    GetNpcVar ( .Npc_Bombette 0 *Var[0] )
+            If *Var[0] == .False
+                Call    InterpNpcYaw ( .Npc_Bombette -90` 0 )
+                BreakLoop
+            EndIf
+        EndLoop
+    EndThread
+    Call    SetNpcAnimation ( .Npc_Bombette 00030007 ) % running
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -100` % x
+    Add     *Var[2] 100` % z
+    Call    SetNpcSpeed ( .Npc_Bombette *Fixed[3.0] )
+    Call    NpcFlyTo ( .Npc_Bombette *Var[0] *Var[1] *Var[2] 0 50` .Easing:Linear )
+    Call    SetNpcVar ( .Npc_Bombette 0 .False )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Parakarry1
+{
+    Call    SetNpcAnimation ( .Npc_Parakarry 00040003 ) % fly faster 1
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] .False *Var[2] )
+    Call    GetNpcPos ( .Npc_Parakarry .False *Var[1] .False )
+    Add     *Var[0] -100` % x
+    Add     *Var[1] 20` % y
+    Call    SetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+    Call    GetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 400` % x
+    Call    SetNpcSpeed ( .Npc_Parakarry *Fixed[7.7] )
+    Call    NpcFlyTo ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] 0 1 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Lakilester1
+{
+    Call    SetNpcAnimation ( .Npc_Lakilester 00080007 ) % fly faster 1
+    Call    GetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -100` % x
+    Add     *Var[2] 30` % z
+    Call    SetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+    Call    GetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 500` % x
+    Call    SetNpcSpeed ( .Npc_Lakilester *Fixed[7.7] )
+    Exec    $Script_Lakilester_SFX
+    Call    NpcFlyTo ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] 0 1 .Easing:Linear )
+    Call    SetNpcVar ( .Npc_Lakilester 1 .False ) % stop cloud sfx
+    Return
+    End
+}
+
+% Mario jumps towards dimentio and do his last punch
+#new:Script $Script_Cutscene_Ending_EndDimentio
+{
+    Call    SetNpcAnimation ( .Npc_Mario 00F20003 ) % Jumping
+    Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -43` % x
+    Add     *Var[1] 35`  % y
+    Call    NpcJump1 ( .Npc_Mario *Var[0] *Var[1] *Var[2] 10` )
+    %
+    Thread
+        Call    GetNpcPos ( .Npc_Dimentio1 *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -31` % x
+        Call    NpcFlyTo ( .Npc_Mario *Var[0] *Var[1] *Var[2] 50` 0 .Easing:Linear )
+    EndThread
+    Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+    Switch *Var[0]
+        Case == 1 % Super Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001C )
+            Wait    16`
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001D )
+        Case == 2 % Ultra Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001E )
+            Wait    16`
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001F )
+        Default
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001A )
+            Wait    16`
+            Call    SetNpcAnimation ( .Npc_Mario 00F2001B )
+    EndSwitch
+    Call    GotoMapSpecial ( "pre_03" 6 6 )
+    Return
+    End
+}
+
+
+#new:Script $Script_MarioNPC_SetAnimations1
+{
+    % 3RD HAMMER ATTACK
+    % Mario hammer bombette
+    Wait    9
+    Call 	$ReadAddress ( 8010F291 0 *Var[0] .False .False ) % Hammer
+    Switch *Var[0]
+        Case == 1 % Super Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F20011 )
+        Case == 2 % Ultra Hammer
+            Call    SetNpcAnimation ( .Npc_Mario 00F20017 )
+        Default
+            Call    SetNpcAnimation ( .Npc_Mario 00F2000B )
+    EndSwitch
+    Wait    10`
+    Call    SetNpcAnimation ( .Npc_Mario 00F20004 ) % Falling
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_Ending_7
+{
+    Set     *Flag_DimentiosShield .False
+    Call    DisablePlayerInput ( .True )
+    Call    DisablePlayerPhysics ( .True )
+    Call    SetZoneEnabled ( ~Zone:Default .False )
+    Call    SetZoneEnabled ( ~Zone:Default2 .False ) % now read from Default 3
+    Call    ResetCam ( .Cam:Default *Fixed[50.0] )
+    Exec    $Script_Cutscene_Ending_EmitterEmbers % Particles
+    % Set everyones positions
+    Call    InterpPlayerYaw ( -90` 0 )
+    % Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+    % Mistar
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 40` % y
+	Call	SetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    % goombario
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -17` % x
+    Add     *Var[2] -20` % z
+    Call    SetNpcPos ( .Npc_Goombario *Var[0] *Var[1] *Var[2] )
+    % kooper
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 25` % x
+    Add     *Var[2] 20` % z
+    Call    SetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcYaw ( .Npc_Kooper -90` )
+    % bombette
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -25` % x
+    Add     *Var[2] 20` % z
+    Call    SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    % parakarry
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -20` % x
+    Add     *Var[1] 30` % y
+    Add     *Var[2] -10` % z
+    Call    SetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+    % bow
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 40` % x
+    Add     *Var[1] 25` % y
+    Call    SetNpcPos ( .Npc_Bow *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcYaw ( .Npc_Bow -90` )
+    % watt
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[1] 30` % y
+    Add     *Var[2] -10` % z
+    Call    SetNpcPos ( .Npc_Watt *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcYaw ( .Npc_Watt -90` )
+    % sushie
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 17` % x
+    Add     *Var[2] -20` % z
+    Call    SetNpcPos ( .Npc_Sushie *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcYaw ( .Npc_Sushie -90` )  
+    % lakilester
+    Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -40` % x
+    Add     *Var[1] 25` % y
+    Call    SetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+    %%%%
+    Wait    10`
+    Call    SpeakToPlayer ( .Npc_Mistar 00201409 00201401 00000004 $String_Ending_Mistar2 )
+    Call    SpeakToPlayer ( .Npc_Mistar 00201409 00201413 00000004 $String_Ending_Mistar3 )
+    Set	    *Var[0] .PlayerAnim:ThumbsUp
+    Set	    *Var[1] .False
+    Set	    *Var[2] 26`
+    Exec    $SetPlayerAnimation
+    Exec    $Script_BP_Spirits_1
+    Wait    25`
+    % Everygone ?
+    % Left side
+    Call    InterpPlayerYaw ( -90` 0 )
+    Call    PlaySound   ( 0263 ) % ?
+    Call    ShowEmote   ( .Npc_Goombario .Emote:Question 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Bombette .Emote:Question 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Parakarry .Emote:Question 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Lakilester .Emote:Question 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Mistar .Emote:Question 45` 20` 1 0 0 0 0 )
+    % Right side
+    Call    ShowEmote   ( .Npc_Kooper .Emote:Question -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Sushie .Emote:Question -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Watt .Emote:Question -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Bow .Emote:Question -45` 20` 1 0 0 0 0 )
+    Exec    $Script_AllNpcsFlip
+    Call    SetMusicTrack ( 0 A8 0 8 ) % .Song:BlackPit_Ending
+    Return
+    End
+}
+
+% All Npcs fly towards our heroes
+#new:Script $Script_BP_Spirits_1
+{
+    % Set Spirits Positions
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -150` % x
+    Add     *Var[1] 150` % y
+    Call    SetNpcPos ( .Npc_Spirit1 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Spirit2 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Spirit3 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Spirit4 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Spirit5 *Var[0] *Var[1] *Var[2] )
+    Call    SetNpcPos ( .Npc_Spirit6 *Var[0] *Var[1] *Var[2] )
+    % Set yaws
+    Call    SetNpcYaw ( .Npc_Spirit1 90` )
+    Call    SetNpcYaw ( .Npc_Spirit2 90` )
+    Call    SetNpcYaw ( .Npc_Spirit3 90` )
+    Call    SetNpcYaw ( .Npc_Spirit4 90` )
+    Call    SetNpcYaw ( .Npc_Spirit5 90` )
+    Call    SetNpcYaw ( .Npc_Spirit6 90` )
+    % Ignore all collisions when using NpcFlyTo
+    Call    SetNpcFlagBits ( .Npc_Spirit1 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit2 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit3 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit4 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit5 00000900 .True )
+    Call    SetNpcFlagBits ( .Npc_Spirit6 00000900 .True )    
+    %%%
+    Exec    $Script_BP_SpiritFly_1
+    Exec    $Script_BP_SpiritFly_2
+    Exec    $Script_BP_SpiritFly_3
+    Exec    $Script_BP_SpiritFly_4
+    Exec    $Script_BP_SpiritFly_5
+    ExecWait $Script_BP_SpiritFly_6
+    Call    SetNpcVar ( .Npc_Mistar 0 .False ) % Partners stop looking at all sides
+    % Set Spirits Yaws
+    Call    InterpNpcYaw ( .Npc_Spirit1 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit2 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit3 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit4 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit5 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit6 -90` 0 )
+    Wait    8
+    % Spirits start to lift everyone
+    Call    DisablePlayerPhysics ( .True )
+    Exec    $Script_Spirits_Spin1
+    Exec    $Script_CameraFollowsPlayer
+    Wait    45`
+    Call    SetNpcVar ( .Npc_Spirit1 0 .False ) % Spirits stop spinning
+    Exec    $Script_StickEveryoneToNpc1
+    % Set all Spirits Yaw
+    Call    InterpNpcYaw ( .Npc_Spirit1 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit2 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit3 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit4 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit5 -90` 0 )
+    Call    InterpNpcYaw ( .Npc_Spirit6 -90` 0 )
+    % Move everyone
+    % What exactly happens is all Npcs+Mario are attached to Mistar's position
+    % So Mistar just use a NpcFlyTo to lift everyone
+    Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -200` % x
+    Add     *Var[1] 400` % y
+    Thread
+        Call    NpcFlyTo ( .Npc_Mistar *Var[0] *Var[1] *Var[2] 300` 0 .Easing:Linear )
+    EndThread
+    % Everygone !
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 0001002B ) % surprised
+    % Left side
+    Call    PlaySound   ( 0262 ) % !
+    Call    ShowEmote   ( .Npc:Player .Emote:Exclamation 45` 20` 0 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Goombario .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Bombette .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Parakarry .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Lakilester .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Mistar .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+    % Right side
+    Call    ShowEmote   ( .Npc_Kooper .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Sushie .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Watt .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    Call    ShowEmote   ( .Npc_Bow .Emote:Exclamation -45` 20` 1 0 0 0 0 )
+    % Flip everyone
+    Exec    $Script_AllNpcsFlip
+    Wait    40`
+    Call	PlaySound ( 0188 )
+    Call    GotoMapSpecial ( "bp_05" 0 7 ) % Credits Map
+    Return
+    End
+}
+
+#new:Script $Script_StickEveryoneToNpc1
+{
+    Call    SetNpcVar ( .Npc_Mistar 0 .True )
+    Loop
+        % Mario
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 0 % x
+        Add     *Var[1] -40` % y
+        Call    SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+        % Goombario
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -17` % x
+        Add     *Var[1] -40` % y
+        Add     *Var[2] -20` % z
+        Call    SetNpcPos ( .Npc_Goombario *Var[0] *Var[1] *Var[2] )
+        % Kooper
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 25` % x
+        Add     *Var[1] -40` % y
+        Add     *Var[2] 20` % z
+        Call    SetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+        % Bombette
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -25` % x
+        Add     *Var[1] -40` % y
+        Add     *Var[2] 20` % z
+        Call    SetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+        % Parakarry
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -20` % x
+        Add     *Var[1] -10` % y
+        Add     *Var[2] -10` % z
+        Call    SetNpcPos ( .Npc_Parakarry *Var[0] *Var[1] *Var[2] )
+        % Bow
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 40` % x
+        Add     *Var[1] -25` % y
+        Call    SetNpcPos ( .Npc_Bow *Var[0] *Var[1] *Var[2] )
+        % Watt
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 20` % x
+        Add     *Var[1] -10` % y
+        Add     *Var[2] -10` % z
+        Call    SetNpcPos ( .Npc_Watt *Var[0] *Var[1] *Var[2] )
+        % Sushie
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 17` % x
+        Add     *Var[1] -40` % y
+        Add     *Var[2] -20` % z
+        Call    SetNpcPos ( .Npc_Sushie *Var[0] *Var[1] *Var[2] )
+        % Lakilester
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -40` % x
+        Add     *Var[1] -25` % y
+        Call    SetNpcPos ( .Npc_Lakilester *Var[0] *Var[1] *Var[2] )
+        %=============
+        %% SPIRITS
+        %=============
+        % Spirit 1
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 50` % x
+        Add     *Var[1] -60` % y
+        Call    SetNpcPos ( .Npc_Spirit1 *Var[0] *Var[1] *Var[2] )
+        % Spirit 2
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 20` % x
+        Add     *Var[1] -60` % y
+        Add     *Var[2] 30` % z
+        Call    SetNpcPos ( .Npc_Spirit2 *Var[0] *Var[1] *Var[2] )
+        % Spirit 3
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -20` % x
+        Add     *Var[1] -60` % y
+        Add     *Var[2] 30` % z
+        Call    SetNpcPos ( .Npc_Spirit3 *Var[0] *Var[1] *Var[2] )
+        % Spirit 4
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -50` % x
+        Add     *Var[1] -60` % y
+        Call    SetNpcPos ( .Npc_Spirit4 *Var[0] *Var[1] *Var[2] )
+        % Spirit 5
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] -20` % x
+        Add     *Var[1] -60` % y
+        Add     *Var[2] -30` % z
+        Call    SetNpcPos ( .Npc_Spirit5 *Var[0] *Var[1] *Var[2] )
+        % Spirit 6
+        Call    GetNpcPos ( .Npc_Mistar *Var[0] *Var[1] *Var[2] )
+        Add     *Var[0] 20` % x
+        Add     *Var[1] -60` % y
+        Add     *Var[2] -30` % z
+        Call    SetNpcPos ( .Npc_Spirit6 *Var[0] *Var[1] *Var[2] )
+        Call    GetNpcVar ( .Npc_Mistar 0 *Var[0] )
+        If  *Var[0] == .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+% All spirits spin around
+#new:Script $Script_Spirits_Spin1
+{
+    Call    SetNpcVar ( .Npc_Spirit1 0 .True )
+    Call    PlaySound ( 0074 )
+    Loop
+        Exec    $Script_Spirits_Spin1_NpcFlyTo1
+        Exec    $Script_Spirits_Spin1_NpcFlyTo2
+        Exec    $Script_Spirits_Spin1_NpcFlyTo3
+        Exec    $Script_Spirits_Spin1_NpcFlyTo4
+        Exec    $Script_Spirits_Spin1_NpcFlyTo5
+        Call    GetNpcPos ( .Npc_Spirit1 *Var[0] *Var[1] *Var[2] )
+        Call    NpcFlyTo ( .Npc_Spirit6 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+        Call    GetNpcVar ( .Npc_Spirit1 0 *Var[0] )
+        If  *Var[0] == .False
+            Call    StopSound ( 0074 )
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+% Spirits fly around our heroes radious
+
+#new:Script $Script_BP_SpiritFly_1
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 50` % x
+    Add     *Var[1] -20` % y
+    Call    NpcFlyTo ( .Npc_Spirit1 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_BP_SpiritFly_2
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[1] -20` % y
+    Add     *Var[2] 30` % z
+    Call    NpcFlyTo ( .Npc_Spirit2 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_BP_SpiritFly_3
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -20` % x
+    Add     *Var[1] -20` % y
+    Add     *Var[2] 30` % z
+    Call    NpcFlyTo ( .Npc_Spirit3 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_BP_SpiritFly_4
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -50` % x
+    Add     *Var[1] -20` % y
+    Call    NpcFlyTo ( .Npc_Spirit4 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_BP_SpiritFly_5
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -20` % x
+    Add     *Var[1] -20` % y
+    Add     *Var[2] -30` % z
+    Call    NpcFlyTo ( .Npc_Spirit5 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_BP_SpiritFly_6
+{
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 20` % x
+    Add     *Var[1] -20` % y
+    Add     *Var[2] -30` % z
+    Call    NpcFlyTo ( .Npc_Spirit6 *Var[0] *Var[1] *Var[2] 150` 0 .Easing:Linear )
+    Return
+    End
+}
+
+% The spirits spin around
+
+#new:Script $Script_Spirits_Spin1_NpcFlyTo1
+{
+    Call    GetNpcPos ( .Npc_Spirit2 *Var[0] *Var[1] *Var[2] )
+    Call    NpcFlyTo ( .Npc_Spirit1 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_Spirits_Spin1_NpcFlyTo2
+{
+    Call    GetNpcPos ( .Npc_Spirit3 *Var[0] *Var[1] *Var[2] )
+    Call    NpcFlyTo ( .Npc_Spirit2 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_Spirits_Spin1_NpcFlyTo3
+{
+    Call    GetNpcPos ( .Npc_Spirit4 *Var[0] *Var[1] *Var[2] )
+    Call    NpcFlyTo ( .Npc_Spirit3 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_Spirits_Spin1_NpcFlyTo4
+{
+    Call    GetNpcPos ( .Npc_Spirit5 *Var[0] *Var[1] *Var[2] )
+    Call    NpcFlyTo ( .Npc_Spirit4 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+    Return
+    End
+}
+
+#new:Script $Script_Spirits_Spin1_NpcFlyTo5
+{
+    Call    GetNpcPos ( .Npc_Spirit6 *Var[0] *Var[1] *Var[2] )
+    Call    NpcFlyTo ( .Npc_Spirit5 *Var[0] *Var[1] *Var[2] 10` 0 .Easing:Linear )
+    Return
+    End
+}
+
+
+#new:Script $Script_AllNpcsFlip
+{
+    Call    SetNpcVar ( .Npc_Mistar 0 .True )
+    Set     *Var[1] -90`
+    Set     *Var[2] 90`
+    Loop
+        % Left side
+        Call    InterpNpcYaw ( .Npc_Mistar *Var[1] 0 )
+        Call    InterpNpcYaw ( .Npc_Goombario *Var[1] 0 )
+        Call    InterpNpcYaw ( .Npc_Bombette *Var[1] 0 )
+        Call    InterpNpcYaw ( .Npc_Parakarry *Var[1] 0 )
+        Call    InterpNpcYaw ( .Npc_Lakilester *Var[1] 0 )
+        % Right side
+        Call    InterpNpcYaw ( .Npc_Mistar *Var[2] 0 )
+        Call    InterpNpcYaw ( .Npc_Kooper *Var[2] 0 )
+        Call    InterpNpcYaw ( .Npc_Sushie *Var[2] 0 )
+        Call    InterpNpcYaw ( .Npc_Watt *Var[2] 0 )
+        Call    InterpNpcYaw ( .Npc_Bow *Var[2] 0 )
+        Wait    20`
+        % swap values
+        Set     *Var[3] *Var[1] % push var1 in var3
+        Set     *Var[1] *Var[2]
+        Set     *Var[2] *Var[3]
+        Call    GetNpcVar ( .Npc_Mistar 0 *Var[0] )
+        If *Var[0] == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Cutscene_Ending_EmitterEmbers
+{
+    Loop
+        Call    GetPlayerPos    ( *Var[0] *Var[1] *Var[2] )
+        Add     *Var[2] 56` % z
+        Call    PlayEffect  	( ~FX:EmitterVolume:Embers *Var[0] *Var[1] *Var[2] 256` 160` *Fixed[1.0] 7 30` 0 0 0 0 )
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_NPC_Init_Dimentio1
+{
+    Call     BindNpcIdle 	    ( .Npc:Self $Npc_Dimentio1_Idle )
+    Call     BindNpcDefeat 	    ( .Npc:Self $Npc_Dimentio1_TrackBattle )
+    Return
+    End
+}
+
+#new:Script $Script_NPC_Init_Dimentio2
+{
+    Call     BindNpcIdle 	    ( .Npc:Self $Npc_Dimentio2_Idle )
+    Call     BindNpcDefeat 	    ( .Npc:Self $Npc_Dimentio2_TrackBattle )
+    Return
+    End
+}
+
+#new:Script $Script_NPC_Init_Dimentio3
+{
+    Call     BindNpcIdle 	    ( .Npc:Self $Npc_Dimentio3_Idle )
+    Call     BindNpcDefeat 	    ( .Npc:Self $Npc_Dimentio3_TrackBattle )
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio1_Idle
+{
+    Loop
+        Call    GetSelfVar ( 0 *Var[0] )
+        If *Var[0] == .True
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Call    StartBossBattle ( A6 ) % .Song:Dimentios_BattleTheme
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio2_Idle
+{
+    Loop
+        Call    GetSelfVar ( 0 *Var[0] )
+        If *Var[0] == .True
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Call    StartBossBattle ( A7 ) % .Song:BlackPit_FinalBattleTheme
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio3_Idle
+{
+    Loop
+        Call    GetSelfVar ( 0 *Var[0] )
+        If *Var[0] == .True
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    % Hide partner inside battle
+	Call 	$ReadAddress ( 8010F2A2 0 *LastPartner_Final .False .False )
+	Call 	$WriteAddress ( 8010F2A2 0 0 .False .False ) % Set Partner ID as False
+    Call    StartBossBattle ( A7 ) % .Song:BlackPit_FinalBattleTheme
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio1_TrackBattle
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+        Case == .Outcome:EnemyFled
+            Call  SetSelfEnemyFlagBits ( 00000004 .True ) % bit2 == Don't make the sprite start flashing after the fight
+            Exec  $Script_Cutscene_bp_Dimentio2
+        Case == .Outcome:PlayerLost
+            % go to pre_XX and ask if you wanna restart from a point in specific (like Persona 5)
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio2_TrackBattle
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+        Case == .Outcome:EnemyFled
+            Call  SetSelfEnemyFlagBits ( 00000004 .True ) % Player and Npc doesn't start flashing after the battle ends
+            Exec  $Script_Cutscene_bp_Dimentio3
+        Case == .Outcome:PlayerLost
+            % go to pre_XX and ask if you wanna restart from a point in specific (like Persona 5)
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Npc_Dimentio3_TrackBattle
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+        Case == .Outcome:EnemyFled
+            Call    SetSelfEnemyFlagBits ( 00000004 .True ) % Player and Npc doesn't start flashing after the battle ends
+            Call	StopSound ( 0207 ) % charge sound
+            %Call    GotoMap ( "pre_03" 8 ) % The gotomap was moved to battle/formations/patch/37 Area Pit8.bpat
+    EndSwitch
+    Return
+    End
+}
+
+%=============
+% Strings
+%=============
+
+%% Dimentio 1 %%
+
+#string $String_bp_FinalBoss_Mistar1
+{
+[STYLE:RIGHT][...]
+He should be around here...
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio1
+{
+[STYLE:RIGHT][...]
+"He" ?
+[WAIT][NEXT][...]
+Don't tell me you already forgot
+my name.
+[WAIT][NEXT][...]
+Wait, don't answer me I already
+know the answer, haha nobody
+can forget the magnificent...
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio2
+{
+[STYLE:RIGHT][...]
+D I M E N T I O !
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio3
+{
+[STYLE:RIGHT][...]
+It's been awhile, don't you
+think? hmmm..........
+[WAIT][NEXT][...]
+What was your name? I totally
+forgot.
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar2
+{
+[STYLE:RIGHT][...]
+We don't have time for your
+games, you already know it!
+[WAIT][NEXT][...]
+This time you won't be able to
+get away with this!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio4
+{
+[STYLE:RIGHT][...]
+Haha calm down little star,
+I was just trying to cheer up
+the situation a bit.
+[WAIT][NEXT][...]
+And you must be Mario, I've
+been watching you, Mario.
+[WAIT][NEXT][...]
+I can see every corner of this
+place, because this is one of
+my precious worlds.
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio5
+{
+[STYLE:RIGHT][...]
+I must say, it's been really fun
+to watch your journey so far,
+Mario.
+[WAIT][NEXT][...]
+But I need to be honest with
+you, I was starting to get
+somewhat bored.
+[WAIT][NEXT][...]
+So why not shake things up a
+bit?!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio6
+{
+[STYLE:RIGHT][...]
+As I told you this is MY world
+and that means...
+[WAIT][NEXT][...]
+I can do...
+[WAIT][NEXT][...]
+ANYTHING!!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio7
+{
+[STYLE:RIGHT][...]
+Wasn't that fun?
+[WAIT][NEXT][...]
+As a show of my gratitude
+I'll have just a little more fun
+before getting rid of you, Mario.
+[WAIT][NEXT][...]
+The same thing I did to Bonetail,
+Cheato and the Ruby King!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar3
+{
+[STYLE:RIGHT][...]
+Mario... we need to stop
+Dimentio...
+[WAIT][NEXT][...]
+You can do it!!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio8
+{
+[STYLE:RIGHT][...]
+Ah ha ha, let's see if you're
+really that tough, Mario!
+[WAIT][END]
+}
+
+%% Dimentio 2 %%
+
+#string $String_bp_FinalBoss_Mistar4
+{
+[STYLE:RIGHT][...]
+Mario we need to do something!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio9
+{
+[STYLE:RIGHT][...]
+What?!?
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar5
+{
+[STYLE:RIGHT][...]
+Is that possible? It looks like
+the King and Bonetail just
+protected us!
+[WAIT][NEXT][...]
+Guys...
+[WAIT][NEXT][...]
+If we have both of them on our
+side we can do this!
+[WAIT][NEXT][...]
+You won't stop us Dimentio!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio10
+{
+[STYLE:RIGHT][...]
+What a touching reunion!
+Well, if I was able to get rid of
+all 3 of you before surely I can
+do it again!
+[WAIT][NEXT][...]
+It's so funny how you all still
+think you have a chance against
+me.
+[WAIT][NEXT][...]
+You're repeating the same
+errors you made before hahaha!
+[WAIT][NEXT][...]
+God, I haven't had this much
+fun in a REALLY long time!
+[WAIT][NEXT][...]
+Okay, let's do this!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar6
+{
+[STYLE:RIGHT][...]
+Mario, we need to do this for
+Cheato, Bonetail, the King and
+all those poor souls inside those
+Pits!
+[WAIT][NEXT][...]
+Let's do this!!
+[WAIT][END]
+}
+
+%% Dimentio 3 %%
+
+#string $String_bp_FinalBoss_Dimentio11
+{
+[STYLE:RIGHT][...]
+I must say... you're tougher
+than I thought hehe...
+[WAIT][NEXT][...]
+But you won't be able to escape
+from this one!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar7
+{
+[STYLE:RIGHT][...]
+Bonetail...
+[WAIT][NEXT][...]
+Ruby King...
+[WAIT][NEXT][...]
+I know you will protect us.
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar8
+{
+[STYLE:RIGHT][...]
+Guys... no...
+[WAIT][NEXT][...]
+It can't be....
+[WAIT][NEXT][...]
+We... lost... again?
+[WAIT][NEXT][...]
+....Mario?
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio12
+{
+[STYLE:RIGHT][...]
+F O O L S!!
+[WAIT][NEXT][...]
+AH HA HA
+[WAIT][NEXT][...]
+Well I'm glad I finally got rid
+of those thorns in my side once
+and for all!
+[WAIT][NEXT][...]
+What a relief...
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Mistar9
+{
+[STYLE:RIGHT][...]
+Mario!!!
+[WAIT][END]
+}
+
+#string $String_bp_FinalBoss_Dimentio13
+{
+[STYLE:RIGHT][...]
+What's that Mario?
+[WAIT][NEXT][...]
+You still want to fight?
+[WAIT][NEXT][...]
+Do you really want to die that
+much?
+[WAIT][NEXT][...]
+Well, I always have to give my
+audience what they ask for.
+[WAIT][NEXT][...]
+Now prepare to die!
+[WAIT][NEXT][...]
+Along with the King and
+Bonetail!!
+[WAIT][END]
+}
+
+% Ending
+
+#string $String_Ending_Mistar1
+{
+[STYLE:RIGHT][...]
+This should be all the power
+from the people trapped inside
+those Pits!
+[WAIT][NEXT][...]
+But wait....
+[WAIT][NEXT][...]
+Did you and the King... do this?!
+[WAIT][END]
+}
+
+#string $String_Ending_Dimentio1
+{
+[STYLE:RIGHT][...]
+I must say that was a nice ace
+under the sleeve but...
+[WAIT][END]
+}
+
+#string $String_Ending_Mistar2
+{
+[STYLE:RIGHT][...]
+So at the end of the day.
+[WAIT][NEXT][...]
+Bonetail
+[WAIT][NEXT][...]
+Ruby King
+[WAIT][NEXT][...]
+My friends...
+[WAIT][NEXT][...]
+Thanks to you.
+[WAIT][NEXT][...]
+The trapped souls from the
+Maze, Cheato and all our friends.
+[WAIT][NEXT][...]
+We finally defeated Dimentio.
+[WAIT][NEXT][...]
+We're finally free.
+[WAIT][END]
+}
+
+#string $String_Ending_Mistar3
+{
+[STYLE:RIGHT][...]
+Everyone from our land would
+be proud guys...    
+[WAIT][END]
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]Hmm... why is everything
+so calm?
+[WAIT][END]
+}

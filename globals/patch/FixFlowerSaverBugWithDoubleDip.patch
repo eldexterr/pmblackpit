@@ -1,0 +1,68 @@
+% Patch made by Rain
+
+#define .flowerSaver1 0105s
+#define .flowerSaver2 0138s
+#define .flowerSaver3 0139s
+#define .flowerFanatic 0119s
+
+#new:Data $FlowerBadgeArray {
+	%amount to add, badgeID
+	FFFFs 			.flowerSaver1
+	FFFFs 			.flowerSaver2
+	FFFFs 			.flowerSaver3
+	FFFEs 			.flowerFanatic
+	00000000 %end of list
+}
+
+#new:Function $Main {
+	PUSH s0, s1, a0, t0, t1, t2, ra
+	LIO s0, $FlowerBadgeArray
+	LB	V1, 0011 (S2) %restore from hook
+	.loop
+	LH a0, 0002 (s0)
+	BEQ a0, r0, .exit
+	NOP
+	JAL $IsBadgeEquipped1
+	NOP
+	%
+	LH t0, 0002 (s0)
+	LH t1, 0000 (s0)
+	BEQL v0, t0, .next
+	ADDU v1, v1, t1
+	.next
+	BEQ r0, r0, .loop
+	ADDIU s0, s0, 0004
+	.exit
+	BLEZL v1, .skipSetTo1
+	ADDIU v1, r0, 0001
+	.skipSetTo1
+	JPOP s0, s1, a0, t0, t1, t2, ra
+}
+
+#new:Function $IsBadgeEquipped1 %returns badgeID if true
+{
+PUSH	S1, S2, S3
+.Init
+LIO		S2, 8010F498	% position in list
+ADDIU	S3, S2, 78		% end of list
+.Loop
+LH		S1, 0 (S2)
+BEQL	A0, S1, .End
+ADDIU	A0, s1, 0 % return true
+BNE		S2, S3, .Loop
+ADDIU	S2, S2, 2
+ADDIU	A0, R0, 0 % return false
+.End
+POP		S1, S2, S3
+JR		RA
+DADDU v0, r0, a0
+}
+
+
+@Hook 41B1B8 { %[802A6428]
+
+	JAL $Main
+	NOP
+	J 802A6430
+	LB	V0, 0005 (S5)
+}

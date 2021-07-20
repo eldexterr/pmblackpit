@@ -1,0 +1,1094 @@
+#define .Npc_Cheato 2
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList]  $EntryList
+[EntryCount] 5
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % When you beat a Pit
+~Vec4f:Entry1 
+~Vec4f:Entry2 % When the player boot the game for 1st time
+~Vec4f:Entry3
+~Vec4f:Entry4 % Black Pit
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "tik_tex" 
+JAL 	~Func:sprintf
+RESERVED
+COPY 	V0, R0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call 	SetSpriteShading  ( -1 )
+Call 	SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call 	SetCamBGColor     ( .Cam:Default 0 0 0 ) % black
+Call 	SetCamEnabled     ( .Cam:Default .True )
+Call 	SetCamLeadPlayer  ( .Cam:Default .False )
+% Hide Pipe
+If 	*BlackPit_Unlocked == .False
+	Call	EnableGroup ( ~Model:black_pit .False )
+	Call 	ModifyColliderFlags ( .False ~Collider:exit4 7FFFFE00 )
+	Call 	ModifyColliderFlags ( .False ~Collider:bp_pipe 7FFFFE00 )
+EndIf
+% Hide rocks
+Call	EnableGroup ( ~Model:RocksAnimation .False )
+% Rocks
+If	*Flag_Pt255_Rocks == .True
+	Call EnableModel ( ~Model:Rock .False )
+	Call EnableModel ( ~Model:cracks .False )
+	Call ModifyColliderFlags ( .False ~Collider:Rocks 7FFFFE00 )
+Else
+	Bind    $Script_BlastBombette_Exit3 .Trigger:PointBomb $TriggerCoord_BombPosition 00000001 00000000
+EndIf
+Exec	$Script_StarShrine_LightAnim
+Exec	$Script_CheckStarShrine
+Call	GetEntryID	( *Var[0] )
+Switch	*Var[0]
+	Case == 0 % ~Entry:Entry0 % When you beat the pit
+		Call	DisablePlayerInput ( .True )
+		Call	DisablePlayerPhysics ( .True )
+		Call	GetCurrentPartnerID ( *LastPartner ) % save partner
+		Call    $DespawnPartner
+		Wait	15` % to not see when the partner get despawned when the screen unfade
+		Call	ModifyColliderFlags ( .False ~Collider:Col1 7FFFFE00 ) % disable being able to go to pre_01
+		Thread
+			% Get Stuff Completed
+			Set		*Var[0] *Flag_BonetailRemains
+			Add		*Var[0] *Flag_RubyCrown
+			Add		*Var[0] *Flag_Mistar
+			If *Flag_Chpt1 == .True % Mario already knows he is in a cycle
+				Set	*Var[0] 3
+			EndIf
+			%Set	 	*Var[0] 1 % testing
+			Call 	$WriteBitFlag ( 8010EFCE .False .False 5 .True ) % make player invisible
+			Wait 	10`
+			Switch *Var[0]
+				Case == 1 % One pit beated
+					Exec	$Script_Animation_Mario_Falling1 *MapVar[2] % save script ID
+					Exec	$SkipCutscene_Animation_Mario_Falling1
+				Case == 2 % one pit + the other pit beated or maze
+					Exec	$Script_Animation_Mario_Falling2 *MapVar[2] % save script ID
+					Exec	$SkipCutscene_Animation_Mario_Falling2
+				Case == 3 % both pits and maze beated
+					Exec	$Script_Animation_Mario_Falling3 *MapVar[2] % save script ID
+					Exec	$SkipCutscene_Animation_Mario_Falling3
+			EndSwitch
+		EndThread
+	Case == ~Entry:Entry2 % If is the 1st time starting the game
+		Call	DisablePlayerInput ( .True )
+		Call	DisablePlayerPhysics ( .True )
+		Exec	$Script_Animation_Mario_Falling0 *MapVar[2] % save script ID
+		Exec	$SkipCutscene_Animation_Mario_Falling0
+	Default
+		Call SetMusicTrack 	( .Cam:Default .Song:ToadTownTunnels 00000000 00000008 )
+EndSwitch
+Call    MakeNpcs		  ( 1 $NpcGroups )
+%Bind    $TriggerRippo .Trigger:WallPressA ~Collider:Rippo .True .False % moved to roguelike mode
+Exec 	$TrackEntry
+%Call    HidePlayerShadow 	( .True ) % testing stuff
+Return
+End
+}
+
+#new:Function $DespawnPartner
+{
+    PUSH	RA
+    LW      V0, C (A0)
+    LAB     A2, 8010F2A2
+    JAL     ~Func:set_variable
+    LW      A1, 0 (V0)
+    JAL     800EB168
+    DADDU   A0, R0, R0
+    POP		RA
+    JR      RA
+    ADDIU   V0, R0, 2
+}
+
+#new:Function $RespawnPartner
+{
+	PUSH	RA
+	LW      V0, C (A0)
+    JAL     ~Func:get_variable
+   	LW      A1, 0 (V0)
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA
+   	JR      RA
+	ADDIU   V0, R0, 2
+}
+
+#new:Script $Script_Animation_Mario_Falling0
+{
+Call	EnableGroup ( ~Model:Rocks .False )
+Call 	EnableModel ( ~Model:cracks .False )
+Call	EnableModel ( ~Model:dust .False )
+Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Add		*Var[1] 200`
+Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Call	SetPlayerAnimation ( 00080017 ) % falling
+Call	PlaySound ( 0161 ) % Falling
+Wait	70`
+% Mario Offsets
+Loop 20` % y
+	Sub	*Var[1] 10`
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+EndLoop
+Call	PlaySound ( 0162 ) % fall to the ground
+Call	SetPlayerAnimation ( 00080003 ) % falling to the ground
+Wait	2
+Loop 4` % x
+	Add	*Var[0] 2
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+EndLoop
+Wait	15`
+% Rocks
+% Dust FX
+Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Add		*Var[0] -70` % x
+Add		*Var[1] 115` % y
+Call	PlayEffect ( ~FX:Dust:LightRain *Var[0] *Var[1] *Var[2] 35` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+Add		*Var[0] 20` % x
+Call	PlayEffect ( ~FX:Dust:LightRain *Var[0] *Var[1] *Var[2] 35` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+Add		*Var[0] 20` % x
+Call	PlayEffect ( ~FX:Dust:LightRain *Var[0] *Var[1] *Var[2] 35` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+% shake cam
+Call	PlaySound 	( 002F )
+Call    ShakeCam   	( .Cam:Default .Cam:Default 20` *Fixed[0.5] ) % CamID ShakingType Duration Magnitude
+Wait	20`
+% Rocks fall off
+Call	EnableGroup ( ~Model:RocksAnimation .True )
+Set		*Var[3] -291` % x
+Set		*Var[4] 39`   % y
+Set		*Var[5] -220` % z
+Call	TranslateGroup ( ~Model:RocksAnimation *Var[3] *Var[4] *Var[5] )
+% move rock1
+Call	PlaySound ( 002F )
+Wait	15`
+Call	PlaySound ( 0035 )
+Add		*Var[3] -10` % x
+Add		*Var[4] -120` % y
+Call	TranslateModel ( ~Model:rock1 *Var[3] *Var[4] *Var[5] )
+% wave fx
+Thread
+	Wait 	10`
+	Call	StopSound ( 0035 )
+	Call 	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] -130`
+	Call    PlayEffect    ( ~FX:ShockWave:LargeWhite *Var[0] *Var[1] *Var[2] )
+EndThread
+% move rock
+Loop 7 % x & y offset
+	%Add 	*Var[3] 1
+	Add 	*Var[4] -5
+	Call	TranslateModel ( ~Model:rock1 *Var[3] *Var[4] *Var[5] )
+	Call    ShakeCam   	( .Cam:Default .Cam:Default 1 *Fixed[1.5] ) % CamID ShakingType Duration Magnitude
+	Wait 	1
+EndLoop
+Sub	  	*Var[3] 30` % x
+Sub   	*Var[4] 50` % y
+Add	  	*Var[5] 17` % z
+Call    ShakeCam   	( .Cam:Default .Cam:Default 30` *Fixed[2.0] )
+Wait	30`
+% Move Camera
+SetF 	*Var[A] *Fixed[155.0]
+Call 	AdjustCam ( .Cam:Default *Fixed[0.5] *Var[A] *Fixed[380.0] *Fixed[20.0] *Fixed[-7.0] )
+Wait	15`
+% Cheato appears
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0003 ) % Running
+Call	SetNpcPos ( .Npc_Cheato 75` -151` -200` )
+Call    SpeakToPlayer	( .Npc_Cheato 00AE0004 00AE0001 00000000 $String_Cheato_Hey )
+Call	GetNpcPos ( .Npc_Cheato *Var[0] .False *Var[1] )
+Sub		*Var[0] 60`
+Call	NpcMoveTo ( .Npc_Cheato *Var[0] *Var[1] .Cam:Default )
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0001 ) % Idle
+Wait	10`
+Call     PlaySoundAtNpc ( .Npc_Cheato 0262 .Cam:Default )
+Call     ShowEmote   	( .Npc_Cheato .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+Wait	20`
+Call	GetNpcPos ( .Npc_Cheato *Var[0] .False *Var[1] )
+Sub		*Var[0] 500`
+Set 	*Flag_Skip .False
+Thread
+	Wait	10`
+	Call 	PlaySound	( 00DC )
+	Call    GotoMapSpecial		( "pt_00" 6 D )
+EndThread
+Call	SetNpcSpeed ( .Npc_Cheato *Fixed[7.0] )
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0003 ) % Running
+Call	NpcMoveTo ( .Npc_Cheato *Var[0] *Var[1] .Default )
+Return
+End
+}
+
+% Same as Mario_Falling0 but don't have the falling rocks stuff
+% and cheato doesn't say anything. Used when you have only one Pit beated
+#new:Script $Script_Animation_Mario_Falling1
+{
+Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Add		*Var[1] 200`
+Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Call 	$WriteBitFlag ( 8010EFCE .False .False 5 .False ) % make player visible
+Call	SetPlayerAnimation ( 00080017 ) % falling
+Call	PlaySound ( 0161 ) % Falling
+Wait	70`
+% Mario Offsets
+Loop 20` % y
+	Sub	*Var[1] 10`
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+EndLoop
+Call	PlaySound ( 0162 ) % fall to the ground
+Call	SetPlayerAnimation ( 00080003 ) % falling to the ground
+Wait	2
+Loop 4` % x
+	Add	*Var[0] 2
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+EndLoop
+SetF *Var[A] *Fixed[0.0]
+% Move Camera
+SetF 	*Var[A] *Fixed[155.0]
+Call 	AdjustCam ( .Cam:Default *Fixed[0.5] *Var[A] *Fixed[380.0] *Fixed[20.0] *Fixed[-7.0] )
+Wait	15`
+% Cheato appears
+Wait	10`
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0003 ) % Running
+Call	SetNpcPos ( .Npc_Cheato 75` -151` -200` )
+Call	GetNpcPos ( .Npc_Cheato *Var[0] .False *Var[1] )
+Sub		*Var[0] 60`
+Call	NpcMoveTo ( .Npc_Cheato *Var[0] *Var[1] .Cam:Default )
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0001 ) % Idle
+Wait	10`
+Call     PlaySoundAtNpc ( .Npc_Cheato 0262 .Cam:Default )
+Call    ShowEmote   	( .Npc_Cheato .Emote:Exclamation 45` 20` 1 0 0 0 0 )
+Wait	20`
+Call	GetNpcPos ( .Npc_Cheato *Var[0] .False *Var[1] )
+Sub		*Var[0] 500`
+Set 	*Flag_Skip .False
+Thread
+	Wait	6
+	If *Flag_Cycle1 == .True % Next cutscene already seen?
+		Exec	$Script_MarioFalling_RespawnPartner
+		Call	GotoMapSpecial ( "pre_03" 4 1 )
+	Else
+		Call 	PlaySound	( 00DC )
+		Call    GotoMapSpecial		( "pt_00" B D )
+	EndIf
+EndThread
+Call	SetNpcSpeed ( .Npc_Cheato *Fixed[7.0] )
+Call	SetNpcAnimation	( .Npc_Cheato 00AE0003 ) % Running
+Call	NpcMoveTo ( .Npc_Cheato *Var[0] *Var[1] .Default )
+Return
+End
+}
+
+#new:Script $Script_MarioFalling_RespawnPartner
+{
+	Wait 4
+	Call    $RespawnPartner ( *LastPartner )
+	Return
+	End
+}
+
+% Mario realize he is falling so he stop
+% the fall on time.
+% Used when you have one pit + the other pit beated or maze
+#new:Script $Script_Animation_Mario_Falling2
+{
+Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Add		*Var[1] 200`
+Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Call 	$WriteBitFlag ( 8010EFCE .False .False 5 .False ) % make player visible
+Call	SetPlayerAnimation ( 00080017 ) % falling
+Call	PlaySound ( 0161 ) % Falling
+Wait	80`
+Thread
+	Wait	10`
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote	  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	% Why StandStill? then the other animaton?
+	% Sometimes mario animation doesn't change until you do this, idk why tho
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	Call	SetPlayerAnimation ( 00010008 ) % falling
+	Wait	10`
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	Call	SetPlayerAnimation ( 00010006 ) % prepare to jump
+EndThread
+% Mario Offsets
+Loop 20` % y
+	Sub	*Var[1] 10`
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+EndLoop
+Loop 14` % x
+	Add		*Var[0] 2
+	Call	SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Call  	PlayEffect    	( ~FX:Steam:TinyPuff *Var[0] *Var[1] *Var[2] 0 0 0 0 0 0 0 0 0 )
+	Call	PlaySound 		( 0142 ) % walk
+	Wait 	1
+EndLoop
+Wait	10`
+Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+Set 	*Flag_Skip .False
+Set 	*MapFlag[00] .True
+Call	ResetCam ( .Default *Fixed[4.0] )
+Call	DisablePlayerPhysics ( .False )
+Call	DisablePlayerInput ( .False )
+Return
+End
+}
+
+% Mario just fall casually
+% Used when you have beated both pits + the maze
+#new:Script $Script_Animation_Mario_Falling3
+{
+Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Add		*Var[1] 200`
+Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+Call 	$WriteBitFlag ( 8010EFCE .False .False 5 .False ) % make player visible
+Call	SetPlayerAnimation ( 00010008 ) % falling
+Call	PlaySound ( 0161 ) % Falling
+Wait	80`
+Set		*Var[4] 20`
+% Mario Offsets
+Loop *Var[4] % y
+	Sub		*Var[1] 10`
+	Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Wait 1
+	If *Var[4] == 6
+		Call	SetPlayerAnimation ( 0001000B ) % about to land
+	EndIf
+EndLoop
+Call	PlaySound ( 0142 ) % walk
+Call	SetPlayerAnimation ( 0001000C ) % landed
+Wait	10`
+Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+Set 	*Flag_Skip .False
+Set 	*MapFlag[00] .True
+Set 	*MapFlag[01] .True
+Call	DisablePlayerPhysics ( .False )
+Call	DisablePlayerInput ( .False )
+Return
+End
+}
+
+#new:Script $SkipCutscene_Animation_Mario_Falling0
+{
+Set *Flag_Skip .True % show skip text
+Call $WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+Loop % track Start Button
+	Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+	If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+		Kill	*MapVar[2]
+		Set 	*Flag_Skip .False
+		Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+		Wait	10`
+		Call 	PlaySound	( 00DC )
+		Call    GotoMapSpecial		( "pt_00" 6 D )
+	EndIf
+	Wait 1
+	If *Flag_Skip == .False
+		BreakLoop
+	EndIf
+EndLoop
+Return
+End
+}
+
+#new:Script $SkipCutscene_Animation_Mario_Falling1
+{
+Set 	*Flag_Skip .True % show skip text
+Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+Loop % track Start Button
+	Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+	If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+		Kill	*MapVar[2]
+		Set 	*Flag_Skip .False
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+		Wait	6
+		If *Flag_Cycle1 == .True % Next cutscene already seen?
+			Exec	$Script_MarioFalling_RespawnPartner
+			Call	GotoMapSpecial ( "pre_03" 4 1 )
+		Else
+			Call 	PlaySound	( 00DC )
+			Call    GotoMapSpecial		( "pt_00" B D )
+		EndIf
+	EndIf
+	Wait 1
+	If *Flag_Skip == .False
+		BreakLoop
+	EndIf
+EndLoop
+Return
+End
+}
+
+#new:Script $SkipCutscene_Animation_Mario_Falling2
+{
+Set 	*Flag_Skip .True % show skip text
+Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+Loop % track Start Button
+	Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+	If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+		Set 	*Flag_Skip .False
+		% Fade Screen Brightness
+		SetGroup 0
+		SuspendAll .True
+		SetF	*Var[0] *Fixed[25.0]  % speed
+		SetF	*Var[1] *Fixed[255.0] % fully dark
+		ExecWait $Script_FadeScreenOut
+		% after cutscene code
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+		% Entry 0 Pos % -199` -152` -201`
+		Set		*Var[0] -183` % x
+		Set		*Var[1] -152` % y
+		Set		*Var[2] -201` % z
+		Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Wait	1
+		% Check if the animation got overwrited
+		Call	GetPlayerAnimation ( *Var[0] )
+		If *Var[0] != .PlayerAnim:StandStill
+			Loop
+				Call	GetPlayerAnimation ( *Var[0] )
+				If *Var[0] == .PlayerAnim:StandStill
+					BreakLoop
+				EndIf
+				Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+				Wait	1
+			EndLoop
+		EndIf
+		Set 	*MapFlag[00] .True
+		Call	ResetCam ( .Default *Fixed[4.0] )
+		Call	DisablePlayerPhysics ( .False )
+		Call	DisablePlayerInput ( .False )
+		Kill	*MapVar[2]
+		ResumeAll .True
+		Thread % Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+		EndThread
+	EndIf
+	Wait 1
+	If *Flag_Skip == .False
+		BreakLoop
+	EndIf
+EndLoop
+Return
+End
+}
+
+#new:Script $SkipCutscene_Animation_Mario_Falling3
+{
+Set 	*Flag_Skip .True % show skip text
+Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+Loop % track Start Button
+	Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+	If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+		Set 	*Flag_Skip .False
+		% Fade Screen Brightness
+		SetGroup 0
+		SuspendAll .True
+		SetF	*Var[0] *Fixed[25.0]  % speed
+		SetF	*Var[1] *Fixed[255.0] % fully dark
+		ExecWait $Script_FadeScreenOut
+		% after cutscene code
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+		% Entry 0 Pos % -199` -152` -201`
+		Set		*Var[0] -199` % x
+		Set		*Var[1] -153` % y
+		Set		*Var[2] -201` % z
+		Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+		Call	PlaySound ( 0142 ) % walk
+		Set 	*MapFlag[00] .True
+		Set 	*MapFlag[01] .True
+		Wait 1
+		Kill	*MapVar[2]
+		ResumeAll .True
+		Thread % Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+		EndThread
+		ExecWait $RestoreInputs
+		Call	DisablePlayerPhysics ( .False )
+		Call	DisablePlayerInput ( .False )
+	EndIf
+	Wait 1
+	If *Flag_Skip == .False
+		BreakLoop
+	EndIf
+EndLoop
+Return
+End
+}
+
+#string $String_Cheato_Hey
+{
+[STYLE:RIGHT][...]
+[DelayOn][StartFX:Shrinking]Hey, is somebody there?![EndFX:Shrinking][DelayOff]
+[WAIT][END]
+}
+
+#new:TriggerCoord $TriggerCoord_BombPosition
+{
+~BombPos:BombPosition
+}
+
+#new:Script $Script_BlastBombette_Exit3
+{
+Call    PlayEffect  	( 66` .Cam:Default ~Model:Rock ~Model:Rock 1 10` 40` ) % fxID ParticlesFxID ModelIDforPos ModelIDforParticles size ? time
+Call    EnableModel 	( ~Model:Rock .False )
+Call 	EnableModel 	( ~Model:cracks .False )
+Call    ModifyColliderFlags 	( .False ~Collider:Rocks 7FFFFE00 )
+Set		*Flag_Pt255_Rocks .True
+Unbind
+Return
+End
+}
+
+#new:Script $Script_StarShrine_LightAnim
+{
+	Loop
+		% >>>
+		Call    MakeLerp    	( 0 13` 25` .Easing:CosIn )
+		Loop
+			Call     UpdateLerp
+			Call     TranslateModel ( ~Model:DoorLight *Var[0] 0 0 )
+			Wait     1
+			If  *Var[1]  ==  .False
+				BreakLoop
+			EndIf
+		EndLoop
+		% <<<
+		Call    MakeLerp    	( 13` 0 25` .Easing:CosIn )
+		Loop
+			Call     UpdateLerp
+			Call     TranslateModel ( ~Model:DoorLight *Var[0] 0 0 )
+			Wait     1
+			If  *Var[1]  ==  .False
+				BreakLoop
+			EndIf
+		EndLoop
+	EndLoop
+	Return
+	End
+}
+
+% Check if a New Star Spirit is available
+#new:Script $Script_CheckStarShrine
+{
+Call	EnableModel ( ~Model:DoorLight .False )
+Call 	$ReadAddress ( 8035612E 1 *Var[0] .False .False ) % load star points
+% Which Star Spirit will be unlocked now
+Switch  *StarSpirits
+	Case == 0 % The player doesn't have any star spirits
+		If *Var[0] >= 50` % Star Points
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 1
+		If *Var[0] >= 100`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 2
+		If *Var[0] >= 200`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 3
+		If *Var[0] >= 350`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 4
+		If *Var[0] >= 500`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 5
+		If *Var[0] >= 650`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 6
+		If *Var[0] >= 800`
+			Call	EnableModel ( ~Model:DoorLight .True )
+		EndIf
+	Case == 7
+EndSwitch
+Return
+End
+}
+
+#new:Function $Function_LoadStarPoints
+{
+PUSH    RA, V0, V1, A1, A2, A3
+LAHU    A2, 8035612E % Star Points
+LW      A1, C (A0)
+JAL     ~Func:set_variable
+LW      A1, 0 (A1)
+JPOP    RA, V0, V1, A1, A2, A3
+}
+	
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups
+{
+00000001 $Npc_Cheato 00000000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $Npc_Cheato
+{
+00000002 $BlankSettings ~Vec3f:NPCRippo
+00440C0D $Script_Init_Blank 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 00AE0001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200025 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+	
+#new:Script $Script_Init_Blank
+{
+	Return
+	End
+}
+  
+%%
+% Exits
+%%
+
+#new:Script $TrackEntry
+{
+	Call     GetEntryID  	( *Var[0] )
+	Switch *Var[0]
+		CaseOR == 0 % Falling
+		CaseOR == 2
+			Exec	 $Script_MakeExits   
+		EndCaseGroup
+		Case == 4 % Black Pit
+			If *BlackPit_Unlocked == .False
+				% Do Pipe Animation
+				Exec $Script_PipeSpawns
+			Else
+				Exec $Enter_HorizontalPipe
+				Exec $Script_MakeExits
+			EndIf
+		Default
+			Set		*Var[0] $Script_MakeExits 
+			Exec EnterWalk
+	EndSwitch
+	Wait    1 
+	Return
+	End
+}
+
+#new:Script $Script_PipeSpawns
+{
+	% Pan the camera a little more lower
+	Call    GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] -30` % y
+	Call    UseSettingsFrom 	( .Cam:Default *Var[0] *Var[1] *Var[2] )
+	Call    SetCamSpeed 	( .Cam:Default *Fixed[10.0] )
+	Call    SetCamDistance  ( .Cam:Default 300` )						% Cam Zoom
+	Call    SetCamPosB  	( .Cam:Default -200` -800` )				% Set Cam Cordinates
+	Call    SetPanTarget 	( .Cam:Default *Var[0] *Var[1] *Var[2] )	% CamID X Y Z
+    Call    PanToTarget 	( .Cam:Default 00000000 00000001 )
+	% Hide Player and Partner
+	Call	DisablePlayerPhysics ( .True )
+	Call	HidePlayerShadow ( .True )
+	Call 	$WriteBitFlag ( 8010EFCC .False 2 4 .True ) % Don't update animations (disables dust FXs too)
+	Call 	$WriteBitFlag ( 8010EFCC .False 2 5 .True ) % turn player invisible
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	% hide partner
+	Call    DisablePartnerAI 	( 0 )
+	Call    EnableNpcShadow 	( .Npc:Partner .False )
+	Call    SetNpcFlagBits ( .Npc:Partner 00000002 .True ) % ?
+	Call    SetNpcPos   	( .Npc:Partner 0 -1000` 0 )
+	Call	ParentColliderToModel 	( ~Collider:bp_pipe ~Model:dokan_e2 )
+	Call	ParentColliderToModel 	( ~Collider:exit4 ~Model:dokan_e2 )
+	Call	GetPlayerPos 	( .False *Var[A] .False )
+	Call 	EnableGroup 	( ~Model:black_pit .True )
+	Call 	MakeLerp		( 50` 0` 30` .Easing:CosInOut )
+	Call 	PlaySound   	( 208E ) % Pipe Spawning Sound
+	Label	2
+	Call	UpdateLerp
+	Set		*Var[2]  0
+	Sub		*Var[2]  *Var[0]
+	Call	TranslateGroup	( ~Model:black_pit 0 *Var[2] 0 )
+	Wait	1 
+	If	*Var[1] ==  1 
+		Goto	2
+	EndIf
+	Wait	1
+	% update colliders
+	Call	UpdateColliderTransform	( ~Collider:bp_pipe )
+	Call	UpdateColliderTransform	( ~Collider:exit4 )
+	Call    ModifyColliderFlags 	( .True ~Collider:bp_pipe 7FFFFE00 )
+	Call    ModifyColliderFlags 	( .True ~Collider:exit4 7FFFFE00 )
+	Thread
+		Call	ResetCam ( .Cam:Default *Fixed[2.0] )
+		% unhide partner
+		Wait	15`
+		Call    GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+		Call    SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+		Call    SetNpcFlagBits  ( .Npc:Partner 00000002 .False )
+		Call    EnablePartnerAI
+		Call    EnableNpcShadow ( .Npc:Partner .True )
+	EndThread
+	Call 	$WriteBitFlag ( 8010EFCC .False 2 4 .False ) % FreezePlayerAnimations == .False
+	Call	DisablePlayerPhysics ( .False )
+	Call	HidePlayerShadow ( .False )
+	Set  	*BlackPit_Unlocked .True
+	Exec 	$Script_MakeExits
+	Exec 	$Enter_HorizontalPipe
+	Return
+	End
+}
+
+#new:Script $Enter_HorizontalPipe
+{
+	Call 	 $WriteBitFlag ( 8010EFCC .False 2 5 .True ) % Make player invisible
+	Set     *Var[A]  ~Entry:Entry4 % Entry ID
+    Set     *Var[B]  ~Collider:exit4 % Collider ID
+    Set     *MapVar[0] .True
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Add      *Var[1] -40` % y
+    Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Call 	 $WriteBitFlag ( 8010EFCC .False 2 5 .False ) % Make player visible
+    Wait     4
+    Call     802D286C ( 00000100 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Loop 40` 
+        Add     *Var[1] 1 % y
+        Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+        Wait    1
+    EndLoop
+    Wait    5
+    Call    802D2520 ( 00010000 .False .False .False .False .False )
+	Call    SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call    DisablePlayerPhysics 	( .False )
+	Call    HidePlayerShadow 	( .False )
+    Loop
+        % Set MapVar0 always as false until the player falls
+        Call    $ReadAddress ( 8015A552 1 *Var[0] .False .False )
+        If *Var[0] == FFFF
+            Set     *MapVar[0] .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Leave_HorizontalPipe
+{
+    Call     DisablePartnerAI ( .True )
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Call     802D286C ( 00000800 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Thread
+        Loop 40`
+            Add     *Var[1] -1 % y
+            Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+            Wait    1
+        EndLoop
+    EndThread
+    Wait     25`
+    Return
+    End
+}
+
+#new:Function $Function_GetColliderPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_SetAnimation
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       ~Func:clamp_angle
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit1 .Trigger:FloorAbove ~Collider:Col0 00000001 00000000
+	Bind     $Script_Exit3 .Trigger:FloorAbove ~Collider:Col1 00000001 00000000
+	Call	GetEntryID ( *Var[0] )
+	If *Var[0] != 0 % Isn't Pit beated
+		Bind     $Script_Exit4 .Trigger:FloorAbove ~Collider:exit4 00000001 00000000 % Black Pit
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	Call     UseExitHeading  	( 3C 1 )
+	Exec     ExitWalk
+	If *MapFlag[00] == .True % Pit Beated - Cutscene 2 & 3
+		Set *MapFlag[00] .False
+		If *MapFlag[01] != .True % wasn't cutscene 3
+			If *Flag_Cycle2 == .True % Next cutscene already seen?
+				Exec	$Script_MarioFalling_RespawnPartner
+				Call	GotoMapSpecial ( "pre_03" 4 1 )
+			Else
+				Call     GotoMap   ( "pt_00" B )
+			EndIf
+		Else % was cutscene 3, don't check for Flag_Cycle2 anymore
+			Set *MapFlag[01] .False
+			Exec	$Script_MarioFalling_RespawnPartner
+			Call	GotoMapSpecial ( "pre_03" 4 1 )
+		EndIf
+	Else
+		Call     GotoMap   ( "pt_00" 1 )
+	EndIf
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_Exit3
+{
+	Call     UseExitHeading  	( 3C 3 )
+	Exec     ExitWalk 
+	Call     GotoMap         	( "pre_01" 0 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_Exit4
+{
+	Set  *Var[A]  ~Entry:Entry4 % Entry ID
+	Set  *Var[B]  ~Collider:exit4 % Collider ID
+    ExecWait $Script_TopPipe_TrackJoystick
+	Return
+	End
+}
+
+#new:Script $Script_TopPipe_TrackJoystick
+{
+	Call     $Function_TrackJoystick
+	If  *Var[0]  ==  .False
+		Return
+	EndIf
+    % If the player came from a pipe and hasn't leave the pipe
+    If *MapVar[0] == .True
+        Return
+    EndIf
+	Call     GetCurrentPartner ( *Var[0] )
+	If  *Var[0]  !=  .Partner:Empty
+		Call     GetCurrentPartnerID 	( *Var[1] )
+		If  *Var[1]  !=  .Partner:Watt
+			Return
+		Else
+			Call     802D2B6C
+			Call     DisablePlayerInput 	( .True )
+		EndIf
+	Else
+		Call     DisablePlayerInput 	( .True )
+	EndIf
+	Unbind
+	ExecWait    $Leave_HorizontalPipe
+    Call    	GotoMap ( "bp_00" 0 )
+	Return
+	End
+}
+
+#new:Function $Function_TrackJoystick
+{
+    0:  LAH       V1, 8015A552
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  DADDU     S0, A0, R0
+   14:  SW        RA, 14 (SP)
+   18:  LW        V0, B0 (S0)
+   1C:  BEQ       V1, V0, .o2C
+   20:  ADDIU     V0, R0, 2
+   24:  BEQ       R0, R0, .oAC
+   28:  SW        R0, 84 (S0)
+        .o2C
+   2C:  LAW       V1, 8007419C
+   34:  LB        V0, 40 (V1)
+   38:  LB        A3, 44 (V1)
+   3C:  BLTZL     V0, .o44
+   40:  SUBU      V0, R0, V0
+        .o44
+   44:  BNE       V0, R0, .o54
+   48:  NOP
+   4C:  BEQL      A3, R0, .oAC
+   50:  DADDU     V0, R0, R0
+        .o54
+   54:  MTC1      V0, F4
+   58:  NOP
+   5C:  CVT.S.W   F4, F4
+   60:  MFC1      A2, F4
+   64:  MTC1      A3, F4
+   68:  NOP
+   6C:  CVT.S.W   F4, F4
+   70:  MTC1      R0, F12
+   74:  MFC1      A3, F4
+   78:  JAL       ~Func:atan2
+   7C:  MOV.S     F14, F12
+   80:  LIF       F2, 60.0
+   88:  NOP
+   8C:  C.LT.S    F0, F2
+   90:  NOP
+   94:  BC1F      .oA8
+   98:  ADDIU     V0, R0, 1
+   9C:  SW        V0, 84 (S0)
+   A0:  BEQ       R0, R0, .oAC
+   A4:  ADDIU     V0, R0, 2
+        .oA8
+   A8:  DADDU     V0, R0, R0
+        .oAC
+   AC:  LW        RA, 14 (SP)
+   B0:  LW        S0, 10 (SP)
+   B4:  JR        RA
+   B8:  ADDIU     SP, SP, 18
+}
+	
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]It seems that we are just trapped
+in this place...
+[WAIT][NEXT][...]
+there has to be a way to escape
+from all of this, but...[PAUSE:0A] how?
+[WAIT][END]
+}

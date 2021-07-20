@@ -1,0 +1,528 @@
+#import Maze.mpat % $Script_MakeEntities is placed here
+#import Maze_Misc.mpat % Fog Function
+#import Maze_MarioHPTracker.mpat % track if mario have 0hp
+% Import all Enemies AI Data
+#import enemies/BasicAI.mpat
+#import enemies/Bzzap.mpat
+#import enemies/DryBones.mpat
+#import enemies/Dupplighost.mpat
+#import enemies/Ember.mpat
+#import enemies/Goomba.mpat
+#import enemies/Koopa.mpat
+#import enemies/Paragoomba.mpat
+#import enemies/Paratroopa.mpat
+#import enemies/PiranhaPlant.mpat
+#import enemies/Pokey.mpat
+#import enemies/PyroGuy.mpat
+#import enemies/RuffPuff.mpat
+#import enemies/SpikedGoomba.mpat
+#import enemies/Maze_SubBossesSettings.mpat
+#import Maze_SpawnNpcs.mpat
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 4
+[MapTattle]  $Function_GetTattle
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "tik_tex" 
+JAL 	~Func:sprintf
+RESERVED
+COPY 	V0, R0
+JPOP 	RA, A0, A1
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+~Vec4f:Entry3
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( FFFFFFFF )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    $Function_SetupFog
+Set     *Dungeon_MapID 1
+If *Flag_ChestRoom == .True
+    Call ModifyColliderFlags ( .False ~Collider:MetalBars 7FFFFE00 )
+    Call EnableModel ( ~Model:ee_kousi .False )
+    Call DropItemEntity    ( .Item:WaterStone  ~Vec3d:StoneSpawn .ItemSpawnMode:Decoration .False )
+Else
+    Exec $Script_PillarFX
+    Bind $Script_StoneSwitch .Trigger:WallPressA ~Collider:MiddleSwitch 00000001 00000000 
+EndIf
+ExecWait $Script_SetEnemiesFlags
+ExecWait $Script_MakeNpcs
+ExecWait $Script_MakeEntities_mze02
+Exec    $Script_LockChests
+%Exec    $Script_TrackInvisibleBlock % testing
+Set	   *Var[0] $Script_MakeExits
+Exec    EnterWalk
+Wait    1
+Exec    $Script_KillMario % track mario hp
+If *Flag_Maze_Tutorial == .False
+    Exec $Script_WelcomeToTheMaze
+EndIf
+Return
+End
+}
+
+#new:Script $Script_PillarFX
+{
+    Loop
+        Call    PlayEffect  	( ~FX:GlowingOrb:White ~Vec3d:StoneSpawn *Fixed[0.6] 24` .False .False .False .False .False .False .False )
+        Wait    25`
+        If *Flag_ChestRoom == .True
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_WelcomeToTheMaze
+{
+    Set *Flag_DungeonPause .True % pause Maze's timer
+    SetGroup 0
+    SuspendAll 2
+    % Wait until the screen completily unfades
+    Loop
+        Call 	$ReadAddress  ( 80156904 2 *Var[0] .False .False ) % load brightness
+        If *Var[0] == -1.0
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Call    DisablePlayerInput ( .True )
+    Call    ShowMessageAtScreenPos ( $String_Maze_Tutorial1 A0 28 )
+    ResumeAll 2
+    Call    DisablePlayerInput ( .False )
+    Set *Flag_Maze_Tutorial .True
+    Set *Flag_DungeonPause .False
+    Return
+    End
+}
+
+#string $String_Maze_Tutorial1
+{
+[STYLE:INSPECT][...]
+Welcome to the Maze.
+[WAIT][NEXT][...]
+Farm Star Pieces to get upgrades
+for Mario and much more!
+[WAIT][NEXT][...]
+You can get Star Pieces from
+Chests, just keep in mind you
+need to [PushColor][Color:07]beat all enemies first[PopColor] to
+being able to open any Chest.
+[WAIT][NEXT][...]
+Everytime you open a Chest you
+will get a little boost in oxygen
+too.
+[WAIT][NEXT][...]
+If your Oxygen [PushColor][Color:07]reaches zero your
+HP will start to decrease[PopColor] until
+you die.
+[WAIT][NEXT][...]
+If that happens you will go back
+to the Maze's lobby and you will
+[PushColor][Color:07]lose all Star Pieces from that
+run[PopColor].
+[WAIT][NEXT][...]
+So remember to always try to go
+back to the lobby to get those
+Star Pieces.
+[WAIT][NEXT][...]
+Also one last thing, attacks [PushColor][Color:07]like[PopColor]
+Bow's Spook or Lakilester's
+Hurricane [PushColor][Color:07]doesn't work in the
+Maze[PopColor].
+[WAIT][NEXT][...]
+Good luck!
+[WAIT][END]
+}
+
+#new:Script $Script_StoneSwitch
+{
+SetGroup 0
+SuspendAll .True
+Call    DisablePlayerInput	( .True )
+Call	HasKeyItem ( .Item:WaterStone *Var[0] )
+If  *Var[0] == .True
+    Wait    5
+    Call    FindKeyItem       ( .Item:WaterStone *Var[0] )
+    Call    RemoveKeyItemAt   ( *Var[0] )
+    Call    DropItemEntity    ( .Item:WaterStone  ~Vec3d:StoneSpawn .ItemSpawnMode:Decoration .False )
+    Call    PlaySound ( 0261 )
+    Set		*Flag_ChestRoom .True
+    Wait    20`
+    Call	PlaySound 	( 002F )
+    Call    ShakeCam ( .Cam:Default 0 30` *Fixed[1.2] )
+    Wait    20`
+    % Metal Bars Animation
+    Call  	PlaySound   	( 026B )
+    Call    MakeLerp    	( 0 110` 50` .Easing:QuadraticIn )
+    Loop     
+        Call     UpdateLerp
+        Call     TranslateModel ( ~Model:ee_kousi 0 *Var[0] 0 )
+        Wait     1
+        If  *Var[1]  ==  0
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait    10`
+    Call    PlaySound ( 000A )
+    Wait    20`
+    Call    ModifyColliderFlags ( .False ~Collider:MetalBars 7FFFFE00 )
+    Call    EnableModel ( ~Model:ee_kousi .False )
+    Unbind
+Else
+    Call     ShowMessageAtScreenPos     	( $String_StoneSwitch_Nope 000000A0 00000028 )
+EndIf
+ResumeAll .True
+Call     DisablePlayerInput	( .False )
+Return
+End
+}
+
+#string $String_StoneSwitch_Nope
+{
+[STYLE:INSPECT][...]
+Looks like some kind of [PushColor][Color:07]stone[PopColor] can
+be placed here.
+[WAIT][END]
+}
+
+% Entities
+#new:Script $Script_MakeEntities_mze02
+{
+ExecWait $Script_MakeEntities % from import/Maze.mpat
+% Spawn Special Chest
+Call    MakeEntity 	( .Entity:GiantChest ~Vec4d:ChestPos5 80000000 )
+Call    AssignFlag ( *Flag_Maze_SpecialChest1 )
+Call    AssignScript ( $Script_UseChest2 )
+ExecWait $Script_SetSprites_GiantChest
+% Enable sprite's glow
+% load current sprites
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] 0 .False ) % left icon
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[1] 1 .False ) % middle
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[2] 2 .False ) % right
+% load solution
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[3] 4 .False ) % left icon
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[4] 5 .False ) % middle
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[5] 6 .False ) % right
+If *Var[0] == *Var[3]
+    Call    EnableModel ( ~Model:L_Light .True )
+EndIf
+If *Var[1] == *Var[4]
+    Call    EnableModel ( ~Model:M_Light .True )
+EndIf
+If *Var[2] == *Var[5]
+    Call    EnableModel ( ~Model:R_Light .True )
+EndIf
+% Unlock the Chest?
+Call    $ReadAddress ( $Maze_ChestData_Special1 2 *Var[0] 0 .False )
+Call    $ReadAddress ( $Maze_ChestData_Special1 2 *Var[1] 4 .False )
+If *Var[0] == *Var[1]
+    Call    ModifyColliderFlags ( .False ~Collider:Chest5 7FFFFE00 )
+EndIf
+/% Spawn Invicible Blocks
+Call    ParentColliderToModel ( ~Collider:Cube1 ~Model:CubeModel )
+Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 0 .False ) % get x
+Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[2] 4 .False ) % get y
+Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[3] 8 .False ) % get z
+If *Flag_Maze_HiddenBlock5 == .False
+    Call  MakeEntity 	    ( .Entity:HiddenYellowBlock *Var[1] *Var[2] *Var[3] 0 .Item:Coin 80000000 )
+    Call  AssignBlockFlag   ( *Flag_Maze_HiddenBlock5 )
+Else
+    Add     *Var[2] 28`
+    Call    TranslateGroup ( ~Model:Cube1 *Var[1] *Var[2] *Var[3] )
+    Call    UpdateColliderTransform ( ~Collider:Cube1 )
+EndIf
+% Bind Sprite Cube's trigger and load his sprite
+Bind   $Script_SwapSprites  .Trigger:CeilingTouch ~Collider:Cube1 00000001 00000000
+% Load Current Sprite
+% Disable all Sprites
+Call    EnableModel ( ~Model:Mushroom .False )
+Call    EnableModel ( ~Model:Fireflower .False )
+Call    EnableModel ( ~Model:Star .False )
+Call    EnableModel ( ~Model:Leaf .False )
+Call    EnableModel ( ~Model:Feather .False )
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] 6 .False ) % mze_03 / Map #5 current sprite
+Switch *Var[0]
+    Case == 0 % Mushroom
+        Call    EnableModel ( ~Model:Mushroom .True )
+    Case == 1 % Fire Flower
+        Call    EnableModel ( ~Model:Fireflower .True )
+    Case == 2 % Star
+        Call    EnableModel ( ~Model:Star .True )
+    Case == 3 % Leaf
+        Call    EnableModel ( ~Model:Leaf .True )
+    Case == 4 % Feather
+        Call    EnableModel ( ~Model:Feather .True )
+EndSwitch%/
+Return
+End
+}
+
+/% Why a lot of unused code?
+The sprite blocks was coded and tested in this map, so all the code is still here
+%/
+
+/%#new:Script $Script_SwapSprites
+{
+    % Disable all Sprites
+    Call    EnableModel ( ~Model:Mushroom .False )
+    Call    EnableModel ( ~Model:Fireflower .False )
+    Call    EnableModel ( ~Model:Star .False )
+    Call    EnableModel ( ~Model:Leaf .False )
+    Call    EnableModel ( ~Model:Feather .False )
+    Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] 6 .False ) % mze_03 / Map #5 current sprite
+    Add     *Var[0] 1
+    If *Var[0] >= 5
+        Set *Var[0] 0
+    EndIf
+    Call    $WriteAddress ( $Maze_ChestData_Special1 0 *Var[0] 6 .False ) % save new sprite
+    Switch *Var[0]
+        Case == 0 % Mushroom
+            Call    EnableModel ( ~Model:Mushroom .True )
+        Case == 1 % Fire Flower
+            Call    EnableModel ( ~Model:Fireflower .True )
+        Case == 2 % Star
+            Call    EnableModel ( ~Model:Star .True )
+        Case == 3 % Leaf
+            Call    EnableModel ( ~Model:Leaf .True )
+        Case == 4 % Feather
+            Call    EnableModel ( ~Model:Feather .True )
+    EndSwitch
+    Call    PlaySound ( 007D )
+    Return
+    End
+}%/
+
+% You can't assign scripts to invisible blocks entities
+/% So keep tracking if the block's flag becomes true
+#new:Script $Script_TrackInvisibleBlock
+{
+If *Flag_Maze_HiddenBlock5 == .False
+    Loop
+        If *Flag_Maze_HiddenBlock5 == .True
+            Set *Var[9] 4 % entity ID % btw the solid block is actually a new entity
+            Set *Var[4] $VectorList_HideBlock % new pos
+            ExecWait $Script_Rogue_SetEntityPos % from globals/patch/RoguelikeMain.patch
+            Call	PlaySoundAtPlayer	( 0241 .Default ) % Focus
+            % Get Coords % Hidden5
+            Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 0 .False ) % get x
+            Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[2] 4 .False ) % get y
+            Call    $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[3] 8 .False ) % get z
+            Set     *Var[4] *Var[2]
+            Add     *Var[2] 8   % star FX
+            Add     *Var[4] 28` % sprite cube
+            Call    TranslateGroup ( ~Model:Cube1 *Var[1] *Var[4] *Var[3] ) % mode cube
+            Call    UpdateColliderTransform ( ~Collider:Cube1 )
+            Call    PlayEffect   ( ~FX:Sparkles:Star *Var[1] *Var[2] *Var[3] 20` )
+            BreakLoop
+        EndIf
+        Wait 1
+    EndLoop
+EndIf
+Return
+End
+}%/
+
+/%#new:VectorList $VectorList_HideBlock
+{
+-900.000000 0.000000 0.000000
+-900.000000 0.000000 0.000000
+-900.000000 0.000000 0.000000 % Spawn Coords
+}%/
+
+% Give between 50 - 80 star pieces
+#new:Script $Script_UseChest2
+{
+Call    $WriteAddress ( 8010EF90 2 00000001 0 .False ) % Force status menu to appear
+Call    RandInt ( 30` *Var[1] )
+Set     *Var[0] 50`
+Add     *Var[0] *Var[1]
+Call    $ReadAddress ( 80356130 1 *Var[1] 0 .False ) % get temporary Star Pieces
+Add     *Var[0] *Var[1]
+If  *Var[0] > 999` % temp star pieces cap
+    Set *Var[0] 999`
+EndIf
+Call    $WriteAddress ( 80356130 1 *Var[0] 0 .False ) % Save new ammount
+% Give more O²
+Call    $ReadAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+Add     *Var[0] 20` % Sprite's Chest give x2.5 O² compared to common chests
+If *Var[0] > 208`
+    Set *Var[0] 208` % 208` = Full timer
+EndIf
+Call    $WriteAddress ( $DungeonTimer 0 *Var[0] 0 .False )
+% the inputs and the timer becomes disabled in MiscHooks.patch (@Hook 108A84)
+Set     *Flag_Cheev_Dungeon_01 .True
+Set     *Flag_Cheev_Dungeon_04 .True
+Exec    $Script_Cheev_Dungeon_03
+Call    DisablePlayerInput ( .False ) % enable inputs
+Set     *Flag_DungeonPause .False % resume timer
+Return
+End
+}
+
+#new:Script $Script_SetSprites_GiantChest
+{
+Call    EnableGroup ( ~Model:Symbols .False ) % hide all stuff
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[0] 0 .False ) % left icon / mze_05
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[1] 1 .False ) % middle / mze_04
+Call    $ReadAddress ( $Maze_ChestData_Special1 0 *Var[2] 2 .False ) % right / mze_03
+% Set symbols
+% [ X 0 0 ]
+Switch *Var[0]
+    Case == 0 % Mushroom
+        Set *Var[0] ~Model:M_Mushroom
+    Case == 1 % Fire Flower
+        Set *Var[0] ~Model:M_Flower
+    Case == 2 % Star
+        Set *Var[0] ~Model:M_Star
+    Case == 3 % Leaf
+        Set *Var[0] ~Model:M_Leaf
+    Case == 4 % Feather
+        Set *Var[0] ~Model:M_Feather
+EndSwitch
+Call    EnableModel ( *Var[0] .True )
+Call    TranslateModel ( *Var[0] -13` 0 0 ) % set 1 0 0 symbol
+% [ 0 X 0 ]
+Switch *Var[1]
+    Case == 0 % Mushroom
+        Set *Var[1] ~Model:M_Mushroom
+    Case == 1 % Fire Flower
+        Set *Var[1] ~Model:M_Flower
+    Case == 2 % Star
+        Set *Var[1] ~Model:M_Star
+    Case == 3 % Leaf
+        Set *Var[1] ~Model:M_Leaf
+    Case == 4 % Feather
+        Set *Var[1] ~Model:M_Feather
+EndSwitch
+Call    EnableModel ( *Var[1] .True )  % set 0 1 0 symbol
+% [ 0 0 X ]
+Switch *Var[2]
+    Case == 0 % Mushroom
+        Set *Var[2] ~Model:M_Mushroom
+    Case == 1 % Fire Flower
+        Set *Var[2] ~Model:M_Flower
+    Case == 2 % Star
+        Set *Var[2] ~Model:M_Star
+    Case == 3 % Leaf
+        Set *Var[2] ~Model:M_Leaf
+    Case == 4 % Feather
+        Set *Var[2] ~Model:M_Feather
+EndSwitch
+Call    EnableModel ( *Var[2] .True )
+Call    TranslateModel ( *Var[2] 13` 0 0 ) % set 0 0 1 symbol
+Return
+End
+}
+   
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0 1 0
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:Entry1 1 0
+Bind     $Script_Exit2  .Trigger:FloorAbove ~Collider:Entry2 1 0
+Bind     $Script_Exit3  .Trigger:FloorAbove ~Collider:Entry3 1 0
+Return
+End
+}
+
+#new:Script $Script_Exit0
+{
+Call     UseExitHeading  	( 3C 0 )
+Exec     80285CF4 
+Call     GotoMap         	( "mze_01" 1 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit1
+{
+Call     UseExitHeading  	( 3C 1 )
+Exec     80285CF4 
+Call     GotoMap         	( "mze_12" 0 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit2
+{
+Set     *Dungeon_MapID 2
+Call     UseExitHeading  	( 3C 2 )
+Exec     80285CF4 
+Call     GotoMap         	( "mze_09" 0 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit3
+{
+Call     UseExitHeading  	( 3C 3 )
+Exec     80285CF4 
+Set     *Dungeon_MapID      16`
+Call     GotoMap         	( "mze_09" 0 )
+Wait     100` 
+Return
+End
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]We're inside the Cursed Maze
+[WAIT][NEXT][...]
+In this room you can find a
+special chest, but the only way
+to open it
+[WAIT][NEXT][...]
+is to find the 3 hidden switches
+across all the maze.
+[WAIT][NEXT][...]
+Just keep in mind that you'll need
+[PushColor][Color:19]something bright
+enough to see them[PopColor].
+[WAIT][NEXT][...]
+Our Oxygen will be limited in
+this place, so keep that in
+mind too!
+[WAIT][NEXT][...]
+When the timer reaches Zero, your
+HP will start to decrease until
+you die or leave the Maze.
+[WAIT][NEXT][...]
+If that were to happen, you will lose
+all your Star Pieces from this
+run.
+[WAIT][NEXT][...]
+Remember, it's always better to
+escape this place on time!
+[WAIT][END]
+}

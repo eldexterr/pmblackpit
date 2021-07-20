@@ -1,0 +1,200 @@
+% Mario's house map, used in the game ending
+
+% partners
+#define .Npc_Goombario 0
+#define .Npc_Kooper 1
+#define .Npc_Bombette 2
+#define .Npc_Parakarry 3
+#define .Npc_Bow 4
+#define .Npc_Watt 5
+#define .Npc_Sushie 6
+#define .Npc_Lakilester 7
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 1
+[MapTattle]  00000000
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#new:Function_Init $Function_Init
+{
+PUSH    RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "kmr_tex" 
+JAL 	~Func:sprintf
+RESERVED
+CLEAR 	V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 )
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    MakeNpcs ( 0 $NpcGroupList )
+Exec    $Script_SetNpcs
+Return
+End
+}
+
+#new:NpcGroupList $NpcGroupList
+{
+00000008 $NpcGroup_Partners 	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Partners
+{
+% Goombario
+00000000 $NpcSettings_Generic ~Vec3f:goombario
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00010001 00010001 00010001 00010001 00010001 00010001 00010001 00010001 
+00000000 00000000 00000000 00000000
+% Kooper
+00000001 $NpcSettings_Generic ~Vec3f:kooper
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00020003 00020003 00020003 00020003 00020003 00020003 00020003 00020003 
+00000000 00000000 00000000 00000000
+% Bombette
+00000002 $NpcSettings_Generic ~Vec3f:bombette
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00030003 00030003 00030003 00030003 00030003 00030003 00030003 00030003 
+00000000 00000000 00000000 00000000
+% Parakarry
+00000003 $NpcSettings_Generic ~Vec3f:parakarry
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00040001 00040001 00040001 00040001 00040001 00040001 00040001 00040001 
+00000000 00000000 00000000 00000000
+% Bow
+00000004 $NpcSettings_Generic ~Vec3f:bow
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00050001 00050001 00050001 00050001 00050001 00050001 00050001 00050001 
+00000000 00000000 00000000 00000000
+% Watt
+00000005 $NpcSettings_Generic ~Vec3f:watt
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00060001 00060001 00060001 00060001 00060001 00060001 00060001 00060001 
+00000000 00000000 00000000 00000000
+% Sushie
+00000006 $NpcSettings_Generic ~Vec3f:sushie
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00070001 00070001 00070001 00070001 00070001 00070001 00070001 00070001 
+00000000 00000000 00000000 00000000
+% Lakilester
+00000007 $NpcSettings_Generic ~Vec3f:lakilester
+01000000 $Script_null 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00080001 00080001 00080001 00080001 00080001 00080001 00080001 00080001 
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_SetNpcs
+{
+    Call    DisablePlayerInput ( .True )
+    % Hide partner
+	Call	DisablePartnerAI ( 0 )
+	Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+    % Set animations
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00080024 ) % sit
+    Call    SetNpcAnimation ( .Npc_Goombario 0001000A ) % reading
+    Call    SetNpcAnimation ( .Npc_Kooper 00020004 ) % walking 
+    Call    SetNpcAnimation ( .Npc_Bombette 00030005 ) % walking
+    Call    SetNpcAnimation ( .Npc_Parakarry 00040006 ) % talking
+    Call    SetNpcAnimation ( .Npc_Bow 00050002 )  % flying
+    Call    SetNpcAnimation ( .Npc_Watt 00060001 ) % idle
+    Call    SetNpcAnimation ( .Npc_Sushie 00070006 ) % laughing
+    Call    SetNpcAnimation ( .Npc_Lakilester 00080009 ) % talking
+    % set yaws
+    Call    SetNpcYaw ( .Npc_Goombario -90` )
+    Call    SetNpcYaw ( .Npc_Kooper -90` )
+    Call    SetNpcYaw ( .Npc_Parakarry -90` )
+    Call    SetNpcYaw ( .Npc_Watt -90` )
+    Exec    $Script_NpcMoveTo_Kooper
+    Exec    $Script_NpcMoveTo_Bombette
+    Exec    $Script_NpcMoveTo_Bow
+    Exec    $Script_NpcMoveTo_Watt
+    Wait    70`
+    Call    GotoMapSpecial ( "bp_06" 1 6 )
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Kooper
+{
+    Call    SetNpcFlagBits ( .Npc_Kooper 00000040 .True ) % ignore model's collisions
+    Call    GetNpcPos ( .Npc_Kooper *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -45` % x
+    Call    NpcMoveTo ( .Npc_Kooper *Var[0] *Var[2] 60` )
+    Call    SetNpcAnimation ( .Npc_Kooper 0002000E ) % talking (arms up)
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Bombette
+{
+    Call    GetNpcPos ( .Npc_Bombette *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 100` % x
+    Call    NpcMoveTo ( .Npc_Bombette *Var[0] *Var[2] 90` )
+    Call    SetNpcAnimation ( .Npc_Bombette 00030003 ) % idle
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Bow
+{
+    Call    GetNpcPos ( .Npc_Bow *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] 100` % x
+    Call    NpcFlyTo ( .Npc_Bow *Var[0] *Var[1] *Var[2] 90` 0 .Easing:Linear )
+    Call    SetNpcAnimation ( .Npc_Bow 00050001 ) % idle
+    Return
+    End
+}
+
+#new:Script $Script_NpcMoveTo_Watt
+{
+    Call    GetNpcPos ( .Npc_Watt *Var[0] *Var[1] *Var[2] )
+    Add     *Var[0] -80` % x
+    Add     *Var[1] 13` % y
+    Call    NpcFlyTo ( .Npc_Watt *Var[0] *Var[1] *Var[2] 120` 0 .Easing:Linear )
+    Return
+    End
+}

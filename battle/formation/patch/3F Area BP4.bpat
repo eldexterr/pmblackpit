@@ -1,0 +1,138 @@
+% This file have Black Pit's formation 8
+
+% ====================================================
+% Formations
+% ====================================================
+
+% Enemies
+#import 3C_LavaPiranhaBP.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000001 $Formation_LavaPiranhaBP  $Stage_BlackPit_LavaPiranha 00000000 % 0
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_LavaPiranhaBP
+{
+$3C_LavaPiranhaBP 		$Vector3D_LavaPiranha 0000003C 00000000 00000000 00000000 00000000 
+}
+
+#new:Vector3D $Vector3D_LavaPiranha
+{ 60` 60` 0` }
+
+% ====================================================
+% Stages
+% ====================================================
+
+#new:StageTable $StageTable 
+{
+"bp_02" $Stage_BlackPit_LavaPiranha
+00000000 00000000 
+}
+
+#new:Stage $Stage_BlackPit_LavaPiranha
+{
+"tik_tex"
+"bp_bt04_shape"
+"bp_bt04_hit"
+$Script_BeforeBattle_BlackPit_Piranha
+$Script_AfterBattle_BlackPit
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $Script_BeforeBattle_BlackPit_Piranha
+{
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % Black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	ExecWait	$Script_SetNumber
+  	Call  	EnableGroup ( 4D .False ) % Hide all Lava Piranha's body models
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_BlackPit
+{
+	% Player died?
+	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False ) % read current hp
+	If	*Var[0] == .False
+		Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
+		Call    GotoMap ( "bp_01" 4 )
+	EndIf
+	Return
+	End
+}
+
+#define .Model_I 18
+#define .Model_V 19
+#define .Model_X 1A
+#define .Model_II 100
+#define .Model_III 101
+
+% Set current number by reading the formation ID
+#new:Script $Script_SetNumber
+{
+	Call	EnableGroup ( 1B .False ) % disable all numbers
+	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
+	Switch *Var[0]
+		Case == 3C00 % 1
+			Call	EnableModel ( .Model_I .True )
+		Case == 3C01 % 2
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_I -10` 0 0 )
+			Call	TranslateModel ( .Model_II 10` 0 0 )
+		Case == 3C02 % 3
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_II -18` 0 0 )
+			Call	TranslateModel ( .Model_III 18` 0 0 )
+		Case == 3C03 % 4
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_V .True )
+			Call	TranslateModel ( .Model_I -15` 0 0 )
+			Call	TranslateModel ( .Model_V 15` 0 0 )
+		Case == 3C04 % 5
+			Call	EnableModel ( .Model_V .True )
+		Case == 3D00 % 6
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	TranslateModel ( .Model_V -8` 0 0 )
+			Call	TranslateModel ( .Model_I 24` 0 0 )
+		Case == 3E00 % 7
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	TranslateModel ( .Model_V -29` 0 0 )
+			Call	TranslateModel ( .Model_II 18` 0 0 )
+		Case == 3F00 % 8
+			Call	EnableModel ( .Model_V .True )
+			Call	EnableModel ( .Model_I .True )
+			Call	CloneModel ( .Model_I .Model_II )
+			Call	CloneModel ( .Model_I .Model_III )
+			Call	TranslateModel ( .Model_V -22` 0 0 )
+			Call	TranslateModel ( .Model_I 5` 0 0 )
+			Call	TranslateModel ( .Model_II 20` 0 0 )
+			Call	TranslateModel ( .Model_III 35` 0 0 )
+		Case == 4000 % 9
+			Call	EnableModel ( .Model_I .True )
+			Call	EnableModel ( .Model_X .True )
+			Call	TranslateModel ( .Model_I -16` 0 0 )
+			Call	TranslateModel ( .Model_X 13` 0 0 )
+		Case == 4100 % 10
+			Call	EnableModel ( .Model_X .True )
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle
+{
+	Return
+	End
+}

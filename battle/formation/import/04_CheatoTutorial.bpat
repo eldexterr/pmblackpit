@@ -1,0 +1,442 @@
+% Cheato will teach the stylish moves
+
+#new:Actor $04_CheatoTutorial
+{
+% stats
+[Index]        94b 
+[Level]        99`b 
+[MaxHP]        99`b 
+[Coins]         0`b 
+[Flags]       00040000 
+[StatusTable] $StatusTable_null
+% ai
+[PartsCount]   1`s 
+[PartsTable] $PartsTable_Cheato
+[Script]      $Script_Init_Cheato
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce] 100`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         24`b  32`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  20`b % dx dy
+[StatusIcon]   10`b  20`b % dx dy
+}
+
+#new:IdleAnimations $IdleAnimations_Cheato
+{
+.Status:Normal    00AE0001
+.Status:Stone     00AE0000
+.Status:Sleep     00AE0000
+.Status:Poison    00AE0001
+.Status:Stop      00AE0000
+.Status:Static    00AE0000
+.Status:Paralyze  00AE0000
+.Status:Dizzy     00AE0000
+.Status:Dizzy     00AE0000
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_null
+{
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:StatusTable $StatusTable_null
+{
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep       0`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       0`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    0`
+.Status:Shrink      0`
+.Status:Stop        0`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Cheato
+{
+00800000 01000000 FC1800FF $IdleAnimations_Cheato $DefenseTable_null 00000000 00000000 00000000 00000000 
+}
+
+#new:Script $Script_Init_Cheato
+{
+    Call     BindTakeTurn 	    ( .Actor:Self $Script_null )
+    Call     BindIdle    	    ( .Actor:Self $Script_null )
+    Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_Cheato )
+    Call     SetActorVar 	    ( .Actor:Self 00000000 .True )
+    Exec     $Script_StartTutorial
+    Return
+    End
+}
+
+#new:Script $Script_null
+{
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_Cheato
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Thread
+   1C:  	Call     8026BF48 ( 00000001 )
+   2C:  	Call     GetLastEvent 	( .Actor:Self *Var[0] )
+   40:  	Switch  *Var[0] 
+   4C:  		Case  ==  .Event:Hit % A
+   58:  			Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
+   70:  			If  *Var[0]  ==  00000000 
+   80:  				Call     RandInt     	( 00000002 *Var[0] )
+   94:  				Switch  *Var[0] 
+   A0:  					Case  ==  00000000 
+   AC:  						Call     ActorSpeak  	( 000A002D .Actor:Self 00000001 00AE0004 00AE0002 ) % Ouch! 
+   CC:  					Case  ==  00000001 
+   D8:  						Call     ActorSpeak  	( 000A002E .Actor:Self 00000001 00AE0004 00AE0002 ) % Ow! 
+   F8:  					Case  ==  00000002 
+  104:  				EndSwitch
+  10C:  			EndIf
+  114:  	EndSwitch
+  11C:  	Call     8026BF48 ( 00000000 )
+  12C:  EndThread
+  134:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
+  148:  Switch  *Var[0] 
+  154:  	CaseOR  ==  .Event:HitCombo % 9
+  160:  	CaseOR  ==  .Event:Hit % A
+  16C:  		SetConst  *Var[0]  00000001 
+  17C:  		SetConst  *Var[1]  00AE0004 
+  18C:  		ExecWait DoNormalHit 
+  198:  	EndCaseGroup
+  1A0:  	CaseOR  ==  00000017 % 17
+  1AC:  	CaseOR  ==  .Event:Immune % 19
+  1B8:  		SetConst  *Var[0]  00000001 
+  1C8:  		SetConst  *Var[1]  00AE0001 
+  1D8:  		ExecWait DoImmune 
+  1E4:  	EndCaseGroup
+  1EC:  	Case  ==  00000030 % 30
+  1F8:  		SetConst  *Var[0]  00000001 
+  208:  		SetConst  *Var[1]  00AE0004 
+  218:  		ExecWait DoNormalHit 
+  224:  		Wait     000003E8 
+  230:  	Default
+  238:  EndSwitch
+  240:  Call     UseIdleAnimation 	( .Actor:Self .True )
+  254:  Return
+  25C:  End
+}
+
+#define .SetCommandsFlag 8026E020 % bitFlags (writes in 800DC0E0 as half)
+#define .DisableMarioInputs 8026E198 % mode (writes in 800DC105 as byte)
+#define .BlockMiscFeature 802692EC % mode (writes in 800DC0F3 as byte)
+/%
+802692EC - BlockMiscFeature
+FF = ?
+00 = Player can't block attacks
+01 = Default (nothing happens)
+02 = Always pick default move (For Jump, Hammer and Strats(for strats it uses "Do Nothing" as default))
+%/
+
+#new:Script $Script_StartTutorial
+{
+        Set      *Flag_StylishTutorial .True
+        Call     SetBattleFlagBits 	( 02000000 .True ) % player can't press Z to use partner
+        Call     802535B4 ( .False ) % hide stats menu
+        Call     .DisableMarioInputs ( D ) % wait until the 1st dialog bubble ends
+        Wait     15`
+        Call     $WriteBitFlag ( 800DC077 .False .False 2 .True ) % partner already attacked (you can use SetBattleFlagBits2 to do this too)
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     EnableIdleScript 	( .Actor:Self 00000000 )
+        Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.0] )
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     ActorSpeak  	( $String_Cheato_1 .Actor:Self 00000001 00AE0004 00AE0001 ) % First, Mario, choose the Jump command and then dec ...
+        Call     UseIdleAnimation 	( .Actor:Self .True )
+        Call     .SetCommandsFlag ( 00000001 ) % bit0=Jump
+        Call     .BlockMiscFeature ( 2 ) % always pick default move, the "Choose ability" prompt never appears
+        Call     .DisableMarioInputs ( 12 ) % enable inputs
+        Call     UseCamPreset 	( 00000002 )
+        Wait     15`
+        Call     .BlockMiscFeature ( 00000002 )
+        Call     .DisableMarioInputs ( 0 )
+        Call     SetBattleFlagBits2 	( 00000200 .True ) % force to always use a basic jump script (ignores any boot upgrade and doesn't have stylish moves)
+        % Wait until the player is about to attack
+        Loop
+            Call    $ReadAddress ( 800DC217 0 *Var[0] .False .False )
+            If *Var[0] == .False
+                BreakLoop
+            EndIf
+            Wait 1
+        EndLoop
+        % Wait until the player can land the 1st stylish
+        Wait    30`
+        SetGroup 0
+	    SuspendAll .True
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     ActorSpeak  	( $String_Cheato_2 .Actor:Self 00000001 00AE0004 00AE0001 )
+        Loop     
+            Call     CheckButtonDown 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .False 
+                BreakLoop
+            EndIf
+            Wait     1 
+        EndLoop
+        Loop     
+            Call     CheckButtonPress 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .True 
+                BreakLoop
+            EndIf
+            Wait     1 
+        EndLoop
+        Call     EndActorSpeech ( 00000100 00000001 00AE0004 00AE0001 )
+        Call     UseIdleAnimation 	( .Actor:Self .True )
+        ResumeAll .True
+        % Do Stylish
+        Exec    $Script_NukeTracker % nuke all data needed for the stylish mechanic
+        Call    $ReadAddress   ( $Data_Inputs 0 *Var[0] 2 .False ) % get stylish moves landed on this attack
+        Add     *Var[0] 1
+        Call    $WriteAddress   ( $Data_Inputs 0 *Var[0] 2 .False )
+        Set     *Var[A] .False % this move doesn't have a max amount of sp to give
+        ExecWait $Script_DoStylishFX
+        Call  SetJumpAnimations ( .Actor:Player 00000000 00010013 00010013 0001000C )
+        % Do Jump's action command
+        Loop
+            Call     80269318 ( *Var[0] ) % save 800DC0F3 in *out as a byte
+            If  *Var[0]  !=  2
+                BreakLoop
+            EndIf
+            Wait     1
+        EndLoop
+        % wait until the player press A
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     ActorSpeak  	( $String_Cheato_3 .Actor:Self 00000001 00AE0004 00AE0001 )
+        Loop     
+            Call     CheckButtonDown 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .False 
+                BreakLoop
+            EndIf
+            Wait     1 
+        EndLoop
+        Loop     
+            Call     CheckButtonPress 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .True 
+                BreakLoop
+            EndIf
+            Wait     1 
+        EndLoop
+        Call     SetActionSuccess ( .True )
+        Call     .BlockMiscFeature ( 1 )
+        Call     EndActorSpeech ( 00000100 00000001 00AE0004 00AE0001 )
+        Call     UseIdleAnimation 	( .Actor:Self .True )
+        % Do 2nd Stylish Move
+        Wait     2
+        SetGroup 0
+	    SuspendAll .True
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     ActorSpeak  	( $String_Cheato_4 .Actor:Self 00000001 00AE0004 00AE0001 )
+        Loop     
+            Call     CheckButtonDown 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .False 
+                BreakLoop
+            EndIf
+            Wait     1 
+        EndLoop
+        Loop     
+            Call     CheckButtonPress 	( 00008000 *Var[0] )
+            If  *Var[0]  ==  .True 
+                BreakLoop
+            EndIf
+            Wait     1
+        EndLoop
+        Call     EndActorSpeech ( 00000100 00000001 00AE0004 00AE0001 )
+        Call     UseIdleAnimation 	( .Actor:Self .True )
+        ResumeAll .True
+        % Do Stylish2
+        Call    $ReadAddress   ( $Data_Inputs 0 *Var[0] 2 .False ) % get stylish moves landed on this attack
+        Add     *Var[0] 1
+        Call    $WriteAddress   ( $Data_Inputs 0 *Var[0] 2 .False )
+        Set     *Var[A] .False % this move doesn't have a max amount of sp to give
+        ExecWait $Script_DoStylishFX
+        Call $ReadAddress ( 8010F290 0 *Var[0] .False .False )
+        % Var0 = Current Boots
+        Switch *Var[0]
+            Case == 0 % Boots
+                Call  SetJumpAnimations ( .Actor:Player 00000000 00050000 00050000 0001000C )
+            Case == 1 % Super Boots
+                Call  SetAnimation  ( .Actor:Player 00000000 00050000 )
+                Call  SetJumpAnimations ( .Actor:Player 00000000 00050000 00050000 0001000C )
+            Case == 2 % Ultra Boots
+                Call  SetJumpAnimations ( .Actor:Player 00000000 0001001F 0001001F 0001000C )
+        EndSwitch
+        %
+        Call     .DisableMarioInputs ( 8 )
+        Call     UseCamPreset 	( 00000002 )
+        Wait     15`
+        Call     UseIdleAnimation 	( .Actor:Self .False )
+        Call     ActorSpeak  	( $String_Cheato_5 .Actor:Self 00000001 00AE0004 00AE0001 )
+        Call     UseIdleAnimation 	( .Actor:Self .True )
+        % Wait until the player finish the training
+        Call     .SetCommandsFlag ( 00000083 ) % Enable Jump, Hammer and Strategies (bit0=Jump, bit1=Hammer, bit7=Strategies)
+        Call     .DisableMarioInputs ( 0 )
+        Call     $WriteBitFlag ( 800DC076 .False .False 1 .False ) % enable all jump scripts
+        % Save Current FP and set FP to Zero so Mario can only use the normal jump
+        Call     $ReadAddress   ( 8010F295 0 *Var[0] .False .False )
+        Call     $WriteAddress  ( 8010F2B6 0 *Var[0] .False .False ) % kooper data, unused byte, save current fp here, i can use a modbyte too but whatever xd
+        Call     $WriteAddress ( 8010F295 0 0 .False .False ) % nuke current fp
+        Loop
+            Call    $ReadAddress   ( 800DC1E8 0 *Var[0] .False .False ) % read current menu
+            If *Var[0] == 7 % End Training
+                BreakLoop
+            EndIf
+            % Make cheato invincible
+            Call    GetEnemyMaxHP ( .Actor:Self *Var[0] )
+            Call    SetEnemyHP ( .Actor:Self *Var[0] )
+            % Mario have infinite turns, so is imposible to use a partner
+            Call    $WriteBitFlag ( 800DC077 .False .False 1 .False ) % bit1=Mario turn
+            Wait 1
+        EndLoop
+        % Finish fight
+        % Restore FP
+        Call     $ReadAddress  ( 8010F2B6 0 *Var[0] .False .False )
+        Call     $WriteAddress ( 8010F2B6 0 0 .False .False ) % restore unused byte
+        Call     $WriteAddress ( 8010F295 0 *Var[0] .False .False ) % save in current fp
+        Set      *Flag_StylishTutorial .False
+        Set      *Flag_FishTalksTimingTutor .True % Fishmael will tell you about Timing Tutor the next time you speak with him
+        Call     802535B4 ( .True ) % unhide stats menu
+        Call     $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
+        Call     .BlockMiscFeature ( 1 )
+        Call     8026E16C ( 30` )
+        Wait     10000` 
+        Return
+        End
+}
+
+% STRINGS
+
+#string $String_Cheato_1
+{
+[STYLE:RIGHT][...]
+Okay so let's begin with
+this.
+[WAIT][NEXT][...]
+I suppose you already know
+but Star Spirits work with
+Star Power, right?
+[WAIT][NEXT][...]
+Okay, then how you gain more
+Star Power?
+[WAIT][NEXT][...]
+To gain Star Power you need
+to land [PushColor][Color:19]Stylish Moves[PopColor] but
+what exactly is a Stylish Move?
+[WAIT][NEXT][...]
+Stylish Moves are extra action
+commands that accompany [PushColor][Color:19]every[PopColor]
+attack from Mario and Partners.
+[WAIT][NEXT][...]
+To do a Stylish move, you will
+need to press [PushColor][Color:10][A][PopColor] at a certain
+time during an attack.
+[WAIT][NEXT][...]
+Okay enought talk what if
+you try a Stylish Move Mario?
+[WAIT][NEXT][...]
+First choose the Jump command.
+[WAIT][END]
+}
+
+#string $String_Cheato_2
+{
+[STYLE:RIGHT][...]
+Right now, press [PushColor][Color:10][A][PopColor]!
+
+Just when you're about to reach
+the peek of the jump.
+[Func_04][END]
+}
+
+#string $String_Cheato_3
+{
+[STYLE:RIGHT][...]
+And that's how you land a
+Stylish Move.
+[WAIT][NEXT][...]
+Remember you need to do it
+at a [PushColor][Color:19]precise[PopColor] time, not to
+soon or to late.
+[WAIT][NEXT][...]
+Various attacks have [PushColor][Color:19]multiple[PopColor]
+Stylish Moves on it, like for
+example the Jump Attack.
+[WAIT][NEXT][...]
+So let's do the next stylish
+move.
+[WAIT][NEXT][...]
+But first press [PushColor][Color:10][A][PopColor] to land
+the Action Command as you
+normally would.
+[Func_04][END]
+}
+
+#string $String_Cheato_4
+{
+[STYLE:RIGHT][...]
+Right now, press [PushColor][Color:10][A][PopColor]!
+
+When you are about to reach
+the highest point of the jump.
+[Func_04][END]
+}
+
+#string $String_Cheato_5
+{
+[STYLE:RIGHT][...]
+And that's how you do
+Stylish Moves, like I said
+before it varies between
+attacks.
+[WAIT][NEXT][...]
+That's how you do all Stylish
+moves for Mario's basic jump
+attack.
+[WAIT][NEXT][...]
+But remember all Mario's and
+Partners' moves have [PushColor][Color:19]at least
+one[PopColor] stylish move.
+[WAIT][NEXT][...]
+This moves can be [PushColor][Color:19]crucial for
+your success on a Pit[PopColor] so always
+try to find new stylish moves.
+[WAIT][NEXT][...]
+Although I have heard there's
+a easier way to learn new
+Stylish Moves, maybe [PushColor][Color:19]Fishmael[PopColor]
+knows something.
+[WAIT][NEXT][...]
+Remember this is [PushColor][Color:19]the only way
+to get Star Power[PopColor], so kept
+that in mind, okay?
+[WAIT][NEXT][...]
+So what if you give it a try?
+[WAIT][NEXT][...]
+Just choose [PushColor][Color:19]End Training[PopColor] when
+you want to finish the training.
+[WAIT][END]
+}

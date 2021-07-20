@@ -1,0 +1,50 @@
+% This script track Mario's HP inside the maze
+% becomes Zero to kill him and respawn him at his last lobby
+#new:Script $Script_KillMario
+{
+Loop
+    % Only kill mario until the player is able to move him
+    % Check if the player is mounting lakilester
+    Call  GetCurrentPartnerID ( *Var[0] )
+    If  *Var[0] == .Partner:Lakilester
+        Call $ReadAddress ( 802BFF0B 0 *Var[0] .False .False ) % load Lakilester state byte
+        If  *Var[0] == .True % player is mounting laki
+            Wait    1
+            Goto    CheckHP
+        EndIf
+    EndIf
+    % Check if the player have the inputs locked
+    Call $ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] ) % check DisablePlayerInputs flag
+    If  *Var[0] == .False
+        Label   CheckHP
+        Call    $ReadAddress ( 8010F292 0 *Var[0] .False .False ) % check HP
+        % *Var0 = Mario's Current HP
+        If  *Var[0] == .False % dead
+            Call    DisablePlayerInput ( .True )
+            Call    DisablePlayerPhysics ( .True )
+            Call    DisablePartnerAI    ( 1 )
+            Call	SetPlayerAnimation ( 00010022 ) % tumbling
+            Set		*Var[7] 190` % static
+            Set		*Var[8] 255` % alpha
+            Call    802D286C ( 00000100 )
+            Loop 20`
+                Call    802D2520 ( 00010000 D 0 *Var[7] 0 *Var[8] )
+                Add		*Var[7] 3 % static
+                Sub		*Var[8] 3 % alpha
+                Wait	1
+            EndLoop
+            %Call    802D2520 ( 00010000 D 0 255` 0 185` )
+            Wait    20`
+            If *AreaByte[2] == 0
+                Call    GotoMap ( "mze_00" 2 )
+            Else
+                Call    GotoMap ( "mze_12" 2 )
+            EndIf
+            BreakLoop
+        EndIf
+    EndIf
+    Wait    1
+EndLoop
+Return
+End
+}

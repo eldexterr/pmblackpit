@@ -1,0 +1,655 @@
+
+/%
+In this example map, we'll look at some more complex entity and
+script examples.
+%/
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000006 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW
+~Vec4f:EntryE
+~Vec4f:EntryN
+~Vec4f:EntryS
+~Vec4f:EntryDoor1
+~Vec4f:EntryDoor2
+~Vec4f:EntryDoor3
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	LIA		A0, 800B0CF0
+	LIA		A1, "sbk_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:Script_Main $Script_Main
+{
+	% boilerplate
+	Set      *WorldMapLocation 0000000A
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 )
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 00000017 00000000 00000008 )
+	% entities must be loaded first, doing this later will break the locked door
+	ExecWait $Script_CreateEntities
+	ExecWait $Script_CreatePushBlocks
+	% moving blocks 
+	Set	*MapFlag[0]	.False % group 1 suspended
+	Set	*MapFlag[1]	.False % group 2 suspended
+	Exec	$Script_Block1
+	Exec	$Script_Block2
+	Exec	$Script_Block3
+	Exec	$Script_Block4
+	Exec	$Script_Block5
+	% door triggers
+	Bind     $Script_ExitDoor1 .Trigger:WallPressA ~Collider:Door1 00000001 00000000 
+	% basic locked door
+	If  *GameFlag[358] == .False
+		BindLock $Script_RequestKey1 .Trigger:WallPressA 00004000 $ItemList_Keys 00000000 00000001 
+	Else
+		Bind     $Script_UseDoor2 .Trigger:WallPressA ~Collider:Door2 00000001 00000000 
+	EndIf
+	% alternative locked door
+	If  *GameFlag[359] == .False
+		BindLock $Script_RequestKey2 .Trigger:WallPressA ~Collider:Door3 $ItemList_Keys 00000000 00000001
+	Else
+		Bind     $Script_UseDoor3 .Trigger:WallPressA ~Collider:Door3 00000001 00000000 
+	EndIf
+	% setup done, do entry animation
+	Set		*Var[0] $Script_MakeExits 
+	Exec	EnterWalk 
+	Return
+	End
+}
+	
+#new:Script $Script_CreateEntities
+{
+	% lock for door 2
+	If  *GameFlag[358] == .False
+		Call	MakeEntity  	( .Entity:Padlock ~Vec4d:Padlock1 80000000 )
+		Call	AssignScript 	( $Script_UseDoor2 )
+		Set  *MapVar[0]  *Var[0]
+	EndIf
+	% lock for door 3
+	If  *GameFlag[359] == .False
+		Call	MakeEntity  	( .Entity:Padlock ~Vec4d:Padlock2 80000000 )
+		Call	AssignScript 	( $Script_UseDoor3 )
+		Set  *MapVar[1]  *Var[0]
+	EndIf
+	% keys
+	Call	MakeItemEntity	( .Item:CastleKey1 ~Vec3d:Key 11 *GameFlag[356] )
+	Call	MakeEntity  	( .Entity:GiantChest ~Vec4d:Chest1 00000000 80000000 )
+	Call	AssignFlag  	( *GameFlag[357])
+	Call	AssignScript 	( $Script_UseChest1 )
+	% first red switch
+	Call	MakeEntity		( .Entity:Signpost ~Vec4d:SignStop1 80000000 )
+	Call	AssignScript	( $Script_ReadSign1 )
+	Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:SwitchStop1 80000000 )
+	Call	AssignScript	( $Script_ToggleGroup1 )
+	% second red switch
+	Call	MakeEntity		( .Entity:Signpost ~Vec4d:SignStop2 80000000 )
+	Call	AssignScript	( $Script_ReadSign2 )
+	Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:SwitchStop2 80000000 )
+	Call	AssignScript	( $Script_ToggleGroup2 )
+	Return
+	End
+}
+	
+#new:Script $Script_ExitDoor1
+{
+	SetGroup 0000001B
+	Call	DisablePlayerInput	( .True )
+	Set  *Var[0]  4` % entry ID
+	Set  *Var[1]  ~Collider:Door1
+	Set  *Var[2]  ~Model:Door1
+	Set  *Var[3]  1` % swing direction (+)
+	Exec	ExitSingleDoor
+	Wait	16`
+	Call	GotoMap	( "ex_01" 00000003 )
+	Wait	100`
+	Return
+	End
+}
+	
+#new:Script $Script_UseDoor2
+{
+	Bind     $Script_ExitDoor2 .Trigger:WallPressA ~Collider:Door2 00000001 00000000 
+	Return
+	End
+}
+   
+#new:Script $Script_ExitDoor2
+{
+	SetGroup 0000001B
+	Call	DisablePlayerInput 	( .True )
+	Set  *Var[0]  5` % entry ID
+	Set  *Var[1]  ~Collider:Door2 
+	Set  *Var[2]  ~Model:Door2 
+	Set  *Var[3]  1` % swing direction (+)
+	Exec	ExitSingleDoor 
+	Wait	16`
+	Call	GotoMap	( "ex_01" 00000003 )
+	Wait	100`
+	Return
+	End
+}
+	
+#new:Script $Script_UseDoor3
+{
+	Bind     $Script_ExitDoor3 .Trigger:WallPressA ~Collider:Door3 00000001 00000000 
+	Return
+	End
+}
+   
+#new:Script $Script_ExitDoor3
+{
+	SetGroup 0000001B
+	Call	DisablePlayerInput 	( .True )
+	Set  *Var[0]  6` % entry ID
+	Set  *Var[1]  ~Collider:Door3 
+	Set  *Var[2]  ~Model:Door3 
+	Set  *Var[3]  1` % swing direction (+)
+	Exec	ExitSingleDoor 
+	Wait	16`
+	Call	GotoMap	( "ex_01" 00000003 )
+	Wait	100`
+	Return
+	End
+}
+	
+#new:ItemList $ItemList_Keys
+{
+.Item:CastleKey1
+00000000
+}
+
+#new:Script $Script_RequestKey1
+{
+	SetGroup 00000000 
+	Call     802D5830 ( 00000001 )
+	Call     802D6420 ( )
+	If  *Var[0]  ==  00000000 
+		Call     ShowMessageAtScreenPos 	( 001D00D8 000000A0 00000028 ) % It's locked! You can't open it.
+		Call     802D6954 ( )
+		Call     802D5830 ( 00000000 )
+		Return
+	EndIf
+	If  *Var[0]  ==  FFFFFFFF 
+		Call     802D6954 ( )
+		Call     802D5830 ( 00000000 )
+		Return
+	EndIf
+	Call     FindKeyItem 	( .Item:CastleKey1 *Var[0] )
+	Call     RemoveKeyItemAt 	( *Var[0] )
+	Call     802D6954 ( )
+	Set  *GameFlag[358]  .True 
+	Call     $Function_GetEntityPosition ( *MapVar[0] *Var[0] *Var[1] *Var[2] )
+	Call     PlaySoundAt 	( 00000269 00000000 *Var[0] *Var[1] *Var[2] )
+	Set  *Var[0]  *MapVar[0] 
+	Call     $Function_80240870 ( )
+	Call     802D5830 ( 00000000 )
+	Unbind
+	Return
+	End
+}
+	
+#new:Script $Script_RequestKey2
+{
+	SetGroup 00000000 
+	Call     802D5830 ( 00000001 )
+	Call     802D6420 ( )
+	If  *Var[0]  ==  00000000 
+		Call     ShowMessageAtScreenPos 	( 001D00D8 000000A0 00000028 ) % It's locked! You can't open it.
+		Call     802D6954 ( )
+		Call     802D5830 ( 00000000 )
+		Return
+	EndIf
+	If  *Var[0]  ==  FFFFFFFF 
+		Call     802D6954 ( )
+		Call     802D5830 ( 00000000 )
+		Return
+	EndIf
+	Call     FindKeyItem 	( .Item:CastleKey1 *Var[0] )
+	Call     RemoveKeyItemAt 	( *Var[0] )
+	Call     802D6954 ( )
+	Set  *GameFlag[359]  .True 
+	Call     $Function_GetEntityPosition ( *MapVar[1] *Var[0] *Var[1] *Var[2] )
+	Call     PlaySoundAt 	( 00000269 00000000 *Var[0] *Var[1] *Var[2] )
+	Set  *Var[0]  *MapVar[1] 
+	Call     $Function_80240870 ( )
+	Call     802D5830 ( 00000000 )
+	Unbind
+	Return
+	End
+}
+	
+#new:Function $Function_80240870
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:get_entity_by_index
+    C:  LW        A0, 84 (A0)
+   10:  DADDU     V1, V0, R0
+   14:  LW        A0, 0 (V1)
+   18:  LUI       A1, 10
+   1C:  OR        A0, A0, A1
+   20:  SW        A0, 0 (V1)
+   24:  LW        RA, 10 (SP)
+   28:  ADDIU     V0, R0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_GetEntityPosition
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  DADDU     S2, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S1, 14 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S2)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  JAL       ~Func:get_entity_by_index
+   2C:  DADDU     A0, V0, R0
+   30:  LW        A1, 0 (S0)
+   34:  ADDIU     S0, S0, 4
+   38:  DADDU     S1, V0, R0
+   3C:  LWC1      F0, 48 (S1)
+   40:  TRUNC.W.S F2, F0
+   44:  MFC1      A2, F2
+   48:  JAL       ~Func:set_variable
+   4C:  DADDU     A0, S2, R0
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  LWC1      F0, 4C (S1)
+   5C:  TRUNC.W.S F2, F0
+   60:  MFC1      A2, F2
+   64:  JAL       ~Func:set_variable
+   68:  DADDU     A0, S2, R0
+   6C:  LWC1      F0, 50 (S1)
+   70:  LW        A1, 0 (S0)
+   74:  TRUNC.W.S F2, F0
+   78:  MFC1      A2, F2
+   7C:  JAL       ~Func:set_variable
+   80:  DADDU     A0, S2, R0
+   84:  LW        RA, 1C (SP)
+   88:  LW        S2, 18 (SP)
+   8C:  LW        S1, 14 (SP)
+   90:  LW        S0, 10 (SP)
+   94:  ADDIU     V0, R0, 2
+   98:  JR        RA
+   9C:  ADDIU     SP, SP, 20
+}
+
+%%
+% Chest Entities
+%%
+
+#new:Script $Script_UseChest1
+{
+ 	Set  *Var[A]  .Item:CastleKey1 
+	Set  *Var[B]  00000001 
+	Set  *GameFlag[357]  .True 
+	ExecWait $Script_OpenChest 
+	Return
+	End
+}
+
+#new:Script $Script_OpenChest
+{
+	Call     DisablePlayerInput 	( .True )
+	Set  *Var[0]  *Var[A] 
+	If  *Var[A]  !=  00000000 
+		ExecWait $Script_GetItem 
+	EndIf
+	Switch  *Var[B] 
+		Case  ==  00000000 
+			Call     AddItem     	( *Var[A] *Var[0] )
+		Case  ==  00000001 
+			Call     AddKeyItem  	( *Var[A] )
+		Case  ==  00000002 
+			Call     AddBadge    	( *Var[A] *Var[0] )
+	EndSwitch
+	Wait     0000000F 
+	Call     DisablePlayerInput 	( .False )
+	Return
+	End
+}
+   
+#new:Script $Script_GetItem
+{
+	SetGroup 00000000 
+	Call     802D5830 ( 00000002 )
+	Wait     00000028 
+	Call     ShowGotItem 	( *Var[0] 00000000 00000000 )
+	Call     802D5830 ( 00000000 )
+	Return
+	End
+}
+
+	
+#new:Script $Script_CreatePushBlocks
+{
+	% (1) basic grid
+	Call	CreatePushBlockGrid	( 00000001 ~PushGrid:Grid1 00000000 )
+	Call	SetPushBlock	( 00000001 7` 2` 00000001 )
+	% (2) advanced grid
+	Call	CreatePushBlockGrid	( 00000000 ~PushGrid:Grid2 00000000 )
+	Call	SetPushBlock	( 00000000 3` 2` 00000001 )
+	Call	SetPushBlock	( 00000000 5` 2` 00000001 )
+	Call	SetPushBlock	( 00000000 7` 0` 00000001 )
+	% add occlusions
+	Call	SetPushBlock	( 00000000 2` 0` 00000002 )
+	Call	SetPushBlock	( 00000000 3` 0` 00000002 )
+	Call	SetPushBlock	( 00000000 2` 1` 00000002 )
+	Call	SetPushBlock	( 00000000 3` 1` 00000002 )
+	Call	802836B8		( 00000000 110` 0` 320` *Var[3] *Var[4] )
+	Return
+	End
+}
+	
+#new:Script $Script_ToggleGroup1
+{
+	Call	PlaySound		( 0000000C )
+	If  *MapFlag[0] == .False
+		SuspendOthers	1
+		Set *MapFlag[0] .True
+	Else
+		ResumeOthers	1
+		Set *MapFlag[0] .False
+	EndIf
+ 	Return
+	End
+}
+	
+#new:Script $Script_ToggleGroup2
+{
+	Call	PlaySound		( 0000000C )
+	If  *MapFlag[1] == .False
+		SuspendOthers	2
+		Set *MapFlag[1] .True
+	Else
+		ResumeOthers	2
+		Set *MapFlag[1] .False
+	EndIf
+ 	Return
+	End
+}
+	
+#new:Script $Script_Block1
+{
+	SetGroup	1
+	Call	ParentColliderToModel 	( ~Collider:Block1 ~Model:Block1 )
+	Loop
+		% lerp from -50 to +50
+		Call	MakeLerp    	( -50` 50` 60` .Easing:CosInOut )
+		Label	MovingUp
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block1 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block1 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingUp
+		EndIf
+		% lerp from +50 to -50
+		Call	MakeLerp    	( 50` -50` 60` .Easing:CosInOut )
+		Label	MovingDown
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block1 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block1 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingDown 
+		EndIf
+	EndLoop
+	Return
+	End
+}
+	
+#new:Script $Script_Block2
+{
+	SetGroup	1
+	Call	ParentColliderToModel 	( ~Collider:Block2 ~Model:Block2 )
+	Loop
+		% lerp from +50 to -50
+		Call	MakeLerp    	( 50` -50` 60` .Easing:CosInOut )
+		Label	MovingUp
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block2 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block2 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingUp
+		EndIf
+		% lerp from -50 to +50
+		Call	MakeLerp    	( -50` 50` 60` .Easing:CosInOut )
+		Label	MovingDown
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block2 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block2 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingDown 
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Block3
+{
+	SetGroup	2
+	Call	ParentColliderToModel 	( ~Collider:Block3 ~Model:Block3 )
+	Loop
+		% lerp from -50 to +50
+		Call	MakeLerp    	( -50` 50` 60` .Easing:CosInOut )
+		Label	MovingUp
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block3 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block3 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingUp
+		EndIf
+		% lerp from +50 to -50
+		Call	MakeLerp    	( 50` -50` 60` .Easing:CosInOut )
+		Label	MovingDown
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block3 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block3 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingDown 
+		EndIf
+	EndLoop
+	Return
+	End
+}
+	
+#new:Script $Script_Block4
+{
+	SetGroup	2
+	Call	ParentColliderToModel 	( ~Collider:Block4 ~Model:Block4 )
+	Loop
+		% lerp from +50 to -50
+		Call	MakeLerp    	( 50` -50` 60` .Easing:CosInOut )
+		Label	MovingUp
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block4 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block4 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingUp
+		EndIf
+		% lerp from -50 to +50
+		Call	MakeLerp    	( -50` 50` 60` .Easing:CosInOut )
+		Label	MovingDown
+			Call	UpdateLerp		( )
+			Call	TranslateGroup	( ~Model:Block4 00000000 *Var[0] 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block4 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	MovingDown 
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_Block5
+{
+	Call	ParentColliderToModel 	( ~Collider:Block5 ~Model:Block5 )
+	Loop
+		Call	MakeLerp    	( 0` 360` 400` .Easing:Linear )
+		Label	1 
+			Call	UpdateLerp		( )
+			Call	RotateGroup		( ~Model:Block5 *Var[0] 00000000 00000000 00000001 )
+			Call	TranslateGroup	( ~Model:Block5 00000000 40` 00000000 )
+			Call	UpdateColliderTransform	( ~Collider:Block5 )
+			Wait	1 
+		If	*Var[1] ==  1 
+			Goto	1 
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+%%
+% Signs and Strings
+%%
+   
+#new:Script $Script_ReadSign1
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignString1 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+#string $SignString1
+{
+[DelayOff][STYLE:SIGN][...]
+%
+[Func_29:FF]This switch will pause or resume
+scripts in group 1.
+[DelayOn][WAIT][END]
+}
+
+#new:Script $Script_ReadSign2
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignString2 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+	
+#string $SignString2
+{
+[DelayOff][STYLE:SIGN][...]
+%
+[Func_29:FF]This switch will pause or resume
+scripts in group 2.
+[DelayOn][WAIT][END]
+}
+
+%%
+% Create exits.
+%%
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_ExitW 00080000 ~Collider:deiliw 00000001 00000000 
+	Bind     $Script_ExitE 00080000 ~Collider:deilie 00000001 00000000 
+	Bind     $Script_ExitN 00080000 ~Collider:deilin 00000001 00000000 
+	Bind     $Script_ExitS 00080000 ~Collider:deilis 00000001 00000000 
+	Return
+	End
+}
+
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000000 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_00" 00000001 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000001 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_02" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitN
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000002 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_01" 00000003 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitS
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000003 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_01" 00000002 )
+	Wait     100` 
+	Return
+	End
+}
+
+%%
+% Custom Map Tattle
+%%
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]Wait, are we in Dry Dry Desert?
+[PAUSE:10][...]
+This looks like some kind of debug
+map. Look at all the objects we
+can interact with!
+[WAIT][END]
+}

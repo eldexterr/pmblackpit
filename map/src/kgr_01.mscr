@@ -1,0 +1,507 @@
+% Script File: kgr_01.mscr
+% Decoded from: 0 to A40 (kgr_01)
+
+#new:Function $Function_80240000
+{
+	ADDIU     SP, SP, FFD8
+	SW        S0, 18 (SP)
+	COPY      S0, A0
+	LIA       V1, 8010EFC8
+	SW        S1, 1C (SP)
+	LIA       S1, 8010F290
+	SW        S2, 20 (SP)
+	COPY      S2, S1
+	BEQ       A1, R0, .o3C
+	SW        RA, 24 (SP)
+	ADDIU     V0, R0, FF
+	SW        V0, 70 (S0)
+	SW        R0, 74 (S0)
+	.o3C
+	ADDIU     A0, R0, 1
+	LWC1      F0, 2C (V1)
+	LIF       F2, 8.0
+	NOP
+	ADD.S     F0, F0, F2
+	LWC1      F2, 30 (V1)
+	LWC1      F4, 28 (V1)
+	TRUNC.W.S F6, F2
+	SWC1      F6, 10 (SP)
+	TRUNC.W.S F6, F4
+	MFC1      A2, F6
+	TRUNC.W.S F6, F0
+	MFC1      A3, F6
+	JAL       80137EC0
+	COPY      A1, A0
+	LAB       V0, 8010EBB0
+	BEQ       V0, R0, .oD0
+	ADDIU     V0, R0, 6
+	LB        V1, 12 (S1)
+	BNE       V1, V0, .o11C
+	NOP
+	LW        V0, 74 (S0)
+	BNE       V0, R0, .oB0
+	ADDIU     V0, R0, 1
+	SW        V0, 74 (S0)
+	JAL       ~Func:play_sound
+	ADDIU     A0, R0, 2011
+	.oB0
+	LW        V0, 70 (S0)
+	ADDIU     V0, V0, FFF8
+	SW        V0, 70 (S0)
+	SLTI      V0, V0, 5A
+	BEQ       V0, R0, .o11C
+	ADDIU     V0, R0, 5A
+	BEQ       R0, R0, .o11C
+	SW        V0, 70 (S0)
+	.oD0
+	LB        V1, 12 (S2)
+	BNE       V1, V0, .o118
+	ADDIU     V0, R0, FF
+	LW        V0, 74 (S0)
+	BEQ       V0, R0, .o100
+	NOP
+	LW        V0, 70 (S0)
+	SLTI      V0, V0, FF
+	BEQ       V0, R0, .o100
+	SW        R0, 74 (S0)
+	JAL       ~Func:play_sound
+	ADDIU     A0, R0, 2012
+	.o100
+	LW        V0, 70 (S0)
+	ADDIU     V0, V0, 8
+	SW        V0, 70 (S0)
+	SLTI      V0, V0, FF
+	BNE       V0, R0, .o11C
+	ADDIU     V0, R0, FF
+	.o118
+	SW        V0, 70 (S0)
+	.o11C
+	LWC1      F6, 70 (S0)
+	CVT.S.W   F6, F6
+	MFC1      A1, F6
+	JAL       801380D4
+	ADDIU     A0, R0, 1
+	LUI       A1, 437F
+	JAL       80137DA4
+	ADDIU     A0, R0, B
+	LW        RA, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+PADDING: 80240158 to 80240160 (00000158 to 00000160)
+00000000 00000000
+
+#new:Function $Function_80240160
+{
+	ADDIU     SP, SP, FFC8
+	SW        S6, 28 (SP)
+	COPY      S6, A2
+	SW        S7, 2C (SP)
+	COPY      S7, A3
+	SW        S2, 18 (SP)
+	CLEAR     S2
+	SW        S5, 24 (SP)
+	LIA       S5, 8010EFC8
+	SW        RA, 30 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S1, 14 (SP)
+	BLEZ      S6, .o1C8
+	SW        S0, 10 (SP)
+	LIO       S4, 51EB851F
+	COPY      S1, A1
+	COPY      S3, A0
+	.o50
+	LH        V0, 0 (S1)
+	LWC1      F0, 28 (S5)
+	MTC1      V0, F12
+	NOP
+	CVT.S.W   F12, F12
+	SUB.S     F0, F12, F0
+	TRUNC.W.S F6, F0
+	MFC1      V0, F6
+	NOP
+	MULT      V0, V0
+	LH        V0, 4 (S1)
+	LWC1      F0, 30 (S5)
+	MTC1      V0, F2
+	NOP
+	CVT.S.W   F2, F2
+	SUB.S     F0, F2, F0
+	MFLO      V1
+	TRUNC.W.S F6, F0
+	MFC1      V0, F6
+	NOP
+	MULT      V0, V0
+	MFLO      V0
+	ADDU      V0, V1, V0
+	NOP
+	MULT      V0, S4
+	SRA       V0, V0, 1F
+	MFHI      V1
+	SRA       V1, V1, 5
+	SUBU      S0, V1, V0
+	SLTI      V0, S0, B
+	BEQL      V0, R0, .oD0
+	ADDIU     S0, R0, A
+	.oD0
+	LAD       F0, $ConstDouble_80240A30
+	CVT.D.S   F12, F12
+	MUL.D     F12, F12, F0
+	NOP
+	LIO       AT, 3CF5C28F
+	MTC1      AT, F0
+	NOP
+	MUL.S     F0, F2, F0
+	NOP
+	LIO       AT, 3C23D70A
+	MTC1      AT, F4
+	MTC1      S7, F2
+	NOP
+	CVT.S.W   F2, F2
+	MUL.S     F2, F2, F4
+	NOP
+	CVT.D.S   F0, F0
+	ADD.D     F12, F12, F0
+	SRL       V0, S0, 1F
+	CVT.D.S   F2, F2
+	ADD.D     F12, F12, F2
+	ADDU      V0, S0, V0
+	SRA       S0, V0, 1
+	JAL       ~Func:sin_rad
+	CVT.S.D   F12, F12
+	ADD.S     F0, F0, F0
+	LIF       F2, 2.0
+	NOP
+	ADD.S     F0, F0, F2
+	TRUNC.W.S F6, F0
+	MFC1      V1, F6
+	NOP
+	ADDU      S0, S0, V1
+	LH        V1, 0 (S1)
+	ADDIU     V0, R0, C8
+	SUBU      V1, V0, V1
+	BLTZL     V1, .o178
+	CLEAR     V1
+	.o178
+	SLTI      V0, V1, 65
+	BEQL      V0, R0, .o184
+	ADDIU     V1, R0, 64
+	.o184
+	MULT      S0, V1
+	MFLO      V0
+	NOP
+	NOP
+	MULT      V0, S4
+	LHU       A0, 2 (S3)
+	ADDIU     S3, S3, 10
+	ADDIU     S2, S2, 1
+	SRA       V0, V0, 1F
+	MFHI      V1
+	SRA       V1, V1, 5
+	SUBU      S0, V1, V0
+	ADDU      A0, A0, S0
+	SH        A0, 2 (S1)
+	SLT       V0, S2, S6
+	BNE       V0, R0, .o50
+	ADDIU     S1, S1, 10
+	.o1C8
+	LW        RA, 30 (SP)
+	LW        S7, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+#new:Function $Function_80240354
+{
+	ADDIU     SP, SP, FFD0
+	ADDIU     A0, R0, 1
+	ADDIU     A1, SP, 10
+	ADDIU     A2, SP, 14
+	ADDIU     A3, SP, 18
+	SW        RA, 28 (SP)
+	SW        S1, 24 (SP)
+	JAL       8011C2B0
+	SW        S0, 20 (SP)
+	LIA       S0, $???_802407C0
+	LW        A0, 10 (SP)
+	LW        A1, 14 (SP)
+	LW        A2, 18 (SP)
+	JAL       $Function_80240160
+	LHU       A3, 0 (S0)
+	LIA       V1, 8009A66C
+	LW        V0, 0 (V1)
+	ADDIU     A0, R0, 1
+	COPY      S1, V0
+	ADDIU     V0, V0, 8
+	SW        V0, 0 (V1)
+	LUI       V0, DE00
+	JAL       8011C2EC
+	SW        V0, 0 (S1)
+	LHU       V1, 0 (S0)
+	SW        V0, 4 (S1)
+	ADDIU     V1, V1, A
+	SH        V1, 0 (S0)
+	LW        RA, 28 (SP)
+	LW        S1, 24 (SP)
+	LW        S0, 20 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_802403E0
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LWC1      F12, 84 (S0)
+	CVT.S.W   F12, F12
+	LAD       F0, $ConstDouble_80240A38
+	CVT.D.S   F12, F12
+	MUL.D     F12, F12, F0
+	NOP
+	LIO       AT, 3CF5C28F
+	MTC1      AT, F0
+	LWC1      F2, 8C (S0)
+	CVT.S.W   F2, F2
+	MUL.S     F2, F2, F0
+	NOP
+	LAHU      V0, $???_802407C0
+	LIO       AT, 3C23D70A
+	MTC1      AT, F4
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	MUL.S     F0, F0, F4
+	NOP
+	CVT.D.S   F2, F2
+	ADD.D     F12, F12, F2
+	CVT.D.S   F0, F0
+	ADD.D     F12, F12, F0
+	JAL       ~Func:sin_rad
+	CVT.S.D   F12, F12
+	ADD.S     F6, F0, F0
+	LIF       F2, 200.0
+	LWC1      F0, 84 (S0)
+	CVT.S.W   F0, F0
+	SUB.S     F2, F2, F0
+	MTC1      R0, F0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1TL     .oB8
+	MOV.S     F2, F0
+	.oB8
+	LIF       F4, 100.0
+	NOP
+	C.LT.S    F4, F2
+	NOP
+	BC1TL     .oD4
+	MOV.S     F2, F4
+	.oD4
+	MUL.S     F2, F6, F2
+	NOP
+	LIF       F0, 1024.0
+	DIV.S     F6, F2, F4
+	MUL.S     F0, F6, F0
+	NOP
+	LIO       AT, CD5B5858
+	MTC1      AT, F2
+	NOP
+	ADD.S     F0, F0, F2
+	TRUNC.W.S F8, F0
+	SWC1      F8, 84 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240500
+{
+	LAH       V0, 8015A568
+	BLTZ      V0, .o14
+	ADDIU     V0, R0, 1
+	SW        V0, 88 (A0)
+	.o14
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+PADDING: 8024051C to 80240520 (0000051C to 00000520)
+00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %   -4.0    8.0    0.0   90.0
+    ~Vec4f:Entry1 %   80.0    0.0   10.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   001900E9
+}
+
+#new:Script $Script_80240580
+{
+    Thread
+        Call  $Function_80240000 ( )
+    EndThread
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802405AC
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80240A20 00000000 ) % kgr_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_80240608
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80240A28 00000003 ) % mac_05
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240664
+{
+    Bind  $Script_ExitWalk_802405AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Bind  $Script_ExitWalk_80240608 .Trigger:WallPush ~Collider:o50 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:ToadTown
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  HidePlayerShadow  ( .True )
+    Call  EnableNpcShadow   ( .Npc:Partner .False )
+    Exec  $Script_80240848
+    Call  GetEntryID        ( *Var[0] )
+    Set   *Var[0]  $Script_80240664
+    Exec  EnterWalk
+    Exec  $Script_80240580
+    Exec  $Script_80240900
+    Return
+    End
+}
+
+PADDING: 802407B4 to 802407C0 (000007B4 to 000007C0)
+00000000 00000000 00000000
+
+#new:Unknown $???_802407C0
+{
+    00000000
+}
+
+#new:Script $Script_802407C4
+{
+    Label  0
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Call  $Function_802403E0 ( )
+    Call  TranslateModel    ( 00002710 00000000 *Var[0] 00000000 )
+    Call  UpdateColliderTransform   ( ~Collider:sita )
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_80240848
+{
+    Call  CloneModel    ( ~Model:sita 00002710 )
+    Call  ParentColliderToModel ( ~Collider:sita 00002710 )
+    Call  EnableModel   ( 00002710 .False )
+    Exec  $Script_802407C4
+    Call  802C9C70      ( 00000001 00000004 00000001 )
+    Call  802C94A0      ( 00000001 $Function_80240354 00000000 )
+    Call  802C90FC      ( 00000004 00000001 FFFFFFFF )
+    Call  HidePlayerShadow      ( .True )
+    Return
+    End
+}
+
+PADDING: 802408F8 to 80240900 (000008F8 to 00000900)
+00000000 00000000
+
+#new:Script $Script_80240900
+{
+    Set   *Var[1]  00000000
+    Loop
+        Call  GetPlayerActionState  ( *Var[0] )
+        Switch  *Var[0]
+            Case  ==  .ActionState:Hammer % 12
+                Wait  10`
+                Set   *Var[1]  00000001
+            Case  ==  .ActionState:GroundPound % E
+                Set   *Var[1]  00000001
+        EndSwitch
+        Call  $Function_80240500 ( )
+        If  *Var[1]  !=  00000000
+            Call  DisablePlayerInput        ( .True )
+            Call  ShowMessageAtScreenPos    ( 00070099 000000A0 00000028 ) % Aw! My tongue! What are you doing!?
+            Set   *Var[1]  00000000
+            Call  DisablePlayerInput        ( .False )
+        EndIf
+        Wait  1`
+    EndLoop
+    Return
+    End
+}
+
+PADDING: 80240A14 to 80240A20 (00000A14 to 00000A20)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80240A20
+{
+    "kgr_02"
+}
+
+#new:ASCII $ASCII_80240A28
+{
+    "mac_05"
+}
+
+#new:ConstDouble $ConstDouble_80240A30
+{
+    0.060000d
+}
+
+#new:ConstDouble $ConstDouble_80240A38
+{
+    0.060000d
+}
+

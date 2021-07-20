@@ -1,0 +1,105 @@
+% This file was from clover's example maps
+% I just added CheatoTutorial here too
+#import LoadBtGeometry.bpat
+
+% ====================================================
+% Formations
+% ====================================================
+
+#import 00_Goomba.bpat
+#import 02_JrTroopa2.bpat
+#import 04_CheatoTutorial.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000001 $Example_Formation $Stage_Tower 00000000 
+00000000 00000001 $Boss_Formation $Stage_Boss 00000000 
+00000000 00000001 $Tutorial $Stage_Pit 00000000 
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Example_Formation
+{
+$00_Goomba 00000002 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Boss_Formation
+{
+$02_JrTroopa2 00000002 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Tutorial
+{
+$04_CheatoTutorial 00000002 00000000 00000000 00000000 00000000 00000000 
+}
+
+% ====================================================
+% Stages
+% ====================================================
+
+#new:StageTable $StageTable 
+{
+"ex_01" $Stage_Tower
+"ex_02" $Stage_Boss
+"pre_02" $Stage_Pit
+00000000 00000000 
+}
+
+#new:Stage $Stage_Tower
+{
+"sbk_tex"
+"ex_bt01_shape"
+"ex_bt01_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+"sbk_bg"
+00000000
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Boss
+{
+"sbk_tex"
+"ex_bt02_shape"
+"ex_bt02_hit"
+$Script_BeforeBattle
+$Script_AfterBattle 
+"sbk_bg"
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_Pit
+{
+"tik_tex"
+"pit_bt01_shape"
+"pit_bt01_hit"
+$Script_BeforeBattle
+$Script_AfterBattle
+00000000 % Stage Background
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $Script_BeforeBattle
+{
+    Set *PitMapID 0 % always load the default pit battle map skin
+    Set *EventToLoad .False
+	ExecWait $Script_InitBMap % Loaded from LoadBtGeometry.bpat
+	Call	SetSpriteShading	( -1 )
+	Call	SetCamBGColor		( .Cam:Battle 00000000 00000000 00000000 ) % black
+	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle
+{
+	Return
+	End
+}

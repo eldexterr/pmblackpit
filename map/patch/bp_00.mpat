@@ -1,0 +1,1100 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 00000000
+[EntryList] $EntryList
+[EntryCount] 3
+[MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 % Pipe
+~Vec4f:Entry1 % Right
+~Vec4f:Entry2 % 1st time arriving to the map
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+PUSH 	RA, A0, A1
+LIA 	A0, 800B0CF0
+LIA 	A1, "arn_tex"
+JAL 	~Func:sprintf
+RESERVED
+CLEAR   V0
+JPOP 	RA, A0, A1
+}
+
+#new:Script_Main $Script_Main
+{
+Call    SetSpriteShading  	( -1 )
+Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    SetCamBGColor     	( .Cam:Default 0 0 0 ) % black
+Call    SetCamEnabled       ( .Cam:Default .True )
+Call    SetCamLeadPlayer    ( .Cam:Default .False )
+Call    SetMusicTrack 		( .Default A4 00000000 00000008 ) % Black Pit Theme
+Call    MakeNpcs ( 0 $NpcGroupList_Mistar )
+Exec    $Script_Init_TexturePanning
+Exec    $TrackEntry
+Wait    5
+Return
+End
+}
+
+#new:Script $Script_Init_TexturePanning
+{
+    Call     EnableTexPanning 	( ~Model:bg .True )
+	Thread
+		Set  *Var[0]  .Default % panner id
+		% Texture Pan Rate
+		Set  *Var[1]  452` 	    % Main U
+		Set  *Var[2]  280`      % Main V
+		Set  *Var[3]  0 	    % Aux U
+		Set  *Var[4]  0 	    % Aux V
+		% Delay Between Updates
+		Set  *Var[5]  .False	% Main U
+		Set  *Var[6]  .False	% Main V
+		Set  *Var[7]  .False	% Aux U
+		Set  *Var[8]  .False	% Aux V
+		% Initial Offset
+		Set  *Var[9]  .False	% Main U 
+		Set  *Var[A]  .False	% Main V
+		Set  *Var[B]  .False 	% Aux U
+		Set  *Var[C]  .False 	% Aux V
+		Exec $Script_TexturePanning % from globals/patch/UtilityFunctions.patch
+    EndThread
+	Return
+	End
+}
+
+#new:Script $TrackEntry
+{
+	Call     GetEntryID  	( *Var[0] )
+	Switch *Var[0]
+        Case == 0 % Pipe
+            Set     *Var[A]  ~Entry:Entry0 % Entry ID
+            Set     *Var[B]  ~Collider:exit0 % Collider ID
+            Exec    $Enter_HorizontalPipe
+            Exec    $Script_MakeExits
+        Case == 1 % Right
+            Set		*Var[0] $Script_MakeExits 
+			Exec    EnterWalk
+        Case == 2 % Cutscene
+            Exec    $Script_NukePitData
+            If	*Flag_Mode_Rogue == .True % If the player comes from the Roguelike Pit
+                ExecWait    $Script_RestoreData_Roguelike
+            EndIf
+            Call    DisablePlayerInput ( .True )
+            % Use Cutscene1's camera data
+            Call    SetZoneEnabled ( ~Zone:Default .False )
+            Call    ResetCam ( .Cam:Default *Fixed[20.0] )
+            Wait    35`
+            % Hide Player and Partner
+            Call 	EnableModel 	( ~Model:dokan_e2 .False ) % Hide pipe
+            Call	DisablePlayerPhysics ( .True )
+            Call	HidePlayerShadow ( .True )
+            Call 	$WriteBitFlag ( 8010EFCC .False 2 4 .True ) % Don't update animations (disables dust FXs too)
+            Call 	$WriteBitFlag ( 8010EFCC .False 2 5 .True ) % turn player invisible
+            Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			% Hide partner
+			Call	DisablePartnerAI ( 0 )
+			Call	SetNpcPos ( .Npc:Partner 0 -1000` 0 )
+            % Use Cutscene2's camera data
+            Call    SetZoneEnabled ( ~Zone:Cutscene1 .False )
+            Call    ResetCam ( .Cam:Default *Fixed[1.0] )
+            ExecWait $Script_PipeSpawns
+            % Make Player visible
+            Set     *Var[A]  ~Entry:Entry0 % Entry ID
+            Set     *Var[B]  ~Collider:exit0 % Collider ID
+            Exec    $Enter_HorizontalPipe
+            Loop % Wait until mario spawns
+                Call    GetNpcVar ( 0 0 *Var[0] )
+                If  *Var[0] == .True
+                    Call    SetNpcVar ( 0 0 .False )
+                    BreakLoop
+                EndIf
+                Wait 1
+            EndLoop
+			Call	TeleportPartnerToPlayer % Make Partner appear
+			ExecWait $MovePartnerBehindMario
+			Exec	$Script_Cutscene_Mistar *Var[A]
+			Exec	$SkipCutscene_Mistar
+			Loop
+				DoesScriptExist ( *Var[A] *Var[0] )
+				If *Var[0] == .False
+					BreakLoop
+				EndIf
+				Wait 1
+			EndLoop
+			Set 	*Flag_Skip .False
+			Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+            % Use Default's zone camera data
+            Call    SetZoneEnabled ( ~Zone:Default .True )
+            Call    ResetCam ( .Cam:Default *Fixed[1.0] )
+            Call    DisablePlayerInput ( .False )
+            Exec    $Script_MakeExits
+    EndSwitch
+    Return
+    End
+}
+
+% If the player comes from the Roguelike Pit restore his previous stats
+#new:Script $Script_RestoreData_Roguelike
+{
+    Call	$Function_DisableActivatedBadges
+	Call	$RestoreBadges
+	Call	$RestorePartnersRanks
+	Call	$RestoreMariosStats
+	Call	$RestoreItems
+	Call	$ResetKeyStarPiecesBox
+	If	*Flag_Rogue_Sack == .True
+		Call	AddKeyItem ( 54 ) % Strange Sack
+	EndIf
+	% Restore previous partner if current partner
+	% is one that Mario currently doesn't have
+	Call 	$ReadAddress ( 8010F2A2 0 *Var[A] .False .False ) % load current partner
+	Switch *Var[A]
+		Case == .Partner:Goombario
+			Call 	$ReadAddress ( 8010F2AC 0 *Var[A] .False .False )
+		Case == .Partner:Kooper
+			Call 	$ReadAddress ( 8010F2B4 0 *Var[A] .False .False )
+		Case == .Partner:Bombette
+			Call 	$ReadAddress ( 8010F2BC 0 *Var[A] .False .False )
+		Case == .Partner:Parakarry
+			Call 	$ReadAddress ( 8010F2C4 0 *Var[A] .False .False )
+		Case == .Partner:Bow
+			Call 	$ReadAddress ( 8010F2EC 0 *Var[A] .False .False )
+		Case == .Partner:Watt
+			Call 	$ReadAddress ( 8010F2D4 0 *Var[A] .False .False )
+		Case == .Partner:Sushie
+			Call 	$ReadAddress ( 8010F2DC 0 *Var[A] .False .False )
+		Case == .Partner:Lakilester
+			Call 	$ReadAddress ( 8010F2E4 0 *Var[A] .False .False )
+	EndSwitch
+	If *Var[A] == .False % If Mario doesn't have this partner unlocked
+		Call	$RespawnPartner_PartnerBeforeEnteringRoguelike
+	EndIf
+	Wait	25`
+	% The partner saved in LastPartnerUsed is a partner the player has already unlocked?
+	Switch *LastPartnerUsed
+		Case == .Partner:Goombario
+			Set *Var[0] 8010F2AC % Goombario's Byteflag
+		Case == .Partner:Kooper
+			Set *Var[0] 8010F2B4
+		Case == .Partner:Bombette
+			Set *Var[0] 8010F2BC
+		Case == .Partner:Parakarry
+			Set *Var[0] 8010F2C4
+		Case == .Partner:Bow
+			Set *Var[0] 8010F2EC
+		Case == .Partner:Watt
+			Set *Var[0] 8010F2D4
+		Case == .Partner:Sushie
+			Set *Var[0] 8010F2DC
+		Case == .Partner:Lakilester
+			Set *Var[0] 8010F2E4
+	EndSwitch
+	If *LastPartnerUsed != .False
+		Call 	$ReadAddress ( *Var[0] 0 *Var[1] .False .False )
+		If *Var[1] == .False % If the player doesn't have this partner unlocked set *LastPartnerUsed as false
+			Set *LastPartnerUsed .False
+		EndIf
+	EndIf
+    Return
+    End
+}
+
+% Nuke all Pit temporary data
+#new:Script $Script_NukePitData
+{
+    Exec	$RestoreBadgesFlags % Clear all the Badges (and partners) Flags used on Roguelike Mode
+	Set		*PitMapID 0		% Restore the MapID everytime Mario get back to the lobby
+	Set	 	*PitFlag .False % Used to know if the player is inside the pit
+	Set  	*Flag_LockInputs_GiantChest .False % lock player inputs at the moment he open a giant chest
+	Set		*Flag_GoldenLS3 .False % used to know if you used the golden ls inside the pit once, to not save a better highscore
+	Set		*MostTimeFloorID 0 % Floor ID in which mario spend the most time in
+	Set		*Rogue_LastHelper .False
+	Set		*Dupli_Floors .False % To get a x2 coins boost on all battles
+	Set		*4Chests_Cooldown .False % To spawn 4 chests without any traps in between
+	Call	$Function_ResetHighscores
+    Return
+    End
+}
+
+#new:Script $RestoreBadgesFlags
+{
+   Set		*Flag_HPDrain2 0
+   Set		*Flag_DamageDodgeA2 0
+   Set		*Flag_DamageDodgeB2 0
+   Set		*Flag_LastStand2 0
+   Set		*Flag_PowerBounce2 0
+   Set		*Flag_MegaRush2 0
+   Set		*Flag_AllorNothing2 0
+   Set		*Flag_PUpDDown2 0
+   Set		*Flag_DDownJump2 0
+   Set		*Flag_PowerRush2 0
+   Set		*Flag_DoubleDip2 0
+   Set		*Flag_PowerQuake2 0
+   Set		*Flag_QuakeHammer2 0
+   Set		*Flag_QuickChange2 0
+   Set		*Flag_PowerPlusA2 0
+   Set		*Flag_PowerPlusB2 0
+   Set		*Flag_PDownDUp2 0
+   Set		*Flag_DefendPlus2 0
+   Set		*Flag_CloseCall2 0
+   Set		*Flag_FlowerFinder2 0
+   Set		*Flag_HeartFinder2 0
+   Set		*Flag_FlowerSaverA2 0
+   Set		*Flag_FlowerSaverB2 0
+   Set		*Flag_PowerJump2 0
+   Set		*Flag_DizzyAttack2 0
+   Set		*Flag_Multibounce2 0
+   Set		*Flag_ZapTap2 0
+   Set		*Flag_DodgeMaster2 0
+   Set		*Flag_HappyFlowerA2 0
+   Set		*Flag_HappyFlowerB2 0
+   Set		*Flag_DeepFocusA2 0
+   Set		*Flag_DeepFocusB2 0
+   Set		*Flag_DeepFocusC2 0
+   Set		*Flag_JumpCharge2 0
+   Set		*Flag_SJumpChg2 0
+   Set		*Flag_FeelingFine2 0
+   Set		*Flag_IcePower2 0
+   Set		*Flag_HappyHeartA2 0
+   Set		*Flag_HappyHeartB2 0
+   Set		*Flag_FireShield2 0
+   Set		*Flag_GroupFocus2 0
+   Set		*Flag_ShrinkStomp2 0
+   Set		*Flag_TripleDip2 0
+   Set		*Flag_MegaQuake2 0
+   Set		*Flag_DizzyStomp2 0
+   Set		*Flag_SleepStomp2 0
+   Set		*Flag_PowerSmash2 0
+   Set		*Flag_DDownPound2 0
+   Set		*Flag_SpikeShield2 0
+   Set		*Flag_SmashCharge2 0
+   Set		*Flag_Refund2 0
+   Set		*Flag_MegaJump2 0
+   Set		*Flag_MegaSmash2 0
+   Set		*Flag_Hammer_Throw2 0
+   Set		*Flag_Pretty_Lucky2 0
+   Set		*Flag_Chill_Out2 0
+   Set		*Flag_Money_Money2 0
+   Set		*Flag_PayOff2 0
+   Set		*Flag_Spin_Smash2 0
+   %Set		*Flag_Runaway_Pay2 0 % unused badge
+   Set		*Flag_SSmashChg2 0
+   Set		*Flag_Peekaboo2 0
+   Set		*Flag_LuckyDay2 0
+   Set		*Flag_SlowGo2 0
+   % Partners
+   Set		*Flag_Goombario2 0
+   Set		*Flag_Kooper2 0
+   Set		*Flag_Bombette2 0
+   Set		*Flag_Parakarry2 0
+   Set		*Flag_Bow2 0
+   Set		*Flag_Watt2 0
+   Set		*Flag_Sushie2 0
+   Set		*Flag_Lakilester2 0
+   Return
+   End
+}
+
+#new:Function $Function_ResetHighscores
+{
+   SAW	R0, $Timer_Total
+   SAW	R0, $Timer_Floor
+   SAW	R0, $Timer_Floor_Highest
+   SAB	R0, $Timer_Speed
+   SAH	R0, $TotalDamage_Dealt
+   SAH	R0, $TotalDamage_Received
+   SAB	R0, $TotalItemsUsed
+   SAH	R0, $TotalFloors
+   JR	RA
+   NOP
+}
+
+%% Disable all Badges
+#new:Function $Function_DisableActivatedBadges
+{
+% Nuke all 64th Activated Badges slots
+LIO		T0, 8010F498 % Activated #1 & #2
+LIO		T1, 8010F518 % after slot 64th
+.Loop
+SW		R0, 0 (T0)
+ADDIU	      T0, T0, 4
+BNE		T0, T1, .Loop
+NOP
+.End
+JR 		RA
+ORI		V0, R0, 2
+}
+
+% Restore Addresses
+
+#new:Function $RestorePartnersRanks
+{
+	PUSH	RA, V0, A1, A2
+	% Goombario
+	LIO 	A1, *Flag_Rogue_Goombario
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2AC % Goombario Byte Flag
+	LIO 	A1, *Rogue_Goombario_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2AD % Goombario Rank
+	% Kooper
+	LIO 	A1, *Flag_Rogue_Kooper
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2B4 % Kooper Byte Flag
+	LIO 	A1, *Rogue_Kooper_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2B5 % Kooper Rank
+	% Bombette
+	LIO 	A1, *Flag_Rogue_Bombette
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2BC % Bombette Byte Flag
+	LIO 	A1, *Rogue_Bombette_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2BD % Bombette Rank
+	% Parakarry
+	LIO 	A1, *Flag_Rogue_Parakarry
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2C4 % Parakarry Byte Flag
+	LIO 	A1, *Rogue_Parakarry_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2C5 % Parakarry Rank
+	% Bow
+	LIO 	A1, *Flag_Rogue_Bow
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2EC % Bow Byte Flag
+	LIO 	A1, *Rogue_Bow_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2ED % Bow Rank
+	% Watt
+	LIO 	A1, *Flag_Rogue_Watt
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2D4 % Watt Byte Flag
+	LIO 	A1, *Rogue_Watt_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2D5 % Watt Rank
+	% Sushie
+	LIO 	A1, *Flag_Rogue_Sushie
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2DC % Sushie Byte Flag
+	LIO 	A1, *Rogue_Sushie_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2DD % Sushie Rank
+	% Lakilester
+	LIO 	A1, *Flag_Rogue_Lakilester
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2E4 % Lakilester Byte Flag
+	LIO 	A1, *Rogue_Lakilester_Rank
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2E5 % Lakilester Rank
+	POP	RA, V0, A1, A2
+	JR RA
+	NOP
+}
+
+#new:Function $RestoreMariosStats
+{
+	PUSH	RA, V0, A1, A2
+	% HP
+	LIO 	A1, *Rogue_MaxHP
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F293 % MaxHP1
+	SAB		V0, 8010F294 % MaxHP2
+	% FP
+	LIO 	A1, *Rogue_MaxFP
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F296 % MaxFP1
+	SAB		V0, 8010F297 % MaxFP2
+	% Boots
+	LIO 	A1, *Rogue_Boots
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F290
+	% Hammer
+	LIO 	A1, *Rogue_Hammer
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F291
+	% Coins
+	LIO 	A1, *Rogue_CoinsSaved1
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F29C % 1st Byte
+	LIO 	A1, *Rogue_CoinsSaved2
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F29D % 2nd Byte
+	% Sack
+	LIO 	A1, *Flag_Rogue_Sack
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F2AE
+	POP		RA, V0, A1, A2
+	JR		RA
+	NOP
+}
+
+#new:Function $RestoreItems
+{
+	PUSH	RA, V0, A1, A2
+	% Slot 1
+	LIO 	A1, *Rogue_ItemSlot1
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F445
+	 % Slot 2
+	LIO 	A1, *Rogue_ItemSlot2
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F447
+	% Slot 3
+	LIO 	A1, *Rogue_ItemSlot3
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F449
+	% Slot 4
+	LIO 	A1, *Rogue_ItemSlot4
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F44B
+	% Slot 5
+	LIO 	A1, *Rogue_ItemSlot5
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F44D
+	% Slot 6
+	LIO 	A1, *Rogue_ItemSlot6
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F44F
+	% Slot 7
+	LIO 	A1, *Rogue_ItemSlot7
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F451
+	% Slot 8
+	LIO 	A1, *Rogue_ItemSlot8
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F453
+	% Slot 9
+	LIO 	A1, *Rogue_ItemSlot9
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F455
+	% Slot 10
+	LIO 	A1, *Rogue_ItemSlot10
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F457
+	% Slot 11
+	LIO 	A1, *Rogue_ItemSlot11
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F459
+	% Slot 12
+	LIO 	A1, *Rogue_ItemSlot12
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F45B
+	% Slot 13
+	LIO 	A1, *Rogue_ItemSlot13
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F45D
+	% Slot 14
+	LIO 	A1, *Rogue_ItemSlot14
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F45F
+	% Slot 15
+	LIO 	A1, *Rogue_ItemSlot15
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F461
+	% Slot 16
+	LIO 	A1, *Rogue_ItemSlot16
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F463
+	% Slot 17
+	LIO 	A1, *Rogue_ItemSlot17
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F465
+	% Slot 18
+	LIO 	A1, *Rogue_ItemSlot18
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F467
+	% Slot 19
+	LIO 	A1, *Rogue_ItemSlot19
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F469
+	% Slot 20
+	LIO 	A1, *Rogue_ItemSlot20
+	JAL 	~Func:get_variable
+	NOP
+	SAB		V0, 8010F46B
+	POP		RA, V0, A1, A2
+	JR		RA
+	NOP
+}
+
+#new:Function $RestoreBadges
+{
+   PUSH		T0
+   LAH		T0, 800DBE50 % Load BadgeSaved 1
+   SAH		T0, 8010F498 % Activate BadgeSaved 1
+   LAH		T0, 800DBE52 % Load BadgeSaved 2
+   SAH		T0, 8010F49A % Activate BadgeSaved 2
+   LAH		T0, 800DBE54 % Load BadgeSaved 3
+   SAH		T0, 8010F49C % Activate BadgeSaved 3
+   LAH		T0, 800DBE56 % Load BadgeSaved 4
+   SAH		T0, 8010F49E % Activate BadgeSaved 4
+   LAH		T0, 800DBE58 % Load BadgeSaved 5
+   SAH		T0, 8010F4A0 % Activate BadgeSaved 5
+   LAH		T0, 800DBE5A % Load BadgeSaved 6
+   SAH		T0, 8010F4A2 % Activate BadgeSaved 6
+   LAH		T0, 800DBE5C % Load BadgeSaved 7
+   SAH		T0, 8010F4A4 % Activate BadgeSaved 7
+   LAH		T0, 800DBE5E % Load BadgeSaved 8
+   SAH		T0, 8010F4A6 % Activate BadgeSaved 8
+   LAH		T0, 800DBE60 % Load BadgeSaved 9
+   SAH		T0, 8010F4A8 % Activate BadgeSaved 9
+   LAH		T0, 800DBE62 % Load BadgeSaved 10
+   SAH		T0, 8010F4AA % Activate BadgeSaved 10
+   LAH		T0, 800DBE64 % Load BadgeSaved 11
+   SAH		T0, 8010F4AC % Activate BadgeSaved 11
+   LAH		T0, 800DBE66 % Load BadgeSaved 12
+   SAH		T0, 8010F4AE % Activate BadgeSaved 12
+   LAH		T0, 800DBE68 % Load BadgeSaved 13
+   SAH		T0, 8010F4B0 % Activate BadgeSaved 13
+   LAH		T0, 800DBE6A % Load BadgeSaved 14
+   SAH		T0, 8010F4B2 % Activate BadgeSaved 14
+   LAH		T0, 800DBE6C % Load BadgeSaved 15
+   SAH		T0, 8010F4B4 % Activate BadgeSaved 15
+   LAH		T0, 800DBE6E % Load BadgeSaved 16
+   SAH		T0, 8010F4B6 % Activate BadgeSaved 16
+   LAH		T0, 800DBE70 % Load BadgeSaved 17
+   SAH		T0, 8010F4B8 % Activate BadgeSaved 17
+   LAH		T0, 800DBE72 % Load BadgeSaved 18
+   SAH		T0, 8010F4BA % Activate BadgeSaved 18
+   LAH		T0, 800DBE74 % Load BadgeSaved 19
+   SAH		T0, 8010F4BC % Activate BadgeSaved 19
+   LAH		T0, 800DBE76 % Load BadgeSaved 20
+   SAH		T0, 8010F4BE % Activate BadgeSaved 20
+   LAH		T0, 800DBE78 % Load BadgeSaved 21
+   SAH		T0, 8010F4C0 % Activate BadgeSaved 21
+   LAH		T0, 800DBE7A % Load BadgeSaved 22
+   SAH		T0, 8010F4C2 % Activate BadgeSaved 22
+   LAH		T0, 800DBE7C % Load BadgeSaved 23
+   SAH		T0, 8010F4C4 % Activate BadgeSaved 23
+   LAH		T0, 800DBE7E % Load BadgeSaved 24
+   SAH		T0, 8010F4C6 % Activate BadgeSaved 24
+   LAH		T0, 800DBE80 % Load BadgeSaved 25
+   SAH		T0, 8010F4C8 % Activate BadgeSaved 25
+   LAH		T0, 800DBE82 % Load BadgeSaved 26
+   SAH		T0, 8010F4CA % Activate BadgeSaved 26
+   LAH		T0, 800DBE84 % Load BadgeSaved 27
+   SAH		T0, 8010F4CC % Activate BadgeSaved 27
+   LAH		T0, 800DBE86 % Load BadgeSaved 28
+   SAH		T0, 8010F4CE % Activate BadgeSaved 28
+   LAH		T0, 800DBE88 % Load BadgeSaved 29
+   SAH		T0, 8010F4D0 % Activate BadgeSaved 29
+   LAH		T0, 800DBE8A % Load BadgeSaved 30
+   SAH		T0, 8010F4D2 % Activate BadgeSaved 30
+   POP		T0
+   JR		RA
+   NOP
+}
+
+#new:Function $ResetKeyStarPiecesBox % Set the key box to his start state
+{
+	SAW		R0, $KeyStarPieces_BoxData
+	SAW		R0, $KeyStarPieces_BoxDataExtra
+	JR		RA
+	NOP
+}
+
+#new:Function $RespawnPartner_PartnerBeforeEnteringRoguelike % Load Mario's partner before entering Rogue and spawn it
+{
+	PUSH	RA, A1, A2, V0
+	LIO 	A1, *Rogue_LastPartner
+	JAL 	~Func:get_variable
+	RESERVED
+   	SLL     V0, V0, 18
+   	JAL     800EB168
+   	SRA     A0, V0, 18
+   	POP		RA, A1, A2, V0
+   	JR      RA
+	ADDIU   V0, R0, 2
+}
+
+#new:Script $Script_PipeSpawns
+{
+	Call	ParentColliderToModel 	( ~Collider:o307 ~Model:dokan_e2 )
+	Call	ParentColliderToModel 	( ~Collider:exit0 ~Model:dokan_e2 )
+	Call	GetPlayerPos 	( .False *Var[A] .False )
+	Call 	EnableModel 	( ~Model:dokan_e2 .True )
+	Call 	MakeLerp		( 50` 0` 30` .Easing:CosInOut )
+	Call 	PlaySound   	( 208E ) % Pipe Spawning Sound
+	Label	2
+	Call	UpdateLerp
+	Set		*Var[2]  0
+	Sub		*Var[2]  *Var[0]
+	Call	TranslateModel	( ~Model:dokan_e2 0 *Var[2] 0 )
+	Wait	1 
+	If	*Var[1] ==  1 
+		Goto	2
+	EndIf
+	Wait	1
+	% update colliders
+	Call	UpdateColliderTransform	( ~Collider:o307 )
+	Call	UpdateColliderTransform	( ~Collider:exit0 )
+	Call    ModifyColliderFlags 	( .True ~Collider:o307 7FFFFE00 )
+	Call    ModifyColliderFlags 	( .True ~Collider:exit0 7FFFFE00 )
+	Thread
+		Call	ResetCam ( .Cam:Default *Fixed[2.0] )
+	EndThread
+	Call 	$WriteBitFlag ( 8010EFCC .False 2 4 .False ) % FreezePlayerAnimations == .False
+	Call	DisablePlayerPhysics ( .False )
+	Call	HidePlayerShadow ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Mistar
+{
+    % Spawn Mistar
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Set		*Var[3] *Var[1]
+    Add     *Var[0] -30` % x
+	Add		*Var[3] 20` % mistar y pos
+    Add		*Var[1] 30` % sparke fx y pos
+    Add     *Var[2] 20` % z
+	Call	SetNpcPos ( 0 *Var[0] *Var[3] *Var[2] )
+	Call	PlaySound	 ( 0241 ) % Focus
+    Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+    Wait    10`
+    Call    SpeakToPlayer ( 0 0020140A 00201402 00000000 $String_Mistar1 )
+    Set     *Var[0] .PlayerAnim:NodYes
+    Set     *Var[1] .False
+    Set     *Var[2] 35`
+    ExecWait $SetPlayerAnimation
+    % Mistar Dissapears
+    Call    GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+    Set		*Var[3] *Var[1]
+    Add     *Var[0] -30` % x
+	Add		*Var[3] 20` % mistar y pos
+    Add		*Var[1] 30` % sparke fx y pos
+    Add     *Var[2] 20` % z
+	Call	SetNpcPos   ( 0 0 -1000` 0 )
+	Call	PlaySound	( 0241 ) % Focus
+    Call    PlayEffect  ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` 0 0 0 0 0 0 0 0 )
+    Return
+    End
+}
+
+#string $String_Mistar1
+{
+[STYLE:RIGHT][...]
+Here we're, this is...
+[WAIT][NEXT][...]
+The [PushColor][Color:19]Black Pit[PopColor]!
+[WAIT][NEXT][...]
+I am really sure that we will
+need to get to [PushColor][Color:19]the bottom of this
+place[PopColor] if we want to finally get
+out of here once and for all.
+[WAIT][NEXT][...]
+Let's go Mario!!!
+[WAIT][END]
+}
+
+#new:Script $SkipCutscene_Mistar
+{
+	Set 	*Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetNpcPos ( 0 0 -1000` 0 ) % hide mistar
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill ) % idle
+			Wait	10`
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+			Kill	*Var[A]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Enter_HorizontalPipe
+{
+    Set     *MapVar[0] .True
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Add      *Var[1] -40` % y
+    Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Call 	 $WriteBitFlag ( 8010EFCC .False 2 5 .False ) % Force player to be visible
+    Wait     4
+    Call     802D286C ( 00000100 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Loop 40` 
+        Add     *Var[1] 1 % y
+        Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+        Wait    1
+    EndLoop
+    Wait    5
+    Call    802D2520 ( 00010000 .False .False .False .False .False )
+	Call    SetPlayerAnimation 	( .PlayerAnim:StandStill )
+    Call    DisablePlayerPhysics 	( .False )
+	Call    HidePlayerShadow 	( .False )
+    Call    SetNpcVar ( 0 0 .True )
+    Loop
+        % Set MapVar0 always as false until the player falls
+        Call    $ReadAddress ( 8015A552 1 *Var[0] .False .False )
+        If *Var[0] == FFFF
+            Set     *MapVar[0] .False
+            BreakLoop
+        EndIf
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Leave_HorizontalPipe
+{
+    Call     DisablePartnerAI ( .True )
+    Call     DisablePlayerPhysics 	( .True )
+	Call     HidePlayerShadow 	( .True )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     PlayerMoveTo 	( *Var[1] *Var[3] 3 )
+	Set		 *Var[0]  *Var[A] 
+	Call     $Function_GetColliderPos
+	Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     SetPlayerFlagBits 	( 00200000 .True )
+	Call     $Function_SetAnimation
+	Call     InterpPlayerYaw 	( *Var[0] 0 )
+	Wait     2
+	Call     SetPlayerFlagBits 	( 00200000 .False )
+	Call     PlaySound   	( 0163 ) % Pipe sfx
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Call     802D286C ( 00000800 ) % SetAnimationFlags
+	Call     802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Thread
+        Loop 40`
+            Add     *Var[1] -1 % y
+            Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+            Wait    1
+        EndLoop
+    EndThread
+    Wait     25`
+    Return
+    End
+}
+
+#new:NpcGroupList $NpcGroupList_Mistar
+{
+00000001 $NpcGroup_Mistar 	00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Mistar
+{
+00000000 $NpcSettings_Generic 0.0 1000.0 0.0
+01000000 $Script_null 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00000000 00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Generic
+{
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_null
+{
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit0 00000001 00000000 % Down
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000 % Right
+Return
+End	
+}
+
+#new:Script $Script_Exit0
+{
+	Set  *Var[A]  ~Entry:Entry0 % Entry ID
+	Set  *Var[B]  ~Collider:exit0 % Collider ID
+    ExecWait $Script_TopPipe_TrackJoystick
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	Call     UseExitHeading  	( 60` 1 )
+	Exec     ExitWalk
+	Call     GotoMap	( "bp_01" 0 )
+	Wait     100`
+	Return
+	End
+}
+
+#new:Script $Script_TopPipe_TrackJoystick
+{
+	Call     $Function_TrackJoystick
+	If  *Var[0]  ==  .False
+		Return
+	EndIf
+    % If the player came from a pipe and hasn't leave the pipe
+    If *MapVar[0] == .True
+        Return
+    EndIf
+	Call     GetCurrentPartner ( *Var[0] )
+	If  *Var[0]  !=  .Partner:Empty
+		Call     GetCurrentPartnerID 	( *Var[1] )
+		If  *Var[1]  !=  .Partner:Watt
+			Return
+		Else
+			Call     802D2B6C
+			Call     DisablePlayerInput 	( .True )
+		EndIf
+	Else
+		Call     DisablePlayerInput 	( .True )
+	EndIf
+	Unbind
+	ExecWait    $Leave_HorizontalPipe
+    Call    GotoMap ( "pt_255" 4 )
+	Return
+	End
+}
+
+#new:Function $Function_TrackJoystick
+{
+    0:  LAH       V1, 8015A552
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  DADDU     S0, A0, R0
+   14:  SW        RA, 14 (SP)
+   18:  LW        V0, B0 (S0)
+   1C:  BEQ       V1, V0, .o2C
+   20:  ADDIU     V0, R0, 2
+   24:  BEQ       R0, R0, .oAC
+   28:  SW        R0, 84 (S0)
+        .o2C
+   2C:  LAW       V1, 8007419C
+   34:  LB        V0, 40 (V1)
+   38:  LB        A3, 44 (V1)
+   3C:  BLTZL     V0, .o44
+   40:  SUBU      V0, R0, V0
+        .o44
+   44:  BNE       V0, R0, .o54
+   48:  NOP
+   4C:  BEQL      A3, R0, .oAC
+   50:  DADDU     V0, R0, R0
+        .o54
+   54:  MTC1      V0, F4
+   58:  NOP
+   5C:  CVT.S.W   F4, F4
+   60:  MFC1      A2, F4
+   64:  MTC1      A3, F4
+   68:  NOP
+   6C:  CVT.S.W   F4, F4
+   70:  MTC1      R0, F12
+   74:  MFC1      A3, F4
+   78:  JAL       ~Func:atan2
+   7C:  MOV.S     F14, F12
+   80:  LIF       F2, 60.0
+   88:  NOP
+   8C:  C.LT.S    F0, F2
+   90:  NOP
+   94:  BC1F      .oA8
+   98:  ADDIU     V0, R0, 1
+   9C:  SW        V0, 84 (S0)
+   A0:  BEQ       R0, R0, .oAC
+   A4:  ADDIU     V0, R0, 2
+        .oA8
+   A8:  DADDU     V0, R0, R0
+        .oAC
+   AC:  LW        RA, 14 (SP)
+   B0:  LW        S0, 10 (SP)
+   B4:  JR        RA
+   B8:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SetAnimation
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       ~Func:clamp_angle
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}
+  
+#new:Function $Function_GetColliderPos
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the entrance to the
+Black Pit.
+[WAIT][NEXT][...]
+This is the hideout of the
+mastermind behind of all of this.
+[WAIT][NEXT][...]
+It has been a long ride Mario,
+we're really close to finally
+escape from this place.
+[WAIT][NEXT][...]
+Let's hurry!
+[WAIT][END]
+}

@@ -1,0 +1,432 @@
+% This patch add a new command for mario's command wheel for the final battle of the game
+
+% 802AD0AC - Amount of Available commands for current actor
+
+% Type of Commands
+% 00 = Jump
+% 01 = Hammer
+% 02 = Items
+% 03 = Run Away
+% 04 = ?
+% 05 = Change Partner
+% 06 = ?
+% 07 = Strategies
+% 08 = Star Spirits
+% 09 = Do Nothing
+% 0A = ?
+% 0B = Partner Focus
+% - NEW -
+% 0C = Pray
+
+% Add the 6th command after adding the Star Spirits one
+@Hook 41AE88 % 802A60F8
+{
+% Check if is time to show this command
+PUSH    RA, A0, A1, A2, A3, V1
+LIO     A1, *Flag_FinalBattle
+JAL     ~Func:get_variable
+RESERVED
+POP     RA, A0, A1, A2, A3, V1
+BEQ     V0, R0, .Skip
+SLL     V1, S4, 2
+LIO     A0, 802AD078
+ADDU    A1, V1, A0
+LIO     V0, $IconScript_Pray % Command's Icon Script
+ADDIU   A3, R0, 000C % Type of Command
+SW      V0, 0000 (A1)
+LIO     v0, 802AD0D0
+ADDU    A0, V1, V0
+ADDIU   V0, R0, 0001
+LUI     AT, 802B
+ADDU    AT, AT, V1
+SW      A3, D0B8 (AT)
+SW      V0, 0000 (A0)
+LIO     V0, $String_CommandName
+LUI     AT, 802B
+ADDU    AT, AT, V1
+SW      V0, D090 (AT)
+LIO     V0, 802AD0E8
+ADDU    V1, V1, V0
+SW      R0, 0000 (V1)
+LHU     V0, 0070 (S6)
+ANDI    V0, V0, 0100
+ORI     V0, R0, 1
+BNE     V0, R0, .EnableCommand
+NOP
+LW      V0, 0004 (A2)
+SW      V0, 0000 (A1)
+ADDIU   V0, R0, 0048
+SW      R0, 0000 (A0)
+SW      V0, 0000 (V1)
+.EnableCommand
+LB      V0, 004C (S6)
+BEQL    V0, A3, .AddNewCommand
+DADDU   FP, S4, R0
+.AddNewCommand
+ADDIU   S4, S4, 0001
+.Skip
+% restore vanilla code
+ADDIU   V0, R0, 0002
+J       802A6100
+SUBU	V0, V0, FP
+}
+
+#new:Data $IconScript_Pray
+{
+    00000008
+    00000013 00000020 00000020 00000004
+    00000002 0000003C
+    $PrayIcon_Image $PrayIcon_Palette
+    00000003 00000000
+}
+
+#string $String_CommandName
+{
+      Pray[End]
+}
+
+% Update current menu ID when you select the Pray menu too (needed by GetMenuSelection)
+@Hook 41B0C0 % 802A6330
+{
+    ORI     V0, R0, C % Pray
+    BNE     V0, V1, .End
+    NOP
+    SAB     V0, 800DC1E8 % Current Menu
+    .End
+    J       802A66B0
+    NOP
+}
+
+% Pray Command load Move
+% What will happen when the player select the Pray command from the command wheel
+@Hook 41B098 % 802A6308
+{
+    % V0 = Command ID is below to 2 (bool)
+    % V1 = Current Command
+    % 00 = Boots
+    % 0C = Pray
+    BNE     V0, R0, .BootsORHammerORPray
+    ADDIU	V0, R0, 0002
+    % ID is above 2, check if is 0x0C (Pray)
+    ORI     T0, R0, C
+    BEQ     V1, T0, .BootsORHammerORPray
+    NOP
+    % Isn't boots, hammer or pray
+    J       802A6320
+    NOP
+    .BootsORHammerORPray
+    BNE     V1, R0, .CheckPray
+    NOP
+    .BootsCommand
+    J       802A6478
+    NOP    
+    .CheckPray
+    ORI     T0, R0, C
+    BNE     V1, T0, .End
+    NOP
+    % Set Menu lenght for the pray command
+    SAB     R0, 800DC27E % Zero, will bypass opening a list of elements and will only show the hand cursor
+    % If was the Pray command set the address above and then run the command as the boots one
+    BEQ     R0, R0, .BootsCommand
+    RESERVED
+    .End
+    J       802A6318
+    NOP
+}%/
+
+% Set moves' list size, for the Pray command
+@Hook 191E94 % 802635B4
+{
+    LABU    S2, 800DC0B8 % Current Command
+    ORI     T0, R0, C % Pray
+    BEQL    S2, T0, .End
+    CLEAR   A2 % The Pray command doesn't open any list so set the list size as zero
+    % A2 = Size
+    % Vanilla code
+    .End
+    SB	    A2, 020E (S4)
+    J       802635BC
+    CLEAR   S2
+}
+
+% Pray - Load Move - When Moves List Size is Zero
+@Hook 41BA3C % 802A6CAC
+{
+    LB	    A0, 0048 (S6)
+    ADDIU	V0, R0, 000D
+    SH	    V0, 006C (S6)
+    ADDIU	V0, R0, 000E
+    SH	    V0, 006E (S6)
+    % A0 = Command ID
+    % 0 = Boots
+    % C = Pray
+    BNE 	A0, R0, .CheckPrayCommand
+    NOP
+    % Current Command is Jump
+    .BootsCommand
+    J       802A6CD8
+    NOP
+    .CheckPrayCommand
+    ORI     T0, R0, C
+    BNE     A0, T0, .End
+    NOP
+    % Current Command is Pray
+    ORI     V0, R0, 29 % Pray's MoveID, is a patched Auto Jump
+    J       802A6D1C
+    NOP
+    .End
+    J       802A6CC4
+    NOP
+}
+
+/% Pray Command - Load Move - When the moves' list size isn't zero
+@Hook 41B8B4 % 802A6B24
+{
+    % V0 = Command ID is below to 2 (bool)
+    % S0 = Command ID
+    % 0x00 = Jump
+    % 0x01 = Hammer
+    % 0x0C = Pray
+    BNE     V0, R0, .BootsORHammerORPray
+    NOP
+    % Current command isn't below to 2
+    % Check if isn't the Pray command
+    ORI     T0, R0, C
+    BNE     S0, T0, .IsntPray
+    NOP
+    .PrayMechanic
+    % Move ID for the Pray Command
+    ORI     T0, R0, 001C % Ultra Boots
+    SAB     T0, 800DC1ED % moveID
+    J       802A6B4C
+    ADDIU	A0, R0, 0011
+    .IsntPray
+    J       802A6B3C
+    ADDIU	V0, R0, 4    
+    .BootsORHammerORPray
+    J       802A6B2C
+    NOP
+}%/
+
+/%@Script:Battle 1B393C % ExecutePlayerAction % 8028505C
+{
+    Jump  $ExecutePlayerAction2
+    Return
+    Return
+    %Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  SetBattleFlagBits ( 00004000 .False )
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[0] 
+        Case  ==  00000000 
+            Call  LoadMoveScript
+            ExecWait  *Var[0] 
+        Case  ==  00000001 
+            Call  LoadMoveScript
+            ExecWait  *Var[0] 
+        Case  ==  00000002 
+            Call  LoadItemScript
+            ExecWait  *Var[0] 
+        Case  ==  00000008 
+            Call  LoadStarPowerScript
+            ExecWait  *Var[0] 
+    EndSwitch
+    Call  EnablePlayerBlur  ( .False )
+    Call  UseIdleAnimation  ( .Actor:Player .True )
+    Return
+    End
+}%/
+
+/% Jump to this script because I can edit this one
+% whatever I want to.
+#new:Script:Battle $ExecutePlayerAction2
+{
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  SetBattleFlagBits ( 00004000 .False )
+    Call  GetMenuSelection  ( *Var[0] *Var[1] *Var[2] )
+    Switch  *Var[0] 
+        Case  ==  00000000 % Boots
+            Call  LoadMoveScript
+            ExecWait  *Var[0]
+        Case  ==  00000001 % Hammer
+            Call  LoadMoveScript
+            ExecWait  *Var[0] 
+        Case  ==  00000002
+            Call  LoadItemScript
+            ExecWait  *Var[0] 
+        Case  ==  00000008
+            Call  LoadStarPowerScript
+            ExecWait  *Var[0] 
+        Case  ==  0000000C % Pray
+            Call  LoadMoveScript
+            Set *Var[0] $Script_FinalBattle_Pray
+            ExecWait  *Var[0]
+    EndSwitch
+    Call  EnablePlayerBlur  ( .False )
+    Call  UseIdleAnimation  ( .Actor:Player .True )
+    Return
+    End
+}%/
+
+
+% Pray's battle script
+#new:Script:Battle $Script_FinalBattle_Pray
+{
+    Call  802694A4  ( 00000001 )
+    Call  SetBattleFlagBits ( 00004000 .False )
+    % start
+    Call    UseCamPreset  ( 20 )
+    Call    SetAnimation  ( .Actor:Player 0 00010003 ) % tired
+    Wait    30`
+    Call    SetAnimation  ( .Actor:Player 0 0001000D ) % tired (looking up)
+    Wait    30`
+    Call    SetAnimation  ( .Actor:Player 0 00010003 ) % tired
+    Wait    10`
+    Call    ActorSpeak ( $String_Pray_0 .Actor:Player 0 00010003 00010003 )
+    Call    SetAnimation  ( .Actor:Player 0 0001001F ) % hand above
+    Wait    15`
+    Call    SetAnimation  ( .Actor:Player 0 0001002C ) % pray
+    % Action Command - Start
+    Call    LoadActionCommand ( B ) % Smash A button
+    Call    802A9000
+    Call    802691C8    ( 5 35` 60` 80` 99` 100` ) % Call    DivideActionMeter    ( Divisions Div1Pos Div2Pos Div3Pos Div4Pos Div5Pos )
+    Wait    10`
+    Call    802A9170    ( 0 FFFF 16` 2 )             % Call    SetCommandSettings    ( WaitToStart CommandTimer Toughness1 Toughness2? )
+    Call 	$WriteAddress ( 800DC0F4 0 0 .False .False )
+    Loop
+        Call 	$ReadAddress ( 800DC0F4 0 *Var[0] .False .False ) % GetCommandFilledPercentage
+        Switch *Var[0]
+            Case >= 100`
+                Loop 5
+                    Call    GetActorPos ( .Actor:Player *Var[1] *Var[2] *Var[3] )
+                    Add     *Var[2] 5
+                    Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[1] *Var[2] *Var[3] -29` 10` 4 ) % X/Y/Z, emitter radius, emitter height, num particles
+                    Wait    10`
+                EndLoop
+                BreakLoop
+            Case >= 80`
+                Call    GetActorPos ( .Actor:Player *Var[1] *Var[2] *Var[3] )
+                Add     *Var[2] 5
+                Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[1] *Var[2] *Var[3] -29` 10` 3 ) % X/Y/Z, emitter radius, emitter height, num particles
+            Case >= 60`
+                Call    GetActorPos ( .Actor:Player *Var[1] *Var[2] *Var[3] )
+                Add     *Var[2] 5
+                Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[1] *Var[2] *Var[3] -29` 10` 2 ) % X/Y/Z, emitter radius, emitter height, num particles
+            Case >= 35`
+                Call    GetActorPos ( .Actor:Player *Var[1] *Var[2] *Var[3] )
+                Add     *Var[2] 5
+                Call    PlayEffect  ( ~FX:GoldShimmer:Rising *Var[1] *Var[2] *Var[3] -29` 10` 1 ) % X/Y/Z, emitter radius, emitter height, num particles
+        EndSwitch
+        Wait    10`
+    EndLoop
+    %Wait    90`
+    % Action Command - End
+    Call    CloseActionCommandInfo
+    % go back to home
+    Call    SetAnimation  ( .Actor:Player 0 00010022 ) % Dazed
+    Wait    60`
+    Call    SetAnimation  ( .Actor:Player 0 00030001 ) % on the floor
+    Wait    15`
+    Call    ActorSpeak ( $String_Pray_1 .Actor:Player 0 00030001 00030001 )
+    Wait    10`
+    Call    SetActorFlagBits 	( .Actor:Enemy0 00400000 .True ) % Finish Fight
+    Call    SetBattleFlagBits 	( 00060000 .True )
+    Set     *Flag_FinalBattle_End .True
+    Call    8026F60C ( 20` ) % FadeScreen ( Speed )
+    Return
+    End
+}
+
+% Don't overwrite mario's animation when the screen fades when the battle is about to end
+@Hook 187174 % 80258894
+{
+    % vanilla code
+    JAL	    80265D44
+    ADDIU	A0, R0, 1
+    % check flag
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_FinalBattle_End
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    T0, V0 % push flag
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BNE     T0, R0, .End
+    NOP
+    SW	    V0, 0088 (S7) % set mario's animation
+    .End
+    J       802588A0
+    NOP
+}
+
+@Hook 1870E0 % 80258800
+{
+    % vanilla code
+    JAL	    80265D44
+    ADDIU	A0, R0, B
+    % check flag
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LIO     A1, *Flag_FinalBattle_End
+    JAL     ~Func:get_variable
+    RESERVED
+    COPY    T0, V0 % push flag
+    POP     RA, A0, A1, A2, A3, V0, V1
+    BNE     T0, R0, .End
+    NOP
+    SW	    V0, 0088 (S7) % set mario's animation
+    .End
+    J       8025880C
+    NOP
+}
+
+#string $String_Pray_0
+{
+[STYLE:INSPECT][...]
+I guess this is the only resource
+I have left.
+[WAIT][END]
+}
+
+#string $String_Pray_1
+{
+[STYLE:RIGHT][...]
+Please....
+[WAIT][NEXT][...]
+someone...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+find us..........
+[WAIT][END]
+}
+
+% Used for the checkpoint system, when the player died in the final battles
+#new:Data $PlayerData_Items_Checkpoint1
+{
+00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Data $PlayerData_Items_Checkpoint2
+{
+00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Data $PlayerData_Misc_Checkpoint1
+{ 00000000 00000000 }
+% AABBCC00 DDDDEE00
+% AA = HP
+% BB = FP
+% CC = PartnerID
+% DDDD = Star Power
+% EE = Player's Palette, restored only after the "The End" map
+
+#new:Data $PlayerData_Misc_Checkpoint2
+{ 00000000 00000000 }
+
+#export $Script_FinalBattle_Pray % used by Move_AutoJump.bpat
+#export $PlayerData_Items_Checkpoint1
+#export $PlayerData_Items_Checkpoint2
+#export $PlayerData_Misc_Checkpoint1
+#export $PlayerData_Misc_Checkpoint2

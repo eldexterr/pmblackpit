@@ -1,0 +1,1008 @@
+% Automatically dumped from section 12
+
+#new:Actor $12_BigLanternGhost {
+% stats
+[Index]        B1b 
+[Level]        42`b 
+[MaxHP]        40`b 
+[Coins]         0`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_80218DC8_12 
+% ai
+[PartsCount]    2`s 
+[PartsTable]  $PartsTable_80218E74_12 
+[Script]      $Script_Init_80218F38_12 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]  75`b 
+[SpinSmash]     4`b % weight (0-4)
+% ui positions
+[Size]         86`b  60`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -30`b  55`b % dx dy
+[StatusIcon]   20`b  45`b % dx dy
+}
+
+#new:Function $Function_80218000_12 {
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_actor
+	LW        A0, 148 (A0)
+	LUI       A1, 435C
+	JAL       80137DA4
+	ADDIU     A0, R0, D
+	LUI       A1, 4348
+	JAL       801380D4
+	ADDIU     A0, R0, 1
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80218038_12 {
+	LW        V1, 80 (A0)
+	SUBU      A2, A1, V1
+	SLTI      V0, A2, 4
+	BNE       V0, R0, .o1C
+	SLTI      V0, A2, FFFC
+	BEQ       R0, R0, .o2C
+	ADDIU     V0, V1, 4
+	.o1C
+	BNE       V0, R0, .o2C
+	ADDIU     V0, V1, FFFC
+	BEQ       R0, R0, .o30
+	SW        A1, 80 (A0)
+	.o2C
+	SW        V0, 80 (A0)
+	.o30
+	JR        RA
+	LW        V0, 80 (A0)
+}
+
+#new:Function $Function_80218070_12 {
+	ADDIU     SP, SP, FF88
+	SW        S0, 30 (SP)
+	COPY      S0, A0
+	SW        RA, 44 (SP)
+	SW        S4, 40 (SP)
+	SW        S3, 3C (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SDC1      F30, 70 (SP)
+	SDC1      F28, 68 (SP)
+	SDC1      F26, 60 (SP)
+	SDC1      F24, 58 (SP)
+	SDC1      F22, 50 (SP)
+	SDC1      F20, 48 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	LW        A0, 148 (S0)
+	JAL       ~Func:get_actor
+	COPY      S3, V0
+	COPY      S2, V0
+	BNE       S2, R0, .o6C
+	ADDIU     A0, R0, 1
+	JAL       801380D4
+	CLEAR     A1
+	BEQ       R0, R0, .o3E8
+	CLEAR     V0
+	.o6C
+	BEQ       S3, R0, .o78
+	ADDIU     S1, S2, C
+	LW        S4, C (S3)
+	.o78
+	COPY      A0, S2
+	LWC1      F2, 160 (S2)
+	LWC1      F0, 18C (S2)
+	LWC1      F30, 144 (S2)
+	LWC1      F6, 148 (S2)
+	ADDIU     A1, R0, 1
+	SWC1      F6, 24 (SP)
+	LWC1      F6, 14C (S2)
+	SWC1      F6, 28 (SP)
+	LWC1      F28, 15C (S2)
+	LWC1      F26, 164 (S2)
+	JAL       ~Func:get_actor_part
+	ADD.S     F20, F2, F0
+	LUI       V1, 6D
+	LW        V0, 88 (V0)
+	ORI       V1, V1, C
+	BNE       V0, V1, .oC4
+	ADDIU     A1, R0, 1
+	CLEAR     A1
+	.oC4
+	ADDIU     A2, SP, 18
+	LW        V1, 1F4 (S2)
+	ADDIU     V0, SP, 20
+	SW        V0, 10 (SP)
+	LW        A0, 84 (V1)
+	JAL       802DE8DC
+	ADDIU     A3, SP, 1C
+	LWC1      F24, 18 (SP)
+	CVT.S.W   F24, F24
+	LAD       F0, $ConstDouble_8022EB70_12
+	CVT.D.S   F24, F24
+	MUL.D     F24, F24, F0
+	NOP
+	LW        V0, 1C (SP)
+	ADDIU     V0, V0, 14
+	MTC1      V0, F22
+	NOP
+	CVT.S.W   F22, F22
+	CVT.D.S   F22, F22
+	MUL.D     F22, F22, F0
+	NOP
+	MOV.S     F12, F20
+	SW        V0, 1C (SP)
+	CVT.S.D   F24, F24
+	JAL       ~Func:cos_deg
+	CVT.S.D   F22, F22
+	LAD       F2, $ConstDouble_8022EB78_12
+	CVT.D.S   F12, F28
+	ADD.D     F12, F12, F2
+	MUL.S     F24, F24, F0
+	NOP
+	JAL       ~Func:sin_deg
+	CVT.S.D   F12, F12
+	MUL.S     F22, F22, F0
+	NOP
+	JAL       ~Func:cos_deg
+	MOV.S     F12, F26
+	MOV.S     F12, F26
+	JAL       ~Func:sin_deg
+	MOV.S     F20, F0
+	MUL.S     F20, F24, F20
+	NOP
+	MUL.S     F0, F22, F0
+	NOP
+	ADD.S     F20, F20, F0
+	TRUNC.W.S F6, F20
+	SWC1      F6, 18 (SP)
+	JAL       ~Func:sin_deg
+	MOV.S     F12, F26
+	MOV.S     F12, F26
+	JAL       ~Func:cos_deg
+	MOV.S     F20, F0
+	NEG.S     F20, F20
+	MUL.S     F24, F24, F20
+	NOP
+	MUL.S     F22, F22, F0
+	NOP
+	LW        V1, 7C (S1)
+	ADD.S     F24, F24, F22
+	SLTIU     V0, V1, C
+	TRUNC.W.S F6, F24
+	SWC1      F6, 1C (SP)
+	BEQ       V0, R0, .o2D8
+	SLL       V0, V1, 2
+	LTW       V0, V0 ($JumpTable_8022EB80_12)
+	JR        V0
+	NOP
+% LBL: from $JumpTable_8022EB80_12 , entry 0`
+	COPY      A0, S1
+	JAL       $Function_80218038_12
+	ADDIU     A1, R0, 122
+	BEQ       R0, R0, .o2DC
+	NOP
+% LBL: from $JumpTable_8022EB80_12 , entry 1`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, FA
+% LBL: from $JumpTable_8022EB80_12 , entry 2`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, F0
+% LBL: from $JumpTable_8022EB80_12 , entry 3`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, E6
+% LBL: from $JumpTable_8022EB80_12 , entry 4`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, DC
+% LBL: from $JumpTable_8022EB80_12 , entry 5`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, D2
+% LBL: from $JumpTable_8022EB80_12 , entry 6`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, B4
+% LBL: from $JumpTable_8022EB80_12 , entry 7`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, 8C
+% LBL: from $JumpTable_8022EB80_12 , entry 8`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, 64
+% LBL: from $JumpTable_8022EB80_12 , entry 9`
+	COPY      A0, S1
+	BEQ       R0, R0, .o268
+	ADDIU     A1, R0, 46
+% LBL: from $JumpTable_8022EB80_12 , entry 10`
+	COPY      A0, S1
+	ADDIU     A1, R0, 28
+	.o268
+	JAL       $Function_80218038_12
+	NOP
+	ADDIU     A0, R0, 4000
+	JAL       ~Func:rand_int
+	COPY      S0, V0
+	LIO       V1, 66666667
+	MULT      V0, V1
+	SRA       V1, V0, 1F
+	MFHI      T0
+	SRA       A0, T0, 1
+	SUBU      A0, A0, V1
+	SLL       V1, A0, 2
+	ADDU      V1, V1, A0
+	SUBU      V0, V0, V1
+	BEQ       R0, R0, .o2DC
+	ADDU      V0, S0, V0
+% LBL: from $JumpTable_8022EB80_12 , entry 11`
+	COPY      A0, S1
+	JAL       $Function_80218038_12
+	ADDIU     A1, R0, 14
+	COPY      A0, S1
+	JAL       $Function_80218038_12
+	ADDIU     A1, R0, 14
+	COPY      A0, S1
+	JAL       $Function_80218038_12
+	ADDIU     A1, R0, 14
+	BEQ       R0, R0, .o2DC
+	NOP
+	.o2D8
+	CLEAR     V0
+	.o2DC
+	MTC1      V0, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A1, F6
+	JAL       801380D4
+	ADDIU     A0, R0, 1
+	LWC1      F4, 18 (SP)
+	CVT.S.W   F4, F4
+	ADDIU     A0, R0, 1
+	LWC1      F2, 20 (SP)
+	CVT.S.W   F2, F2
+	ADD.S     F4, F30, F4
+	LWC1      F6, 28 (SP)
+	ADD.S     F2, F6, F2
+	LWC1      F6, 24 (SP)
+	LWC1      F0, 1C (SP)
+	CVT.S.W   F0, F0
+	ADD.S     F0, F6, F0
+	TRUNC.W.S F6, F2
+	SWC1      F6, 10 (SP)
+	TRUNC.W.S F6, F4
+	MFC1      A2, F6
+	TRUNC.W.S F6, F0
+	MFC1      A3, F6
+	JAL       80137EC0
+	CLEAR     A1
+	LWC1      F4, 18 (SP)
+	CVT.S.W   F4, F4
+	COPY      A0, S2
+	LWC1      F2, 1C (SP)
+	CVT.S.W   F2, F2
+	ADD.S     F4, F30, F4
+	LWC1      F6, 24 (SP)
+	ADD.S     F2, F6, F2
+	LWC1      F6, 28 (SP)
+	LWC1      F0, 20 (SP)
+	CVT.S.W   F0, F0
+	ADD.S     F0, F6, F0
+	TRUNC.W.S F6, F4
+	SWC1      F6, 84 (S1)
+	TRUNC.W.S F6, F2
+	SWC1      F6, 88 (S1)
+	TRUNC.W.S F6, F0
+	SWC1      F6, 8C (S1)
+	JAL       ~Func:get_actor_part
+	ADDIU     A1, R0, 2
+	COPY      A0, V0
+	LHU       V0, 1A (SP)
+	LHU       V1, 1E (SP)
+	ADDIU     V0, V0, FFFB
+	ADDIU     V1, V1, 5
+	SH        V0, 14 (A0)
+	BEQ       S3, R0, .o3E4
+	SH        V1, 16 (A0)
+	LWC1      F0, 84 (S1)
+	CVT.S.W   F0, F0
+	SWC1      F0, 4 (S4)
+	LWC1      F0, 88 (S1)
+	CVT.S.W   F0, F0
+	SWC1      F0, 8 (S4)
+	LW        V0, 8C (S1)
+	ADDIU     V0, V0, 19
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, C (S4)
+	.o3E4
+	ADDIU     V0, R0, 2
+	.o3E8
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	LDC1      F30, 70 (SP)
+	LDC1      F28, 68 (SP)
+	LDC1      F26, 60 (SP)
+	LDC1      F24, 58 (SP)
+	LDC1      F22, 50 (SP)
+	LDC1      F20, 48 (SP)
+	JR        RA
+	ADDIU     SP, SP, 78
+}
+
+#new:DefenseTable $DefenseTable_80218DB0_12 {
+.Element:Normal 00000000
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_80218DBC_12 {
+.Element:Normal 00000063
+.Element:End
+}
+
+#new:StatusTable $StatusTable_80218DC8_12 {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep      40`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy      50`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze   60`
+.Status:Shrink      0`
+.Status:Stop       60`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod     -1`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod     -1`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod  -1`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod      -2`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_80218E74_12 {
+00820000 01000000 003600FF $IdleAnimations_80218EE4_12 $DefenseTable_80218DB0_12 00000000 00000000 FBF60000 00000000 
+00002001 02D80000 000000FF $IdleAnimations_80218EE4_12 $DefenseTable_80218DBC_12 00000000 00000000 00F70000 0029007F 
+}
+
+#new:IdleAnimations $IdleAnimations_80218EE4_12 {
+.Status:Normal    006D0001
+.Status:Stone     006D0000
+.Status:Sleep     006D000C
+.Status:Poison    006D0001
+.Status:Stop      006D0000
+.Status:Static    006D0000
+.Status:Paralyze  006D0000
+.Status:Paralyze  006D0000
+.Status:Dizzy     006D000D
+.Status:Fear      006D000D
+.Status:End
+}
+
+#new:Script $Script_Init_80218F38_12 {
+    Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021AF4C_12 )
+    Call  BindIdle      ( .Actor:Self $Script_Idle_802192B0_12 )
+    Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219328_12 )
+    Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_802190E4_12 )
+    Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
+    Call  SetActorVar   ( .Actor:Self 00000006 0000000A )
+    Call  SetActorVar   ( .Actor:Self 00000000 00000002 )
+    Call  SetActorVar   ( .Actor:Self 00000001 000000F0 )
+    Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+    Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+    Call  SetActorVar   ( .Actor:Self 0000000C 00000000 )
+    Call  PlayEffect    ( 0000003C 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.0] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  SetActorVar   ( .Actor:Self 0000000A *Var[0] )
+    Call  $Function_80218000_12 ( )
+    Exec  $Script_80219204_12 
+    ExecWait  $Script_8021B14C_12 
+    Wait  2`
+    Call  SetActorVar   ( .Actor:Self 0000000D 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_NextTurn_802190E4_12 {
+    Call  GetBattlePhase    ( *Var[0] )
+    Switch  *Var[0] 
+        Case  ==  0000000A 
+            Call  GetActorVar   ( .Actor:Self 00000007 *Var[0] )
+            If  *Var[0]  !&  00000001 
+                ConstOR  *Var[0] 00000001 
+                Call  SetActorVar       ( .Actor:Self 00000007 *Var[0] )
+                Call  UseCamPreset      ( 0000000E )
+                Call  BattleCamTargetActor  ( .Actor:Self )
+                Call  SetBattleCamOffsetZ   ( 00000028 )
+                Call  MoveBattleCamOver ( 0000001E )
+                Wait  30`
+                Call  ActorSpeak        ( 000F0051 .Actor:Self 00000001 006D0005 006D0001 ) % Wee hee hee... I'll take care of you quickly, then ...
+                Call  UseCamPreset      ( 00000002 )
+            EndIf
+        Case  ==  0000000C 
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_80219204_12 {
+    SetPriority  00000063 
+    Label  0
+    Call  ActorExists   ( .Actor:Self *Var[0] )
+    If  *Var[0]  !=  .False 
+        Call  GetActorVar   ( .Actor:Self 0000000A *Var[0] )
+    Else
+        Set   *Var[0]  00000000 
+    EndIf
+    Call  $Function_80218070_12 ( *Var[0] )
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_Idle_802192B0_12 {
+    Label  0
+    Call  ActorExists   ( .Actor:Enemy0 *Var[0] )
+    If  *Var[0]  !=  .False 
+        Wait  1`
+        Goto  0
+    EndIf
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_80219328_12 {
+    Call  UseIdleAnimation  ( .Actor:Self .False )
+    Call  GetLastEvent      ( .Actor:Self *Var[0] )
+    Switch  *Var[0] 
+        Case  ==  .Event:BeginFirstStrike % 38
+        CaseOR  ==  .Event:HitCombo % 9
+        CaseOR  ==  .Event:Hit % A
+            ExecWait  $Script_80219B00_12 
+            ExecWait  $Script_80219BA8_12 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoNormalHit 
+        EndCaseGroup
+        Case  ==  .Event:BurnHit % E
+            ExecWait  $Script_80219B00_12 
+            ExecWait  $Script_80219BA8_12 
+            Set   *Var[0]  00000001 
+            Set   *Var[1]  006D000A 
+            Set   *Var[2]  006D000B 
+            ExecWait  DoBurnHit 
+        Case  ==  .Event:BurnDeath % 24
+            ExecWait  $Script_80219B00_12 
+            Set   *Var[0]  00000001 
+            Set   *Var[1]  006D000A 
+            Set   *Var[2]  006D000B 
+            ExecWait  DoBurnHit 
+            Wait  10`
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D000B 
+            ExecWait  $Script_8021B1FC_12 
+            Return
+        Case  ==  .Event:SpinSmashHit % B
+            ExecWait  $Script_80219B00_12 
+            ExecWait  $Script_80219BA8_12 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoSpinSmashHit 
+        Case  ==  .Event:SpinSmashDeath % 21
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoSpinSmashHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  $Script_8021B1FC_12 
+            Return
+        Case  ==  .Event:ShockHit % 2F
+            ExecWait  $Script_80219B00_12 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoShockHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoJumpBack 
+            ExecWait  $Script_8021B0F8_12 
+        Case  ==  .Event:ShockDeath % 26
+            ExecWait  $Script_80219B00_12 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoShockHit 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoJumpBack 
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  $Script_8021B1FC_12 
+            Return
+        CaseOR  ==  00000017 % 17
+        CaseOR  ==  .Event:Immune % 19
+            Call  8026E914  ( *Var[0] *Var[1] )
+            If  *Var[1]  ==  00000002 
+                Call  GetActorVar   ( .Actor:Self 00000000 *Var[2] )
+                If  *Var[2]  <  0000000A 
+                    Add   *Var[2]  00000002 
+                    Call  GetActorVar   ( .Actor:Self 0000000D *Var[0] )
+                    Switch  *Var[0] 
+                        Case  ==  00000000 
+                            Call  PlaySoundAtActor  ( .Actor:Self 000003A3 )
+                            Call  AddActorVar       ( .Actor:Self 0000000D 00000001 )
+                        Case  ==  00000001 
+                            Call  PlaySoundAtActor  ( .Actor:Self 000003A4 )
+                            Call  AddActorVar       ( .Actor:Self 0000000D 00000001 )
+                        Case  ==  00000002 
+                            Call  PlaySoundAtActor  ( .Actor:Self 000003A5 )
+                            Call  AddActorVar       ( .Actor:Self 0000000D 00000001 )
+                        Case  ==  00000003 
+                            Call  PlaySoundAtActor  ( .Actor:Self 000003A6 )
+                            Call  AddActorVar       ( .Actor:Self 0000000D 00000001 )
+                        Default
+                    EndSwitch
+                    If  *Var[2]  >  0000000A 
+                        Set   *Var[2]  0000000A 
+                    EndIf
+                    Call  SetActorVar   ( .Actor:Self 00000000 *Var[2] )
+                    ExecWait  $Script_8021B14C_12 
+                    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+                    If  *Var[0]  >=  00000006 
+                        ExecWait  $Script_80219BA8_12 
+                    EndIf
+                EndIf
+            EndIf
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0001 
+            ExecWait  DoImmune 
+        EndCaseGroup
+        Case  ==  .Event:AirLiftFailed % 1F
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0001 
+            ExecWait  DoImmune 
+        Case  ==  .Event:SpikeTaunt % 1B
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0001 
+            ExecWait  DoImmune 
+        Case  ==  .Event:Death % 20
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoNormalHit 
+            Wait  10`
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  $Script_8021B1FC_12 
+            Return
+        Case  ==  .Event:EndFirstStrike % 35
+            ExecWait  $Script_8021B0F8_12 
+            Call  HPBarToHome   ( .Actor:Self )
+        Case  ==  .Event:RecoverStatus % 31
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0001 
+            ExecWait  DoRecover 
+        Case  ==  00000030 % 30
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0009 
+            ExecWait  DoNormalHit 
+            Wait  1000`
+        Case  ==  .Event:ScareAway % 39
+            SetConst  *Var[0]  00000001 
+            SetConst  *Var[1]  006D0001 
+            SetConst  *Var[2]  006D0009 
+            ExecWait  DoScareAway 
+            Return
+        Default
+    EndSwitch
+    Call  UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_80219B00_12 {
+    Call  8026E914  ( *Var[0] *Var[1] )
+    If  *Var[1]  !=  00000001 
+        Return
+    EndIf
+    Call  GetLastDamage ( .Actor:Self *Var[1] )
+    Mul   *Var[1]  0000000A 
+    Call  GetActorVar   ( .Actor:Self 00000006 *Var[0] )
+    Add   *Var[0]  *Var[1] 
+    Call  SetActorVar   ( .Actor:Self 00000006 *Var[0] )
+    Return
+    End
+}
+
+#new:Script $Script_80219BA8_12 {
+    Call  GetActorVar   ( .Actor:Self 0000000B *Var[0] )
+    If  *Var[0]  !=  00000002 
+        Call  SetActorVar   ( .Actor:Self 0000000B 00000001 )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80219C00_12 {
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+    If  *Var[0]  >=  00000006 
+        ExecWait  $Script_80219BA8_12 
+    EndIf
+    Call  UseIdleAnimation  ( .Actor:Self .False )
+    Call  EnableIdleScript  ( .Actor:Self 00000000 )
+    Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+    Call  UseCamPreset      ( 0000003F )
+    Call  SetBattleCamZoom  ( 00000104 )
+    Call  BattleCamTargetActor  ( .Actor:Self )
+    Call  MoveBattleCamOver ( 00000014 )
+    Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+    Call  SetGoalToTarget   ( .Actor:Self )
+    Call  GetGoalPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  00000032 
+    Set   *Var[1]  00000000 
+    Call  SetActorSpeed     ( .Actor:Self *Fixed[3.0] )
+    Call  SetAnimation      ( .Actor:Self 00000001 006D0006 )
+    Call  SetGoalPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal ( .Actor:Self 00000000 .False )
+    Call  SetAnimation      ( .Actor:Self 00000001 006D0001 )
+    Wait  8`
+    Call  SetActorSounds    ( .Actor:Self .ActorSound:Jump 000003E7 00000000 )
+    Call  EnemyTestTarget   ( .Actor:Self *Var[A] ~Flags:DamageType:0 00000000 00000001 00000010 )
+    Switch  *Var[A] 
+        CaseOR  ==  .HitResult:Miss % 6
+        CaseOR  ==  .HitResult:Lucky % 5
+            Call  SetAnimation  ( .Actor:Self 00000001 006D0010 )
+            Thread
+                Wait  10`
+                Call  SetAnimation  ( .Actor:Self 00000001 006D0011 )
+            EndThread
+            Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  GetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Sub   *Var[0]  00000014 
+            Set   *Var[1]  00000000 
+            Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call  JumpToGoal    ( .Actor:Self 00000014 .False .True .False )
+            Call  PlaySoundAtActor  ( .Actor:Self 0000037D )
+            Call  ResetActorSounds  ( .Actor:Self .ActorSound:Jump )
+            Sub   *Var[0]  0000000F 
+            Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
+            Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call  JumpToGoal    ( .Actor:Self 0000000C .False .True .False )
+            Call  SetAnimation  ( .Actor:Self 00000001 006D0001 )
+            Sub   *Var[0]  0000000A 
+            Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call  JumpToGoal    ( .Actor:Self 00000008 .False .True .False )
+            Call  PlaySoundAtActor  ( .Actor:Self 0000037D )
+            Wait  8`
+            If  *Var[A]  ==  .HitResult:Lucky % 5
+                Call  EnemyTestTarget   ( .Actor:Self *Var[0] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+            EndIf
+            Call  UseCamPreset      ( 00000002 )
+            ExecWait  $Script_8021B0F8_12 
+            Call  EnableIdleScript  ( .Actor:Self 00000001 )
+            Call  UseIdleAnimation  ( .Actor:Self .True )
+            Return
+        EndCaseGroup
+    EndSwitch
+    Call  SetAnimation  ( .Actor:Self 00000001 006D0010 )
+    Thread
+        Wait  7`
+        Call  SetAnimation  ( .Actor:Self 00000001 006D0011 )
+    EndThread
+    Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
+    Call  SetGoalToTarget   ( .Actor:Self )
+    Call  JumpToGoal        ( .Actor:Self 00000010 .False .True .False )
+    Wait  2`
+    Call  SetGoalToTarget   ( .Actor:Self )
+    Call  EnemyDamageTarget ( .Actor:Self *Var[0] ~Flags:DamageType:0 00000000 00000000 00000005 00000020 )
+    Set   *Var[F]  *Var[0] 
+    Switch  *Var[F] 
+        CaseOR  ==  .HitResult:Hit % 0
+        CaseOR  ==  00000002 % 2
+            Call  PlaySoundAtActor  ( .Actor:Self 0000037D )
+            Call  ResetActorSounds  ( .Actor:Self .ActorSound:Jump )
+            Call  UseCamPreset      ( 0000003F )
+            Call  SetBattleCamZoom  ( 00000140 )
+            Call  BattleCamTargetActor  ( .Actor:Self )
+            Call  MoveBattleCamOver ( 00000014 )
+            Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+            Thread
+                Wait  5`
+                Call  SetAnimation  ( .Actor:Self 00000001 006D0010 )
+            EndThread
+            Call  GetActorPos   ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Add   *Var[0]  00000028 
+            Set   *Var[1]  00000000 
+            Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
+            Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call  JumpToGoal    ( .Actor:Self 0000000C .False .True .False )
+            Call  PlaySoundAtActor  ( .Actor:Self 0000037D )
+            Call  SetAnimation  ( .Actor:Self 00000001 006D0001 )
+            Add   *Var[0]  00000014 
+            Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+            Call  JumpToGoal    ( .Actor:Self 00000008 .False .True .False )
+            Call  PlaySoundAtActor  ( .Actor:Self 0000037D )
+            Wait  8`
+            Call  UseCamPreset  ( 00000002 )
+            Call  MoveBattleCamOver ( 00000014 )
+            ExecWait  $Script_8021B0F8_12 
+        EndCaseGroup
+    EndSwitch
+    Call  EnableIdleScript  ( .Actor:Self 00000001 )
+    Call  UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_8021A3E4_12 {
+    Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+    Call  SetActorVar   ( .Actor:Self 0000000C 00000003 )
+    Call  UseIdleAnimation  ( .Actor:Self .False )
+    Call  EnableIdleScript  ( .Actor:Self 00000000 )
+    Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+    Call  UseCamPreset  ( 0000000D )
+    Call  SetBattleCamZoom  ( 000000F0 )
+    Call  BattleCamTargetActor  ( .Actor:Self )
+    Call  MoveBattleCamOver ( 00000014 )
+    Call  8024ECF8      ( FFFFFFFF 00000001 00000000 )
+    Call  SetGoalToTarget   ( .Actor:Self )
+    Call  GetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Add   *Var[0]  00000050 
+    Set   *Var[1]  00000000 
+    Call  SetActorSpeed ( .Actor:Self *Fixed[3.0] )
+    Call  SetAnimation  ( .Actor:Self 00000001 006D0006 )
+    Call  SetGoalPos    ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+    Call  RunToGoal     ( .Actor:Self 00000000 .False )
+    Call  SetAnimation  ( .Actor:Self 00000001 006D0001 )
+    Wait  20`
+    Call  UseCamPreset  ( 00000005 )
+    Call  SetBattleCamZoom  ( 0000015E )
+    Call  SetBattleCamOffsetZ   ( 00000023 )
+    Call  BattleCamTargetActor  ( .Actor:Self )
+    Call  MoveBattleCamOver ( 00000008 )
+    Call  PlaySoundAtActor  ( .Actor:Self 000002EB )
+    Call  SetAnimation  ( .Actor:Self 00000001 006D000F )
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[5] )
+    Call  SetActorVar   ( .Actor:Self 00000000 0000000B )
+    Call  GetActorVar   ( .Actor:Self 00000002 *Var[0] )
+    Call  GetActorVar   ( .Actor:Self 00000003 *Var[1] )
+    Call  GetActorVar   ( .Actor:Self 00000004 *Var[2] )
+    Add   *Var[1]  0000000A 
+    Add   *Var[2]  00000002 
+    Thread
+        Wait  1`
+        Call  PlayEffect    ( ~FX:LightRays:SharpA *Var[0] *Var[1] *Var[2] *Fixed[1.0] *Var[B] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+        Wait  30`
+        Call  RemoveEffect  ( *Var[B] )
+    EndThread
+    Thread
+        Wait  1`
+        Call  PlayEffect    ( 0000004F 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.5] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    EndThread
+    Wait  5`
+    Call  EnemyTestTarget   ( .Actor:Self *Var[A] ~Flags:DamageType:0 00000000 00000001 00000010 )
+    Switch  *Var[A] 
+        CaseOR  ==  .HitResult:Miss % 6
+        CaseOR  ==  .HitResult:Lucky % 5
+            If  *Var[A]  ==  .HitResult:Lucky % 5
+                Call  EnemyTestTarget   ( .Actor:Self *Var[0] ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+            EndIf
+            Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+            Call  EnemyTestTarget   ( .Actor:Self *Var[A] ~Flags:DamageType:0 00000000 00000001 00000010 )
+            Switch  *Var[A] 
+                Case  ==  .HitResult:Miss % 6
+                Default
+                    Call  ActorExists   ( .Actor:Partner *Var[0] )
+                    If  *Var[0]  ==  .True 
+                        Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+                        Call  SetGoalToTarget   ( .Actor:Self )
+                        Call  EnemyDamageTarget ( .Actor:Self *Var[D] ~Flags:DamageType:0 0000FFFF 00000000 00000002 00000020 )
+                    EndIf
+            EndSwitch
+        EndCaseGroup
+        Default
+            Wait  2`
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  EnemyDamageTarget ( .Actor:Self *Var[E] ~Flags:DamageType:Unblockable 0000FFFF 00000000 00000002 00000020 )
+            Wait  2`
+            Call  ActorExists       ( .Actor:Partner *Var[0] )
+            If  *Var[0]  ==  .True 
+                Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+                Call  SetGoalToTarget   ( .Actor:Self )
+                Call  EnemyDamageTarget ( .Actor:Self *Var[D] ~Flags:DamageType:Unblockable 0000FFFF 00000000 00000002 00000020 )
+            EndIf
+    EndSwitch
+    Wait  40`
+    Call  SetActorVar   ( .Actor:Self 00000000 *Var[5] )
+    Thread
+        Call  GetActorVar   ( .Actor:Self 0000000D *Var[0] )
+        Wait  10`
+        Switch  *Var[0] 
+            Case  ==  .False 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003AA )
+            Case  ==  .True 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A9 )
+            Case  ==  00000002 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A8 )
+            Case  ==  00000003 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A7 )
+        EndSwitch
+    EndThread
+    Call  SetAnimation      ( .Actor:Self 00000001 006D0014 )
+    Wait  60`
+    Call  UseCamPreset      ( 00000002 )
+    ExecWait  $Script_8021B0F8_12 
+    Call  EnableIdleScript  ( .Actor:Self 00000001 )
+    Call  UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_8021AB14_12 {
+    Call  SetActorVar   ( .Actor:Self 00000005 00000001 )
+    Call  SetActorVar   ( .Actor:Self 00000006 000003E8 )
+    Call  SetActorVar   ( .Actor:Self 0000000B 00000002 )
+    Call  UseIdleAnimation  ( .Actor:Self .False )
+    Call  EnableIdleScript  ( .Actor:Self 00000000 )
+    Call  GetActorVar   ( .Actor:Self 00000007 *Var[0] )
+    If  *Var[0]  !&  00000002 
+        ConstOR  *Var[0] 00000002 
+        Call  SetActorVar       ( .Actor:Self 00000007 *Var[0] )
+        Call  UseCamPreset      ( 0000000E )
+        Call  SetBattleCamOffsetZ   ( 00000028 )
+        Call  BattleCamTargetActor  ( .Actor:Self )
+        Call  MoveBattleCamOver ( 0000001E )
+        Wait  30`
+        Call  GetEnemyMaxHP     ( .Actor:Self *Var[0] )
+        Call  GetActorHP        ( .Actor:Self *Var[1] )
+        If  *Var[0]  ==  *Var[1] 
+            Call  ActorSpeak    ( 000F0053 .Actor:Self 00000001 006D0005 006D0001 ) % Ow, that light! It's so bright... This is no good. ...
+        Else
+            Call  ActorSpeak    ( 000F0052 .Actor:Self 00000001 006D0005 006D0001 ) % Woooaaahh!! I hate light!!! I'll make it darker... ...
+        EndIf
+    EndIf
+    Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+    Call  UseCamPreset      ( 0000000D )
+    Call  SetBattleCamZoom  ( 000000E6 )
+    Call  SetBattleCamOffsetZ   ( 00000019 )
+    Call  BattleCamTargetActor  ( .Actor:Self )
+    Call  MoveBattleCamOver ( 00000014 )
+    Wait  20`
+    Call  PlaySoundAtActor  ( .Actor:Self 000003CF )
+    Call  SetAnimation      ( .Actor:Self 00000001 006D000F )
+    Wait  8`
+    Thread
+        Wait  2`
+        Call  PlaySoundAtActor  ( .Actor:Self 000003D0 )
+    EndThread
+    Call  SetAnimation  ( .Actor:Self 00000001 006D000E )
+    Wait  5`
+    Call  SetActorVar   ( .Actor:Self 00000000 00000002 )
+    Thread
+        Call  GetActorVar   ( .Actor:Self 0000000D *Var[0] )
+        Call  SetActorVar   ( .Actor:Self 0000000D 00000000 )
+        Wait  10`
+        Switch  *Var[0] 
+            Case  ==  00000004 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003AA )
+            Case  ==  00000003 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A9 )
+            Case  ==  00000002 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A8 )
+            Case  ==  00000001 
+                Call  PlaySoundAtActor  ( .Actor:Self 000003A7 )
+        EndSwitch
+    EndThread
+    Wait  14`
+    Wait  1`
+    Wait  15`
+    Call  UseCamPreset      ( 00000002 )
+    Wait  2`
+    Call  SetAnimation      ( .Actor:Self 00000001 006D0001 )
+    ExecWait  $Script_8021B14C_12 
+    Wait  30`
+    Call  EnableIdleScript  ( .Actor:Self 00000001 )
+    Call  UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_TakeTurn_8021AF4C_12 {
+    Call  GetActorVar   ( .Actor:Self 0000000C *Var[0] )
+    If  *Var[0]  >  00000000 
+        Sub   *Var[0]  00000001 
+        Call  SetActorVar   ( .Actor:Self 0000000C *Var[0] )
+    EndIf
+    Call  GetActorVar   ( .Actor:Self 0000000B *Var[0] )
+    Switch  *Var[0] 
+        Case  ==  00000002 
+            Call  GetActorVar   ( .Actor:Self 0000000C *Var[0] )
+            If  *Var[0]  >  00000000 
+                Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+            EndIf
+        Case  ==  00000001 
+            Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+            If  *Var[0]  <  00000006 
+                Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+            EndIf
+    EndSwitch
+    Call  GetActorVar   ( .Actor:Self 0000000B *Var[0] )
+    Switch  *Var[0] 
+        Case  ==  00000002 
+            ExecWait  $Script_8021A3E4_12 
+        Case  ==  00000001 
+            ExecWait  $Script_8021AB14_12 
+        Default
+            ExecWait  $Script_80219C00_12 
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_8021B0F8_12 {
+    SetConst  *Var[0]  00000001 
+    SetConst  *Var[1]  006D0007 
+    ExecWait  DoReturnHome 
+    Call  SetAnimation  ( .Actor:Self 00000001 006D0001 )
+    Return
+    End
+}
+
+#new:Script $Script_8021B14C_12 {
+    Call  GetActorVar   ( .Actor:Self 00000000 *Var[0] )
+    Switch  *Var[0] 
+        Case  <  00000005 
+            Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .True )
+        Case  <  00000008 
+            Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .False )
+        Default
+            Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .False )
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_8021B1FC_12 {
+    ExecWait  Collapse 
+    Call  GetActorVar   ( .Actor:Self 0000000A *Var[0] )
+    Call  RemoveEffect  ( *Var[0] )
+    Call  RemoveActor   ( .Actor:Self )
+    Return
+    End
+}
+
+#new:ConstDouble $ConstDouble_8022EB70_12 {
+0.714286d
+}
+
+#new:ConstDouble $ConstDouble_8022EB78_12 {
+90.000000d
+}
+
+#new:JumpTable $JumpTable_8022EB80_12 {
+$Function_80218070_12[1E0] $Function_80218070_12[1F4] $Function_80218070_12[200] $Function_80218070_12[20C] 
+$Function_80218070_12[218] $Function_80218070_12[224] $Function_80218070_12[230] $Function_80218070_12[23C] 
+$Function_80218070_12[248] $Function_80218070_12[254] $Function_80218070_12[260] $Function_80218070_12[2AC] 
+}
+

@@ -1,0 +1,61 @@
+%% This function handle how much coins the chest will hive to Mario
+%% After he obtained all available badges, the coins values is diferent
+%% per floor, ej. Level 10 Chest give less coins than the one in Level 100
+
+#new:Script $CoinChest
+{
+	If *MapVar[2] == FE % First Time Mario get Coins from a Chest
+		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
+		If *Var[0] == .False % DisablePlayerInputs == False
+			Call 	DisablePlayerInput ( .True )
+		EndIf
+		Call	 ShowMessageAtScreenPos ( $CoinsString 000000A0 00000028 )
+		Call	 ShowCoinCounter 	( .True )
+		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
+		If *Var[0] == .True % DisablePlayerInputs == True
+			Call 	DisablePlayerInput ( .False )
+		EndIf
+		Call     ShowGotItem 	( .Item:Coin .True 00000010 ) % ItemID ??? Message
+		ExecWait $LoadChestFloor
+		Call	 ShowCoinCounter 	( .False )
+	Else
+		If *MapVar[2] == FF % Second Time Coins
+			Call	 ShowCoinCounter 	( .True )
+			Call     ShowGotItem 	( .Item:Coin .True 00000010 )
+			ExecWait $LoadChestFloor
+			Call	 ShowCoinCounter 	( .False )
+			Set 	*Flag_Coins2 .False
+			Call 	DisablePlayerInput ( .False )
+		EndIf
+	EndIf
+	Return
+	End	
+}
+					
+#new:Script $LoadChestFloor
+{
+	Switch *PitMapID
+		Case == 10` % pit10
+			Call AddCoin ( 100` )
+		Case == 20` % pit20
+			Call AddCoin ( 100` )
+		Case == 30` % pit30
+			Call AddCoin ( 100` )
+		Case == 40` % pit40
+			Call AddCoin ( 150` )
+		Case == 50` % ...
+			Call AddCoin ( 150` )
+		Case == 60` % ...
+			Call AddCoin ( 200` )
+		Case == 70` % ...
+			Call AddCoin ( 200` )
+		Case == 80` % ...
+			Call AddCoin ( 400` )
+		Case == 90`
+			Call AddCoin ( 500` )
+		Case == 100` % pit100
+			Call AddCoin ( 1000` )
+	EndSwitch
+	Return
+	End
+}

@@ -1,0 +1,198 @@
+%%% MADE BY RAIN %%%
+
+%entity struct
+
+/%
+48 - x axis
+4C - y axis
+50 - z axis
+
+54 - x scaling?
+58 - y scaling?
+5C - z scaling?
+
+60 - vertical rotation
+64 - horizontal rotation
+68 - z rotation
+%/
+
+%Call $GetEntityPos ( EntityIndexID *Var[X] *Var[Y] *Var[Z] )
+#new:Function $GetEntityPos
+{
+PUSH s0, s1, s2, ra
+DADDU s2, a0, r0 %store pointer to script data in a0
+LW s0, 000C (a0) %load pointer to args
+JAL ~Func:get_entity_by_index
+LW a0, 0000 (s0)
+%entity pointer in v0 now
+ADD s1, r0, v0 %move entity pointer to s1
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 0004 (s0) %load to Variable specified for x pos
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 0048 (s1) %load x pos
+%
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 0008 (s0) %load to variable specified for y pos
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 004C (s1)
+%
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 000C (s0) %load to variable specified for z pos
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 0050 (s1) %load entity z pos
+POP s0, s1, s2, ra
+JR RA
+ORI v0, r0, 0002
+}
+
+%Call $SetEntityPos ( EntityIndexID *Var[X] *Var[Y] *Var[Z] )
+#new:Function $SetEntityPos
+{
+PUSH    s0, s1, s2, ra
+DADDU   s2, a0, r0 %store pointer to script data in a0
+LW      s0, 000C (a0)
+JAL     ~Func:get_entity_by_index
+LW      a0, 0000 (s0) %load entity index ID
+ADD     s1, r0, v0 %move entity pointer to s1
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     ~Func:get_float_variable
+LW      a1, 0004 (s0)
+SWC1    F0, 0048 (s1) %store x pos
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     ~Func:get_float_variable
+LW      a1, 0008 (s0)
+SWC1    F0, 004C (s1) %store y pos
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     ~Func:get_float_variable
+LW      a1, 000C (s0)
+SWC1    F0, 0050 (s1) %store z pos
+POP     s0, s1, s2, ra
+JR      RA
+ORI     v0, r0, 0002
+}
+
+#new:Function $GetEntityScaling %returns x, y, z scaling to specified Vars
+{
+%Call $GetEntityScaling ( EntityIndexID, *Var[X], *Var[Y], *Var[Z] )
+PUSH s0, s1, s2, ra
+DADDU s2, a0, r0 %store pointer to script data in a0
+LW s0, 000C (a0)
+JAL ~Func:get_entity_by_index
+LW a0, 0000 (s0)
+ADD s1, r0, v0 %move entity pointer to s1
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 0004 (s0) %load variable specified for x scaling
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 0054 (s1) %load entity x scaling
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 0008 (s0) %load variable specified for y scaling
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 0058 (s1) %load entity y scaling
+ADD a0, s2, r0 %move script data pointer to a0
+LW a1, 000C (s0)
+JAL 802C8640 % ~Func:set_float_variable
+LW a2, 005C (s1) %load entity z scaling
+POP s0, s1, s2, ra
+JR RA
+ORI v0, r0, 0002
+}
+
+
+#new:Function $SetEntityScaling %sets x, y, z scaling by specifed float values or *Var[X]s
+{
+%Call $SetEntityScaling ( EntityIndexID, *Var[X], *Var[Y], *Var[Z] )
+PUSH s0, s1, s2, ra
+DADDU s2, a0, r0 %store pointer to script data in a0
+LW s0, 000C (a0)
+JAL ~Func:get_entity_by_index
+LW a0, 0000 (s0)
+ADD s1, r0, v0 %move entity pointer to s1
+ADD a0, s2, r0 %move script data pointer to a0
+JAL 802C842C % ~Func:get_float_variable
+LW a1, 0004 (s0)
+SWC1 F0, 0054 (s1) %set x scaling
+ADD a0, s2, r0 %move script data pointer to a0
+JAL 802C842C % ~Func:get_float_variable
+LW a1, 0008 (s0)
+SWC1 F0, 0058 (s1) %set y scaling
+ADD a0, s2, r0 %move script data pointer to a0
+JAL 802C842C % ~Func:get_float_variable
+LW a1, 000C (s0)
+SWC1 F0, 005C (s1) %set z scaling
+POP s0, s1, s2, ra
+JR RA
+ORI v0, r0, 0002
+}
+
+
+
+#new:Function $GetEntityRotation %entityID index, x pos, y pos, z pos
+{
+%Call $GetEntityScaling (EntityIndexID, *Var[X], *Var[Y], *Var[Z])
+PUSH    s0, s1, s2, ra
+DADDU   s2, a0, r0 %store pointer to script data in a0
+LW      s0, 000C (a0) %load pointer to args
+% var compability - added by me
+JAL     ~Func:get_variable 
+LW      A1, 0 (S0)
+%%%%%
+JAL     ~Func:get_entity_by_index
+COPY    A0, V0 % save entityID in A0
+%entity pointer in v0 now
+ADD     s1, r0, v0 %move entity pointer to s1
+ADD     a0, s2, r0 %move script data pointer to a0
+LW      a1, 0004 (s0) %load to Variable specified for x pos
+JAL     802C8640 % ~Func:set_float_variable
+LW      a2, 0060 (s1) %load entity x rotation
+%
+ADD     a0, s2, r0 %move script data pointer to a0
+LW      a1, 0008 (s0) %load to variable specified for y pos
+JAL     802C8640 % ~Func:set_float_variable
+LW      a2, 0064 (s1) %load entity y rotation
+%
+ADD     a0, s2, r0 %move script data pointer to a0
+LW      a1, 000C (s0) %load to variable specified for z pos
+JAL     802C8640 % ~Func:set_float_variable
+LW      a2, 0068 (s1) %load entity z rotation
+POP     s0, s1, s2, ra
+JR      RA
+ORI     v0, r0, 0002
+}
+
+
+#new:Function $SetEntityRotation
+{
+%Call $GetEntityScaling ( EntityIndexID, *Var[X], *Var[Y], *Var[Z] )
+PUSH    s0, s1, s2, ra
+DADDU   s2, a0, r0 %store pointer to script data in a0
+LW      s0, 000C (a0)
+% var compability - added by me
+JAL     ~Func:get_variable 
+LW      A1, 0 (S0)
+%%%%%
+JAL     ~Func:get_entity_by_index
+COPY    A0, V0 % save entityID in A0
+ADD     s1, r0, v0 %move entity pointer to s1
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     802C842C % ~Func:get_float_variable
+LW      a1, 0004 (s0)
+SWC1    F0, 0060 (s1) %store x rotation
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     802C842C % ~Func:get_float_variable
+LW      a1, 0008 (s0)
+SWC1    F0, 0064 (s1) %store y rotation
+ADD     a0, s2, r0 %move script data pointer to a0
+JAL     802C842C % ~Func:get_float_variable
+LW      a1, 000C (s0)
+SWC1    F0, 0068 (s1) %store z rotation
+POP     s0, s1, s2, ra
+JR      RA
+ORI     v0, r0, 0002
+}
+
+#export $SetEntityPos
+#export $GetEntityPos
+#export $SetEntityScaling
+#export $GetEntityScaling
+#export $GetEntityRotation
+#export $SetEntityRotation

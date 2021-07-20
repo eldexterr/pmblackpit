@@ -1,0 +1,2513 @@
+#import FallingDownPipe.mpat	%Load Mario's animation when is entering the Map from an up pipe
+#import TrackBattle.mpat		%Track if Mario has defeated/run-away/died from an enemy
+#import SignStringLoader.mpat	%Load the sign string
+#import GetBadge.mpat			%Handle how the GiantChest work
+#import CoinChest.mpat			%Handle how the GiantChest will work after Mario got all badges
+
+#define .Npc_Bonetail 0
+% Partners: Talking | Idle - Animamtions
+#define .Goombario_Talking 	00010008
+#define .Goombario_Idle 	00010001
+#define .Kooper_Talking 	0002000D
+#define .Kooper_Idle 		00020003
+#define .Bombette_Talking 	0003000E
+#define .Bombette_Idle 		00030003
+#define .Parakarry_Talking 	00040006
+#define .Parakarry_Idle 	00040001
+#define .Bow_Talking 		00050004
+#define .Bow_Idle 			00050001
+#define .Watt_Talking 		00060004
+#define .Watt_Idle 			00060001
+#define .Sushie_Talking		00070004
+#define .Sushie_Idle 		00070001
+#define .Lakilester_Talking	00080009
+#define .Lakilester_Idle	00080001
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000
+$Script_Main $EntryList 00000003 00000000
+00000000 00000000 00000000 00000000
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 
+~Vec4f:Entry1 
+~Vec4f:Entry2 % Beta Build beated
+}
+
+#new:Function_Init $Function_Init
+{
+    PUSH 	RA, A0, A1
+    LIA 	A0, 800B0CF0
+    LIA 	A1, "tik_tex" % load tik_tex texture package
+    JAL 	~Func:sprintf
+    RESERVED
+    CLEAR	V0
+    JPOP 	RA, A0, A1
+}
+	
+%%
+% Custom Map Tattle
+%%
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $MapTattle
+JR        RA
+RESERVED
+}
+	
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]This is the lowest floor in the Pit of
+100 Trials.
+[WAIT][NEXT][...]
+Yuuuuuck. Mario, I bet you're the
+first person to make it this far!
+I totally knew you'd do it!
+[WAIT][NEXT][...]
+Now let's get out of this creepy
+place and back to the world above,
+ok?
+[WAIT][END]
+}
+
+#new:Script_Main $Script_Main
+{
+    Call SetSpriteShading  ( FFFFFFFF )
+    Call SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call SetCamEnabled       ( .Cam:Default .True )
+    Call SetCamLeadPlayer       ( .Cam:Default .False )
+	Call FadeOutMusic	   ( .Default 1 ) % Stop Music
+	Set  *Flag_LockInputs_GiantChest .True % lock player inputs at the moment he open a giant chest
+	If	*Flag_Mode_Classic == .False % True
+		Call MakeNpcs  	( .Default $NpcGroups_Bonetail )
+	Else
+		Call MakeNpcs  	( .Default $NpcGroups_RubyKing )
+	EndIf
+	ExecWait $GetBadge
+	If *MapFlag[01] == .True % Set pit mode back to Roguelike, used when you get a badge from Floor 100 in Roguelike
+		Set	*Flag_Mode_Classic 1
+		Set *Flag_Mode_Rogue .True
+		Set *MapFlag[01] .False
+	EndIf
+	ExecWait $Script_MakeEntities
+	Exec     $Script_MakeExits
+	Exec	 $Script_SetPipesPosition % Enable/Disable Pipes blue or green
+	%Exec	 $Script_SetFloorNumbers  % Set the Numbers above the sign % Unused Feature
+	% Check if is the 1st time beating the pit in classic or rogue
+	If *Flag_Mode_Classic == .False % False=True
+		If *Flag_BonetailRemains == .False
+			Call ModifyColliderFlags ( .False ~Collider:Col0 7FFFFE00 ) % Disable Exit
+		EndIf
+	Else % Roguelike Mode
+		If *Flag_RubyCrown == .False
+			Call ModifyColliderFlags ( .False ~Collider:Col0 7FFFFE00 ) % Disable Exit
+		EndIf
+	EndIf
+	Call	GetEntryID ( *Var[0] )
+	If	*Var[0] != 2
+		Exec 	 $CommingDownPipe
+		Wait	5 % to not see Mario suspended in the air before getting inside the pipe
+	Else
+		% The game beta was beated and the player wanted to just warp
+		% at the end of the beta
+		Call	InterpPlayerYaw ( -90` 0 )
+		Wait	7
+		ExecWait $MovePartnerBehindMario
+		Call	SetNpcPos ( 0 0 -1000` 0 ) % Bonetail/King
+		% Force the current Pit to be the classic one
+		Set		*Flag_Mode_Classic 0 % 0 = For classic means activated
+		Set		*Flag_Mode_Rogue .False
+		Call	DisablePlayerInput ( .True )
+		Exec	$Script_EverythingBeated
+	EndIf
+    Return
+    End
+}
+	
+#new:Script $Script_SetPipesPosition
+{
+	If *Flag_Mode_Rogue == .True
+		Call     EnableModel 	( 3 .False ) % ModelID Boolean % Green Top Pipe
+	Else
+		Call     EnableModel 	( 4 .False ) % ModelID Boolean % Blue Top Pipe
+	EndIf
+	Return
+	End
+}
+    
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups_Bonetail
+{
+00000001 $NpcGroup_Bonetail	 37000000
+00000001 $NpcGroup_Mistar	 00000000
+00000002 $NpcGroup_MoneyBag  00000000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroups_RubyKing
+{ 
+00000001 $NpcGroup_RubyKing	 37020000
+00000001 $NpcGroup_Mistar	 00000000
+00000002 $NpcGroup_MoneyBag  00000000
+00000000 00000000 00000000
+}
+
+%%
+% Bonetail
+%%
+
+#new:NpcGroup $NpcGroup_Bonetail 
+{
+00000000 $NpcSettings_Bonetail ~Vec3f:Enemy0
+00A40D01 $Script_Init_Bonetail 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 
+00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 00EF0001 
+00000000 00000000 00000000 00000000
+}
+
+%%
+% Ruby King
+%%
+
+#new:NpcGroup $NpcGroup_RubyKing
+{
+00000000 $NpcSettings_Bonetail ~Vec3f:Enemy0
+00A40D01 $Script_Init_RubyKing 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 007F1501 
+00000000 00000000 00000000 00000000
+}
+
+%%
+% Mistar
+%%
+
+#new:NpcGroup $NpcGroup_Mistar
+{
+00000001 $NpcSettings_Bonetail ~Vec3f:NPC_MoneyBag
+00A40D01 $Script_Init_Mistar 00000000 00000000 0000010E 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00201401 00201401 00201401 00201401 00201401 00201401 00201401 00201401
+00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_Init_Mistar
+{
+	Return
+	End
+}
+
+%%
+% Money Bag
+%%
+	
+#new:NpcGroup $NpcGroup_MoneyBag
+{
+00000040 $NPC_Settings_Sack ~Vec3f:NPC_MoneyBag
+00440C0D $Script_Init_Bag 00000000 00000000 0000010E % Script loaded from TrackBattle.mpat
+~NoItems ~NoHP ~NoFP ~NoCoinBonus 
+FFFFFDEA FFFFFFF4 0000006B 0000000F 00000000 FFFF8001 00000000 FFFFFDEA 
+FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+% animations
+00ED0001 00ED0002 00ED0003 00ED0003 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0002 00ED0001 00ED0002 00ED0001 00ED0001 00ED0001 00ED0001 
+00000001 00000000 00000000 00000000 % tattle string
+% 21540C0C % Toogle HitBox Visibility
+% $NpcGroup_MoneyBag[1F0]
+00000041 $NPC_Settings_Sack ~Vec3f:NPC_MoneyBag
+21544C0C $Script_Init_Bag_HitBox 00000000 00000000 0000010E % Script loaded from TrackBattle.mpat
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00ED0001 00ED0002 00ED0003 00ED0003 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0002 00ED0001 00ED0002 00ED0001 00ED0001 00ED0001 00ED0001 
+00000001 00000000 00000000 00000000 % tattle string%/
+}
+
+/% Green Shy Guy
+003B0201 003B0202 003B0204 003B0204X003B0201 003B0201 003B020C 003B020C 
+003B0215 003B0212 003B0211 003B0210X003B0205 003B0201 003B0201 003B0201 
+%/
+
+/% Blue Shy Guy
+003B0101 003B0102 003B0104 003B0104X003B0101 003B0101 003B010C 003B010C 
+003B0115 003B0112 003B0111 003B0110X003B0105 003B0101 003B0101 003B0101 
+%/
+
+/% Sack Animations
+00ED0001 00ED0002 00ED0003 00ED0003 00ED0001 00ED0001 00ED0001 00ED0001 
+00ED0001 00ED0002 00ED0001 00ED0002 00ED0001 00ED0001 00ED0001 00ED0001 
+%/	
+
+#new:NpcSettings $NpcSettings_Bonetail
+{
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+	#new:Script $Script_Init_Bonetail
+{
+	Call	SetNpcScale		( .Npc:Self *Fixed[2.4] *Fixed[2.4] *Fixed[2.4] )
+	Call	BindNpcIdle		( .Npc:Self $Script_Bonetail_Idle )
+	Call    BindNpcDefeat 	( .Npc:Self $Script_TrackOutcome_Boss )
+	Return
+	End
+}
+	
+	#new:Script $Script_Bonetail_Idle
+{
+	Call	SetSelfVar ( 0 .False )
+	Loop
+		Call	GetSelfVar ( 0 *Var[0] )
+		If *Var[0] == 1
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Wait	3 % wait until mario start falling from the pipe
+	If 	*Flag_Chpt1 == .True % mario already knows he is in a cycle
+		Exec	$Script_Cutscene_Bonetail2 *MapVar[D]
+		Exec	$SkipCutscene_Bonetail2
+		Loop
+			DoesScriptExist ( *MapVar[D] *Var[0] )
+			If *Var[0] == .False
+				BreakLoop
+			EndIf
+			Wait 1
+		EndLoop
+		Wait	1
+		Goto	StartBattle
+	EndIf
+	Exec	$Script_Cutscene_Bonetail *MapVar[D]
+	Exec	$SkipCutscene_Bonetail
+	Loop
+		DoesScriptExist ( *MapVar[D] *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Label	StartBattle
+	Wait	5
+	Call	StartBossBattle 	 ( A0 ) % .Song:Bonetail
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Bonetail
+{
+	Wait	27` % Wait until Mario fall from the pipe
+	Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[200.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+	Wait	15` % wait until the camera zoom in
+	Call	DisablePartnerAI ( 0 )
+	Set		*Var[1] $String_Partner_Start
+	Exec 	$Script_Partner_Dialog1 % read var1
+	% Flip Mario
+	Call 	ShowEmote			( .Npc:Self .Emote:Question 90` 20` 0 0 0 0 0 )
+	Call 	PlaySoundAtPlayer 	( 0263 0 )
+	Call	SetPlayerAnimation  ( 00080022 ) % Look around
+	Loop 2
+		Call   	InterpPlayerYaw 	( 90` 0 )
+		Wait	15`
+		Call   	InterpPlayerYaw 	( -90` 0 )
+		Wait	15`
+	EndLoop
+	Wait	17`
+	% Start Mario's Movement
+	Call	EnablePartnerAI
+	% Move camera
+	SetF 	*Var[A] *Fixed[175.0]
+	Thread
+		Call 	AdjustCam ( .Cam:Default *Fixed[0.3] *Var[A] *Fixed[200.0] *Fixed[20.0] *Fixed[-7.0] )
+	EndThread
+	Call	GetPlayerPos	( *Var[0] 0 *Var[1] )
+	Add		*Var[0] 170`
+	Call	SetPlayerSpeed		( *Fixed[0.1] )
+	Call	PlayerMoveTo		( *Var[0] *Var[1] 100` ) % X, Z, Weight (Need to be above 0)
+	Wait    15`
+	Call	DisablePlayerPhysics ( .True )
+	Call    ResetCam    		( .Cam:Default 10` ) % Reset the camera back to normal % camID Speed
+	Call 	ShowEmote			( .Npc:Self .Emote:Exclamation 45` 20` 0 0 0 0 0 )
+	Call 	PlaySoundAtPlayer 	( 0262 0 )
+	Call    SetPlayerAnimation 	( 00010012 ) % Scared
+	Call	SetNpcAnimation		( .Npc_Bonetail 00EF0002 )
+	Wait	10`
+	% Move Mario to the Left
+	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+	Loop 4`
+		Sub		*Var[0] 2`
+		Add		*Var[1] 2`
+		Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Wait	1
+		If *Flag_Skip == .False
+			Return
+		EndIf
+	EndLoop
+	Loop 4`
+		Sub		*Var[0] 2`
+		Sub		*Var[1] 2`
+		Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Wait	1
+		If *Flag_Skip == .False
+			Return
+		EndIf
+	EndLoop
+	Call    SetPlayerAnimation 	( 00010012 ) % Scared
+	Wait	10`
+	Call    SetPlayerAnimation 	( 0001002A ) % Look above
+	Wait	10`
+	Call	SetNpcAnimation		( .Npc_Bonetail 00EF0003 )
+	Wait	20`
+	Set		*Flag_Skip .False
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Bonetail2
+{
+	Wait	30` % Wait until Mario fall from the pipe
+	Call 	InterpPlayerYaw 	( 90` 0 )
+	Wait	15`
+	Call	SetNpcAnimation		( .Npc_Bonetail 00EF0003 )
+	% Start Mario's Movement
+	Call	GetPlayerPos	( *Var[0] 0 *Var[1] )
+	Add		*Var[0] 154`
+	Call	SetPlayerSpeed		( *Fixed[0.1] )
+	Call	PlayerMoveTo		( *Var[0] *Var[1] 50` ) % X, Z, Weight (Need to be above 0)
+	Wait    5`
+	Call	DisablePlayerPhysics ( .True )
+	Set		*Flag_Skip .False
+	Call    SetPlayerAnimation 	( 00010020 ) % ready
+	Wait	10`
+	Return
+	End
+}
+	
+	#new:Script $Script_Partner_Dialog1
+{
+	Call	GetCurrentPartnerID ( *Var[0] )
+	Switch  *Var[0]
+		Case == 1 % Goombario
+			Call	SpeakToPlayer		( .Npc:Partner .Goombario_Talking .Goombario_Idle 0 *Var[1] )
+		Case == 2 % Kooper
+			Call	SpeakToPlayer		( .Npc:Partner .Kooper_Talking .Kooper_Idle 0 *Var[1] )
+		Case == 3 % Bombette
+			Call	SpeakToPlayer		( .Npc:Partner .Bombette_Talking .Bombette_Idle 0 *Var[1] )
+		Case == 4 % Parakarry
+			Call	SpeakToPlayer		( .Npc:Partner .Parakarry_Talking .Parakarry_Idle 0 *Var[1] )
+		Case == 9 % Bow
+			Call	SpeakToPlayer		( .Npc:Partner .Bow_Talking .Bow_Idle 0 *Var[1] )
+		Case == 6 % Watt
+			Call	SpeakToPlayer		( .Npc:Partner .Watt_Talking .Watt_Idle 0 *Var[1] )
+		Case == 7 % Sushie
+			Call	SpeakToPlayer		( .Npc:Partner .Sushie_Talking .Sushie_Idle 0 *Var[1] )
+		Case == 8 % Lakilester
+			Call	SpeakToPlayer		( .Npc:Partner .Lakilester_Talking .Lakilester_Idle 0 *Var[1] )
+	EndSwitch
+	Return
+	End
+}
+	
+	#string $String_Partner_Start
+{
+	[STYLE:RIGHT][...]
+	[InputOff]Hmm....[PAUSE:05][StartFX:Shrinking] Hellooooo!!![PAUSE:05]
+	Is somebody there?![EndFX:Shrinking][PAUSE:10][InputOn]
+	[END]
+}
+
+#new:Script $SkipCutscene_Bonetail
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetPlayerFlagBits	( 00007000 .False ) % Stop PlayerMoveTo
+			Call    SetPlayerAnimation 	( .PlayerAnim:StandStill )
+			Call    SetPlayerAnimation 	( 0001002A ) % Look above
+			Call	EnablePartnerAI
+			Call	SetNpcAnimation		( .Npc_Bonetail 00EF0003 )
+			Call	GetNpcPos 			( .Npc_Bonetail *Var[0] *Var[1] *Var[2] )
+			Sub		*Var[0] 135`
+			Sub		*Var[1] 30`
+			Call 	SetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+			Call    ResetCam   	( .Cam:Default *Fixed[1000.0] ) % Reset the camera back to normal % camID Speed
+			Call   	InterpPlayerYaw 	( 90` 0 )
+			% Check if Mario's Physics are Enabled
+			% bit4=PlayerPhysics
+			Call 	$ReadBitFlag ( 8010EFCA .False .False 4 *Var[0] )
+			If *Var[0] == .False % DisablePlayerPhysics == False
+				Call 	DisablePlayerPhysics ( .True )
+			EndIf
+			Wait	5
+			% Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Bonetail2
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetPlayerFlagBits	( 00007000 .False ) % Stop PlayerMoveTo
+			Call    SetPlayerAnimation 	( 00010020 ) % ready
+			Call	EnablePartnerAI
+			Call	SetNpcAnimation		( .Npc_Bonetail 00EF0003 )
+			Call	GetNpcPos 			( .Npc_Bonetail *Var[0] *Var[1] *Var[2] )
+			Sub		*Var[0] 135`
+			Sub		*Var[1] 30`
+			Call 	SetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+			Call    ResetCam   	( .Cam:Default *Fixed[1000.0] ) % Reset the camera back to normal % camID Speed
+			Call   	InterpPlayerYaw 	( 90` 0 )
+			% Check if Mario's Physics are Enabled
+			% bit4=PlayerPhysics
+			Call 	$ReadBitFlag ( 8010EFCA .False .False 4 *Var[0] )
+			If *Var[0] == .False % DisablePlayerPhysics == False
+				Call 	DisablePlayerPhysics ( .True )
+			EndIf
+			Wait	5
+			% Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+	
+%Handle current battle outcome
+#new:Script $Script_TrackOutcome_Boss
+{
+	Set     *Flag_RubyKingStars .False % the stars will no longer appear in red
+	Call     ResetCam    	( .Cam:Default 10` ) % Always reset the cam, needed if the player skipped the cutscene
+	Call     GetBattleOutcome 	( *Var[0] )
+	Switch  *Var[0] 
+		Case  ==  0 % When you won
+		% Check Challenges Achieved
+		% Rogue Challenges
+			If	*Flag_Mode_Rogue == .True
+				Set *Flag_Cheev_Rogue_01 .True % Challenged Completed
+				Switch *PitDifficulty
+					Case == 1 % Hard
+						Set *Flag_RogueBeated_Hard .True
+						Set *Flag_Cheev_Rogue_17 .True % Challenged Completed
+					Case == 2 % Very-hard
+						Set *Flag_RogueBeated_Hard .True
+						Set *Flag_Cheev_Rogue_17 .True % Challenged Completed
+						Set *Flag_Cheev_Rogue_18 .True % Challenged Completed
+				EndSwitch
+				If *Flag_SlowGo2 == .True
+					Set *Flag_Cheev_Rogue_04 .True
+				EndIf
+				If *Rogue_RowfPurchases == .Default
+					Set *Flag_Cheev_Rogue_11 .True
+				EndIf
+				Switch *BadgesEquipped_Rogue
+					Case <= 10`
+						Set *Flag_Cheev_Rogue_12 .True
+					Case >= 30`
+						Set *Flag_Cheev_Rogue_13 .True
+				EndSwitch
+				Call $ReadAddress ( 8010F293 0 *Var[0] 0 .False ) % Load Max HP
+				If	*Var[0] >= 40`
+					Set *Flag_Cheev_Rogue_14 .True
+				EndIf
+				Call $ReadAddress ( 8010F296 0 *Var[0] 0 .False ) % Load Max FP
+				If	*Var[0] >= 40`
+					Set *Flag_Cheev_Rogue_15 .True
+				EndIf
+				Call $ReadAddress ( 8010F29C 1 *Var[0] 0 .False ) % Load Current Coins
+				If	*Var[0] >= 2000`
+					Set *Flag_Cheev_Rogue_16 .True
+				EndIf
+			EndIf
+		% Classic Challenges
+			If	*Flag_Mode_Classic == .Default
+				Set *Flag_Cheev_Classic_01 .True % Challenged Completed
+				Switch *PitDifficulty
+					Case == 1 % Hard
+						Set *Flag_ClassicBeated_Hard .True
+						Set *Flag_Cheev_Classic_22 .True % Challenged Completed
+					Case == 2 % Very-hard
+						Set *Flag_ClassicBeated_Hard .True
+						Set *Flag_Cheev_Classic_22 .True % Challenged Completed
+						Set *Flag_Cheev_Classic_23 .True % Challenged Completed
+				EndSwitch
+				Call $ReadAddress ( $TotalFloors 1 *Var[0] 0 .False )
+				If	*Var[0] >= 100`
+					Set	*Flag_Cheev_Classic_14 .True
+					If	*Var[0] >= 130`
+						Set	*Flag_Cheev_Classic_15 .True
+					EndIf
+				EndIf
+				Call $ReadAddress ( $TotalItemsUsed 0 *Var[0] 0 .False )
+				If	*Var[0] == .Default
+					Set *Flag_Cheev_Classic_19 .True
+				EndIf
+				Call $ReadAddress ( $Timer_Total 2 *Var[0] 0 .False )
+				If *Var[0] <= 02000000
+					Set *Flag_Cheev_Classic_21 .True
+				EndIf
+				Call $ReadAddress ( 8010F2AA 1 *Var[0] 0 .False )
+				If *Var[0] >= 7200`
+					Set *Flag_Cheev_Classic_12 .True
+				EndIf
+				If *StarSpiritsUsedInPit == .False
+					Set *Flag_Cheev_Classic_18 .True
+				EndIf
+				If *PartnersTurnsUsed == .False
+					Set *Flag_Cheev_Classic_20 .True
+				EndIf
+			EndIf%/
+			If *Flag_Mode_Classic == .Default
+				Set *Flag_ClassicBeated .True
+			Else
+				Set *Flag_RoguelikeBeated .True
+			EndIf
+			Call	DisablePlayerPhysics 	( .False )
+			%Exec    $ChestPath % Unused function
+			If *Flag_Mode_Rogue == .False
+				Exec	$Script_AddCoins
+			EndIf
+			Call	SetNpcPos	( .Npc_Bonetail .Default .Default .Default ) % Move Bonetail to 0 0 0
+			Call    PlaySoundAtPlayer 	( 03E5 0 ) % Npc Defeated
+			Wait	5
+			Call    PlaySoundAtPlayer 	( 01AF 0 ) % Shake
+			Call    ShakeCam   			( .Cam:Default 0 30` *Fixed[1.0] )
+			Wait	30`
+			% Check if the player got a better time to beat the Pit
+			If	*Flag_GoldenLS3 == .False % Golden Life Shroom didn't got activated in this playthrough?
+				If *Flag_Mode_Rogue == .False
+					Call	$Function_SaveBetterTotalTime_Classic
+				Else
+					Call	$Function_SaveBetterTotalTime_Rogue
+				EndIf
+			EndIf
+			% Open Final Results
+			Set		*PitFlag .False 		% To stop tracking all values
+			Set		*Flag_GoldenLS3 .False	% Reset Golden LS's Pit Flag
+			% Wait until all challenges pop ups finish
+			Loop
+				Call $ReadAddress ( $Challenge_PopUp_Data 0 *Var[1] 0 .False )
+				If *Var[1] == .False
+					% Make a 2nd check
+					Wait 2
+					Call $ReadAddress ( $Challenge_PopUp_Data 0 *Var[1] 0 .False )
+					If *Var[1] == .False
+						BreakLoop
+					EndIf
+				EndIf
+				Wait 1
+			EndLoop
+			% Roguelike - Give the total gained coins on this playthrough
+			If	*Flag_Mode_Rogue == .True
+				ExecWait $Script_Rogue_GiveTotalCoins % from TrackBattle.mpat
+			EndIf
+			Call    ResetCam   	( .Cam:Default *Fixed[1000.0] )
+			Call 	PlaySound ( C9 )
+			Set		*ShowFinalResultValues .True  % The box's code is at MiscHooks.patch
+		Case  ==  1 % When you die
+			SuspendOthers .True
+			Call SetPlayerAnimation ( 0001000F ) % Dead
+			Call GetCurrentPartnerID 	( *Var[0] )
+			If  *Var[0]  !=  0 
+				Call DisablePartnerAI ( .True )
+			EndIf
+			Call     $Function_RevivePlayer
+			% Dissappear Ruby King
+			If *Flag_Mode_Rogue == .True
+				Call	SetNpcAnimation 	( .Npc:Self 007F150D ) % idle
+				Call	PlaySound			( 200E ) % Dissappearing
+				Wait	10`
+				Call	EnableNpcShadow		( .Npc:Self .False )
+				Thread
+					SetF  *Var[1]  *Fixed[240.0] 
+					Loop     10` 
+						SubF  *Var[1]  *Fixed[24.0] 
+						Call     802CFD30 ( .Npc:Self 7 *Var[1] 0 0 0 )
+						Wait     1 
+					EndLoop
+				EndThread
+			EndIf
+			WaitSeconds 1
+			Call DisablePlayerInput	( .True )
+			% bypass if rogue is active
+			If *Flag_Mode_Rogue == .True
+				% Roguelike - Give half of the total gained coins on this playthrough
+				ExecWait $Script_Rogue_GiveHalfCoins
+				If *Flag_Demo == .True
+					Call GotoMap ( "dmo_00" 0 )
+				Else
+					Call GotoMap ( "pt_00" 6 )
+				EndIf
+				Return
+			EndIf
+			Call ShowCoinCounter ( .True )
+			Jump $Script_SubstractCoins
+		Case  ==  2 % When you run
+	EndSwitch
+	Return
+	End
+}
+
+#new:Function $Function_SaveBetterTotalTime_Rogue
+{
+	% Get current best time
+	PUSH	RA, V0, A1, A2, S0, S1, S2, S3
+	LIO 	A1, *BestTimeRogue_HH
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S0, V0
+	LIO 	A1, *BestTimeRogue_MM
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S1, V0
+	LIO 	A1, *BestTimeRogue_SS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S2, V0
+	LIO 	A1, *BestTimeRogue_MS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S3, V0
+	% Put all bytes in to one single word
+	SLL		S0, S0, 18 % Hours 	 % Move 24-bits
+	SLL		S1, S1, 10 % Minutes % Move 16-bits
+	SLL		S2, S2, 8  % Seconds % Move 8-bits
+	% Get final word
+	ADDU	S0, S0, S1
+	ADDU	S0, S0, S2
+	ADDU	S0, S0, S3 % Best Timer is in S0 now
+	% Check if the timer is equal to 0
+	BNE		S0, R0, .CompareTimers
+	NOP
+	% If is it means is the 1st time the player beated the pit
+	% set the timer as FFFFFFFF
+	LUI		S0, FFFF
+	ORI		S0, S0, FFFF
+	% Compare Timers
+	.CompareTimers
+	LAW		T1, $Timer_Total
+	SLTU	T0, T1, S0
+	BEQ		T0, R0, .End % If current timer wasn't lower
+	NOP
+	% Save new timer
+	% Get each byte individually
+	LIO		T0, $Timer_Total % save address in t0
+	LABU	S0, $Timer_Total % hours
+	LBU		S1, 1 (T0) %  minutes
+	LBU		S2, 2 (T0) %  seconds
+	LBU		S3, 3 (T0) %  milliseconds
+	LIO 	A1, *BestTimeRogue_HH
+	JAL 	~Func:set_variable
+	COPY	A2, S0
+	LIO 	A1, *BestTimeRogue_MM
+	JAL 	~Func:set_variable
+	COPY	A2, S1
+	LIO 	A1, *BestTimeRogue_SS
+	JAL 	~Func:set_variable
+	COPY	A2, S2
+	LIO 	A1, *BestTimeRogue_MS
+	JAL 	~Func:set_variable
+	COPY	A2, S3
+	.End
+	POP		RA, V0, A1, A2, S0, S1, S2, S3
+	JR 		RA
+	NOP
+}
+
+#new:Function $Function_SaveBetterTotalTime_Classic
+{
+	% Get current best time
+	PUSH	RA, V0, A1, A2, S0, S1, S2, S3
+	LIO 	A1, *BestTimeClassic_HH
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S0, V0
+	LIO 	A1, *BestTimeClassic_MM
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S1, V0
+	LIO 	A1, *BestTimeClassic_SS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S2, V0
+	LIO 	A1, *BestTimeClassic_MS
+	JAL 	~Func:get_variable 
+	RESERVED
+	COPY	S3, V0
+	% Put all bytes in to one single word
+	SLL		S0, S0, 18 % Hours 	 % Move 24-bits
+	SLL		S1, S1, 10 % Minutes % Move 16-bits
+	SLL		S2, S2, 8  % Seconds % Move 8-bits
+	% Get final word
+	ADDU	S0, S0, S1
+	ADDU	S0, S0, S2
+	ADDU	S0, S0, S3 % Best Timer is in S0 now
+	% Check if the timer is equal to 0
+	BNE		S0, R0, .CompareTimers
+	NOP
+	% If is it means is the 1st time the player beated the pit
+	% set the timer as FFFFFFFF
+	LUI		S0, FFFF
+	ORI		S0, S0, FFFF
+	% Compare Timers
+	.CompareTimers
+	LAW		T1, $Timer_Total
+	SLTU	T0, T1, S0
+	BEQ		T0, R0, .End % If current timer wasn't lower
+	NOP
+	% Save new timer
+	% Get each byte individually
+	LIO		T0, $Timer_Total % save address in t0
+	LABU	S0, $Timer_Total % hours
+	LBU		S1, 1 (T0) %  minutes
+	LBU		S2, 2 (T0) %  seconds
+	LBU		S3, 3 (T0) %  milliseconds
+	LIO 	A1, *BestTimeClassic_HH
+	JAL 	~Func:set_variable
+	COPY	A2, S0
+	LIO 	A1, *BestTimeClassic_MM
+	JAL 	~Func:set_variable
+	COPY	A2, S1
+	LIO 	A1, *BestTimeClassic_SS
+	JAL 	~Func:set_variable
+	COPY	A2, S2
+	LIO 	A1, *BestTimeClassic_MS
+	JAL 	~Func:set_variable
+	COPY	A2, S3
+	.End
+	POP		RA, V0, A1, A2, S0, S1, S2, S3
+	JR 		RA
+	NOP
+}
+
+%% Ruby King's Scripts
+#new:Script $Script_Init_RubyKing
+{
+	Call	BindNpcIdle		( .Npc:Self $Script_RubyKing_Idle )
+	Call    BindNpcDefeat 	( .Npc:Self $Script_TrackOutcome_Boss )
+	Return
+	End
+}
+	
+	#new:Script $Script_RubyKing_Idle
+{
+	Call	SetSelfVar ( 0 .False )
+	Loop
+		Call	GetSelfVar ( 0 *Var[0] )
+		If *Var[0] == 1
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Wait	3 % wait until mario start falling from the pipe
+	If *Flag_Chpt1 == .True % mario already knows he is in a cycle
+		Exec	$Script_Cutscene_Ruby2 *MapVar[D]
+		Exec	$SkipCutscene_Ruby2
+		Loop
+			DoesScriptExist ( *MapVar[D] *Var[0] )
+			If *Var[0] == .False
+				BreakLoop
+			EndIf
+			Wait 1
+		EndLoop
+		Wait	1
+		Goto	StartBattle
+	EndIf
+	Exec	$Script_Cutscene_Ruby *MapVar[D]
+	Exec	$SkipCutscene_Ruby
+	Loop
+		DoesScriptExist ( *MapVar[D] *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Label	StartBattle
+	Wait	5
+	Call	StartBossBattle 	 ( A1 ) % .Song:RubyKing
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Ruby
+{
+	Wait	27` % Wait until Mario fall from the pipe
+	Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[200.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+	Wait	15` % wait until the camera zoom in
+	Call	DisablePartnerAI ( 0 )
+	Set		*Var[1] $String_Partner_Start
+	Exec 	$Script_Partner_Dialog1 % read var1
+	% Flip Mario
+	Call 	ShowEmote			( .Npc:Self .Emote:Question 90` 20` 0 0 0 0 0 )
+	Call 	PlaySoundAtPlayer 	( 0263 0 )
+	Call	SetPlayerAnimation  ( 00080022 ) % Look around
+	Loop 2
+		Call   	InterpPlayerYaw 	( 90` 0 )
+		Wait	15`
+		Call   	InterpPlayerYaw 	( -90` 0 )
+		Wait	15`
+	EndLoop
+	Wait	17`
+	% Dissapear king
+	Call    802CFD30 ( .Npc:Self 7 *Fixed[0.0] 0 0 0 )
+	Call	SetNpcAnimation		( .Npc:Self 007F1511 ) % idle
+	% Start Mario's Movement
+	Call	EnablePartnerAI
+	% Move camera
+	SetF 	*Var[A] *Fixed[175.0]
+	Thread
+		Call 	AdjustCam ( .Cam:Default *Fixed[0.3] *Var[A] *Fixed[200.0] *Fixed[20.0] *Fixed[-7.0] )
+	EndThread
+	Call	GetPlayerPos	( *Var[0] 0 *Var[1] )
+	Add		*Var[0] 170`
+	Call	SetPlayerSpeed		( *Fixed[0.1] )
+	Call	PlayerMoveTo		( *Var[0] *Var[1] 100` ) % X, Z, Weight (Need to be above 0)
+	Wait    15`
+	Call	DisablePlayerPhysics ( .True )
+	Call 	ShowEmote			( .Default .Emote:Exclamation 45` 20` 0 0 0 0 0 )
+	Call 	PlaySoundAtPlayer 	( 0262 0 )
+	Call    SetPlayerAnimation 	( 0001002B ) % Surprised
+	% King Reappears
+	Call	GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 40`
+	Call	SetNpcPos 			( .Npc:Self *Var[0] *Var[1] *Var[2] )
+	Call	PlaySound			( 200F ) % Appearing
+	Set  	*Var[1]  0
+	Loop    10` 
+		Add  *Var[1]  24`
+		Call     802CFD30 ( .Npc:Self 7 *Var[1] 0 0 0 )
+		Wait     1 
+	EndLoop
+	Wait	10`
+	Call    SetPlayerAnimation 	( 00010006 ) % Ready to Jump
+	Call	SetNpcAnimation		( .Npc:Self 007F1512 )
+	Wait	10`
+	Call	SetNpcAnimation		( .Npc:Self 007F1513 )
+	Wait	20`
+	Call	SetNpcAnimation		( .Npc:Self 007F1514 )
+	Wait	10`
+	Set 	*Flag_Skip .False
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Ruby2
+{
+	Wait	30` % Wait until Mario fall from the pipe
+	% Dissapear king
+	Call    802CFD30 ( .Npc:Self 7 *Fixed[0.0] 0 0 0 )
+	Call	SetNpcAnimation		( .Npc:Self 007F1511 ) % idle
+	% Start Mario's Movement
+	Call	GetPlayerPos	( *Var[0] 0 *Var[1] )
+	Add		*Var[0] 170`
+	Call	SetPlayerSpeed		( *Fixed[0.1] )
+	Call	PlayerMoveTo		( *Var[0] *Var[1] 50` ) % X, Z, Weight (Need to be above 0)
+	Wait    15`
+	Call	DisablePlayerPhysics ( .True )
+	% King Reappears
+	Call	GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 50`
+	Call	SetNpcPos 			( .Npc:Self *Var[0] *Var[1] *Var[2] )
+	Call	PlaySound			( 200F ) % Appearing
+	Set  	*Var[1]  0
+	Loop    10` 
+		Add  *Var[1]  24`
+		Call     802CFD30 ( .Npc:Self 7 *Var[1] 0 0 0 )
+		Wait     1 
+	EndLoop
+	Wait	10`
+	Call	SetNpcAnimation		( .Npc:Self 007F1512 )
+	Wait	10`
+	Call	SetNpcAnimation		( .Npc:Self 007F1513 )
+	Wait	20`
+	Call    SetPlayerAnimation 	( 00010020 ) % ready
+	Call	SetNpcAnimation		( .Npc:Self 007F1514 )
+	Set 	*Flag_Skip .False
+	Wait	10`
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Ruby
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetPlayerFlagBits	( 00007000 .False ) % Stop PlayerMoveTo
+			Call    SetPlayerAnimation 	( 00010006 ) % Ready to Jump
+			Call	EnablePartnerAI
+			Call	SetNpcAnimation		( .Npc:Self 007F1514 )
+			Call    802CFD30 			( .Npc:Self 7 *Fixed[240.0] 0 0 0 ) % make the king visible
+			Call 	SetPlayerPos		( -699` -64` 271` )
+			Call    ResetCam   	( .Cam:Default 1000` ) % Reset the camera back to normal % camID Speed
+			Call	GetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+			Set		*Var[3] *Var[0]
+			Add		*Var[3] 40`
+			Call	SetNpcPos 			( .Npc:Self *Var[3] *Var[1] *Var[2] )
+			Call   	InterpPlayerYaw 	( 90` 0 )
+			% Check if Mario's Physics are Enabled
+			% bit4=PlayerPhysics
+			Call 	$ReadBitFlag ( 8010EFCA .False .False 4 *Var[0] )
+			If *Var[0] == .False % DisablePlayerPhysics == False
+				Call 	DisablePlayerPhysics ( .True )
+			EndIf
+			Wait	5
+			% Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Ruby2
+{
+	Set *Flag_Skip .True
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll 2
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			Call	SetPlayerFlagBits	( 00007000 .False ) % Stop PlayerMoveTo
+			Call    SetPlayerAnimation 	( 00010020 ) % ready
+			Call	EnablePartnerAI
+			Call	SetNpcAnimation		( .Npc:Self 007F1514 )
+			Call    802CFD30 			( .Npc:Self 7 *Fixed[240.0] 0 0 0 ) % make the king visible
+			Call 	SetPlayerPos		( -699` -64` 271` )
+			Call    ResetCam   	( .Cam:Default 1000` ) % Reset the camera back to normal % camID Speed
+			Call	GetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+			Set		*Var[3] *Var[0]
+			Add		*Var[3] 50`
+			Call	SetNpcPos 			( .Npc:Self *Var[3] *Var[1] *Var[2] )
+			Call   	InterpPlayerYaw 	( 90` 0 )
+			% Check if Mario's Physics are Enabled
+			% bit4=PlayerPhysics
+			Call 	$ReadBitFlag ( 8010EFCA .False .False 4 *Var[0] )
+			If *Var[0] == .False % DisablePlayerPhysics == False
+				Call 	DisablePlayerPhysics ( .True )
+			EndIf
+			Wait	5
+			% Fade Screen Brightness
+			SetF	*Var[0] *Fixed[25.0] % speed
+			SetF	*Var[1] *Fixed[5.0]  % fully bright
+			ExecWait $Script_FadeScreenIn
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll 2
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+	
+	% Pipe Spawning %% Is declared in TrackBattle.mpat, but isn't used here
+	% I don't want to import PitMain.mpat just for this
+   #new:Script $PipeSpawning
+{
+	Return
+	End
+}
+   
+	#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignA 80000000 )
+	Call     AssignScript 	( $Script_ReadSign ) %% Loaded from SignStringLoader.mpat
+	Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe 80000000 )
+	Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:Chest 80000000 )
+	Switch *MapVar[5]
+		Case == 1 % Tier S
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_HPDrain )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_DamageDodgeA )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_DamageDodgeB )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_LastStand )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_PowerBounce )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_MegaRush )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_AllorNothing )				
+				EndSwitch
+		Case == 2 % Tier A
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_PUpDDown )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_DDownJump )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_PowerRush )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_DoubleDip )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_PowerQuake )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_QuakeHammer )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_QuickChange )
+				EndSwitch
+		Case == 3 % Tier B
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_PowerPlusA )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_PowerPlusB )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_PDownDUp )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_DefendPlus )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_CloseCall )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_FlowerFinder )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_HeartFinder )
+				Case == 7
+					Call	 AssignFlag  	( *Flag_FlowerSaverA )
+				Case == 8
+					Call	 AssignFlag  	( *Flag_FlowerSaverB )
+				Case == 9
+					Call	 AssignFlag  	( *Flag_PowerJump )
+				Case == A
+					Call	 AssignFlag  	( *Flag_DizzyAttack )
+				Case == B
+					Call	 AssignFlag  	( *Flag_Multibounce )
+				EndSwitch
+		Case == 4 % Tier C
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_ZapTap )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_DodgeMaster )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_HappyFlowerA )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_HappyFlowerB )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_DeepFocusA )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_DeepFocusB )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_DeepFocusC )
+				Case == 7
+					Call	 AssignFlag  	( *Flag_JumpCharge )
+				Case == 8
+					Call	 AssignFlag  	( *Flag_SJumpChg )
+				Case == 9
+					Call	 AssignFlag  	( *Flag_FeelingFine )
+				Case == A
+					Call	 AssignFlag  	( *Flag_IcePower )
+				EndSwitch
+		Case == 5 % Tier D
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_HappyHeartA )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_HappyHeartB )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_FireShield )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_GroupFocus )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_ShrinkStomp )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_TripleDip )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_MegaQuake )
+				Case == 7
+					Call	 AssignFlag  	( *Flag_DizzyStomp )
+				Case == 8
+					Call	 AssignFlag  	( *Flag_SleepStomp )
+				EndSwitch
+		Case == 6 % Tier E
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_PowerSmash )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_DDownPound )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_SpikeShield )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_SmashCharge )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_Refund )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_MegaJump )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_MegaSmash )
+				EndSwitch
+		Case == 7 % Tier F
+			Switch *MapVar[2]
+				Case == 0
+					Call	 AssignFlag  	( *Flag_Hammer_Throw )
+				Case == 1
+					Call	 AssignFlag  	( *Flag_Pretty_Lucky )
+				Case == 2
+					Call	 AssignFlag  	( *Flag_Chill_Out )
+				Case == 3
+					Call	 AssignFlag  	( *Flag_Money_Money )
+				Case == 4
+					Call	 AssignFlag  	( *Flag_PayOff )
+				Case == 5
+					Call	 AssignFlag  	( *Flag_Spin_Smash )
+				Case == 6
+					Call	 AssignFlag  	( *Flag_Runaway_Pay )
+				Case == 7
+					Call	 AssignFlag  	( *Flag_SSmashChg )
+				Case == 8
+					Call	 AssignFlag  	( *Flag_Peekaboo )
+				Case == 9
+					Call	 AssignFlag  	( *Flag_LuckyDay )
+				Case == A
+					Call	 AssignFlag  	( *Flag_SlowGo )
+				%%Partners%%
+				Case == B 
+					Call	 AssignFlag  	( *Flag_Goombario )
+				Case == C
+					Call	 AssignFlag  	( *Flag_Kooper )
+				Case == D 
+					Call	 AssignFlag  	( *Flag_Bombette )
+				Case == E 
+					Call	 AssignFlag  	( *Flag_Parakarry )
+				Case == F 
+					Call	 AssignFlag  	( *Flag_StrangeSack )
+				Case == 10
+					Call	 AssignFlag  	( *Flag_Bow )
+				Case == 11
+					Call	 AssignFlag  	( *Flag_Watt )
+				Case == 12
+					Call	 AssignFlag  	( *Flag_Sushie )
+				Case == 13
+					Call	 AssignFlag  	( *Flag_Lakilester )
+				%%Misc%%
+				Case == FB
+					Call	 AssignFlag  	( *Flag_BonetailRemains )
+				Case == FC
+					Call	 AssignFlag  	( *Flag_RubyCrown )
+				Case == FD
+					Call	 AssignFlag  	( *Flag_Roguelike_Badges )
+				Case == FE
+					Call	 AssignFlag  	( *Flag_Coins1 )
+				Case == FF
+					Call	 AssignFlag  	( *Flag_Coins2 )
+			EndSwitch
+	EndSwitch
+	Call     AssignScript 	( $Script_UseChest )
+	Return
+	End
+}
+   
+   #new:VectorList $VectorList_ChestPath
+{
+% {Path3f:{Path1}
+-478.000000 170.000000 307.000000
+-479.000000 103.000000 307.000000
+-481.000000 -62.000000 307.000000
+}
+
+	
+	#new:Script $ChestPath
+{
+	Set  	*Var[9]  2 % entity index 
+	Call     LoadPath    	( 0000000C $VectorList_ChestPath 00000003 00000000 )
+	Loop     
+		Call     GetNextPathPos ( )
+		Call     $GetPos ( *Var[9] *Var[1] *Var[2] *Var[3] )
+		Wait     1 
+			If  *Var[0]  ==  00000000 
+				BreakLoop
+			EndIf
+	EndLoop
+	Call     PlaySoundAt 	( 000001AF 00000000 *Var[1] *Var[2] *Var[3] )
+	Thread
+		Call     PlayEffect  	( ~FX:Steam:Ring FFFFFFF1 00000000 00000000 0000000A 0000000A 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call     PlayEffect  	( ~FX:Steam:Ring 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call     PlayEffect  	( ~FX:Steam:Ring 0000000F 00000000 00000000 0000015E 0000015E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call     ShakeCam    	( .Cam:Default 00000000 0000001E *Fixed[1.0] )
+	EndThread
+	Return
+	End
+}
+  
+  #new:Script $Script_UseChest
+{
+	If *MapVar[5] == 7
+		If *MapVar[2] == FD % Roguelike Mode
+			Set		*Flag_Roguelike_Badges 0
+		Else
+			Switch *MapVar[2]
+				CaseOR == FE % First Time Mario get Coins from a Chest
+				CaseOR == FF % Second Time Coins
+					ExecWait $CoinChest %% loaded from CoinChest.mpat
+					Return
+				EndCaseGroup
+			EndSwitch
+		EndIf
+	EndIf
+	Set  *Var[A]  *MapVar[1]
+	Set  *Var[B]  2 % Add the item as a Badge
+	% Check if was the 1st time beating a pit
+	Switch *MapVar[2]
+		CaseOR == FB % Bonetail's Remains
+		CaseOR == FC % Ruby Crown
+			Set  *Var[B]  1 % Add the item as a Key Item
+		EndCaseGroup
+	EndSwitch
+	ExecWait $Script_OpenChest
+	Call DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+	#string $CoinsString
+{
+	[STYLE:CENTER][...]
+	Well... [PAUSE:0A]it looks like you have
+	opened all treasure chests.
+	[WAIT][NEXT][...]
+	But I still don't want the fun
+	to be finished, so take this...[PAUSE:10]
+	[WAIT][NEXT][...]
+	Have fun [HEART]!
+	[WAIT][END]
+}
+   
+#new:Script $Script_OpenChest
+{
+	% Move to the center of the chest
+	Call PlayerMoveTo ( -503` 267` 12` ) % ~Vec3d:Pos_OpenChest
+	Call InterpPlayerYaw ( -90` 0 )
+	Set  *Flag_LockInputs_GiantChest .False
+	Call ModifyColliderFlags ( .True ~Collider:Col0 7FFFFE00 ) % enable exit
+	Set  *Var[0]  *Var[A] 
+	If  *Var[A]  !=  00000000 
+		ExecWait $Script_GetItem 
+	EndIf
+	/%If *Flag_Mode_Rogue == 1 % Isn't neccesary on Pit100
+		Call	$Function_ActivateBadge % Activate the current badge automatically
+		Goto BypassAddingBadge
+	EndIf%/
+	Switch  *Var[B] 
+		Case  ==  0
+			Call     AddItem     	( *Var[A] *Var[0] )
+		Case  ==  1
+			Call     AddKeyItem  	( *Var[A] )
+		Case  ==  2
+			Call     AddBadge    	( *Var[A] *Var[0] )
+			ExecWait $Script_CheckBadgeFlags % Check the player have all Badges his supposed to have, if not give the badge to him
+	EndSwitch
+	If *Var[B] == 2 % Add Badge
+		Add *BadgeList 1 % Add one badge to badge counter to the sign at Floor 0/Lobby
+		Switch *BadgeList % Challenge Completed
+			Case >= 62`
+				Set	*Flag_Cheev_Classic_07 .True
+				Set	*Flag_Cheev_Classic_06 .True
+				Set	*Flag_Cheev_Classic_05 .True
+				Set	*Flag_Cheev_Classic_04 .True
+			Case >= 40`
+				Set	*Flag_Cheev_Classic_06 .True
+				Set	*Flag_Cheev_Classic_05 .True
+				Set	*Flag_Cheev_Classic_04 .True
+			Case >= 20`
+				Set	*Flag_Cheev_Classic_05 .True
+				Set	*Flag_Cheev_Classic_04 .True
+			Case >= 5
+				Set	*Flag_Cheev_Classic_04 .True
+		EndSwitch
+		If *Flag_Chpt1 == .False % Mario still haven't realized he is in a cycle?
+			Set		*Var[0] *Flag_BonetailRemains
+			Add		*Var[0] *Flag_RubyCrown
+			If	*Var[0] >= 2 % Both Pits beated
+				If *Flag_Mistar == .True % The player already beated the Maze too
+					ExecWait $Script_EverythingBeated
+					Return
+				EndIf
+			EndIf
+		EndIf
+	Else % Mario got a key item
+		% Dialog to appear after getting the key item
+		Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[300.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+		Wait	5
+		Call	DisablePlayerPhysics ( .True )
+		Call	DisablePartnerAI ( 0 )
+		% Get how many stuff has been beated
+		Set		*Var[0] *Flag_BonetailRemains
+		Add		*Var[0] *Flag_RubyCrown
+		Add		*Var[0] *Flag_Mistar
+		If *Var[0] >= 3 % everything beated
+			ExecWait $Script_EverythingBeated
+			Return
+		EndIf
+		Exec	$Script_Cutscene_PitBeated1 *MapVar[D]
+		Exec	$SkipCutscene_PitBeated1
+		Loop
+			DoesScriptExist ( *MapVar[D] *Var[0] )
+			If *Var[0] == .False
+				If *MapFlag[00] == .True % Cutscene Skipped
+					Set *MapFlag[00] .False
+					% Move Partner
+					Call	GetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+					Add		*Var[0] 400`
+					Call	SetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+					Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+					Wait 1
+					Goto CutsceneSkipped1
+				EndIf
+				BreakLoop
+			EndIf
+			Wait 1
+		EndLoop
+		Set 	*Flag_Skip .False
+		Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+		Call	GetNpcPos ( .Npc:Partner *Var[0] .False *Var[1] )
+		Add 	*Var[0] 400`
+		Thread
+			Call	GetCurrentPartnerID ( *Var[2] )
+			Switch *Var[2]
+				Case == .Partner:Goombario
+					Call	SetNpcAnimation ( .Actor:Partner 00010003 )
+				Case == .Partner:Kooper
+					Call	SetNpcAnimation ( .Actor:Partner 00020005 )
+				Case == .Partner:Bombette
+					Call	SetNpcAnimation ( .Actor:Partner 00030007 )
+				Case == .Partner:Bow
+					Call	SetNpcAnimation ( .Actor:Partner 00050002 )
+				Case == .Partner:Sushie
+					Call	SetNpcAnimation ( .Actor:Partner 00070003 )
+			EndSwitch
+			Call	NpcMoveTo ( .Npc:Partner *Var[0] *Var[1] 60` )
+		EndThread
+		% Get how many stuff has been beated
+		Set		*Var[0] *Flag_BonetailRemains
+		Add		*Var[0] *Flag_RubyCrown
+		Add		*Var[0] *Flag_Mistar
+		If	*Var[0] <= 1 % Only one Pit has been beated
+			% Mario walk to the pipe
+			Call	GetPlayerPos ( *Var[0] .False *Var[1] )
+			Add		*Var[0] 400`
+			Call	PlayerMoveTo ( *Var[0] *Var[1] 80` )
+		Else % Both things has been beated
+			If *Var[0] >= 3 % The player already beated both pits and the maze
+				ExecWait $Script_EverythingBeated
+				Return
+			EndIf
+			Call	GetPlayerPos ( *Var[0] .False *Var[1] )
+			Add		*Var[0] 50`
+			Call	PlayerMoveTo ( *Var[0] *Var[1] 30` )
+			% Flip Mario
+			Call   	InterpPlayerYaw 	( 90` 0 )
+			Wait	30`
+			Call   	InterpPlayerYaw 	( -90` 0 )
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			Call	SetPlayerAnimation ( .PlayerAnim:Thinking )
+			Call 	PlaySoundAtPlayer	( 0263 .Default )
+			Call 	ShowEmote 		 	( .Default .Emote:Question -45` 20` 0 0 0 0 0 )
+			Wait	50`
+			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+			% Mario walk to the pipe
+			Call	GetPlayerPos ( *Var[0] .False *Var[1] )
+			Add		*Var[0] 200`
+			Call	PlayerMoveTo ( *Var[0] *Var[1] 90` )
+		EndIf
+		Label	CutsceneSkipped1
+		Call    PlaySound   	( 0163 ) % Using pipe sound
+		If	*Flag_DungeonOpened == .False
+			Call	GotoMapSpecial ( "pre_03" 3 E )
+		Else
+			Thread
+				Wait	4
+				Call    ResetCam    	( .Cam:Default 1000` )
+			EndThread
+			Call	GotoMapSpecial ( "pre_03" 2 E )
+		EndIf
+		Wait	25`
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_PitBeated1
+{
+	Set		*Var[1] $String_Mario_PitBeated_1stTime
+	ExecWait $Script_Partner_Dialog1 % read var1
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	Call	SetPlayerAnimation ( .PlayerAnim:NodYes )
+	Wait	30`
+	Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_PitBeated1
+{
+	Set	*Flag_Skip .True % show skip text
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			% After cutscene code
+			Set *MapFlag[00] .True
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+			Wait 1
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+% Mistar talk with Mario
+#new:Script $Script_EverythingBeated
+{
+	% Flags
+	% 80357068 = FF
+	% 80357056 = FF
+	Call 	AdjustCam ( .Cam:Default *Fixed[8.0] *Fixed[0.0] *Fixed[300.0] *Fixed[20.0] *Fixed[-7.0] ) % Do the first zoom % camID ? RightOffset BoomLenght BoomPitch ViewPitch
+	Wait	5
+	Call	DisablePartnerAI ( .True )
+	% Mario - Walk a little bit to the left
+	Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+	Set		*Var[3] *Var[0]
+	Add		*Var[3] 30`
+	Call	PlayerMoveTo ( *Var[3] *Var[2] 30` )
+	Exec	$Script_Cutscene_Mistar1 *MapVar[D]
+	Exec	$SkipCutscene_Mistar1
+	Loop
+		DoesScriptExist ( *MapVar[D] *Var[0] )
+		If *Var[0] == .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Set 	*Flag_Skip .False
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Set 	*Flag_Chpt1 .True % Dimentio's Quest has started
+	% Is a beta build?
+	If 	*Flag_EarlyBuild == .True
+		Call	ShowMessageAtScreenPos ( $String_Mistar_19_Beta A0 28 )
+		Set		*Flag_EarlyBuildBeated .True
+		% Enable Player Input
+		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
+		If *Var[0] == .True % DisablePlayerInputs == True
+			Call 	DisablePlayerInput ( .False )
+		EndIf
+	EndIf
+	% Cutscene - Mistar spawn Black Pit's pipe
+	Call	DisablePartnerAI ( .True )
+	Call	SetNpcAnimation ( 1 00201413 ) % ;D
+	Call    PlaySound ( 0074 )
+	Loop 3
+		Call	InterpNpcYaw ( 1 90` 0 )
+		Wait	8
+		Call	InterpNpcYaw ( 1 -90` 0 )
+		Wait	8
+	EndLoop
+	Call    StopSound ( 0074 )
+	Call	GetNpcPos ( 1 *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 10` % y
+	Call	PlaySound	 ( 0241 ) % Focus
+	Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+	Set		*Var[0] 00080016 % :O
+	Set		*Var[1] 1 % !
+	Set		*Var[2] 30`
+	Exec 	$SetPlayerAnimation
+	Call	PlaySound 	( 002F )
+	Call	ShakeCam ( .Cam:Default 0 30` *Fixed[1.0] )
+	Wait	10`
+	% pipe spawns
+	Call	SetNpcAnimation ( 1 00201401 ) % idle
+	Set		*Var[0] 0001002B % moving hands
+	Set		*Var[1] .False
+	Set		*Var[2] 30`
+	Exec 	$SetPlayerAnimation
+	% pipe spawns
+	Thread
+		Call	PlaySound 	( 002F )
+		Call	ShakeCam ( .Cam:Default 0 20` *Fixed[0.7] )
+		Call 	PlaySound  	( 208E ) % Pipe Spawning Sound
+		Call	ShakeCam ( .Cam:Default 0 29` *Fixed[0.7] )
+	EndThread
+	Call	ParentColliderToModel 	( ~Collider:pipe_top ~Model:pipe_top )
+	Call 	MakeLerp		( 50` 0` 50` .Easing:CosInOut )
+	Label	2
+	Call	UpdateLerp
+	Set		*Var[2]  0
+	Sub		*Var[2]  *Var[0]
+	Call	GetNpcPos ( 1 *Var[4] .False *Var[5] )
+	Add		*Var[5] 37` % z
+	Call	TranslateGroup	( ~Model:pipe *Var[4] *Var[2] *Var[5] )
+	Call	UpdateColliderTransform	( ~Collider:pipe_top )
+	Wait	1 
+	If	*Var[1] ==  1 
+		Goto	2
+	EndIf
+	% Mario jump to the pipe
+	Call 	GetModelCenter ( ~Model:pipe_top )
+	Call	SetPlayerSpeed 	( *Fixed[1.0] )
+	Call    SetPlayerJumpscale 	  ( *Fixed[1.2] )
+	Call	PlayerJump ( *Var[0] *Var[1] *Var[2] 15` )
+	% Entering Pipe Animation
+	Call	InterpPlayerYaw ( 90` 0 )
+	Wait	10`
+	Call	DisablePlayerPhysics ( .True )
+	Call 	$WriteBitFlag ( 8010EFCC .False 2 4 .True ) % Don't update animations (disables dust FXs too)
+	Call    SetPlayerFlagBits 	( 00200000 .False )
+	Call    PlaySound   	( 0163 ) % Pipe sfx
+	Call    GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+    Call    802D286C ( 00000800 ) % SetAnimationFlags
+	Call    802D2520 ( 00010002 5 2 1 1 .False ) % SetPlayerAnimationFX
+    Thread
+        Loop 40`
+            Add     *Var[1] -1 % y
+            Call    SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+            Wait    1
+        EndLoop
+    EndThread
+    Wait    10`
+	Call	GotoMapSpecial ( "bp_00" 2 7 )
+	Return
+	End
+}
+
+#new:Script $Script_Cutscene_Mistar1
+{
+	Wait	15`
+	% Spawn Mistar
+	Set		*Var[3] *Var[1]
+	Add		*Var[3] 20` % mistar y pos
+	Add		*Var[1] 30` % sparke fx y pos
+	Call	SetNpcPos ( 1 *Var[0] *Var[3] *Var[2] )
+	Call	PlaySound	 ( 0241 ) % Focus
+	Call    PlayEffect   ( ~FX:Sparkles:Star *Var[0] *Var[1] *Var[2] 20` )
+	Call	InterpPlayerYaw ( -90` 1 ) % Look to Mistar
+	Wait	10`
+	Exec    $MovePartnerBehindMario
+	Wait	25`
+	Call	SpeakToPlayer	( 1 0020140A 00201401 .Default $String_Mistar_1 )
+	/% Mario - Walk towards Mistar
+	Call	GetNpcPos ( 1 *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 28`
+	Call	PlayerMoveTo ( *Var[0] *Var[2] 20` )
+	Wait	10`%/
+	% Flip Mistar
+	% Left
+	Call     MakeLerp    	( 0 -180` 10` .Easing:Linear )
+	Loop
+		Call     UpdateLerp
+		Call     SetNpcRotation ( 1 0 *Var[0] 0 )
+		If  *Var[1]  ==  .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Wait	25`
+	% Right
+	Call     MakeLerp    	( -180` 0 10` .Easing:Linear )
+	Loop
+		Call     UpdateLerp
+		Call     SetNpcRotation ( 1 0 *Var[0] 0 )
+		If  *Var[1]  ==  .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Wait	15`
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_2 )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Wait	1
+	Call 	SetPlayerAnimation 	( 00080007 ) % hand to the ear
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_3 )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Wait	1
+	Call 	SetPlayerAnimation 	( .PlayerAnim:Thinking )
+	Wait	70`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Wait	5
+	Call 	SetMusicTrack 		( .Default .Song:ForeverForestWarning 00000000 00000008 )
+	Call 	SetPlayerAnimation 	( 00010003 ) % tired
+	Wait	50`
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_4 )
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_5 )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_6 )
+	Call 	SetPlayerAnimation 	( 00010028 ) % hmmm
+	Call 	PlaySoundAtPlayer 	( 0263 .Default ) % ?
+	Call 	ShowEmote 		  	( .Default .Emote:Question -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_7 )
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_8 )
+	Call 	SetPlayerAnimation 	( 00010023 ) % wtf
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_9 )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_10 )
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_11 )
+	Call 	SetPlayerAnimation 	( 0001002B ) % surprised2
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call	SpeakToPlayer		( 1 00201409 00201401 .Default $String_Mistar_12 )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Call 	PlaySoundAtPlayer 	( 0262 .Default ) % !
+	Call 	ShowEmote 		  	( .Default .Emote:Exclamation -45` 20` 0 0 0 0 0 )
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_13 )
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Wait	35`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_14 )
+	Call 	SetPlayerAnimation 	( 00080016 ) % surprised
+	Wait	35`
+	Call 	FadeOutMusic	   ( .Default 1 ) % Stop Music
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	% Turn to the left
+	Call     MakeLerp    	( 0 -180` 10` .Easing:Linear )
+	Loop
+		Call     UpdateLerp
+		Call     SetNpcRotation ( 1 0 *Var[0] 0 )
+		If  *Var[1]  ==  .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Call	SetNpcAnimation 	( 1 00201416 ) % sad
+	Wait	20`
+	Call 	SetMusicTrack 		( .Default .Song:PrisonerPeachTheme 1 00000008 )
+	Wait	40`
+	% Turn to the Right
+	Call     MakeLerp    	( -180` 0 10` .Easing:Linear )
+	Loop
+		Call     UpdateLerp
+		Call     SetNpcRotation ( 1 0 *Var[0] 0 )
+		If  *Var[1]  ==  .False
+			BreakLoop
+		EndIf
+		Wait 1
+	EndLoop
+	Wait	30`
+	Call	SpeakToPlayer		( 1 00201420 00201416 .Default $String_Mistar_15 )
+	Wait	10`
+	Call	SpeakToPlayer		( 1 00201420 00201416 .Default $String_Mistar_16 )
+	Call 	SetPlayerAnimation 	( .PlayerAnim:NodYes )
+	Wait	35`
+	Call 	SetPlayerAnimation 	( .PlayerAnim:Pray )
+	Wait	50`
+	Call	SetNpcAnimation 	( 1 00201401 ) % idle
+	Wait	10`
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140F 00201401 .Default $String_Mistar_17 )
+	Call 	SetPlayerAnimation 	( .PlayerAnim:ThumbsUp )
+	Wait	35`
+	Call 	SetMusicTrack 		( .Default .Song:TwinkTheme 0 20` )
+	Call 	SetPlayerAnimation 	( 00010002 ) % idle
+	Call	SpeakToPlayer		( 1 0020140D 00201401 .Default $String_Mistar_18 )
+	Call 	SetPlayerAnimation 	( .PlayerAnim:NodYes )
+	Wait	35`
+	% Jump
+	Call	PlaySoundAtPlayer	( 2081 .Default  ) % Jump
+	Call	InterpPlayerYaw		( -90` 1 )
+	Call	GetPlayerPos   		( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[1] 1` % y
+	Call    SetPlayerJumpscale 	  ( *Fixed[1.0] )
+	Call	PlayerJump ( *Var[0] *Var[1] *Var[2] F ) % xyz, height
+	Wait	15`
+	Call	SpeakToPlayer		( 1 0020140A 00201401 .Default $String_Mistar_19 )
+	Set 	*Flag_Skip .False
+	Return
+	End
+}
+
+#new:Script $SkipCutscene_Mistar1
+{
+	Set	*Flag_Skip .True % show skip text
+	Call 	$WriteAddress ( $SkipCs_Data 2 0 .False .False ) % nuke data
+	Loop % track Start Button
+		Call 	$ReadAddress ( $SkipCs_Data 0 *Var[0] .False .False )
+		If *Var[0] >= 3B % Start Button Holded Progress % 3B = Max
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
+			Set 	*Flag_Skip .False
+			% Fade Screen Brightness
+			SetGroup 0
+			SuspendAll .True
+			SetF	*Var[0] *Fixed[25.0]  % speed
+			SetF	*Var[1] *Fixed[255.0] % fully dark
+			ExecWait $Script_FadeScreenOut
+			% after cutscene code
+			Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+			Sub		*Var[0] 30`
+			Add		*Var[1] 20`
+			Call	SetNpcPos ( 1 *Var[0] *Var[1] *Var[2] )
+			Call 	SetPlayerAnimation 	( 00010002 ) % idle
+			Call	SetNpcAnimation 	( 1 00201401 ) % idle
+			Call	SetNpcYaw ( 1 90` )
+			Call	InterpPlayerYaw ( -90` 1 )
+			Call 	SetMusicTrack 	( .Default .Song:TwinkTheme 0 20` )
+			Kill	*MapVar[D]
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			ResumeAll .True
+			Thread % Fade Screen Brightness
+				SetF	*Var[0] *Fixed[25.0] % speed
+				SetF	*Var[1] *Fixed[5.0]  % fully bright
+				ExecWait $Script_FadeScreenIn
+			EndThread
+		EndIf
+		Wait 1
+		If *Flag_Skip == .False
+			BreakLoop
+		EndIf
+	EndLoop
+	Return
+	End
+}
+
+#string $String_Mistar_1
+{
+[STYLE:RIGHT][...]
+Okay I think we're safe here.
+[WAIT][END]
+}
+
+#string $String_Mistar_2
+{
+[STYLE:RIGHT][...]
+So, tell me Mario what do you
+think awaits us on that pipe?
+[WAIT][END]
+}
+
+#string $String_Mistar_3
+{
+[STYLE:RIGHT][...]
+The exit from this place you
+say?
+[WAIT][NEXT][...]
+Are you completely sure about
+that?
+[WAIT][END]
+}
+
+#string $String_Mistar_4
+{
+[STYLE:RIGHT][...]
+Your memory is playing tricks on
+you my friend.
+[WAIT][END]
+}
+
+#string $String_Mistar_5
+{
+[STYLE:RIGHT][...]
+You kinda have an idea of what
+is happening here.
+[WAIT][NEXT][...]
+That's thanks to those
+artifacts you got from the
+rulers of this Pits.
+[WAIT][END]
+}
+
+#string $String_Mistar_6
+{
+[STYLE:RIGHT][...]
+We aren't in just a Pit we are
+actually in someone else's game.
+[WAIT][END]
+}
+
+#string $String_Mistar_7
+{
+[STYLE:RIGHT][...]
+Yes, a world controlled by a
+powerful being just for his
+own amusement.
+[WAIT][END]
+}
+
+#string $String_Mistar_8
+{
+[STYLE:RIGHT][...]
+I didn't want to talk about
+this right here just by
+coincidence.
+[WAIT][NEXT][...]
+If you enter into that pipe
+you will go back to the moment
+you first fell into this place.
+[WAIT][END]
+}
+
+#string $String_Mistar_9
+{
+[STYLE:RIGHT][...]
+Is your memory starting to
+become clearer?
+[WAIT][NEXT][...]
+I suppose you got some kind
+of deja vus here and there.
+[WAIT][NEXT][...]
+As I said before that's thanks
+to the artifacts you got from
+the Pit's rulers.
+[WAIT][NEXT][...]
+Because of that you're the
+only one one who's had deja vu.
+[WAIT][END]
+}
+
+#string $String_Mistar_10
+{
+[STYLE:RIGHT][...]
+Everyone else will think it's 
+the first time they met you.
+[WAIT][NEXT][...]
+So basically at the moment you
+fell inside this place.
+[WAIT][NEXT][...]
+You entered the playground of
+someone else's twisted mind.
+[WAIT][END]
+}
+
+#string $String_Mistar_11
+{
+[STYLE:RIGHT][...]
+We are in his reality and he
+has a lot of power over this
+place.
+[WAIT][NEXT][...]
+I'm afraid he can even see
+every corner of this place.
+[WAIT][END]
+}
+
+#string $String_Mistar_12
+{
+[STYLE:RIGHT][...]
+Hehe, don't worry he has a lot
+of control over this place.
+[WAIT][NEXT][...]
+But there are parts where it
+is more difficult for him to
+look at.
+[WAIT][NEXT][...]
+Like this place.
+[WAIT][NEXT][...]
+The deeper we are in the Pit
+the harder it gets for him.
+[WAIT][NEXT][...]
+That's why I wanted to talk
+with you here.
+[WAIT][END]
+}
+
+#string $String_Mistar_13
+{
+[STYLE:RIGHT][...]
+The energy and willpower to
+leave this place.
+[WAIT][NEXT][...]
+Is so powerful in this floor
+that it's too hard for him to
+see this floor.
+[WAIT][END]
+}
+
+#string $String_Mistar_14
+{
+[STYLE:RIGHT][...]
+Yes, Bonetail and the King
+want to leave this place as
+much as you do.
+[WAIT][END]
+}
+
+#string $String_Mistar_15
+{
+[STYLE:RIGHT][...]
+They were my friends, Mario.
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+But when all of us were about
+to defeat him.
+He was able to counter attack.
+[WAIT][NEXT][...]
+So he trapped both Bonetail
+and the Ruby King in this Floor.
+[WAIT][NEXT][...]
+And imprisoned me in that maze.
+[WAIT][END]
+}
+
+#string $String_Mistar_16
+{
+[STYLE:RIGHT][...]
+The influence that being has
+over this place is tremendously
+powerful.
+[WAIT][NEXT][...]
+So much time has passed
+since that moment.
+[WAIT][NEXT][...]
+Who knows if Bonetail
+and the King still remember
+me...
+[WAIT][NEXT][...]
+Or if they still even know who
+they were...
+[WAIT][NEXT][...]
+...
+[WAIT][NEXT][...]
+At this point, Bonetail and the
+King are just trying to fight
+against anything that faces them.
+[WAIT][NEXT][...]
+I do believe there's still some
+of their old selves still in them.
+[WAIT][END]
+}
+
+#string $String_Mistar_17
+{
+[STYLE:RIGHT][...]
+That's why I was able to snap
+out of it.
+[WAIT][NEXT][...]
+I know now because my friends
+have your back.
+[WAIT][NEXT][...]
+Mario... you will be able to
+remember all of this even if you
+restart the Pit!
+[WAIT][END]
+}
+
+#string $String_Mistar_18
+{
+[STYLE:RIGHT][...]
+We need to finally leave this
+place in one way or another!
+[WAIT][NEXT][...]
+We need to do this for Bonetail
+and the King!
+[WAIT][NEXT][...]
+And all the other poor souls
+that want to leave this place!
+[WAIT][NEXT][...]
+Like Cheato and all your
+friends!
+[WAIT][NEXT][...]
+Let's go Mario!
+[WAIT][END]
+}
+
+#string $String_Mistar_19
+{
+[STYLE:RIGHT][...]
+Well obviously we can't use that
+pipe, so let's use this!
+[WAIT][END]
+}
+
+#string $String_Mistar_19_Beta
+{
+[STYLE:INSPECT][...]
+[Color:06]Hey elDexter here!
+Black Pit's creator :)
+[WAIT][NEXT][...]
+Looks like you reached the
+end of the beta!
+[WAIT][NEXT][...]
+Hope you enjoyed the hack
+so far.
+[WAIT][NEXT][...]
+In the final version, you
+will be able to explore the
+final part of the hack.
+[WAIT][NEXT][...]
+In the meantime, you can still
+complete all those challenges
+you still have left to do :D!
+[WAIT][NEXT][...]
+Thank you!
+[WAIT][END]
+}
+
+#string $String_Mario_PitBeated_1stTime
+{
+[STYLE:RIGHT][...]
+Looks like we finally reached the
+exit.
+[WAIT][NEXT][...]
+I just want to say Mario, it was
+a total pleasure.
+[WAIT][NEXT][...]
+Okay time to leave,
+once and for all.
+[WAIT][NEXT][...]
+Let's go Mario!
+[WAIT][END]
+}
+  
+#new:Script $Script_GetItem
+{
+	0:  SetGroup 00000000 
+    C:  Call     802D5830 ( 00000002 )
+   28:  Call     ShowGotItem 	( *Var[0] 00000000 00000000 )
+   40:  Call     802D5830 ( 00000000 )
+   50:  Return
+   60:  End
+}
+  
+	
+%%
+% Exits
+%%
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0 .Trigger:WallPush ~Collider:Col0 00000001 00000000   
+	Return
+	End
+}
+	
+	#new:Script $CommingDownPipe
+{
+	Set *Var[A] 0				% entry index
+ 	Set *Var[B] ~Collider:Col1 % pipe collider id
+	Call	DisablePlayerInput ( .True )
+	ExecWait $FallingDownPipe
+	% Start - Arriving at Floor 100 Cutscene
+	Call     SetNpcVar ( .Npc_Bonetail 0 .True )
+	Return
+	End	
+}
+
+#new:Script $Script_Exit0
+{
+	Set *Var[A] 1					% entry index
+	Set *Var[B] ~Collider:Col0		% pipe collider id
+	ExecWait $PipeAnimationX 
+	Return
+	End
+}
+	
+	#new:Script $PipeAnimationX
+{
+	Call     802D249C ( *Var[0] )
+	If  *Var[0]  ==  0
+		Return
+	EndIf
+	Call     802D1DD0 ( *Var[0] )
+	If  *Var[0]  ==  26` 
+		Return
+	EndIf
+	Call     GetCurrentPartner ( *Var[0] )
+	If  *Var[0]  !=  0 
+		Call     GetCurrentPartnerID 	( *Var[1] )
+		If  *Var[1]  !=  6 
+			Return
+		Else
+			Call     802D2B6C
+			Call     DisablePlayerInput 	( .True )
+		EndIf
+	Else
+		Call     DisablePlayerInput 	( .True )
+	EndIf
+	SetGroup 1B 
+	Call     $Function_80240000
+	Call     DisablePlayerPhysics 	( .True )
+	Call     ModifyColliderFlags 	( 0 *Var[B] 7FFFFE00 )
+	Set  *Var[0]  *Var[A] 
+	Call     $Function_802400F0
+	Set  *Var[5]  *Var[1] 
+	Set  *Var[6]  *Var[2] 
+	Add  *Var[6]  2
+	Set  *Var[7]  *Var[3] 
+	Set  *Var[8]  *Var[4] 
+	Add  *Var[8]  180`
+	If  *Var[4]  >=  360`
+		Sub  *Var[4]  360`
+	EndIf
+	Call     InterpPlayerYaw 	( *Var[8] 1 )
+	Wait     1
+	Call	 DisablePartnerAI	( .True )
+	Call     PlaySound   	( 0163 ) % pipe sound
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Call     SetPlayerPos 	( *Var[0] *Var[6] *Var[7] )
+	Call     SetPlayerAnimation 	( .PlayerAnim:StandStill )
+	Call     802D286C ( 00000800 )
+	Call     802D2520 ( 00010000 00000005 00000003 00000001 00000001 00000000 )
+	Thread
+		Wait     8
+		Call     HidePlayerShadow 	( .True )
+	EndThread
+  % Animate moving left into the pipe
+	Thread
+		Call GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+		Wait 4`
+		Loop 40
+			% Aument Mario's X pos each frame
+			Add  *Var[0] 1
+			Call SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+			Wait 1
+		EndLoop
+	EndThread
+	Wait    25`
+	Call	GotoMapSpecial ( "pre_03" 2 E )
+	Return
+	End
+}
+  
+  #new:Function $Function_802400F0
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+  
+  #new:Function $Function_8024023C
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S0, 18 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SDC1      F20, 20 (SP)
+   14:  LW        V0, C (S0)
+   18:  JAL       ~Func:get_float_variable
+   1C:  LW        A1, 0 (V0)
+   20:  ADDIU     A0, SP, 10
+   24:  LIA       V0, 8010EFC8
+   2C:  MFC1      A2, F0
+   30:  LWC1      F0, 28 (V0)
+   34:  LWC1      F2, 30 (V0)
+   38:  SWC1      F0, 10 (SP)
+   3C:  SWC1      F2, 14 (SP)
+   40:  LW        A3, 80 (V0)
+   44:  LWC1      F20, 2C (V0)
+   48:  JAL       ~Func:add_vec2D_polar
+   4C:  ADDIU     A1, SP, 14
+   50:  DADDU     A0, S0, R0
+   54:  LUI       A1, FE36
+   58:  LW        A2, 10 (SP)
+   5C:  JAL       ~Func:set_float_variable
+   60:  ORI       A1, A1, 3C80
+   64:  DADDU     A0, S0, R0
+   68:  LUI       A1, FE36
+   6C:  MFC1      A2, F20
+   70:  JAL       ~Func:set_float_variable
+   74:  ORI       A1, A1, 3C81
+   78:  DADDU     A0, S0, R0
+   7C:  LUI       A1, FE36
+   80:  LW        A2, 14 (SP)
+   84:  JAL       ~Func:set_float_variable
+   88:  ORI       A1, A1, 3C82
+   8C:  LW        RA, 1C (SP)
+   90:  LW        S0, 18 (SP)
+   94:  LDC1      F20, 20 (SP)
+   98:  ADDIU     V0, R0, 2
+   9C:  JR        RA
+   A0:  ADDIU     SP, SP, 28
+}
+   
+   #new:Function $Function_80240000
+{
+    0:  LAW       V0, 800F7B30
+    8:  LW        V1, 4 (V0)
+    C:  LUI       A0, 10
+   10:  OR        V1, V1, A0
+   14:  SW        V1, 4 (V0)
+   18:  JR        RA
+   1C:  ADDIU     V0, R0, 2
+}
+	
+
+	#new:Function $EnableInputs % This Function only work if the Chest is the 3rd declared entity
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:get_entity_by_index
+   C:  LW        A0, 84 (A0)
+   10:  LW        A0, 40 (V0)
+   14:  ADDIU     V1, R0, 1
+   18:  SB        V1, 30 (A0)
+   1C:  LW        RA, 10 (SP)
+   20:  ADDIU     V0, R0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+ #new:Function $GetPos % This Function only work properly if the Chest is the 1st declared entity
+{
+    0:  ADDIU     SP, SP, FFC8
+    C:  SW        RA, 1C (SP)
+	28:  LW        A1, 0 (S0) % If you delete this, Entity 2 is used
+   2C:  JAL       ~Func:get_variable % This Variable is for the Entity
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0) 
+   38:  ADDIU     S0, S0, 4
+   3C:  DADDU     A0, S1, R0
+   40:  JAL       ~Func:get_variable
+   44:  DADDU     S2, V0, R0
+   48:  LW        A1, 0 (S0) 
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  DADDU     A0, S1, R0
+   64:  LW        A1, 0 (S0)
+   68:  MTC1      V0, F22
+   6C:  NOP
+   70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  DADDU     A0, S1, R0
+   7C:  MTC1      V0, F20
+   80:  NOP
+   84:  CVT.S.W   F20, F20
+   88:  JAL       ~Func:get_entity_by_index
+   8C:  DADDU     A0, S2, R0
+   90:  DADDU     V1, V0, R0
+   94:  SWC1      F24, 48 (V1) % X Position Related 
+   98:  SWC1      F22, 4C (V1) % Y Position Related 
+   9C:  SWC1      F20, 50 (V1) % Z Position Related
+   A0:  LW        RA, 1C (SP)
+   %A4:  LW        S2, 18 (SP)
+   %A8:  LW        S1, 14 (SP)
+   %AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP) % Position Related
+   B4:  LDC1      F22, 28 (SP) % Position Related
+   B8:  LDC1      F20, 20 (SP) % Position Related
+   BC:  ADDIU     V0, R0, 2 % If you Delete this, none entity isn't moved
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}
+   
+   #new:Function $Function_80241204 %enemies tracker
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  DADDU     T2, R0, R0
+    8:  LIA       V1, 800B0F10
+   10:  SW        RA, 10 (SP)
+   14:  LB        V0, 1C (V1)
+   18:  LW        A1, C (A0)
+   1C:  BLEZ      V0, .o78
+   20:  DADDU     A2, T2, R0
+   24:  DADDU     T3, V0, R0
+   28:  DADDU     T1, V1, R0
+        .o2C
+   2C:  LW        V0, 28 (T1)
+   30:  BEQL      V0, R0, .o6C
+   34:  ADDIU     T2, T2, 1
+   38:  LW        V1, 0 (V0)
+   3C:  BLEZ      V1, .o68
+   40:  DADDU     A3, R0, R0
+   44:  DADDU     T0, V1, R0
+   48:  DADDU     V1, V0, R0
+        .o4C
+   4C:  LW        V0, 4 (V1)
+   50:  BNEL      V0, R0, .o58
+   54:  ADDIU     A2, A2, 1
+        .o58
+   58:  ADDIU     A3, A3, 1
+   5C:  SLT       V0, A3, T0
+   60:  BNE       V0, R0, .o4C
+   64:  ADDIU     V1, V1, 4
+        .o68
+   68:  ADDIU     T2, T2, 1
+        .o6C
+   6C:  SLT       V0, T2, T3
+   70:  BNE       V0, R0, .o2C
+   74:  ADDIU     T1, T1, 4
+        .o78
+   78:  LW        A1, 0 (A1)
+   7C:  JAL       ~Func:set_variable
+   80:  NOP
+   84:  LW        RA, 10 (SP)
+   88:  ADDIU     V0, R0, 2
+   8C:  JR        RA
+   90:  ADDIU     SP, SP, 18
+}
+   

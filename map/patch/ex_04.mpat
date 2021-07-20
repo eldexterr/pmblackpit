@@ -1,0 +1,410 @@
+
+/%
+This map is mostly about camera controllers.
+%/
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000004 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW % -475.0    0.0    0.0   90.0
+~Vec4f:EntryE %  475.0    0.0    0.0  270.0
+~Vec4f:EntryN %    0.0    0.0 -475.0  180.0
+~Vec4f:EntryS %    0.0    0.0  475.0    0.0
+}
+
+% Override texture package
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	LIA		A0, 800B0CF0
+	LIA		A1, "sbk_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	DADDU	V0, R0, R0
+	POP		RA
+	JR		RA
+}
+
+#new:Script_Main $Script_Main
+{
+	% Boiler plate
+	Set      *WorldMapLocation 0000000A
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 )
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )
+	% Let's change the music
+	Call     SetMusicTrack  ( 00000000 .Song:CreepyToybox 00000000 00000008 )
+	% Create entities
+	Call     MakeItemEntity    	( .Item:Coin ~Vec3d:Coin1Pos 00000011 *GameFlag[360] )
+	Call     MakeItemEntity    	( .Item:Coin ~Vec3d:Coin2Pos 00000011 *GameFlag[361] )
+	Call     MakeItemEntity    	( .Item:Coin ~Vec3d:Coin3Pos 00000011 *GameFlag[362] )
+	Call     MakeItemEntity    	( .Item:Coin ~Vec3d:Coin4Pos 00000011 *GameFlag[363] )
+	Call     MakeItemEntity    	( .Item:Coin ~Vec3d:Coin5Pos 00000011 *GameFlag[364] )
+	% Prepare exits
+	Set      *Var[0] $Script_MakeExits 
+	Exec     EnterWalk 
+	Return
+	End
+}
+
+%%
+% NPCs
+%%
+
+#new:NpcGroupList $NpcGroups
+{
+00000001 $NpcGroup_Goomba   3A000001
+00000001 $NpcGroup_JrTroopa 37010000
+00000001 $NpcGroup_Stationary 00000000 
+00000000 00000000 00000000 
+}
+
+%%
+% Goomba
+%%
+
+#new:NpcGroup $NpcGroup_Goomba
+{
+00000000 $NpcSettings_Goomba ~Vec3f:WanderingNPC % 305 50 -13
+00000400 00000000 00000000 00000000 0000005A 
+~Items:5:Mushroom:A
+~HP:20:80:2:60 ~HP:30:70:2:50 ~HP:50:60:2:50 ~HP:80:50:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:70:2:50 ~FP:30:60:2:50 ~FP:50:50:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~NoCoinBonus
+% movement
+~Vec3d:WanderingNPC 0000001E 00000014 FFFF8001 00000001 % defines the wandering volume
+~Vec3d:WanderingNPC 00000078 000000F2 00000001 00000000 % defines the detection volume
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000
+% animations
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003
+00000001 00000000 00000000 
+00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Goomba
+{
+00000000 00140017 00000000 00000000 $Script_GoombaAI 80077F70 00000000 8007809C 
+00000000 00000000 00050000 
+}
+
+#new:Script $Script_GoombaAI
+{
+	Call     DoBasicAI   	( $AISettings_Goomba )
+	Return
+	End
+}
+
+#new:AISettings $AISettings_Goomba
+{
+    1.5 % move speed
+    30` % move time
+    30` % wait time
+  130.0 % alert radius
+    0.0
+    1`
+    2.5 % chase speed
+    180`
+    3`
+  150.0 % chase radius
+    0.0
+    1`
+}
+
+%%
+% Jr Troopa
+%%
+
+#new:NpcGroup $NpcGroup_JrTroopa
+{
+00000001 $BlankSettings ~Vec3f:JrTroopaSpawn
+00A40D01 $Script_Init_JrTroopa 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00210003 00210007 00210007 00210007 00210003 00210003 00210003 00210003 
+00210003 00210003 00210003 00210003 00210003 00210003 00210003 00210003 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+% One way to bind scripts to an NPC is to use an Init script. It will be executed
+% before any other script for this NPC. Use it to prepare the initial state of the NPC.
+#new:Script $Script_Init_JrTroopa
+{
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact )
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcDefeat 		( .Npc:Self $Script_PostBattle )
+	Return
+	End
+}
+
+% Interact scripts exectute when the player 'talks' to the NPC. The talk prompt will only
+% appear if the NPC has an interact script bound. If this NPC has an IdleAI script bound,
+% it will be paused while this executes.
+#new:Script $Script_Interact
+{
+	Call     SpeakToPlayer 	( .Npc:Self 0021001A 00210006 00000000 $TauntString )
+	Call     ShowChoice		( 001E001D ) % yes / no
+	If	*Var[0]  ==  0
+		Call     ContinueSpeech	( .Npc:Self 0021001A 00210006 00000000 $AcceptString )
+		Call     DisablePlayerInput	( .True )
+		Set  *MapFlag[0] .True
+	Else
+		Call     ContinueSpeech	( .Npc:Self 0021001A 00210006 00000000 $DeclineString )
+	EndIf
+	Return
+	End
+}
+	
+% Started when the NPC is spawned. Use an infinite loop to make it run in the background
+% for as long as the NPC is alive. In this case, we watch a particular MapFlag that is set
+% if the player accept's Jr Troopa's invitation to battle.
+% We could just as easily use one of this NPC's variables with SetNpcVar() / GetNpcVar().
+#new:Script $Script_IdleAI
+{
+	Loop
+		If  *MapFlag[0]  ==  .True 
+			Call     StartBossBattle ( .Song:FinalBowserBattle )
+		EndIf
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+
+% Executed after the battle is over. The NPC will vanish once this script returns, so have
+% them run off screen or something before it ends. In some battles, the player can be killed
+% without triggering a Game Over. This is determined by the battle script, not the map script.
+% We can only check the outcome (which usually isn't necessary, but shown here for ).
+#new:Script $Script_PostBattle
+{
+	Call     GetBattleOutcome ( *Var[0] )
+	Switch   *Var[0] 
+		Case     ==  00000000 	% player won
+			Call     PlayerFaceNpc		( .Npc:Self 00000000 )
+			Call     SetNpcAnimation	( .Npc:Self 00210011 )
+			Call     SpeakToPlayer		( .Npc:Self 00210011 00210011 00000000 $DefeatString )
+			Call     SetMusicTrack		( 00000000 .Song:CreepyToybox 00000000 00000008 )
+			Set  *MapFlag[0] .False 
+			Call     DisablePlayerInput	( .False )
+		EndSwitch
+	Return
+	End
+}
+
+%%
+% Kolorado NPC
+%%
+
+#new:NpcGroup $NpcGroup_Stationary
+{
+00000002 $Kolorado_Settings ~Vec3f:KoloradoSpawn
+00002D01 00000000 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00B60001 00B60004 00B60006 00B60006 00B60001 00B60001 00B60001 00B60001 
+00B60001 00B60001 00B60001 00B60001 00B60001 00B60001 00B60001 00B60001 
+00000000 00000000 00000000 $KoloradoTattle 
+}
+
+#string $KoloradoTattle
+{
+[STYLE:RIGHT][...]
+He's the famous archeologist
+and explorer, Kolorado.
+[PAUSE:20][...]
+If you ask me, he's more
+treasure hunter than explorer.
+[WAIT][END]
+}
+
+#new:NpcSettings $Kolorado_Settings
+{
+00000000 00280018 00000000 
+$Script_Interact_Kolorado	% equivalent to BindNpcInteract
+$Script_AI_Kolorado			% equivalent to BindNpcAI
+00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+   
+#new:Script $Script_Interact_Kolorado
+{
+	Call	GetNpcAnimation 	( .Npc:Self *Var[9] )
+	Call	AdjustCam 		( .Cam:Default  *Fixed[4.0] 00000000 *Fixed[300.0] *Fixed[15.0] *Fixed[-7.5] )
+	Call	SpeakToPlayer 		( .Npc:Self 00B60008 00B60001 00000000 $KoloradoString )
+	Call	ResetCam    		( .Cam:Default  00000004 )
+	Call	SetNpcAnimation 	( .Npc:Self *Var[9] )
+	Return
+	End
+}
+   
+#new:Script $Script_AI_Kolorado
+{
+	Call	SetNpcSpeed	( .Npc:Self *Fixed[1.0] )
+	Call	GetNpcPos	( .Npc:Self *Var[A] *Var[B] *Var[C] )
+	Set		*Var[D] *Var[A]
+	Sub		*Var[D] 100`
+	Loop
+		Call	SetNpcAnimation 	( .Npc:Self 00B60001 )
+		Wait	0000000F 
+		Call	SetNpcAnimation 	( .Npc:Self 00B60004 )
+		Call	NpcMoveTo   		( .Npc:Self *Var[D] *Var[C] 0  )
+		Call	SetNpcAnimation 	( .Npc:Self 00B60001 )
+		Wait	0000000F 
+		Call	SetNpcAnimation 	( .Npc:Self 00B60004 )
+		Call	NpcMoveTo   		( .Npc:Self *Var[A] *Var[C] 0 )
+	EndLoop
+	Return
+	End
+}
+   
+%%
+% Exits
+%%
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_ExitW .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000 
+	Bind     $Script_ExitE .Trigger:FloorAbove ~Collider:deilie 00000001 00000000 
+	Bind     $Script_ExitN .Trigger:FloorAbove ~Collider:deilin 00000001 00000000 
+	Bind     $Script_ExitS .Trigger:FloorAbove ~Collider:deilis 00000001 00000000 
+	Return
+	End
+}
+
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000000 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_03" 00000001 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000001 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_00" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitN
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000002 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_00" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+#new:Script $Script_ExitS
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading  	( 0000003C 00000003 )
+	Exec     80285CF4 
+	Call     GotoMap         	( "ex_00" 00000000 )
+	Wait     100` 
+	Return
+	End
+}
+
+%%
+% Custom Map Tattle
+%%
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][...]
+[Func_2B]What's with this creepy music?
+[PAUSE:15][...]
+And where do you think this
+ruined tower came from?
+[WAIT][NEXT][...]
+I mean, who would build a
+tower like this in the
+middle of the desert...
+[WAIT][NEXT][...]
+We should check out the view
+from the top![WAIT][END]
+}
+
+%%
+% Embedded Strings
+%%
+
+#string $TauntString
+{
+[STYLE:RIGHT][...]
+Well, well, well, look who it is.
+[PAUSE:10][...]
+What are you doing around here,
+looking for a fight?
+[Func_04][END]
+}
+
+#string $AcceptString
+{
+[NEXT][...]
+You're gonna regret this![WAIT][END]
+}
+
+#string $DeclineString
+{
+[NEXT][...]
+Afraid I'll beat you?
+Get out of my sight![WAIT][END]
+}
+
+#string $DefeatString
+{
+[STYLE:RIGHT][...]
+Arrrgh! Noooo!
+[PAUSE:05][...]
+I'll disappear once this script
+is finished executing!
+[PAUSE:15][...]
+[StartFX:Jitter]I don't wanna be erased!![EndFX:Jitter][WAIT][END]
+}
+
+#string $KoloradoString
+{
+[STYLE:RIGHT][...]
+Why, hello there Mario!
+When I heard about these ruins,
+I just had to see them myself.
+[WAIT][NEXT][...]
+...No sign of treasure though.
+[WAIT][END]
+}
