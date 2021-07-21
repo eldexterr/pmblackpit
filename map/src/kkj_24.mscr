@@ -1,0 +1,147 @@
+% Script File: kkj_24.mscr
+% Decoded from: 0 to 490 (kkj_24)
+
+#new:Function $Function_80240000
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:enable_world_fog
+	NOP
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  145.0    0.0  -10.0  270.0
+    ~Vec4f:Entry1 %  145.0  420.0  -20.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  80200000
+    [MapTattle]   00190019
+}
+
+#new:Script $Script_80240080
+{
+    If  *StoryProgress  >=  0000005F
+        Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+    EndIf
+    Return
+    End
+}
+
+PADDING: 802400C4 to 802400D0 (000000C4 to 000000D0)
+00000000 00000000 00000000
+
+#new:Script $Script_ExitDoubleDoor_802400D0
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:tte
+    Set   *Var[2]  ~Model:o58
+    Set   *Var[3]  ~Model:o57
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80240480 00000001 ) % kkj_23
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitDoubleDoor_80240174
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry1
+    Set   *Var[1]  ~Collider:tte2
+    Set   *Var[2]  ~Model:o78
+    Set   *Var[3]  ~Model:o77
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80240488 00000000 ) % kkj_25
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240218
+{
+    Bind  $Script_ExitDoubleDoor_802400D0 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+    Bind  $Script_ExitDoubleDoor_80240174 .Trigger:WallPressA ~Collider:tte2 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterDoubleDoor_80240260
+{
+    Call  GetLoadType   ( *Var[1] )
+    If  *Var[1]  ==  00000001
+        Exec  EnterSavePoint
+        Exec  $Script_80240218
+        Return
+    EndIf
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[2]  ~Model:o58
+            Set   *Var[3]  ~Model:o57
+            ExecWait  EnterDoubleDoor
+        Case  ==  ~Entry:Entry1
+            Set   *Var[2]  ~Model:o78
+            Set   *Var[3]  ~Model:o77
+            ExecWait  EnterDoubleDoor
+    EndSwitch
+    Exec  $Script_80240218
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:PeachsCastle
+    Call  SetSpriteShading  ( 00050008 )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    ExecWait  $Script_MakeEntities
+    Call  $Function_80240000 ( )
+    Exec  $Script_80240080
+    Call  UseDoorSounds     ( .DoorSounds:Large )
+    Exec  $Script_EnterDoubleDoor_80240260
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 80240438 to 80240440 (00000438 to 00000440)
+00000000 00000000
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80240440 80000000 )
+    Return
+    End
+}
+
+PADDING: 80240474 to 80240480 (00000474 to 00000480)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80240480
+{
+    "kkj_23"
+}
+
+#new:ASCII $ASCII_80240488
+{
+    "kkj_25"
+}
+

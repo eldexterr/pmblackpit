@@ -1,0 +1,2639 @@
+% Script File: kkj_00.mscr
+% Decoded from: 0 to 9EE0 (kkj_00)
+
+#new:Function_Init $Function_Init
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	LIO       A1, *StoryProgress
+	JAL       ~Func:get_variable
+	CLEAR     A0
+	SLTI      V0, V0, 60
+	BNE       V0, R0, .o30
+	ADDIU     V0, R0, 2
+	LAW       V1, 8007419C
+	SB        V0, 84 (V1)
+	.o30
+	LW        RA, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240040
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        V0, C (A0)
+	LW        A1, 0 (V0)
+	LIA       S0, 8010EFC8
+	JAL       ~Func:get_variable
+	NOP
+	BNE       V0, R0, .o3C
+	NOP
+	LIA       V0, $???_8024160C
+	BEQ       R0, R0, .o48
+	SW        V0, D0 (S0)
+	.o3C
+	LIA       V0, $???_8024162C
+	SW        V0, D0 (S0)
+	.o48
+	LW        V1, 0 (S0)
+	ORI       V1, V1, 10
+	SW        V1, 0 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 802400A8 to 802400B0 (000000A8 to 000000B0)
+00000000 00000000
+
+#new:Function $Function_802400B0
+{
+	ADDIU     SP, SP, FFB8
+	SW        S5, 24 (SP)
+	COPY      S5, A0
+	SW        RA, 2C (SP)
+	SW        S6, 28 (SP)
+	SW        S4, 20 (SP)
+	SW        S3, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F24, 40 (SP)
+	SDC1      F22, 38 (SP)
+	SDC1      F20, 30 (SP)
+	LW        S3, 148 (S5)
+	LH        A0, 8 (S3)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S6, A1
+	COPY      S4, V0
+	SW        R0, 74 (S5)
+	LWC1      F24, 38 (S4)
+	LWC1      F22, 40 (S4)
+	CLEAR     S2
+	SW        R0, 78 (S5)
+	LW        V1, D0 (S3)
+	LW        V0, 0 (V1)
+	LIO       AT, 46FFFE00
+	MTC1      AT, F20
+	BLEZ      V0, .oD4
+	COPY      S0, S2
+	COPY      S1, S2
+	.o7C
+	ADDU      V0, S1, V1
+	MOV.S     F12, F24
+	LWC1      F4, 4 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A2, F4
+	LWC1      F4, C (V0)
+	CVT.S.W   F4, F4
+	MFC1      A3, F4
+	JAL       ~Func:dist2D
+	MOV.S     F14, F22
+	C.LT.S    F0, F20
+	NOP
+	BC1F      .oBC
+	ADDIU     S1, S1, C
+	MOV.S     F20, F0
+	SW        S2, 78 (S5)
+	.oBC
+	LW        V1, D0 (S3)
+	ADDIU     S0, S0, 1
+	LW        V0, 0 (V1)
+	SLT       V0, S0, V0
+	BNE       V0, R0, .o7C
+	ADDIU     S2, S2, 1
+	.oD4
+	LW        V0, CC (S3)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (S4)
+	LW        V0, D0 (S3)
+	LW        V0, 7C (V0)
+	BGEZ      V0, .oFC
+	NOP
+	LWC1      F0, 0 (S6)
+	BEQ       R0, R0, .o11C
+	SWC1      F0, 18 (S4)
+	.oFC
+	LAD       F2, $ConstDouble_80249D30
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	DIV.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 18 (S4)
+	.o11C
+	ADDIU     V0, R0, 1
+	SW        V0, 70 (S5)
+	LW        RA, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F24, 40 (SP)
+	LDC1      F22, 38 (SP)
+	LDC1      F20, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80240208
+{
+	ADDIU     SP, SP, FFA8
+	SW        S2, 38 (SP)
+	COPY      S2, A0
+	SW        RA, 44 (SP)
+	SW        S4, 40 (SP)
+	SW        S3, 3C (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	SDC1      F22, 50 (SP)
+	SDC1      F20, 48 (SP)
+	LW        S1, 148 (S2)
+	COPY      S3, A1
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S4, A2
+	LW        V1, 14 (S3)
+	BLTZ      V1, .o104
+	COPY      S0, V0
+	LW        V0, 74 (S2)
+	BGTZ      V0, .o100
+	ADDIU     V0, V0, FFFF
+	COPY      A0, S4
+	SW        V1, 74 (S2)
+	SW        R0, 10 (SP)
+	LW        A2, C (S3)
+	LW        A3, 10 (S3)
+	JAL       800490B4
+	COPY      A1, S1
+	BEQ       V0, R0, .oF8
+	CLEAR     A0
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	COPY      A0, S0
+	ADDIU     A1, R0, 2F4
+	JAL       800494C0
+	LUI       A2, 20
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 1
+	BNE       V0, R0, .o27C
+	ADDIU     V0, R0, A
+	BEQ       R0, R0, .o27C
+	ADDIU     V0, R0, C
+	.oF8
+	LW        V0, 74 (S2)
+	ADDIU     V0, V0, FFFF
+	.o100
+	SW        V0, 74 (S2)
+	.o104
+	LH        V0, 8C (S0)
+	BNE       V0, R0, .o280
+	NOP
+	LWC1      F0, 18 (S0)
+	LIF       F3, 2.25
+	MTC1      R0, F2
+	CVT.D.S   F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1F      .o13C
+	COPY      A0, S0
+	BEQ       R0, R0, .o140
+	CLEAR     A1
+	.o13C
+	ADDIU     A1, R0, 1
+	.o140
+	JAL       8003D660
+	NOP
+	LWC1      F12, 38 (S0)
+	LW        V1, 78 (S2)
+	LWC1      F14, 40 (S0)
+	SLL       V0, V1, 1
+	ADDU      V0, V0, V1
+	LW        V1, D0 (S1)
+	SLL       V0, V0, 2
+	ADDU      V0, V0, V1
+	LWC1      F22, 4 (V0)
+	CVT.S.W   F22, F22
+	LWC1      F20, C (V0)
+	CVT.S.W   F20, F20
+	MFC1      A2, F22
+	MFC1      A3, F20
+	JAL       ~Func:atan2
+	NOP
+	LW        A1, 18 (S0)
+	MFC1      A2, F0
+	COPY      A0, S0
+	JAL       ~Func:npc_move_heading
+	SW        A2, C (S0)
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	MFC1      A2, F22
+	MFC1      A3, F20
+	JAL       ~Func:dist2D
+	NOP
+	LWC1      F2, 18 (S0)
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o280
+	ADDIU     A0, R0, 3E8
+	ADDIU     V0, R0, 2
+	JAL       ~Func:rand_int
+	SW        V0, 70 (S2)
+	LIO       V1, 55555556
+	MULT      V0, V1
+	SRA       A0, V0, 1F
+	MFHI      T0
+	SUBU      A0, T0, A0
+	SLL       V1, A0, 1
+	ADDU      V1, V1, A0
+	SUBU      V0, V0, V1
+	ADDIU     V1, V0, 2
+	SW        V1, 74 (S2)
+	LW        V0, 2C (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	LW        V0, 4 (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	LW        V0, 8 (S3)
+	BLEZ      V0, .o22C
+	ADDIU     V0, R0, 4
+	BNE       V1, R0, .o230
+	NOP
+	.o22C
+	SW        V0, 70 (S2)
+	.o230
+	JAL       ~Func:rand_int
+	ADDIU     A0, R0, 2710
+	LIO       V1, 51EB851F
+	MULT      V0, V1
+	SRA       V1, V0, 1F
+	MFHI      T0
+	SRA       A0, T0, 5
+	SUBU      A0, A0, V1
+	SLL       V1, A0, 1
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 3
+	ADDU      V1, V1, A0
+	SLL       V1, V1, 2
+	LW        A0, 4 (S3)
+	SUBU      V0, V0, V1
+	SLT       V0, V0, A0
+	BEQ       V0, R0, .o280
+	ADDIU     V0, R0, 4
+	.o27C
+	SW        V0, 70 (S2)
+	.o280
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	LDC1      F22, 50 (SP)
+	LDC1      F20, 48 (SP)
+	JR        RA
+	ADDIU     SP, SP, 58
+}
+
+#new:Function $Function_802404B0
+{
+	ADDIU     SP, SP, FFD8
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        RA, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        S2, 148 (S3)
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A1
+	LW        A0, 8 (S1)
+	COPY      S0, V0
+	SRL       V1, A0, 1F
+	ADDU      A0, A0, V1
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 8 (S1)
+	ADDIU     A0, R0, B4
+	SRL       A1, V1, 1F
+	ADDU      V1, V1, A1
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	JAL       ~Func:rand_int
+	SH        V1, 8E (S0)
+	LWC1      F12, C (S0)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	ADD.S     F12, F12, F0
+	LIF       F0, 90.0
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F12, F0
+	SWC1      F0, C (S0)
+	LW        V0, CC (S2)
+	LW        V0, 0 (V0)
+	SW        V0, 28 (S0)
+	ADDIU     V0, R0, 3
+	SW        V0, 70 (S3)
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80240570
+{
+	ADDIU     SP, SP, FFB8
+	SW        S4, 40 (SP)
+	COPY      S4, A0
+	SW        RA, 44 (SP)
+	SW        S3, 3C (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S1, 148 (S4)
+	COPY      S2, A1
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S3, A2
+	LW        V1, 14 (S2)
+	BLTZ      V1, .o100
+	COPY      S0, V0
+	COPY      A0, S3
+	SW        R0, 10 (SP)
+	LW        A2, 24 (S2)
+	LW        A3, 28 (S2)
+	JAL       800490B4
+	COPY      A1, S1
+	BEQ       V0, R0, .o100
+	CLEAR     A0
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	LAW       V0, 800F7B30
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	COPY      A0, S0
+	ADDIU     A1, R0, 2F4
+	LUI       A2, 20
+	JAL       800494C0
+	SWC1      F0, C (A0)
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 1
+	BNE       V0, R0, .o198
+	ADDIU     V0, R0, A
+	BEQ       R0, R0, .o198
+	ADDIU     V0, R0, C
+	.o100
+	LH        V0, 8C (S0)
+	BNE       V0, R0, .o19C
+	NOP
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BNE       V0, R0, .o19C
+	NOP
+	LW        V0, 74 (S4)
+	ADDIU     V0, V0, FFFF
+	BEQ       V0, R0, .o194
+	SW        V0, 74 (S4)
+	LW        V0, 18 (S1)
+	LHU       V0, 2A (V0)
+	ANDI      V0, V0, 10
+	BNE       V0, R0, .o160
+	NOP
+	LWC1      F0, C (S0)
+	LIF       F12, 180.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F0, F12
+	SWC1      F0, C (S0)
+	.o160
+	LW        A0, 8 (S2)
+	SRL       V0, A0, 1F
+	ADDU      A0, A0, V0
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 8 (S2)
+	SRL       A0, V1, 1F
+	ADDU      V1, V1, A0
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	BEQ       R0, R0, .o19C
+	SH        V1, 8E (S0)
+	.o194
+	ADDIU     V0, R0, 4
+	.o198
+	SW        V0, 70 (S4)
+	.o19C
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_8024072C
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S2, A1
+	LW        V1, 78 (S1)
+	ADDIU     V1, V1, 1
+	SW        V1, 78 (S1)
+	LW        A0, D0 (S0)
+	LW        A0, 0 (A0)
+	SLT       V1, V1, A0
+	BNE       V1, R0, .o4C
+	COPY      A1, V0
+	SW        R0, 78 (S1)
+	.o4C
+	LW        V0, CC (S0)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (A1)
+	LW        V0, D0 (S0)
+	LW        V0, 7C (V0)
+	BGEZ      V0, .o74
+	NOP
+	LWC1      F0, 0 (S2)
+	BEQ       R0, R0, .o94
+	SWC1      F0, 18 (A1)
+	.o74
+	LAD       F2, $ConstDouble_80249D38
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	DIV.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 18 (A1)
+	.o94
+	ADDIU     V0, R0, 1
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802407E0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	LW        V1, CC (S0)
+	LIF       F4, 10.0
+	LIF       F0, 2.0
+	LWC1      F2, 3C (V0)
+	LW        A0, 10 (V1)
+	LW        V1, 0 (V0)
+	SWC1      F4, 1C (V0)
+	SWC1      F0, 14 (V0)
+	SWC1      F2, 64 (V0)
+	ORI       V1, V1, 800
+	SW        V1, 0 (V0)
+	SW        A0, 28 (V0)
+	ADDIU     V0, R0, B
+	SW        V0, 70 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240854
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, 148 (S0)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (V0)
+	COPY      A0, V0
+	LWC1      F2, 3C (A0)
+	LWC1      F0, 1C (A0)
+	ADD.S     F2, F2, F0
+	LWC1      F4, 14 (A0)
+	SUB.S     F0, F0, F4
+	LWC1      F4, 64 (A0)
+	C.LT.S    F4, F2
+	SWC1      F2, 3C (A0)
+	BC1T      .o68
+	SWC1      F0, 1C (A0)
+	LW        V0, 0 (A0)
+	ADDIU     V1, R0, F7FF
+	SWC1      F4, 3C (A0)
+	SW        R0, 1C (A0)
+	AND       V0, V0, V1
+	SW        V0, 0 (A0)
+	ADDIU     V0, R0, C
+	SW        V0, 70 (S0)
+	.o68
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802408CC
+{
+	ADDIU     SP, SP, FFD0
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        RA, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F20, 28 (SP)
+	LW        S1, 148 (S3)
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A1
+	LW        A0, 20 (S0)
+	COPY      S2, V0
+	SRL       V1, A0, 1F
+	ADDU      A0, A0, V1
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 20 (S0)
+	LWC1      F12, 38 (S2)
+	SRL       A0, V1, 1F
+	ADDU      V1, V1, A0
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	SH        V1, 8E (S2)
+	LW        V0, CC (S1)
+	LWC1      F14, 40 (S2)
+	LW        V0, C (V0)
+	SW        V0, 28 (S2)
+	LWC1      F0, 18 (S0)
+	LAW       V0, 800F7B30
+	SWC1      F0, 18 (S2)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	MOV.S     F20, F0
+	LWC1      F12, C (S2)
+	JAL       ~Func:get_clamped_angle_diff
+	MOV.S     F14, F20
+	MOV.S     F2, F0
+	LW        V0, 1C (S0)
+	ABS.S     F0, F2
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	C.LT.S    F4, F0
+	NOP
+	BC1F      .oFC
+	NOP
+	MTC1      R0, F0
+	LWC1      F20, C (S2)
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .oF8
+	SUBU      V0, R0, V0
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	BEQ       R0, R0, .oFC
+	ADD.S     F20, F20, F0
+	.oF8
+	ADD.S     F20, F20, F4
+	.oFC
+	JAL       ~Func:clamp_angle
+	MOV.S     F12, F20
+	ADDIU     V0, R0, D
+	SWC1      F0, C (S2)
+	SW        V0, 70 (S3)
+	LW        RA, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F20, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_802409FC
+{
+	ADDIU     SP, SP, FFB8
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S2, 148 (S3)
+	COPY      S1, A1
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A2
+	COPY      A0, S0
+	COPY      A1, S2
+	ADDIU     V1, R0, 1
+	SW        V1, 10 (SP)
+	LW        A2, 24 (S1)
+	LW        A3, 28 (S1)
+	JAL       800490B4
+	COPY      S0, V0
+	BNE       V0, R0, .oCC
+	COPY      A0, S0
+	ADDIU     A0, R0, 2
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, F
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	LW        V0, CC (S2)
+	LW        V1, 0 (V0)
+	ADDIU     V0, R0, 19
+	SH        V0, 8E (S0)
+	ADDIU     V0, R0, E
+	BEQ       R0, R0, .o100
+	SW        V1, 28 (S0)
+	.oCC
+	JAL       8003D660
+	ADDIU     A1, R0, 1
+	LW        A1, 18 (S0)
+	LW        A2, C (S0)
+	JAL       ~Func:npc_move_heading
+	COPY      A0, S0
+	LH        V0, 8E (S0)
+	LHU       V1, 8E (S0)
+	BLEZ      V0, .oFC
+	ADDIU     V0, V1, FFFF
+	BEQ       R0, R0, .o104
+	SH        V0, 8E (S0)
+	.oFC
+	ADDIU     V0, R0, C
+	.o100
+	SW        V0, 70 (S3)
+	.o104
+	LW        RA, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80240B1C
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	LHU       V1, 8E (V0)
+	ADDIU     V1, V1, FFFF
+	SH        V1, 8E (V0)
+	SLL       V1, V1, 10
+	BNE       V1, R0, .o54
+	NOP
+	LW        V0, B0 (S0)
+	ANDI      V0, V0, 80
+	BEQ       V0, R0, .o50
+	ADDIU     V0, R0, F
+	BEQ       R0, R0, .o54
+	SW        V0, 70 (S1)
+	.o50
+	SW        R0, 70 (S1)
+	.o54
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240B84
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S2, A1
+	LW        V1, D0 (S0)
+	LW        A0, 78 (S1)
+	LW        V1, 0 (V1)
+	SLT       V1, A0, V1
+	BEQ       V1, R0, .o88
+	COPY      A2, V0
+	SLL       V0, A0, 1
+	ADDU      V0, V0, A0
+	SLL       A1, V0, 2
+	.o4C
+	LW        V1, D0 (S0)
+	LWC1      F2, 3C (A2)
+	ADDU      V0, A1, V1
+	LWC1      F0, 8 (V0)
+	CVT.S.W   F0, F0
+	C.LE.S    F0, F2
+	NOP
+	BC1FL     .o78
+	ADDIU     A0, A0, 1
+	BEQ       R0, R0, .o88
+	SW        A0, 78 (S1)
+	.o78
+	LW        V0, 0 (V1)
+	SLT       V0, A0, V0
+	BNE       V0, R0, .o4C
+	ADDIU     A1, A1, C
+	.o88
+	LWC1      F0, 0 (S2)
+	SWC1      F0, 18 (A2)
+	LW        V0, CC (S0)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (A2)
+	ADDIU     V0, R0, 1
+	SW        R0, 74 (S1)
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240C44
+{
+	ADDIU     SP, SP, FF98
+	SW        S4, 58 (SP)
+	COPY      S4, A0
+	SW        RA, 60 (SP)
+	SW        S5, 5C (SP)
+	SW        S3, 54 (SP)
+	SW        S2, 50 (SP)
+	SW        S1, 4C (SP)
+	SW        S0, 48 (SP)
+	LW        S1, 148 (S4)
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A1
+	LW        V1, C (S4)
+	COPY      A0, S4
+	LW        A1, 0 (V1)
+	JAL       ~Func:get_variable
+	COPY      S2, V0
+	SW        R0, 18 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 94 (V1)
+	SW        V1, 1C (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 80 (V1)
+	SW        V1, 20 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 88 (V1)
+	SW        V1, 24 (SP)
+	LW        V1, D0 (S1)
+	LW        V1, 8C (V1)
+	ADDIU     S5, SP, 18
+	SW        V1, 28 (SP)
+	LW        V1, D0 (S1)
+	LIF       F0, 65.0
+	LW        V1, 90 (V1)
+	COPY      S3, V0
+	SWC1      F0, 30 (SP)
+	SH        R0, 34 (SP)
+	BNE       S0, R0, .oB4
+	SW        V1, 2C (SP)
+	LW        V0, B0 (S1)
+	ANDI      V0, V0, 4
+	BEQ       V0, R0, .o1C0
+	NOP
+	.oB4
+	ADDIU     A0, R0, F7FF
+	SW        R0, 70 (S4)
+	SH        R0, 8E (S2)
+	LW        V0, CC (S1)
+	LW        V1, 0 (S2)
+	LW        V0, 0 (V0)
+	AND       V1, V1, A0
+	SW        V1, 0 (S2)
+	SW        V0, 28 (S2)
+	LW        V0, D0 (S1)
+	LW        V0, 98 (V0)
+	BNEL      V0, R0, .oF8
+	ADDIU     V0, R0, FDFF
+	ORI       V0, V1, 200
+	ADDIU     V1, R0, FFF7
+	BEQ       R0, R0, .o100
+	AND       V0, V0, V1
+	.oF8
+	AND       V0, V1, V0
+	ORI       V0, V0, 8
+	.o100
+	SW        V0, 0 (S2)
+	LW        V0, B0 (S1)
+	ANDI      V0, V0, 4
+	BEQ       V0, R0, .o130
+	ADDIU     V0, R0, 63
+	SW        V0, 70 (S4)
+	SW        R0, 74 (S4)
+	LW        V0, B0 (S1)
+	ADDIU     V1, R0, FFFB
+	AND       V0, V0, V1
+	BEQ       R0, R0, .o15C
+	SW        V0, B0 (S1)
+	.o130
+	LW        V0, 0 (S1)
+	LUI       V1, 4000
+	AND       V0, V0, V1
+	BEQ       V0, R0, .o15C
+	LUI       V1, BFFF
+	ADDIU     V0, R0, C
+	SW        V0, 70 (S4)
+	LW        V0, 0 (S1)
+	ORI       V1, V1, FFFF
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	.o15C
+	ADDIU     A1, SP, 38
+	ADDIU     A2, SP, 3C
+	LWC1      F0, 38 (S2)
+	LH        V0, A8 (S2)
+	LIF       F4, 100.0
+	MTC1      V0, F6
+	NOP
+	CVT.S.W   F6, F6
+	ADDIU     V0, SP, 44
+	SWC1      F0, 38 (SP)
+	LWC1      F0, 3C (S2)
+	LWC1      F2, 40 (S2)
+	ADD.S     F0, F0, F6
+	SWC1      F4, 44 (SP)
+	SWC1      F2, 40 (SP)
+	SWC1      F0, 3C (SP)
+	SW        V0, 10 (SP)
+	LW        A0, 80 (S2)
+	JAL       800DCB7C
+	ADDIU     A3, SP, 40
+	BEQ       V0, R0, .o1C0
+	NOP
+	LWC1      F0, 3C (SP)
+	SWC1      F0, 3C (S2)
+	.o1C0
+	LW        V1, 70 (S4)
+	SLTIU     V0, V1, 64
+	BEQ       V0, R0, .o2D4
+	SLL       V0, V1, 2
+	LTW       V0, V0 ($JumpTable_80249D40)
+	JR        V0
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 0`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802400B0
+	COPY      A2, S5
+    % LBL: from $JumpTable_80249D40 , entry 1`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240208
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 2`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802404B0
+	COPY      A2, S5
+    % LBL: from $JumpTable_80249D40 , entry 3`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240570
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 4`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_8024072C
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 10`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802407E0
+	COPY      A2, S5
+    % LBL: from $JumpTable_80249D40 , entry 11`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240854
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 12`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802408CC
+	COPY      A2, S5
+    % LBL: from $JumpTable_80249D40 , entry 13`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_802409FC
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 14`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240B1C
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 15`
+	COPY      A0, S4
+	COPY      A1, S3
+	JAL       $Function_80240B84
+	COPY      A2, S5
+	BEQ       R0, R0, .o2D4
+	NOP
+    % LBL: from $JumpTable_80249D40 , entry 99`
+	JAL       8004A73C
+	COPY      A0, S4
+    % LBL: from $JumpTable_80249D40 , entry 98`
+	.o2D4
+	LW        RA, 60 (SP)
+	LW        S5, 5C (SP)
+	LW        S4, 58 (SP)
+	LW        S3, 54 (SP)
+	LW        S2, 50 (SP)
+	LW        S1, 4C (SP)
+	LW        S0, 48 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 68
+}
+
+#new:Function $Function_80240F40
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	BEQ       A1, R0, .o18
+	SW        RA, 14 (SP)
+	SW        R0, 74 (S0)
+	.o18
+	CLEAR     A0
+	ADDIU     A1, R0, D0
+	COPY      A2, A1
+	JAL       80137E10
+	COPY      A3, A1
+	LWC1      F0, 74 (S0)
+	CVT.S.W   F0, F0
+	MFC1      A1, F0
+	JAL       80137D88
+	ADDIU     A0, R0, 1
+	LW        V0, 74 (S0)
+	ADDIU     V1, R0, FF
+	BNE       V0, V1, .o58
+	ADDIU     V0, V0, 7
+	BEQ       R0, R0, .o6C
+	ADDIU     V0, R0, 2
+	.o58
+	SW        V0, 74 (S0)
+	SLTI      V0, V0, 100
+	BEQL      V0, R0, .o68
+	SW        V1, 74 (S0)
+	.o68
+	CLEAR     V0
+	.o6C
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 80240FBC to 80240FC0 (00000FBC to 00000FC0)
+00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %    0.0    0.0  480.0    0.0
+    ~Vec4f:Entry1 %    0.0  100.0 -365.0  180.0
+    ~Vec4f:Entry2 % -420.0   40.0 -260.0  135.0
+    ~Vec4f:Entry3 %  230.0    0.0 -210.0  180.0
+    ~Vec4f:Entry4 %  420.0   40.0 -260.0  225.0
+    ~Vec4f:Entry5 %    0.0    0.0  480.0    0.0
+    ~Vec4f:Entry6 %    0.0    0.0  480.0    0.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000007
+    [Background]  00000000
+    [MapTattle]   00000000
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80241070
+{
+    If  *StoryProgress  ==  FFFFFF80
+        Call  GetEntryID    ( *Var[0] )
+        If  *Var[0]  ==  ~Entry:Entry3
+            Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000007 )
+            Wait  3`
+        EndIf
+        Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+    Else
+        Thread
+            Wait  90`
+            Call  FadeOutMusic  ( 00000000 00000BB8 )
+        EndThread
+    EndIf
+    Return
+    End
+}
+
+PADDING: 8024113C to 80241140 (0000113C to 00001140)
+00000000
+
+#new:Script $Script_ExitDoubleDoor_80241140
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Call  UseDoorSounds ( .DoorSounds:Large )
+    Set   *Var[0]  ~Entry:Entry1
+    Set   *Var[1]  ~Collider:ttn
+    Set   *Var[2]  ~Model:door3
+    Set   *Var[3]  ~Model:door4
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80249D20 00000000 ) % kkj_01
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitSingleDoor_802411F4
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Call  UseDoorSounds ( .DoorSounds:Basic )
+    Set   *Var[0]  ~Entry:Entry3
+    Set   *Var[1]  ~Collider:ttne
+    Set   *Var[2]  ~Model:door8
+    Set   *Var[3]  .DoorSwing:In % 1
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80249D28 00000000 ) % kkj_19
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_802412A8
+{
+    Call  DisablePlayerInput        ( .True )
+    Call  ShowMessageAtScreenPos    ( 001D0163 000000A0 00000028 ) % It doesn't seem to open.
+    Call  DisablePlayerInput        ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_802412F0
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  EnableNpcAI       ( 00000000 .False )
+    Call  EnableNpcAI       ( 00000001 .False )
+    Call  SetNpcAnimation   ( 00000000 00820004 )
+    Call  SetNpcAnimation   ( 00000001 00830001 )
+    Wait  10`
+    Call  SpeakToPlayer     ( 00000000 00820014 00820004 00000010 00000026 ) % Mario! Where are you going? The princess is expect ...
+    Call  EnableNpcAI       ( 00000000 .True )
+    Call  EnableNpcAI       ( 00000001 .True )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_802413C4
+{
+    Bind  $Script_802412F0 .Trigger:WallPressA ~Collider:tts 00000001 00000000
+    Bind  $Script_802412A8 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+    Bind  $Script_802412A8 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+    Bind  $Script_ExitDoubleDoor_80241140 .Trigger:WallPressA ~Collider:ttn 00000001 00000000
+    Bind  $Script_ExitSingleDoor_802411F4 .Trigger:WallPressA ~Collider:ttne 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterSingleDoor_80241460
+{
+    Call  UseDoorSounds ( .DoorSounds:Basic )
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Call  UseDoorSounds ( .DoorSounds:Large )
+            Set   *Var[2]  ~Model:door2
+            Set   *Var[3]  ~Model:door1
+            ExecWait  EnterDoubleDoor
+        Case  ==  ~Entry:Entry1
+            Call  UseDoorSounds ( .DoorSounds:Large )
+            Set   *Var[2]  ~Model:door3
+            Set   *Var[3]  ~Model:door4
+            ExecWait  EnterDoubleDoor
+        Case  ==  ~Entry:Entry2
+            Set   *Var[2]  ~Model:door5
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+        Case  ==  ~Entry:Entry3
+            Set   *Var[2]  ~Model:door8
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+        Case  ==  ~Entry:Entry4
+            Set   *Var[2]  ~Model:door7
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+        Case  ==  ~Entry:Entry5
+            Exec  $Script_80243B7C
+        Case  ==  ~Entry:Entry6
+            Exec  $Script_80249178
+    EndSwitch
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Unknown $???_8024160C
+{
+    43B34000 3F000000 41A00000 00000000 00000000 00000000 00000000 00000000
+}
+
+% Origin: HEURISTIC
+#new:Unknown $???_8024162C
+{
+    3FC00000 3F000000 41A00000 00000000 00000000 00000000 00000000 00000000
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024164C
+{
+    Call  $Function_80240040    ( 00000000 )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8024166C
+{
+    Call  $Function_80240040    ( 00000001 )
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:PeachCastleGrounds
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    If  *StoryProgress  ==  FFFFFF80
+        Call  MakeNpcs  ( 00000000 $NpcGroupList_802439C4 )
+    Else
+        Call  MakeNpcs  ( 00000000 $NpcGroupList_80248DC4 )
+    EndIf
+    Call  EnableGroup   ( ~Model:g2 .False )
+    Call  EnableGroup   ( ~Model:g51 .False )
+    If  *StoryProgress  ==  FFFFFF80
+        Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+    Else
+        Thread
+            Wait  90`
+            Call  FadeOutMusic  ( 00000000 00000BB8 )
+        EndThread
+    EndIf
+    Exec  $Script_802413C4
+    Exec  $Script_EnterSingleDoor_80241460
+    Wait  1`
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_80241820
+{
+    00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+#new:AISettings $AISettings_8024184C
+{
+    1.5 % move speed
+    30` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_8024187C
+{
+    Call  $Function_80240C44    ( $AISettings_8024184C )
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_8024189C
+{
+    00000000 001E0018 00000000 00000000 $Script_NpcAI_8024187C 00000000 00000000 00000000
+    00000000 00000000 00630010
+}
+
+MISSING: 802418C8 to 802418F4 (000018C8 to 000018F4)
+00000000 00170013 00000000 00000000 8024187C 00000000 00000000 00000000
+00000000 00000000 00630010
+
+#new:NpcSettings $NpcSettings_802418F4
+{
+    00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+MISSING: 80241920 to 8024194C (00001920 to 0000194C)
+00000000 00170013 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00630000
+
+#new:NpcSettings $NpcSettings_8024194C
+{
+    00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+#new:Script $Script_Idle_80241978
+{
+    Loop
+        Call  GetSelfVar    ( 00000001 *Var[0] )
+        If  *Var[0]  ==  00000000
+            Call  SetNpcAnimation   ( 00000006 00A90004 )
+            Call  SetSelfVar        ( 00000001 00000001 )
+        Else
+            Call  SetNpcAnimation   ( 00000007 009B0104 )
+            Call  SetSelfVar        ( 00000001 00000000 )
+        EndIf
+        Call  RandInt   ( 0000003C *Var[0] )
+        Add   *Var[0]  0000001E
+        Wait  *Var[0]
+        Call  SetNpcAnimation   ( 00000006 00A90001 )
+        Call  SetNpcAnimation   ( 00000007 009B0101 )
+        Wait  10`
+    EndLoop
+    End
+}
+
+#new:Script $Script_Idle_80241A7C
+{
+    Loop
+        Call  GetSelfVar    ( 00000001 *Var[0] )
+        If  *Var[0]  ==  00000000
+            Call  SetNpcAnimation   ( 00000004 00840104 )
+            Call  SetSelfVar        ( 00000001 00000001 )
+        Else
+            Call  SetNpcAnimation   ( 00000005 00840204 )
+            Call  SetSelfVar        ( 00000001 00000000 )
+        EndIf
+        Call  RandInt   ( 0000003C *Var[0] )
+        Add   *Var[0]  0000001E
+        Wait  *Var[0]
+        Call  SetNpcAnimation   ( 00000004 00840101 )
+        Call  SetNpcAnimation   ( 00000005 00840201 )
+        Wait  10`
+    EndLoop
+    End
+}
+
+#new:Script $Script_Idle_80241B80
+{
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  ==  ~Entry:Entry5
+        Call  802D2508 ( )
+        Call  GetPlayerPos      ( *Var[0] *Var[1] *Var[2] )
+        Call  AwaitPlayerLeave  ( *Var[0] *Var[2] 00000064 )
+        Wait  50`
+        Call  SetNpcSpeed       ( 00000001 *Fixed[2.0] )
+        Call  SetNpcAnimation   ( 00000001 00830002 )
+        Call  NpcMoveTo ( 00000001 0000003C 00000140 00000000 )
+        Call  SetNpcAnimation   ( 00000001 00830001 )
+    EndIf
+    Loop
+        Call  GetSelfVar    ( 00000001 *Var[0] )
+        If  *Var[0]  ==  ~Entry:Entry0
+            Call  SetNpcAnimation   ( 00000001 00830004 )
+            Call  SetSelfVar        ( 00000001 00000001 )
+        Else
+            Call  SetNpcAnimation   ( 00000000 00820014 )
+            Call  SetSelfVar        ( 00000001 00000000 )
+        EndIf
+        Call  RandInt   ( 0000003C *Var[0] )
+        Add   *Var[0]  0000001E
+        Wait  *Var[0]
+        Call  SetNpcAnimation   ( 00000000 00820004 )
+        Call  SetNpcAnimation   ( 00000001 00830001 )
+        Wait  10`
+    EndLoop
+    End
+}
+
+#new:Script $Script_Idle_80241D4C
+{
+    Loop
+        Wait  150`
+        Loop  00000002
+            Call  InterpNpcYaw  ( .Npc:Self 0000005A 00000007 )
+            Wait  20`
+            Call  InterpNpcYaw  ( .Npc:Self 0000010E 00000007 )
+            Wait  20`
+        EndLoop
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241DD8
+{
+    Call  EnableNpcAI       ( 00000001 .False )
+    Call  SetNpcAnimation   ( 00000000 00820004 )
+    Call  SetNpcAnimation   ( 00000001 00830001 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 00820014 00820004 00000010 00000025 ) % Say, Mario, why don't you go see Princess Peach? I ...
+    Call  EnableNpcAI       ( 00000001 .True )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241E64
+{
+    Call  SetNpcAnimation   ( 00000001 00830001 )
+    Call  SetNpcAnimation   ( 00000000 00820004 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 00830004 00830001 00000010 00000029 ) % Mario, you're looking well! Please enjoy the party ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241EC8
+{
+    Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000010 0000002A ) % Wow! I've never seen so many guests from different ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241EF8
+{
+    Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 0000002B ) % Hey...urp...Mario! I hope you brought an appetite! ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241F28
+{
+    Call  SetNpcAnimation   ( 00000004 00840101 )
+    Call  SetNpcAnimation   ( 00000005 00840201 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 00840104 00840101 00000010 0000002C ) % I think Princess Peach has been looking forward to ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80241F8C
+{
+    Call  EnableNpcAI       ( 00000004 .False )
+    Call  SetNpcAnimation   ( 00000005 00840201 )
+    Call  SetNpcAnimation   ( 00000004 00840101 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 00840204 00840201 00000010 0000002D ) % Oh! Welcome, Mario! The last party was lovely, was ...
+    Call  EnableNpcAI       ( 00000004 .True )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80242018
+{
+    Call  SetNpcAnimation   ( 00000007 009B0101 )
+    Call  SetNpcAnimation   ( 00000006 00A90001 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 00A90004 00A90001 00000010 00000027 ) % Ah! Salutations, Mario!  Do you know Frost T. here ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_8024207C
+{
+    Call  EnableNpcAI       ( 00000006 .False )
+    Call  SetNpcAnimation   ( 00000006 00A90001 )
+    Call  SetNpcAnimation   ( 00000007 009B0101 )
+    Wait  10`
+    Call  SpeakToPlayer     ( .Npc:Self 009B0104 009B0101 00000010 00000028 ) % Princess Peach is such a  generous and wonderful l ...
+    Call  EnableNpcAI       ( 00000006 .True )
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80242108
+{
+    Call  SpeakToPlayer ( .Npc:Self 009A0004 009A0001 00000000 00000030 ) % Wow... This castle is absolutely breathtaking, don ...
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80242138
+{
+    Call  SpeakToPlayer ( .Npc:Self 00870004 00870001 00000010 0000002E ) % Welcome to Peach's Castle!
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80242168
+{
+    Call  SpeakToPlayer ( .Npc:Self 00870204 00870201 00000010 0000002F ) % Princess Peach went into her private chambers just ...
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242198
+{
+    Call  SetNpcCollisionSize   ( .Npc:Self 0000002E 0000001A )
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  ==  ~Entry:Entry5
+        Call  SetNpcPos ( .Npc:Self 00000000 00000000 00000244 )
+        Call  SetNpcYaw ( .Npc:Self 00000000 )
+    Else
+        Call  SetNpcPos ( .Npc:Self 00000014 00000000 00000140 )
+        Call  SetNpcYaw ( .Npc:Self 0000005A )
+    EndIf
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241DD8 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242264
+{
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  !=  ~Entry:Entry5
+        Call  SetNpcPos ( .Npc:Self 0000003C 00000000 00000140 )
+        Call  SetNpcYaw ( .Npc:Self 0000010E )
+    EndIf
+    Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241B80 )
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241E64 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_802422F4
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241EC8 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242318
+{
+    Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241D4C )
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241EF8 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242350
+{
+    Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241A7C )
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241F28 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242388
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241F8C )
+    Return
+    End
+}
+
+#new:Script $Script_Init_802423AC
+{
+    Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241978 )
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80242018 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_802423E4
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024207C )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242408
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80242108 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_8024242C
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80242138 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80242450
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80242168 )
+    Return
+    End
+}
+
+#new:NpcGroup $NpcGroup_80242474
+{
+    00000000 $NpcSettings_80241820 ~Vec3f:NPC_80242474 % 0 -1000 0
+    00400D0D $Script_Init_80242198 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80242474
+    ~AnimationTable:NPC_80242474 % .Sprite:Luigi
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[1F0]
+    00000001 $NpcSettings_802418F4 ~Vec3f:NPC_80242664 % 182 0 320
+    00400D0D $Script_Init_80242264 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80242664
+    ~AnimationTable:NPC_80242664 % .Sprite:Toad
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[3E0]
+    00000002 $NpcSettings_8024189C ~Vec3f:NPC_80242854 % -250 0 250
+    00000D0D $Script_Init_802422F4 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80242854
+    ~AnimationTable:NPC_80242854 % .Sprite:Toad
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[5D0]
+    00000003 $NpcSettings_802418F4 ~Vec3f:NPC_80242A44 % 150 0 0
+    00000D0D $Script_Init_80242318 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80242A44
+    ~AnimationTable:NPC_80242A44 % .Sprite:Toad
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[7C0]
+    00000004 $NpcSettings_802418F4 ~Vec3f:NPC_80242C34 % -300 0 100
+    00400D0D $Script_Init_80242350 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80242C34
+    ~AnimationTable:NPC_80242C34 % .Sprite:ThreeSisters
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[9B0]
+    00000005 $NpcSettings_802418F4 ~Vec3f:NPC_80242E24 % -270 0 85
+    00400D0D $Script_Init_80242388 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80242E24
+    ~AnimationTable:NPC_80242E24 % .Sprite:ThreeSisters
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[BA0]
+    00000006 $NpcSettings_802418F4 ~Vec3f:NPC_80243014 % 300 0 150
+    00400D0D $Script_Init_802423AC 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80243014
+    ~AnimationTable:NPC_80243014 % .Sprite:RussT
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[D90]
+    00000007 $NpcSettings_802418F4 ~Vec3f:NPC_80243204 % 330 0 135
+    00400D0D $Script_Init_802423E4 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80243204
+    ~AnimationTable:NPC_80243204 % .Sprite:ShiverToad
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[F80]
+    00000008 $NpcSettings_8024194C ~Vec3f:NPC_802433F4 % -120 100 -305
+    00000D0D $Script_Init_80242408 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802433F4
+    ~AnimationTable:NPC_802433F4 % .Sprite:Penguin
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[1170]
+    00000009 $NpcSettings_802418F4 ~Vec3f:NPC_802435E4 % 100 0 150
+    00400D0D $Script_Init_8024242C 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_802435E4
+    ~AnimationTable:NPC_802435E4 % .Sprite:ToadGuard
+    00000000 00000000 00000000 00000000 % no tattle string
+    %
+    % $NpcGroup_80242474[1360]
+    0000000A $NpcSettings_802418F4 ~Vec3f:NPC_802437D4 % -50 100 -365
+    00400D0D $Script_Init_80242450 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_802437D4
+    ~AnimationTable:NPC_802437D4 % .Sprite:ToadGuard
+    00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_802439C4
+{
+    0000000B $NpcGroup_80242474 00000000
+    00000000 00000000 00000000
+}
+
+PADDING: 802439DC to 802439E0 (000039DC to 000039E0)
+00000000
+
+#new:Script $Script_802439E0
+{
+    Call  PlaySoundAtCollider   ( ~Collider:tts .Sound:LargeDoorOpen 00000000 )
+    Call  MakeLerp  ( 00000000 00000050 0000000E .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door2 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Call  RotateModel   ( ~Model:door1 *Var[0] 00000000 00000001 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait  30`
+    Call  MakeLerp  ( 00000050 00000000 00000008 .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door2 *Var[0] 00000000 00000001 00000000 )
+        Call  RotateModel   ( ~Model:door1 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  PlaySoundAtCollider   ( ~Collider:tts .Sound:LargeDoorClose 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80243B7C
+{
+    Call  DisablePlayerInput    ( .True )
+    Exec  $Script_802439E0
+    Thread
+        Call  SetNpcSpeed       ( 00000000 *Fixed[4.0] )
+        Call  SetNpcAnimation   ( 00000000 0082001E )
+        Call  NpcMoveTo ( 00000000 00000014 00000140 00000000 )
+        Call  SetNpcAnimation   ( 00000000 00820004 )
+    EndThread
+    Call  802D1270  ( 00000050 0000012C *Fixed[4.0] )
+    Call  InterpPlayerYaw   ( 0000010E 00000005 )
+    Wait  30`
+    Call  SpeakToPlayer     ( 00000000 00820014 00820004 00000000 00000024 ) % What a magnificent castle! I never get used to thi ...
+    Wait  20`
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+PADDING: 80243C84 to 80243C90 (00003C84 to 00003C90)
+00000000 00000000 00000000
+
+#new:NpcSettings $NpcSettings_80243C90
+{
+    00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+MISSING: 80243CBC to 80243CE8 (00003CBC to 00003CE8)
+00000000 00170013 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00630000
+
+#new:NpcSettings $NpcSettings_80243CE8
+{
+    00000000 002E0024 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+#new:NpcSettings $NpcSettings_80243D14
+{
+    00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+#new:Script $Script_Init_80243D40
+{
+    Call  SetNpcPos ( .Npc:Self FFFFFED4 00000000 00000127 )
+    Call  SetNpcYaw ( .Npc:Self 0000005A )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80243D80
+{
+    Call  SetNpcPos ( .Npc:Self FFFFFF51 00000000 FFFFFFB5 )
+    Call  SetNpcYaw ( .Npc:Self 0000005A )
+    Return
+    End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_80243DC0
+{
+    Call  SetNpcPos ( .Npc:Self FFFFFE48 00000000 000000DC )
+    Call  SetNpcYaw ( .Npc:Self 0000005A )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80243E00
+{
+    Call  SetNpcPos ( .Npc:Self 00000127 00000000 FFFFFFF1 )
+    Call  SetNpcYaw ( .Npc:Self 0000010E )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80243E40
+{
+    Call  SetNpcPos ( .Npc:Self 00000145 00000000 FFFFFFF6 )
+    Call  SetNpcYaw ( .Npc:Self 0000010E )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80243E80
+{
+    Call  SetNpcPos ( .Npc:Self 00000032 00000064 FFFFFE93 )
+    Call  SetNpcYaw ( .Npc:Self 0000010E )
+    Return
+    End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243EC0
+{
+    000A0000 000A0001 000C0026 000C0000 000C0001 000C0002 000A0002 000C0010
+    000D000F FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243EE8
+{
+    00890000 00890001 00890002 00890004 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243EFC
+{
+    00AA0000 00AA0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F08
+{
+    00A90000 00A90001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F14
+{
+    009B0000 009B0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F20
+{
+    00830000 00830001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F2C
+{
+    00840000 00840001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F38
+{
+    00870000 00870001 00870004 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F48
+{
+    00010000 00010001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F54
+{
+    00020000 00020003 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F60
+{
+    00030000 00030003 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F6C
+{
+    00040000 00040001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F78
+{
+    00050000 00050001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F84
+{
+    00060000 00060001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F90
+{
+    00070000 00070001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243F9C
+{
+    00080000 00080001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FA8
+{
+    00A50000 00A50001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FB4
+{
+    00B00000 00B00001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FC0
+{
+    00B20000 00B20001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FCC
+{
+    00BA0000 00BA0004 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FD8
+{
+    00D20000 00D20001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FE4
+{
+    00CC0000 00CC0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FF0
+{
+    00BF0000 00BF0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80243FFC
+{
+    009D0000 009D0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80244008
+{
+    009E0000 009E0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80244014
+{
+    00960000 00960001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80244020
+{
+    009A0000 009A0001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024402C
+{
+    00930000 00930001 FFFFFFFF
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80244038
+{
+    00CD0000 00CD0001 FFFFFFFF
+}
+
+#new:NpcGroup $NpcGroup_80244044
+{
+    00000000 $NpcSettings_80243CE8 ~Vec3f:NPC_80244044 % 0 100 -440
+    00020F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244044
+    ~AnimationTable:NPC_80244044 % .Sprite:BattleKooper
+    00000000 00000000 $ExtraAnimationList_80243EC0 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80244234
+{
+    00000001 $NpcSettings_80243C90 ~Vec3f:NPC_80244234 % 100 0 250
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244234
+    ~AnimationTable:NPC_80244234 % .Sprite:ToadMinister
+    00000000 00000000 $ExtraAnimationList_80243EE8 00000000 % no tattle string
+    %
+    % $NpcGroup_80244234[1F0]
+    00000002 $NpcSettings_80243C90 ~Vec3f:NPC_80244424 % -200 0 260
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80244424
+    ~AnimationTable:NPC_80244424 % .Sprite:TayceT
+    00000000 00000000 $ExtraAnimationList_80243EFC 00000000 % no tattle string
+    %
+    % $NpcGroup_80244234[3E0]
+    00000003 $NpcSettings_80243C90 ~Vec3f:NPC_80244614 % 300 0 150
+    3F002F0D $Script_Init_80243D40 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80244614
+    ~AnimationTable:NPC_80244614 % .Sprite:RussT
+    00000000 00000000 $ExtraAnimationList_80243F08 00000000 % no tattle string
+    %
+    % $NpcGroup_80244234[5D0]
+    00000004 $NpcSettings_80243C90 ~Vec3f:NPC_80244804 % 330 0 135
+    3F002F0D $Script_Init_80243D80 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244804
+    ~AnimationTable:NPC_80244804 % .Sprite:ShiverToad
+    00000000 00000000 $ExtraAnimationList_80243F14 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_802449F4
+{
+    00000005 $NpcSettings_80243D14 ~Vec3f:NPC_802449F4 % 180 0 80
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_802449F4
+    ~AnimationTable:NPC_802449F4 % .Sprite:WorldGoombario
+    00000000 00000000 $ExtraAnimationList_80243F48 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[1F0]
+    00000006 $NpcSettings_80243D14 ~Vec3f:NPC_80244BE4 % 225 0 225
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244BE4
+    ~AnimationTable:NPC_80244BE4 % .Sprite:WorldKooper
+    00000000 00000000 $ExtraAnimationList_80243F54 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[3E0]
+    00000007 $NpcSettings_80243D14 ~Vec3f:NPC_80244DD4 % 270 0 115
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244DD4
+    ~AnimationTable:NPC_80244DD4 % .Sprite:WorldBombette
+    00000000 00000000 $ExtraAnimationList_80243F60 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[5D0]
+    00000008 $NpcSettings_80243D14 ~Vec3f:NPC_80244FC4 % 325 10 175
+    3F000F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80244FC4
+    ~AnimationTable:NPC_80244FC4 % .Sprite:WorldParakarry
+    00000000 00000000 $ExtraAnimationList_80243F6C 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[7C0]
+    00000009 $NpcSettings_80243D14 ~Vec3f:NPC_802451B4 % -270 0 145
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802451B4
+    ~AnimationTable:NPC_802451B4 % .Sprite:WorldBow
+    00000000 00000000 $ExtraAnimationList_80243F78 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[9B0]
+    0000000A $NpcSettings_80243D14 ~Vec3f:NPC_802453A4 % -235 0 85
+    3F002F0D 00000000 00000001 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802453A4
+    ~AnimationTable:NPC_802453A4 % .Sprite:WorldWatt
+    00000000 00000000 $ExtraAnimationList_80243F84 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[BA0]
+    0000000B $NpcSettings_80243D14 ~Vec3f:NPC_80245594 % -190 0 50
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245594
+    ~AnimationTable:NPC_80245594 % .Sprite:WorldSushi
+    00000000 00000000 $ExtraAnimationList_80243F90 00000000 % no tattle string
+    %
+    % $NpcGroup_802449F4[D90]
+    0000000C $NpcSettings_80243D14 ~Vec3f:NPC_80245784 % -320 0 -60
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245784
+    ~AnimationTable:NPC_80245784 % .Sprite:WorldLakilester
+    00000000 00000000 $ExtraAnimationList_80243F9C 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80245974
+{
+    0000000D $NpcSettings_80243D14 ~Vec3f:NPC_80245974 % -145 0 415
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245974
+    ~AnimationTable:NPC_80245974 % .Sprite:Merlon
+    00000000 00000000 $ExtraAnimationList_80243FA8 00000000 % no tattle string
+    %
+    % $NpcGroup_80245974[1F0]
+    0000000E $NpcSettings_80243D14 ~Vec3f:NPC_80245B64 % -225 0 380
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245B64
+    ~AnimationTable:NPC_80245B64 % .Sprite:Merluvlee
+    00000000 00000000 $ExtraAnimationList_80243FB4 00000000 % no tattle string
+    %
+    % $NpcGroup_80245974[3E0]
+    0000000F $NpcSettings_80243D14 ~Vec3f:NPC_80245D54 % -175 0 330
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245D54
+    ~AnimationTable:NPC_80245D54 % .Sprite:Merlow
+    00000000 00000000 $ExtraAnimationList_80243FC0 00000000 % no tattle string
+    %
+    % $NpcGroup_80245974[5D0]
+    00000010 $NpcSettings_80243D14 ~Vec3f:NPC_80245F44 % -250 0 350
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80245F44
+    ~AnimationTable:NPC_80245F44 % .Sprite:WorldMerlee
+    00000000 00000000 $ExtraAnimationList_80243FCC 00000000 % no tattle string
+    %
+    % $NpcGroup_80245974[7C0]
+    00000011 $NpcSettings_80243D14 ~Vec3f:NPC_80246134 % -220 0 450
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80246134
+    ~AnimationTable:NPC_80246134 % .Sprite:Merle
+    00000000 00000000 $ExtraAnimationList_80243FD8 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80246324
+{
+    00000012 $NpcSettings_80243D14 ~Vec3f:NPC_80246324 % -365 0 -60
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80246324
+    ~AnimationTable:NPC_80246324 % .Sprite:Lakilulu
+    00000000 00000000 $ExtraAnimationList_80243FE4 00000000 % no tattle string
+    %
+    % $NpcGroup_80246324[1F0]
+    00000013 $NpcSettings_80243D14 ~Vec3f:NPC_80246514 % -340 0 100
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80246514
+    ~AnimationTable:NPC_80246514 % .Sprite:Bootler
+    00000000 00000000 $ExtraAnimationList_80243FF0 00000000 % no tattle string
+    %
+    % $NpcGroup_80246324[3E0]
+    00000014 $NpcSettings_80243D14 ~Vec3f:NPC_80246704 % 170 0 0
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80246704
+    ~AnimationTable:NPC_80246704 % .Sprite:Goompapa
+    00000000 00000000 $ExtraAnimationList_80243FFC 00000000 % no tattle string
+    %
+    % $NpcGroup_80246324[5D0]
+    00000015 $NpcSettings_80243D14 ~Vec3f:NPC_802468F4 % 140 0 50
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_802468F4
+    ~AnimationTable:NPC_802468F4 % .Sprite:Goombaria
+    00000000 00000000 $ExtraAnimationList_80244008 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80246AE4
+{
+    00000016 $NpcSettings_80243D14 ~Vec3f:NPC_80246AE4 % -340 0 310
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80246AE4
+    ~AnimationTable:NPC_80246AE4 % .Sprite:Yoshi
+    00000000 00000000 $ExtraAnimationList_80244014 00000000 % no tattle string
+    %
+    % $NpcGroup_80246AE4[1F0]
+    00000018 $NpcSettings_80243D14 ~Vec3f:NPC_80246CD4 % 225 0 -80
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80246CD4
+    ~AnimationTable:NPC_80246CD4 % .Sprite:Penguin
+    00000000 00000000 $ExtraAnimationList_80244020 00000000 % no tattle string
+    %
+    % $NpcGroup_80246AE4[3E0]
+    00000019 $NpcSettings_80243D14 ~Vec3f:NPC_80246EC4 % -250 0 -150
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80246EC4
+    ~AnimationTable:NPC_80246EC4 % .Sprite:Penguin
+    00000000 00000000 $ExtraAnimationList_80244020 00000000 % no tattle string
+    %
+    % $NpcGroup_80246AE4[5D0]
+    0000001A $NpcSettings_80243D14 ~Vec3f:NPC_802470B4 % -320 0 245
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802470B4
+    ~AnimationTable:NPC_802470B4 % .Sprite:Dryite
+    00000000 00000000 $ExtraAnimationList_8024402C 00000000 % no tattle string
+    %
+    % $NpcGroup_80246AE4[7C0]
+    0000001C $NpcSettings_80243D14 ~Vec3f:NPC_802472A4 % -395 68 50
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802472A4
+    ~AnimationTable:NPC_802472A4 % .Sprite:Ninji
+    00000000 00000000 $ExtraAnimationList_80244038 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80247494
+{
+    0000001F $NpcSettings_80243C90 ~Vec3f:NPC_80247494 % 200 0 420
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80247494
+    ~AnimationTable:NPC_80247494 % .Sprite:Toad
+    00000000 00000000 $ExtraAnimationList_80243F20 00000000 % no tattle string
+    %
+    % $NpcGroup_80247494[1F0]
+    00000020 $NpcSettings_80243C90 ~Vec3f:NPC_80247684 % -120 0 205
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80247684
+    ~AnimationTable:NPC_80247684 % .Sprite:Toad
+    00000000 00000000 $ExtraAnimationList_80243F20 00000000 % no tattle string
+    %
+    % $NpcGroup_80247494[3E0]
+    00000021 $NpcSettings_80243C90 ~Vec3f:NPC_80247874 % -440 0 220
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80247874
+    ~AnimationTable:NPC_80247874 % .Sprite:Toad
+    00000000 00000000 $ExtraAnimationList_80243F20 00000000 % no tattle string
+    %
+    % $NpcGroup_80247494[5D0]
+    00000022 $NpcSettings_80243C90 ~Vec3f:NPC_80247A64 % 285 0 290
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80247A64
+    ~AnimationTable:NPC_80247A64 % .Sprite:Toad
+    00000000 00000000 $ExtraAnimationList_80243F20 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80247C54
+{
+    00000024 $NpcSettings_80243C90 ~Vec3f:NPC_80247C54 % -300 0 100
+    3F002F0D $Script_Init_80243E00 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80247C54
+    ~AnimationTable:NPC_80247C54 % .Sprite:ThreeSisters
+    00000000 00000000 $ExtraAnimationList_80243F2C 00000000 % no tattle string
+    %
+    % $NpcGroup_80247C54[1F0]
+    00000025 $NpcSettings_80243C90 ~Vec3f:NPC_80247E44 % -270 0 85
+    3F002F0D $Script_Init_80243E40 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80247E44
+    ~AnimationTable:NPC_80247E44 % .Sprite:ThreeSisters
+    00000000 00000000 $ExtraAnimationList_80243F2C 00000000 % no tattle string
+    %
+    % $NpcGroup_80247C54[3E0]
+    00000026 $NpcSettings_80243C90 ~Vec3f:NPC_80248034 % -190 0 160
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80248034
+    ~AnimationTable:NPC_80248034 % .Sprite:ThreeSisters
+    00000000 00000000 $ExtraAnimationList_80243F2C 00000000 % no tattle string
+    %
+    % $NpcGroup_80247C54[5D0]
+    00000027 $NpcSettings_80243C90 ~Vec3f:NPC_80248224 % 190 0 300
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80248224
+    ~AnimationTable:NPC_80248224 % .Sprite:ThreeSisters
+    00000000 00000000 $ExtraAnimationList_80243F2C 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80248414
+{
+    00000028 $NpcSettings_80243C90 ~Vec3f:NPC_80248414 % 100 0 150
+    3F002F0D $Script_Init_80243E80 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80248414
+    ~AnimationTable:NPC_80248414 % .Sprite:ToadGuard
+    00000000 00000000 $ExtraAnimationList_80243F38 00000000 % no tattle string
+    %
+    % $NpcGroup_80248414[1F0]
+    00000029 $NpcSettings_80243C90 ~Vec3f:NPC_80248604 % -50 100 -365
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_80248604
+    ~AnimationTable:NPC_80248604 % .Sprite:ToadGuard
+    00000000 00000000 $ExtraAnimationList_80243F38 00000000 % no tattle string
+    %
+    % $NpcGroup_80248414[3E0]
+    0000002A $NpcSettings_80243C90 ~Vec3f:NPC_802487F4 % 225 0 125
+    3F002F0D 00000000 00000000 00000000 0000010E
+    ~NoDrops
+    ~Movement:NPC_802487F4
+    ~AnimationTable:NPC_802487F4 % .Sprite:ToadGuard
+    00000000 00000000 $ExtraAnimationList_80243F38 00000000 % no tattle string
+    %
+    % $NpcGroup_80248414[5D0]
+    0000002C $NpcSettings_80243C90 ~Vec3f:NPC_802489E4 % -392 40 -230
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_802489E4
+    ~AnimationTable:NPC_802489E4 % .Sprite:ToadGuard
+    00000000 00000000 $ExtraAnimationList_80243F38 00000000 % no tattle string
+    %
+    % $NpcGroup_80248414[7C0]
+    0000002E $NpcSettings_80243C90 ~Vec3f:NPC_80248BD4 % -392 40 -230
+    3F002F0D 00000000 00000000 00000000 0000005A
+    ~NoDrops
+    ~Movement:NPC_80248BD4
+    ~AnimationTable:NPC_80248BD4 % .Sprite:ToadGuard
+    00000000 00000000 $ExtraAnimationList_80243F38 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_80248DC4
+{
+    00000001 $NpcGroup_80244044 00000000
+    00000004 $NpcGroup_80244234 00000000
+    00000008 $NpcGroup_802449F4 00000000
+    00000005 $NpcGroup_80245974 00000000
+    00000004 $NpcGroup_80246324 00000000
+    00000005 $NpcGroup_80246AE4 00000000
+    00000004 $NpcGroup_80247494 00000000
+    00000004 $NpcGroup_80247C54 00000000
+    00000005 $NpcGroup_80248414 00000000
+    00000000 00000000 00000000
+}
+
+PADDING: 80248E3C to 80248E40 (00008E3C to 00008E40)
+00000000
+
+#new:Script $Script_80248E40
+{
+    Call  PlaySoundAtCollider   ( ~Collider:tts .Sound:LargeDoorOpen 00000000 )
+    Call  MakeLerp  ( 00000000 00000050 0000000E .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door2 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Call  RotateModel   ( ~Model:door1 *Var[0] 00000000 00000001 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait  30`
+    Call  MakeLerp  ( 00000050 00000000 00000008 .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door2 *Var[0] 00000000 00000001 00000000 )
+        Call  RotateModel   ( ~Model:door1 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  PlaySoundAtCollider   ( ~Collider:tts .Sound:LargeDoorClose 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80248FDC
+{
+    Call  PlaySoundAtCollider   ( ~Collider:ttn .Sound:LargeDoorOpen 00000000 )
+    Call  MakeLerp  ( 00000000 00000050 0000000E .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door3 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Call  RotateModel   ( ~Model:door4 *Var[0] 00000000 00000001 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait  30`
+    Call  MakeLerp  ( 00000050 00000000 00000008 .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateModel   ( ~Model:door4 *Var[0] 00000000 00000001 00000000 )
+        Call  RotateModel   ( ~Model:door3 *Var[0] 00000000 FFFFFFFF 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  PlaySoundAtCollider   ( ~Collider:ttn .Sound:LargeDoorClose 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80249178
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  UseSettingsFrom   ( .Cam:Default 00000032 00000000 000000FA )
+    Call  SetPanTarget  ( .Cam:Default 00000032 00000000 000000FA )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  10`
+    Exec  $Script_80248E40
+    Call  802D1270      ( 00000000 0000012C *Fixed[4.0] )
+    Call  SetNpcAnimation   ( 00000001 00890002 )
+    Call  NpcMoveTo     ( 00000001 0000004A 000000F3 0000000A )
+    Call  SetNpcAnimation   ( 00000001 00890001 )
+    Call  SpeakToPlayer ( 00000001 00890004 00890001 00000000 00010064 ) % Mario, welcome to the castle. Princess Peach shoul ...
+    Wait  10`
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000064 FFFFFEDE )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000064 FFFFFEDE )
+    Call  SetCamDistance    ( .Cam:Default 00000190 )
+    Call  SetCamPitch   ( .Cam:Default 0000000A FFFFFFF9 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  20`
+    Call  SpeakToPlayer ( 00000028 00870004 00870001 00000005 00010065 ) % And now... Princess Peach!
+    Call  InterpPlayerYaw   ( 00000000 00000000 )
+    Wait  10`
+    Call  SetMusicTrack ( 00000000 .Song:PeachAppears 00000000 00000008 )
+    Exec  $Script_80248FDC
+    Thread
+        Call  SetNpcAnimation   ( 00000000 000A0002 )
+        Call  SetNpcSpeed       ( 00000000 *Fixed[2.0] )
+        Call  NpcMoveTo ( 00000000 00000000 FFFFFF38 00000000 )
+        Call  SetNpcAnimation   ( 00000000 000A0001 )
+    EndThread
+    Loop
+        Call  GetNpcPos ( 00000000 *Var[0] *Var[1] *Var[2] )
+        If  *Var[0]  >  FFFFFEA2
+            BreakLoop
+        EndIf
+        Wait  1`
+    EndLoop
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetCamDistance    ( .Cam:Default 00000226 )
+    Call  SetCamPitch   ( .Cam:Default 0000000A FFFFFFF9 )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[0.6] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetCamDistance    ( .Cam:Default 000000FA )
+    Call  SetCamPitch   ( .Cam:Default 00000003 FFFFFFF5 )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  20`
+    Call  SetMusicTrack ( 00000000 .Song:PeachAppears 00000001 00000008 )
+    Call  SetNpcAnimation   ( 00000000 000C0000 )
+    Wait  10`
+    Call  SetNpcAnimation   ( 00000000 000C0026 )
+    Call  SpeakToPlayer ( 00000000 000C0001 000C0026 00000005 00010066 ) % Greetings to all of you! I'm so glad everyone coul ...
+    Call  UseSettingsFrom   ( .Cam:Default 00000032 00000000 000000FA )
+    Call  SetPanTarget  ( .Cam:Default 00000032 00000000 000000FA )
+    Call  SetCamDistance    ( .Cam:Default 000001F4 )
+    Call  SetCamPitch   ( .Cam:Default 00000003 FFFFFFF6 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  1`
+    Call  SpeakToPlayer ( 00000000 000C0001 000C0026 00000005 00010067 ) % The Star Rod stolen by Bowser has been returned to ...
+    Wait  10`
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetCamDistance    ( .Cam:Default 0000012C )
+    Call  SetCamPitch   ( .Cam:Default 00000019 *Fixed[-9.5] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Call  InterpPlayerYaw   ( 0000005A 00000000 )
+    Wait  10`
+    Call  SpeakToPlayer ( 00000000 000C0001 000C0026 00000005 00010068 ) % Above us, the stars shine with more beauty and pow ...
+    Call  SetNpcAnimation   ( 00000000 000C0002 )
+    Wait  10`
+    Call  SetNpcAnimation   ( 00000000 000A0001 )
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000000 0000012C )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000000 0000012C )
+    Call  SetCamDistance    ( .Cam:Default *Fixed[252.7] )
+    Call  SetCamPitch   ( .Cam:Default 00000005 *Fixed[-9.5] )
+    Call  SetCamPosA    ( .Cam:Default 000001F4 00000064 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  20`
+    Call  ShowMessageAtWorldPos ( 00010069 00000000 00000064 FFFFFF38 ) % Mario...
+    Call  UseSettingsFrom   ( .Cam:Default 000000FA 00000000 00000064 )
+    Call  SetPanTarget  ( .Cam:Default 000000FA 00000000 00000064 )
+    Call  SetCamDistance    ( .Cam:Default 00000190 )
+    Call  SetCamPitch   ( .Cam:Default 0000000F FFFFFFFF )
+    Call  SetCamPosA    ( .Cam:Default FFFFFF9C 00000064 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  1`
+    Call  ShowMessageAtWorldPos ( 0001006A 00000000 00000064 FFFFFF38 ) % Goombario, Kooper, Bombette, Parakarry,...
+    Call  UseSettingsFrom   ( .Cam:Default FFFFFF06 00000000 00000032 )
+    Call  SetPanTarget  ( .Cam:Default FFFFFF06 00000000 00000032 )
+    Call  SetCamDistance    ( .Cam:Default 000001C2 )
+    Call  SetCamPitch   ( .Cam:Default 0000000F FFFFFFF9 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  1`
+    Call  ShowMessageAtWorldPos ( 0001006B 00000000 00000064 FFFFFF38 ) % Bow, Watt, Sushie, Lakilester,
+    Call  UseSettingsFrom   ( .Cam:Default FFFFFF6A 00000000 00000168 )
+    Call  SetPanTarget  ( .Cam:Default FFFFFF6A 00000000 00000168 )
+    Call  SetCamDistance    ( .Cam:Default 0000012C )
+    Call  SetCamPitch   ( .Cam:Default 00000019 FFFFFFF3 )
+    Call  SetCamPosA    ( .Cam:Default 00000334 FFFFFF9C )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  1`
+    Call  ShowMessageAtWorldPos ( 0001006C 00000000 00000064 FFFFFF38 ) % and everybody across the lands of the Mushroom Kin ...
+    Wait  10`
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000064 FFFFFF38 )
+    Call  SetCamDistance    ( .Cam:Default 000000FA )
+    Call  SetCamPitch   ( .Cam:Default 00000005 FFFFFFF6 )
+    Call  SetCamPosA    ( .Cam:Default FFFFFE0C FFFFFA88 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  1`
+    Call  SetNpcAnimation   ( 00000000 000C0000 )
+    Wait  10`
+    Call  SetNpcAnimation   ( 00000000 000C0026 )
+    Call  SpeakToPlayer ( 00000000 000C0001 000C0026 00000000 0001006D ) % Thank you very much, indeed. I appreciate it from  ...
+    Call  SetNpcAnimation   ( 00000000 000C0002 )
+    Wait  30`
+    Call  SetNpcAnimation   ( 00000000 000D000F )
+    Wait  60`
+    Call  SetNpcAnimation   ( 00000000 000C0026 )
+    Call  SpeakToPlayer ( 00000000 000C0001 000C0026 00000000 0001006E ) % So, let's celebrate! Enjoy the festivities, everyo ...
+    Call  SetNpcAnimation   ( 00000000 000C0010 )
+    Call  EnableGroup   ( ~Model:chandelier .False )
+    Call  UseSettingsFrom   ( .Cam:Default 00000000 00000000 00000078 )
+    Call  SetPanTarget  ( .Cam:Default 00000000 00000000 00000078 )
+    Call  SetCamDistance    ( .Cam:Default 00000514 )
+    Call  SetCamPitch   ( .Cam:Default 0000001E FFFFFFF9 )
+    Call  SetCamPosA    ( .Cam:Default FFFFFF88 0000004B )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Wait  120`
+    Call  $Function_80240F40 ( )
+    Wait  60`
+    Call  FadeOutMusic  ( 00000000 000007D0 )
+    Call  GotoMapSpecial    ( $ASCII_80249ED0 00000000 00000005 ) % end_00
+    Wait  100`
+    Return
+    End
+}
+
+PADDING: 80249D1C to 80249D20 (00009D1C to 00009D20)
+00000000
+
+#new:ASCII $ASCII_80249D20
+{
+    "kkj_01"
+}
+
+#new:ASCII $ASCII_80249D28
+{
+    "kkj_19"
+}
+
+#new:ConstDouble $ConstDouble_80249D30
+{
+    32767.000000d
+}
+
+#new:ConstDouble $ConstDouble_80249D38
+{
+    32767.000000d
+}
+
+#new:JumpTable $JumpTable_80249D40
+{
+    $Function_80240C44[1E4] $Function_80240C44[1F4] $Function_80240C44[20C] $Function_80240C44[21C]
+    $Function_80240C44[234] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[24C] $Function_80240C44[25C]
+    $Function_80240C44[274] $Function_80240C44[284] $Function_80240C44[29C] $Function_80240C44[2B4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4]
+    $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2D4] $Function_80240C44[2CC]
+}
+
+#new:ASCII $ASCII_80249ED0
+{
+    "end_00"
+}
+
+PADDING: 80249ED8 to 80249EE0 (00009ED8 to 00009EE0)
+00000000 00000000
+

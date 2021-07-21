@@ -1,0 +1,89 @@
+% Script File: kpa_119.mscr
+% Decoded from: 0 to 290 (kpa_119)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %    6.0    0.0  100.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000001
+    [Background]  00000000
+    [MapTattle]   00190187
+}
+
+#new:Script $Script_80240050
+{
+    Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Metal )
+    Thread
+        Wait  30`
+        Call  802D5FA4  ( 00000006 )
+    EndThread
+    Return
+    End
+}
+
+PADDING: 802400B8 to 802400C0 (000000B8 to 000000C0)
+00000000 00000000
+
+#new:Script $Script_802400C0
+{
+    Call  MakeItemEntity    ( .Item:CastleKey2 ~Vec3d:Item802400C0 00000000 *Flag_KPA_27 )
+    Return
+    End
+}
+
+PADDING: 802400F4 to 80240100 (000000F4 to 00000100)
+00000000 00000000 00000000
+
+#new:Script $Script_ExitWalk_80240100
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80240280 00000001 ) % kpa_118
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_8024015C
+{
+    Bind  $Script_ExitWalk_80240100 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:BowsersCastle
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_802400C0
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deiliwtt 7FFFFE00 )
+    Set   *Var[0]  $Script_8024015C
+    Exec  EnterWalk
+    Wait  1`
+    Exec  $Script_80240050
+    Return
+    End
+}
+
+PADDING: 80240274 to 80240280 (00000274 to 00000280)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80240280
+{
+    "kpa_118"
+}
+
+PADDING: 80240288 to 80240290 (00000288 to 00000290)
+00000000 00000000
+

@@ -1,0 +1,1357 @@
+% Script File: arn_02.mscr
+% Decoded from: 0 to 1BE0 (arn_02)
+
+#new:Function $Function_80240000
+{
+	ADDIU     SP, SP, FFD8
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	SDC1      F20, 20 (SP)
+	LW        S0, 148 (A0)
+	LH        A0, 8 (S0)
+	LIF       F20, 270.0
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A1
+	COPY      A0, S0
+	LW        A2, C (S1)
+	LW        A3, 10 (S1)
+	COPY      S1, V0
+	LIA       V1, 800B1D80
+	LAH       V0, 8009A634
+	CLEAR     A1
+	SLL       S0, V0, 2
+	ADDU      S0, S0, V0
+	SLL       S0, S0, 2
+	SUBU      S0, S0, V0
+	SLL       V0, S0, 3
+	ADDU      S0, S0, V0
+	SLL       S0, S0, 3
+	JAL       800493EC
+	ADDU      S0, S0, V1
+	LWC1      F12, 6C (S0)
+	LWC1      F14, C (S1)
+	JAL       ~Func:get_clamped_angle_diff
+	SLTU      S0, R0, V0
+	JAL       ~Func:clamp_angle
+	MOV.S     F12, F0
+	LAD       F2, $ConstDouble_80241AE0
+	CVT.D.S   F0, F0
+	C.LT.D    F0, F2
+	NOP
+	BC1F      .oB4
+	NOP
+	LIF       F20, 90.0
+	.oB4
+	LIA       S2, 800F7B30
+	LWC1      F12, 38 (S1)
+	LW        V0, 0 (S2)
+	LWC1      F14, 40 (S1)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	MOV.S     F12, F20
+	JAL       ~Func:get_clamped_angle_diff
+	MOV.S     F14, F0
+	ABS.S     F0, F0
+	LAD       F2, $ConstDouble_80241AE8
+	CVT.D.S   F0, F0
+	C.LT.D    F2, F0
+	NOP
+	BC1TL     .o100
+	CLEAR     S0
+	.o100
+	LW        V0, 0 (S2)
+	LWC1      F0, 3C (S1)
+	LWC1      F2, 2C (V0)
+	SUB.S     F0, F0, F2
+	LIF       F2, 40.0
+	ABS.S     F0, F0
+	C.LE.S    F2, F0
+	NOP
+	BC1TL     .o12C
+	CLEAR     S0
+	.o12C
+	LAB       V1, 8010EBB3
+	ADDIU     V0, R0, 9
+	BEQL      V1, V0, .o140
+	CLEAR     S0
+	.o140
+	COPY      V0, S0
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	LDC1      F20, 20 (SP)
+	JR        RA
+	ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80240160
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S2, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S2)
+	COPY      S0, V0
+	JAL       ~Func:disable_npc_shadow
+	COPY      A0, S0
+	ADDIU     V0, R0, 16
+	SH        V0, A8 (S0)
+	ADDIU     V0, R0, 18
+	SH        V0, A6 (S0)
+	SW        R0, 74 (S1)
+	SH        R0, 8E (S0)
+	LW        V0, CC (S2)
+	LW        V0, 20 (V0)
+	SW        V0, 28 (S0)
+	ADDIU     V0, R0, 1
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802401D4
+{
+	ADDIU     SP, SP, FFB8
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 44 (SP)
+	SW        S4, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S0, 148 (S3)
+	COPY      S2, A1
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S4, A2
+	LW        V1, 74 (S3)
+	BGTZ      V1, .o104
+	COPY      S1, V0
+	LW        V0, 14 (S2)
+	SW        V0, 74 (S3)
+	LWC1      F0, C (S2)
+	LAD       F2, $ConstDouble_80241AF0
+	CVT.D.S   F0, F0
+	MUL.D     F0, F0, F2
+	NOP
+	COPY      A0, S4
+	SW        R0, 10 (SP)
+	LW        A3, 10 (S2)
+	CVT.S.D   F0, F0
+	MFC1      A2, F0
+	JAL       800490B4
+	COPY      A1, S0
+	BEQ       V0, R0, .o104
+	CLEAR     A0
+	COPY      A1, S1
+	CLEAR     A2
+	LW        V0, CC (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LW        V1, 24 (V0)
+	LH        V0, A8 (S1)
+	LIF       F4, -20.0
+	MTC1      V0, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, R0, F
+	SW        V1, 28 (S1)
+	SW        V0, 1C (SP)
+	ADDIU     V0, SP, 28
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	SWC1      F4, 18 (SP)
+	JAL       ~Func:fx_emote
+	SW        V0, 20 (SP)
+	COPY      A0, S1
+	ADDIU     A1, R0, 2F4
+	JAL       800494C0
+	LUI       A2, 20
+	ADDIU     V0, R0, C
+	SH        V0, 8E (S1)
+	ADDIU     V0, R0, 2
+	SW        V0, 70 (S3)
+	.o104
+	LW        V0, 74 (S3)
+	ADDIU     V0, V0, FFFF
+	SW        V0, 74 (S3)
+	LW        RA, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80240304
+{
+	ADDIU     SP, SP, FFE0
+	SW        S2, 18 (SP)
+	COPY      S2, A0
+	SW        RA, 1C (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        S1, 148 (S2)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S1)
+	COPY      S0, V0
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o84
+	NOP
+	LAW       V0, 800F7B30
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	COPY      A0, S0
+	JAL       ~Func:enable_npc_shadow
+	SWC1      F0, C (S0)
+	LW        V0, CC (S1)
+	LW        V1, 28 (V0)
+	ADDIU     V0, R0, 8
+	SH        V0, 8E (S0)
+	ADDIU     V0, R0, 3
+	SW        V1, 28 (S0)
+	SW        V0, 70 (S2)
+	.o84
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802403A0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        V0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (V0)
+	COPY      S0, V0
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o74
+	NOP
+	LAW       V0, 800F7B30
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	ADDIU     V0, R0, 1A
+	SH        V0, A8 (S0)
+	ADDIU     V0, R0, 18
+	SH        V0, A6 (S0)
+	ADDIU     V0, R0, 4
+	SWC1      F0, C (S0)
+	SW        V0, 70 (S1)
+	.o74
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240428
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S2, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S2)
+	ADDIU     A0, R0, B4
+	JAL       ~Func:rand_int
+	COPY      S0, V0
+	LWC1      F12, C (S0)
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	ADD.S     F12, F12, F0
+	LIF       F0, 90.0
+	JAL       ~Func:clamp_angle
+	SUB.S     F12, F12, F0
+	SWC1      F0, C (S0)
+	LW        V0, CC (S2)
+	LW        V0, 0 (V0)
+	ADDIU     A0, R0, 3E8
+	JAL       ~Func:rand_int
+	SW        V0, 28 (S0)
+	SRL       V1, V0, 1F
+	ADDU      V1, V0, V1
+	SRA       V1, V1, 1
+	SLL       V1, V1, 1
+	SUBU      V0, V0, V1
+	ADDIU     V0, V0, 2
+	SW        V0, 74 (S1)
+	ADDIU     V0, R0, 5
+	SW        V0, 70 (S1)
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802404D0
+{
+	ADDIU     SP, SP, FFB8
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S0, 148 (S3)
+	COPY      S2, A1
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A2
+	COPY      A0, S1
+	COPY      A1, S0
+	SW        R0, 10 (SP)
+	LW        A2, 24 (S2)
+	LW        A3, 28 (S2)
+	JAL       800490B4
+	COPY      S0, V0
+	BEQ       V0, R0, .o7C
+	NOP
+	LAW       V0, 800F7B30
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	ADDIU     V0, R0, C
+	BEQ       R0, R0, .o154
+	SWC1      F0, C (S0)
+	.o7C
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o158
+	NOP
+	LW        V0, 74 (S3)
+	ADDIU     V0, V0, FFFF
+	BLEZ      V0, .oF0
+	SW        V0, 74 (S3)
+	LWC1      F0, C (S0)
+	LIF       F12, 180.0
+	JAL       ~Func:clamp_angle
+	ADD.S     F12, F0, F12
+	SWC1      F0, C (S0)
+	LW        A0, 8 (S2)
+	SRL       V0, A0, 1F
+	ADDU      A0, A0, V0
+	SRA       A0, A0, 1
+	JAL       ~Func:rand_int
+	ADDIU     A0, A0, 1
+	LW        V1, 8 (S2)
+	SRL       A0, V1, 1F
+	ADDU      V1, V1, A0
+	SRA       V1, V1, 1
+	ADDU      V1, V1, V0
+	BEQ       R0, R0, .o158
+	SH        V1, 8E (S0)
+	.oF0
+	ADDIU     A0, R0, 2
+	COPY      A1, S0
+	CLEAR     A2
+	LH        V1, A8 (S0)
+	LIF       F0, 1.0
+	LIF       F2, 2.0
+	LIF       F4, -20.0
+	ADDIU     V0, R0, C
+	SW        V0, 1C (SP)
+	MTC1      V1, F6
+	NOP
+	CVT.S.W   F6, F6
+	MFC1      A3, F6
+	ADDIU     V0, SP, 28
+	SW        V0, 20 (SP)
+	SWC1      F0, 10 (SP)
+	SWC1      F2, 14 (SP)
+	JAL       ~Func:fx_emote
+	SWC1      F4, 18 (SP)
+	ADDIU     V0, R0, F
+	SH        V0, 8E (S0)
+	ADDIU     V0, R0, 28
+	.o154
+	SW        V0, 70 (S3)
+	.o158
+	LW        RA, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80240644
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	LHU       V1, 96 (S0)
+	SH        V1, 8E (V0)
+	LW        V1, CC (S0)
+	LW        V1, 34 (V1)
+	SW        V1, 28 (V0)
+	ADDIU     V0, R0, 15
+	SW        V0, 70 (S1)
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240694
+{
+	ADDIU     SP, SP, FFD0
+	SW        S3, 24 (SP)
+	COPY      S3, A0
+	SW        RA, 2C (SP)
+	SW        S4, 28 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	SW        S0, 18 (SP)
+	LW        S1, 148 (S3)
+	LH        A0, 8 (S1)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S4, A1
+	COPY      S0, V0
+	LIA       S2, 800F7B30
+	LWC1      F12, 38 (S0)
+	LW        V0, 0 (S2)
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	LUI       V0, 5555
+	LHU       V1, 8E (S0)
+	ORI       V0, V0, 5556
+	SLL       V1, V1, 10
+	SRA       A0, V1, 10
+	MULT      A0, V0
+	SRA       V1, V1, 1F
+	MFHI      T0
+	SUBU      V1, T0, V1
+	SLL       V0, V1, 1
+	ADDU      V0, V0, V1
+	SUBU      A0, A0, V0
+	SLL       A0, A0, 10
+	BNE       A0, R0, .oBC
+	SWC1      F0, C (S0)
+	LWC1      F2, 40 (S0)
+	LIF       F0, 2.0
+	SW        R0, 10 (SP)
+	SW        R0, 14 (SP)
+	ADD.S     F2, F2, F0
+	LW        A2, 3C (S0)
+	LW        A1, 38 (S0)
+	MFC1      A3, F2
+	JAL       ~Func:fx_walk_normal
+	ADDIU     A0, R0, 2
+	.oBC
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o180
+	NOP
+	LWC1      F0, 38 (S0)
+	TRUNC.W.S F4, F0
+	MFC1      V0, F4
+	NOP
+	SH        V0, 10 (S1)
+	LWC1      F0, 3C (S0)
+	TRUNC.W.S F4, F0
+	MFC1      V0, F4
+	NOP
+	SH        V0, 12 (S1)
+	LWC1      F0, 40 (S0)
+	ADDIU     V0, R0, 1
+	SB        V0, 7 (S1)
+	TRUNC.W.S F4, F0
+	MFC1      V0, F4
+	NOP
+	SH        V0, 14 (S1)
+	LWC1      F0, 18 (S4)
+	LWC1      F12, 38 (S0)
+	LWC1      F14, 40 (S0)
+	LW        V0, 0 (S2)
+	SWC1      F0, 18 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:dist2D
+	LW        A3, 30 (V0)
+	LWC1      F2, 18 (S0)
+	DIV.S     F0, F0, F2
+	LAD       F2, $ConstDouble_80241AF8
+	CVT.D.S   F0, F0
+	ADD.D     F0, F0, F2
+	TRUNC.W.D F4, F0
+	MFC1      V0, F4
+	NOP
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	SRA       V0, V0, 10
+	SLTI      V0, V0, F
+	BEQ       V0, R0, .o178
+	ADDIU     V0, R0, F
+	SH        V0, 8E (S0)
+	.o178
+	ADDIU     V0, R0, 16
+	SW        V0, 70 (S3)
+	.o180
+	LW        RA, 2C (SP)
+	LW        S4, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_80240834
+{
+	ADDIU     SP, SP, FFB8
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S2, 148 (S3)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S2)
+	COPY      S0, V0
+	COPY      A0, S0
+	JAL       8003D660
+	ADDIU     A1, R0, 1
+	LW        A1, 18 (S0)
+	LW        A2, C (S0)
+	JAL       ~Func:npc_move_heading
+	COPY      A0, S0
+	LW        V1, D0 (S2)
+	LWC1      F0, 40 (S0)
+	LWC1      F2, 1C (V1)
+	CVT.S.W   F2, F2
+	LWC1      F4, 24 (V1)
+	CVT.S.W   F4, F4
+	SWC1      F0, 10 (SP)
+	LW        V0, D0 (S2)
+	MFC1      A1, F2
+	LWC1      F0, 28 (V0)
+	CVT.S.W   F0, F0
+	SWC1      F0, 14 (SP)
+	LW        V0, D0 (S2)
+	MFC1      A2, F4
+	LWC1      F0, 2C (V0)
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LW        A0, 30 (V1)
+	JAL       ~Func:is_point_within_region
+	LW        A3, 38 (S0)
+	LWC1      F0, 38 (S0)
+	LWC1      F2, 3C (S0)
+	LWC1      F4, 40 (S0)
+	LIF       F6, 1.0
+	SWC1      F0, 20 (SP)
+	SWC1      F2, 24 (SP)
+	SWC1      F4, 28 (SP)
+	SWC1      F6, 10 (SP)
+	LWC1      F0, C (S0)
+	SLTU      S1, R0, V0
+	SWC1      F0, 14 (SP)
+	LH        V0, A8 (S0)
+	ADDIU     A1, SP, 20
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 18 (SP)
+	LH        V0, A6 (S0)
+	ADDIU     A2, SP, 24
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 1C (SP)
+	LW        A0, 80 (S0)
+	JAL       800DDC44
+	ADDIU     A3, SP, 28
+	BNEL      V0, R0, .o10C
+	ADDIU     S1, R0, 1
+	.o10C
+	LHU       V0, 8E (S0)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S0)
+	SLL       V0, V0, 10
+	BLEZL     V0, .o124
+	ADDIU     S1, R0, 1
+	.o124
+	BEQ       S1, R0, .o134
+	ADDIU     V0, R0, 4
+	SW        V0, 70 (S3)
+	SB        R0, 7 (S2)
+	.o134
+	LW        RA, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80240984
+{
+	ADDIU     SP, SP, FFE0
+	SW        S2, 18 (SP)
+	COPY      S2, A0
+	SW        RA, 1C (SP)
+	SW        S1, 14 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S2)
+	LH        A0, 8 (S0)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A1
+	COPY      V1, V0
+	LHU       V0, 8E (V1)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (V1)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o94
+	NOP
+	LW        V0, CC (S0)
+	LW        V0, 4 (V0)
+	SW        V0, 28 (V1)
+	LW        V0, D0 (S0)
+	LW        V0, 14 (V0)
+	BGEZ      V0, .o6C
+	NOP
+	LWC1      F0, 0 (S1)
+	BEQ       R0, R0, .o8C
+	SWC1      F0, 18 (V1)
+	.o6C
+	LAD       F2, $ConstDouble_80241B00
+	MTC1      V0, F0
+	NOP
+	CVT.D.W   F0, F0
+	DIV.D     F0, F0, F2
+	CVT.S.D   F0, F0
+	SWC1      F0, 18 (V1)
+	.o8C
+	ADDIU     V0, R0, 29
+	SW        V0, 70 (S2)
+	.o94
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240A30
+{
+	ADDIU     SP, SP, FFD0
+	SW        S3, 24 (SP)
+	COPY      S3, A0
+	SW        RA, 28 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	SW        S0, 18 (SP)
+	LW        S2, 148 (S3)
+	COPY      S1, A1
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S0, A2
+	COPY      A0, S0
+	COPY      A1, S2
+	SW        R0, 10 (SP)
+	LW        A2, 24 (S1)
+	LW        A3, 28 (S1)
+	JAL       800490B4
+	COPY      S0, V0
+	BEQ       V0, R0, .o80
+	NOP
+	LWC1      F12, 38 (S0)
+	LAW       V0, 800F7B30
+	LWC1      F14, 40 (S0)
+	LW        A2, 28 (V0)
+	JAL       ~Func:atan2
+	LW        A3, 30 (V0)
+	ADDIU     V0, R0, C
+	SWC1      F0, C (S0)
+	BEQ       R0, R0, .o11C
+	SW        V0, 70 (S3)
+	.o80
+	LWC1      F12, 38 (S0)
+	LW        V0, D0 (S2)
+	LWC1      F14, 40 (S0)
+	LWC1      F4, 0 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A2, F4
+	LWC1      F4, 8 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A3, F4
+	JAL       ~Func:dist2D
+	NOP
+	LWC1      F2, 18 (S0)
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .oD0
+	ADDIU     V0, R0, A
+	SH        V0, 8E (S0)
+	ADDIU     V0, R0, 32
+	BEQ       R0, R0, .o11C
+	SW        V0, 70 (S3)
+	.oD0
+	LH        V0, 8C (S0)
+	BNE       V0, R0, .o11C
+	NOP
+	LWC1      F12, 38 (S0)
+	LW        V0, D0 (S2)
+	LWC1      F14, 40 (S0)
+	LWC1      F4, 0 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A2, F4
+	LWC1      F4, 8 (V0)
+	CVT.S.W   F4, F4
+	MFC1      A3, F4
+	JAL       ~Func:atan2
+	NOP
+	LW        A1, 18 (S0)
+	MFC1      A2, F0
+	COPY      A0, S0
+	JAL       ~Func:npc_move_heading
+	SW        A2, C (A0)
+	.o11C
+	LW        RA, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	JR        RA
+	ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_80240B68
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	COPY      A0, V0
+	LH        V0, 8E (A0)
+	LHU       V1, 8E (A0)
+	BLEZ      V0, .o38
+	ADDIU     V0, V1, FFFF
+	SH        V0, 8E (A0)
+	.o38
+	LH        V0, 8C (A0)
+	BNE       V0, R0, .o68
+	NOP
+	LH        V0, 8E (A0)
+	BGTZ      V0, .o68
+	ADDIU     V0, R0, 8
+	SH        V0, 8E (A0)
+	LW        V0, CC (S0)
+	LW        V0, 2C (V0)
+	SW        V0, 28 (A0)
+	ADDIU     V0, R0, 33
+	SW        V0, 70 (S1)
+	.o68
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240BE4
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        S0, 148 (S1)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (S0)
+	COPY      V1, V0
+	LHU       V0, 8E (V1)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (V1)
+	SLL       V0, V0, 10
+	BGTZ      V0, .o54
+	ADDIU     V0, R0, 8
+	SH        V0, 8E (V1)
+	LW        V0, CC (S0)
+	LW        V0, 38 (V0)
+	SW        V0, 28 (V1)
+	ADDIU     V0, R0, 34
+	SW        V0, 70 (S1)
+	.o54
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80240C4C
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, 148 (S0)
+	JAL       ~Func:get_npc_unsafe
+	LH        A0, 8 (V0)
+	LHU       V1, 8E (V0)
+	ADDIU     V1, V1, FFFF
+	SH        V1, 8E (V0)
+	SLL       V1, V1, 10
+	BLEZL     V1, .o34
+	SW        R0, 70 (S0)
+	.o34
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240C90
+{
+	ADDIU     SP, SP, FFB0
+	SW        S3, 3C (SP)
+	COPY      S3, A0
+	SW        RA, 48 (SP)
+	SW        S5, 44 (SP)
+	SW        S4, 40 (SP)
+	SW        S2, 38 (SP)
+	SW        S1, 34 (SP)
+	SW        S0, 30 (SP)
+	LW        S2, 148 (S3)
+	LH        A0, 8 (S2)
+	JAL       ~Func:get_npc_unsafe
+	COPY      S1, A1
+	COPY      A0, S3
+	LW        S0, C (S3)
+	COPY      S5, V0
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	ADDIU     S0, S0, 4
+	COPY      A0, S3
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable
+	COPY      S4, V0
+	SW        V0, 94 (S2)
+	SW        R0, 10 (SP)
+	LW        V0, D0 (S2)
+	LW        V0, 30 (V0)
+	SW        V0, 14 (SP)
+	LW        V0, D0 (S2)
+	LW        V0, 1C (V0)
+	SW        V0, 18 (SP)
+	LW        V0, D0 (S2)
+	LW        V0, 24 (V0)
+	SW        V0, 1C (SP)
+	LW        V0, D0 (S2)
+	LW        V0, 28 (V0)
+	SW        V0, 20 (SP)
+	LW        V0, D0 (S2)
+	LIF       F0, 40.0
+	LW        V0, 2C (V0)
+	ADDIU     S0, SP, 10
+	SWC1      F0, 28 (SP)
+	SH        R0, 2C (SP)
+	BEQ       S1, R0, .oFC
+	SW        V0, 24 (SP)
+	SW        R0, 70 (S3)
+	LW        V1, 0 (S5)
+	ADDIU     V0, R0, F7FF
+	SH        R0, 8E (S5)
+	AND       V1, V1, V0
+	SW        V1, 0 (S5)
+	LW        V0, D0 (S2)
+	LW        V0, 34 (V0)
+	BNEL      V0, R0, .oF0
+	ADDIU     V0, R0, FDFF
+	ORI       V0, V1, 200
+	ADDIU     V1, R0, FFF7
+	BEQ       R0, R0, .oF8
+	AND       V0, V0, V1
+	.oF0
+	AND       V0, V1, V0
+	ORI       V0, V0, 8
+	.oF8
+	SW        V0, 0 (S5)
+	.oFC
+	LW        V1, B0 (S2)
+	ANDI      V0, V1, 4
+	BEQ       V0, R0, .o124
+	NOP
+	LB        V0, B4 (S2)
+	BNE       V0, R0, .o32C
+	CLEAR     V0
+	ADDIU     V0, R0, FFFB
+	AND       V0, V1, V0
+	SW        V0, B0 (S2)
+	.o124
+	LW        V0, 70 (S3)
+	ADDIU     V0, V0, FFF4
+	SLTIU     V0, V0, 3
+	BEQ       V0, R0, .o150
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240000
+	COPY      A2, S0
+	BEQ       V0, R0, .o150
+	ADDIU     V0, R0, 14
+	SW        V0, 70 (S3)
+	.o150
+	LW        V1, 70 (S3)
+	SLTIU     V0, V1, 35
+	BEQ       V0, R0, .o328
+	SLL       V0, V1, 2
+	LTW       V0, V0 ($JumpTable_80241B08)
+	JR        V0
+	NOP
+    % LBL: from $JumpTable_80241B08 , entry 0`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240160
+	COPY      A2, S0
+    % LBL: from $JumpTable_80241B08 , entry 1`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_802401D4
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, 2
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 2`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240304
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, 3
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 3`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_802403A0
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, 4
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 4`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240428
+	COPY      A2, S0
+    % LBL: from $JumpTable_80241B08 , entry 5`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_802404D0
+	COPY      A2, S0
+	BEQ       R0, R0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 12`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       80049F7C
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, D
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 13`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       8004A124
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, E
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 14`
+	LHU       V0, 8E (S5)
+	ADDIU     V0, V0, FFFF
+	SH        V0, 8E (S5)
+	SLL       V0, V0, 10
+	BNE       V0, R0, .o32C
+	CLEAR     V0
+	ADDIU     V0, R0, 28
+	BEQ       R0, R0, .o328
+	SW        V0, 70 (S3)
+    % LBL: from $JumpTable_80241B08 , entry 20`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240644
+	COPY      A2, S0
+    % LBL: from $JumpTable_80241B08 , entry 21`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240694
+	COPY      A2, S0
+	BEQ       R0, R0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 22`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240834
+	COPY      A2, S0
+	BEQ       R0, R0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 40`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240984
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, 29
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 41`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240A30
+	COPY      A2, S0
+	BEQ       R0, R0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 50`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240B68
+	COPY      A2, S0
+    % LBL: from $JumpTable_80241B08 , entry 51`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240BE4
+	COPY      A2, S0
+	LW        V1, 70 (S3)
+	ADDIU     V0, R0, 34
+	BNE       V1, V0, .o32C
+	CLEAR     V0
+    % LBL: from $JumpTable_80241B08 , entry 52`
+	COPY      A0, S3
+	COPY      A1, S4
+	JAL       $Function_80240C4C
+	COPY      A2, S0
+    % LBL: from $JumpTable_80241B08 , entry 49`
+	.o328
+	CLEAR     V0
+	.o32C
+	LW        RA, 48 (SP)
+	LW        S5, 44 (SP)
+	LW        S4, 40 (SP)
+	LW        S3, 3C (SP)
+	LW        S2, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	JR        RA
+	ADDIU     SP, SP, 50
+}
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -585.0   60.0  150.0   90.0
+    ~Vec4f:Entry1 %  880.0  320.0  150.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  80200000
+    [MapTattle]   001900BE
+}
+
+#new:Script $Script_80241040
+{
+    Switch  *StoryProgress
+        Case  <  FFFFFFE3
+            Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+        Case  <  FFFFFFF0
+            Call  SetMusicTrack ( 00000000 .Song:TubbaEscape 00000000 00000008 )
+        Default
+            Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+    EndSwitch
+    Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+    Return
+    End
+}
+
+PADDING: 802410E8 to 802410F0 (000010E8 to 000010F0)
+00000000 00000000
+
+#new:Script $Script_ExitWalk_802410F0
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241AD0 00000001 ) % arn_05
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_8024114C
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_80241AD8 00000000 ) % arn_04
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_802411A8
+{
+    Bind  $Script_ExitWalk_802410F0 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Bind  $Script_ExitWalk_8024114C .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:GustyGulch
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  MakeNpcs  ( 00000000 $NpcGroupList_80241A9C )
+    ExecWait  $Script_MakeEntities
+    Exec  $Script_80241040
+    Set   *Var[0]  $Script_802411A8
+    Exec  EnterWalk
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 802412C4 to 802412D0 (000012C4 to 000012D0)
+00000000 00000000 00000000
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeItemEntity    ( .Item:DizzyDial ~Vec3d:Item802412D0 .ItemSpawnMode:Fixed_NeverVanish *Flag_ARN_04 )
+    Call  MakeItemEntity    ( .Item:Letter07 ~Vec3d:Item802412F4 .ItemSpawnMode:Fixed_NeverVanish *Flag_ARN_05 )
+    Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80241318 .Item:Coin 80000000 )
+    Call  AssignBlockFlag   ( *Flag_ARN_01 )
+    Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80241350 .Item:Coin 80000000 )
+    Call  AssignBlockFlag   ( *Flag_ARN_02 )
+    Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80241388 .Item:RepelGel 80000000 )
+    Call  AssignBlockFlag   ( *Flag_ARN_03 )
+    Return
+    End
+}
+
+#new:AISettings $AISettings_802413D0
+{
+    1.8 % move speed
+    40` % move time
+    15` % wait time
+  150.0 % alert radius
+    0.0
+    2`
+    3.3 % chase speed
+    70`
+    1`
+  180.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_80241400
+{
+    Call  DoBasicAI ( $AISettings_802413D0 )
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_80241420
+{
+    00000000 00140017 00000000 00000000 $Script_NpcAI_80241400 80077F70 00000000 8007809C
+    00000000 00000000 000C0000
+}
+
+#new:AISettings $AISettings_8024144C
+{
+    1.0 % move speed
+    30` % move time
+    30` % wait time
+  120.0 % alert radius
+    0.0
+    3`
+    8.5 % chase speed
+    60`
+    3`
+  100.0 % chase radius
+   60.0
+    1`
+}
+
+#new:Script $Script_NpcAI_8024147C
+{
+    Call  $Function_80240C90    ( $AISettings_8024144C 00000008 )
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_802414A0
+{
+    00000000 00180018 00000000 00000000 $Script_NpcAI_8024147C 80077F70 00000000 8007809C
+    00000000 00000000 000F0000
+}
+
+#new:NpcGroup $NpcGroup_802414CC
+{
+    00000000 $NpcSettings_802414A0 ~Vec3f:NPC_802414CC % -196 130 104
+    00000400 00000000 00000000 00000000 0000005A
+    ~NoItems ~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:1:3
+    ~Movement:NPC_802414CC
+    ~AnimationTable:NPC_802414CC % .Sprite:Cleft
+    00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_802416BC
+{
+    00000001 $NpcSettings_802414A0 ~Vec3f:NPC_802416BC % 641 268 202
+    00000400 00000000 00000000 00000000 0000005A
+    ~NoItems ~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:1:3
+    ~Movement:NPC_802416BC
+    ~AnimationTable:NPC_802416BC % .Sprite:Cleft
+    00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_802418AC
+{
+    00000002 $NpcSettings_80241420 ~Vec3f:NPC_802418AC % 333 215 85
+    00000400 00000000 00000000 00000000 0000005A
+    ~Items:20:DriedShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:2
+    ~Movement:NPC_802418AC
+    ~AnimationTable:NPC_802418AC % .Sprite:Goomba
+    00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_80241A9C
+{
+    00000001 $NpcGroup_802414CC 0E0A0001
+    00000001 $NpcGroup_802416BC 0E0D0001
+    00000001 $NpcGroup_802418AC 0E030001
+    00000000 00000000 00000000
+}
+
+PADDING: 80241ACC to 80241AD0 (00001ACC to 00001AD0)
+00000000
+
+#new:ASCII $ASCII_80241AD0
+{
+    "arn_05"
+}
+
+#new:ASCII $ASCII_80241AD8
+{
+    "arn_04"
+}
+
+#new:ConstDouble $ConstDouble_80241AE0
+{
+    180.000000d
+}
+
+#new:ConstDouble $ConstDouble_80241AE8
+{
+    75.000000d
+}
+
+#new:ConstDouble $ConstDouble_80241AF0
+{
+    0.850000d
+}
+
+#new:ConstDouble $ConstDouble_80241AF8
+{
+    0.900000d
+}
+
+#new:ConstDouble $ConstDouble_80241B00
+{
+    32767.000000d
+}
+
+#new:JumpTable $JumpTable_80241B08
+{
+    $Function_80240C90[174] $Function_80240C90[184] $Function_80240C90[1A4] $Function_80240C90[1C4]
+    $Function_80240C90[1E4] $Function_80240C90[1F4] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[20C] $Function_80240C90[22C] $Function_80240C90[24C] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[270] $Function_80240C90[280] $Function_80240C90[298] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[2B0] $Function_80240C90[2D0] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[328]
+    $Function_80240C90[328] $Function_80240C90[328] $Function_80240C90[2E8] $Function_80240C90[2F8]
+    $Function_80240C90[318]
+}
+
+PADDING: 80241BDC to 80241BE0 (00001BDC to 00001BE0)
+00000000
+

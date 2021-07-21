@@ -1,0 +1,668 @@
+% Script File: kkj_17.mscr
+% Decoded from: 0 to 1040 (kkj_17)
+
+% Origin: HEURISTIC
+#new:Function $Function_80240000
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	LIA       S0, $???_802408C0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, 0 (S0)
+	BNE       V0, R0, .o60
+	COPY      S1, A0
+	JAL       ~Func:heap_malloc
+	ADDIU     A0, R0, 40
+	SW        V0, 0 (S0)
+	CLEAR     V1
+	COPY      A1, V0
+	COPY      A0, S1
+	.o3C
+	LW        V0, 84 (A0)
+	ADDIU     A0, A0, 4
+	ADDIU     V1, V1, 1
+	SW        V0, 0 (A1)
+	SLTI      V0, V1, 10
+	BNE       V0, R0, .o3C
+	ADDIU     A1, A1, 4
+	BEQ       R0, R0, .o9C
+	NOP
+	.o60
+	CLEAR     V1
+	COPY      A1, V0
+	COPY      A0, S1
+	.o6C
+	LW        V0, 0 (A1)
+	ADDIU     A1, A1, 4
+	ADDIU     V1, V1, 1
+	SW        V0, 84 (A0)
+	SLTI      V0, V1, 10
+	BNE       V0, R0, .o6C
+	ADDIU     A0, A0, 4
+	LIA       S0, $???_802408C0
+	JAL       ~Func:heap_free
+	LW        A0, 0 (S0)
+	SW        R0, 0 (S0)
+	.o9C
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802400B4
+{
+	ADDIU     SP, SP, FFE0
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 18 (SP)
+	SW        S1, 14 (SP)
+	LW        V0, C (S0)
+	LW        S1, 0 (V0)
+	JAL       ~Func:get_variable
+	COPY      A1, S1
+	LIO       V1, FFF0FFFF
+	COPY      A0, S0
+	AND       V0, V0, V1
+	SLL       V0, V0, 5
+	LTW       A2, V0 (800878E0)
+	JAL       ~Func:set_variable
+	COPY      A1, S1
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240118
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	SW        S0, 10 (SP)
+	LW        A0, 84 (S1)
+	JAL       ~Func:get_item_entity
+	COPY      S0, A1
+	BEQ       S0, R0, .o3C
+	COPY      S2, V0
+	LWC1      F0, C (S2)
+	SW        R0, 74 (S1)
+	SW        R0, 7C (S1)
+	SWC1      F0, 78 (S1)
+	.o3C
+	LW        V1, 74 (S1)
+	BEQ       V1, R0, .o58
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .oDC
+	NOP
+	BEQ       R0, R0, .o134
+	NOP
+	.o58
+	LIO       AT, 3FC90FD8
+	MTC1      AT, F0
+	LWC1      F12, 7C (S1)
+	CVT.S.W   F12, F12
+	MUL.S     F12, F12, F0
+	NOP
+	LIF       F0, 30.0
+	JAL       ~Func:cos_rad
+	DIV.S     F12, F12, F0
+	LIF       F2, 1.0
+	NOP
+	SUB.S     F2, F2, F0
+	LIF       F0, 20.0
+	NOP
+	MUL.S     F2, F2, F0
+	NOP
+	LWC1      F0, 78 (S1)
+	ADD.S     F0, F0, F2
+	SWC1      F0, C (S2)
+	LW        V1, 7C (S1)
+	ADDIU     V0, R0, 1E
+	BNE       V1, V0, .oD4
+	ADDIU     V0, V1, 1
+	ADDIU     V0, R0, 1
+	SW        V0, 74 (S1)
+	BEQ       R0, R0, .o134
+	SW        R0, 7C (S1)
+	.oD4
+	BEQ       R0, R0, .o134
+	SW        V0, 7C (S1)
+	.oDC
+	LWC1      F12, 7C (S1)
+	JAL       ~Func:cos_deg
+	CVT.S.W   F12, F12
+	LIF       F2, 3.0
+	NOP
+	MUL.S     F0, F0, F2
+	NOP
+	LIF       F4, 17.0
+	LWC1      F2, 78 (S1)
+	ADD.S     F2, F2, F4
+	ADD.S     F2, F2, F0
+	SWC1      F2, C (S2)
+	LW        V0, 7C (S1)
+	ADDIU     V0, V0, 9
+	MTC1      V0, F12
+	NOP
+	JAL       ~Func:clamp_angle
+	CVT.S.W   F12, F12
+	TRUNC.W.S F6, F0
+	SWC1      F6, 7C (S1)
+	.o134
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80240268
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	SLL       V0, V0, 5
+	SW        R0, 84 (S0)
+	LTHU      V0, V0 (800878F8)
+	ANDI      V0, V0, 40
+	BEQ       V0, R0, .o40
+	ADDIU     V0, R0, 1
+	SW        V0, 84 (S0)
+	.o40
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802402BC
+{
+	ADDIU     SP, SP, FFC8
+	SW        S3, 1C (SP)
+	COPY      S3, A0
+	SW        RA, 34 (SP)
+	SW        S8, 30 (SP)
+	SW        S7, 2C (SP)
+	SW        S6, 28 (SP)
+	SW        S5, 24 (SP)
+	SW        S4, 20 (SP)
+	SW        S2, 18 (SP)
+	SW        S1, 14 (SP)
+	BEQ       A1, R0, .o160
+	SW        S0, 10 (SP)
+	JAL       ~Func:heap_malloc
+	ADDIU     A0, R0, 330
+	LW        V1, 84 (S3)
+	COPY      S5, V0
+	SW        S5, 78 (S3)
+	COPY      A0, V1
+	BNE       A0, R0, .o70
+	SW        V1, AC (S3)
+	LIO       V1, *Flag_KKJ_05
+	LIO       V0, *Flag_KKJ_0A
+	SW        V0, 8C (S3)
+	BEQ       R0, R0, .o88
+	ADDIU     V0, R0, C
+	.o70
+	LIO       V1, *Flag_KKJ_0A
+	LIO       V0, *Flag_KKJ_0F
+	SW        V0, 8C (S3)
+	ADDIU     V0, R0, 9
+	.o88
+	SW        V1, 88 (S3)
+	SW        V0, 318 (S5)
+	CLEAR     S6
+	COPY      S2, S6
+	LIA       S8, 8008A680
+	ADDIU     S7, R0, 1
+	LIA       S4, $IntTable_8024092C
+	COPY      S1, S5
+	.oB0
+	LW        A1, 88 (S3)
+	CLEAR     A0
+	JAL       ~Func:get_variable
+	ADDU      A1, A1, S2
+	CLEAR     A0
+	LW        A1, 8C (S3)
+	COPY      S0, V0
+	JAL       ~Func:get_variable
+	ADDU      A1, A1, S2
+	BEQL      S0, R0, .o130
+	ADDIU     S2, S2, 1
+	BNEL      V0, R0, .o130
+	ADDIU     S2, S2, 1
+	LW        V1, 0 (S4)
+	LIA       A3, 800878E0
+	SLL       V1, V1, 5
+	ADDU      V1, V1, A3
+	LH        V0, 4 (V1)
+	SLL       V0, V0, 3
+	ADDU      V0, V0, S8
+	LW        V0, 0 (V0)
+	SW        S2, 108 (S1)
+	SW        S7, 18C (S1)
+	SW        V0, 0 (S1)
+	LW        V0, 0 (V1)
+	SW        V0, 84 (S1)
+	LW        V0, 14 (V1)
+	ADDIU     S6, S6, 1
+	SW        V0, 294 (S1)
+	ADDIU     S1, S1, 4
+	ADDIU     S2, S2, 1
+	.o130
+	SLTI      V0, S2, 5
+	BNE       V0, R0, .oB0
+	ADDIU     S4, S4, 4
+	BNE       S6, R0, .o150
+	COPY      A0, S5
+	SW        R0, 84 (S3)
+	BEQ       R0, R0, .o214
+	ADDIU     V0, R0, 1
+	.o150
+	SW        S6, 324 (A0)
+	JAL       800F4E40
+	SW        R0, 328 (A0)
+	SW        R0, 70 (S3)
+	.o160
+	LW        V0, 70 (S3)
+	LW        S5, 78 (S3)
+	BNE       V0, R0, .o18C
+	ADDIU     V0, V0, 1
+	LH        V0, 32C (S5)
+	BEQ       V0, R0, .o19C
+	SW        V0, 74 (S3)
+	JAL       800F13B0
+	NOP
+	LW        V0, 70 (S3)
+	ADDIU     V0, V0, 1
+	.o18C
+	SW        V0, 70 (S3)
+	SLTI      V0, V0, F
+	BEQ       V0, R0, .o1A4
+	NOP
+	.o19C
+	BEQ       R0, R0, .o214
+	CLEAR     V0
+	.o1A4
+	JAL       800F1538
+	NOP
+	LW        V1, 74 (S3)
+	ADDIU     V0, R0, FF
+	BNE       V1, V0, .o1C8
+	ADDIU     V0, V1, FFFF
+	ADDIU     V0, R0, FFFF
+	BEQ       R0, R0, .o210
+	SW        V0, 84 (S3)
+	.o1C8
+	SLL       V0, V0, 2
+	ADDU      V0, S5, V0
+	LW        A2, 108 (V0)
+	LW        V1, AC (S3)
+	SLL       V0, A2, 2
+	LTW       V0, V0 ($IntTable_8024092C)
+	BNE       V1, R0, .o204
+	SW        V0, 84 (S3)
+	LW        A1, 8C (S3)
+	CLEAR     A0
+	ADDU      A1, A1, A2
+	JAL       ~Func:set_variable
+	ADDIU     A2, R0, 1
+	.o204
+	LW        A0, 78 (S3)
+	JAL       ~Func:heap_free
+	NOP
+	.o210
+	ADDIU     V0, R0, 2
+	.o214
+	LW        RA, 34 (SP)
+	LW        S8, 30 (SP)
+	LW        S7, 2C (SP)
+	LW        S6, 28 (SP)
+	LW        S5, 24 (SP)
+	LW        S4, 20 (SP)
+	LW        S3, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 38
+}
+
+#new:Function $Function_80240500
+{
+	ADDIU     SP, SP, FFE8
+	CLEAR     A1
+	COPY      A2, A1
+	LIA       V1, $IntTable_8024092C
+	SW        RA, 10 (SP)
+	LW        A0, 84 (A0)
+	.o1C
+	LW        V0, 0 (V1)
+	BNEL      A0, V0, .o30
+	ADDIU     A2, A2, 1
+	BEQ       R0, R0, .o3C
+	ADDIU     A1, R0, 1
+	.o30
+	SLTI      V0, A2, 5
+	BNE       V0, R0, .o1C
+	ADDIU     V1, V1, 4
+	.o3C
+	BEQ       A1, R0, .o58
+	LUI       A1, F840
+	ORI       A1, A1, 5D6E
+	CLEAR     A0
+	ADDU      A1, A2, A1
+	JAL       ~Func:set_variable
+	ADDIU     A2, R0, 1
+	.o58
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240568
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	SW        RA, 14 (SP)
+	JAL       ~Func:get_item_empty_count
+	COPY      S0, A0
+	SW        V0, 88 (S0)
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 80240594 to 802405A0 (00000594 to 000005A0)
+00000000 00000000 00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -187.0    0.0  -35.0   90.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000001
+    [Background]  00000000
+    [MapTattle]   00190012
+}
+
+#new:Script $Script_ExitSingleDoor_802405F0
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:ttw
+    Set   *Var[2]  ~Model:o2
+    Set   *Var[3]  .DoorSwing:In % 1
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80241030 00000005 ) % kkj_11
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_EnterSingleDoor_80240694
+{
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[2]  ~Model:o2
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:PeachsCastle
+    Call  SetSpriteShading  ( 00050004 )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_8024084C
+    Exec  $Script_80240FF8
+    Call  UseDoorSounds     ( .DoorSounds:Basic )
+    Bind  $Script_ExitSingleDoor_802405F0 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+    Exec  $Script_EnterSingleDoor_80240694
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 802407DC to 802407E0 (000007DC to 000007E0)
+00000000
+
+#new:Script $Script_802407E0
+{
+    Loop
+        If  *Flag_KKJ_07  ==  .True
+            BreakLoop
+        EndIf
+        Wait  1`
+    EndLoop
+    Wait  10`
+    Call  RemoveBadge   ( .Item:DeepFocus1 )
+    Return
+    End
+}
+
+#new:Script $Script_8024084C
+{
+    Call  MakeItemEntity    ( .Item:DeepFocus1 ~Vec3d:Item8024084C .ItemSpawnMode:Fixed_NeverVanish *Flag_KKJ_07 )
+    If  *StoryProgress  <  0000005F
+        If  *Flag_KKJ_07  ==  .False
+            Exec  $Script_802407E0
+        EndIf
+    EndIf
+    Return
+    End
+}
+
+PADDING: 802408BC to 802408C0 (000008BC to 000008C0)
+00000000
+
+% Origin: HEURISTIC
+#new:Unknown $???_802408C0
+{
+    00000000
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802408C4
+{
+    SetGroup  00000000
+    Call  802D5830      ( 00000002 )
+    Wait  40`
+    Call  ShowGotItem   ( *Var[0] .False 00000000 )
+    Call  802D5830      ( 00000000 )
+    Return
+    Return
+    End
+}
+
+#new:IntTable $IntTable_8024092C
+{
+    0000010D 00000083 00000129 00000111 000000A2
+}
+
+#new:Script $Script_80240940
+{
+    Call  PlaySoundAtCollider   ( ~Collider:o89 0000204A 00000000 )
+    Call  MakeLerp  ( 00000000 00000050 00000014 .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateGroup   ( ~Model:g21 *Var[0] FFFFFFFF 00000000 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_802409F0
+{
+    Call  MakeLerp  ( 00000050 00000000 00000014 .Easing:QuadraticOut )
+    Loop
+        Call  UpdateLerp ( )
+        Call  RotateGroup   ( ~Model:g21 *Var[0] FFFFFFFF 00000000 00000000 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  PlaySoundAtCollider   ( ~Collider:o89 0000204B 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80240AA0
+{
+    Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 0014018E ) % Oh! Look there! What a beautifully crafted treasur ...
+    Call  SetPlayerAnimation    ( 000C0000 )
+    Wait  10`
+    Call  SetPlayerAnimation    ( 000C0026 )
+    Call  SpeakToNpc    ( .Npc:Player 000C0001 000C0026 00000000 .Npc:Partner 0014018F ) % Yes, do you like it? This is a mysterious treasure ...
+    Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 00140190 ) % Really? How mysterious. A mysterious treasure ches ...
+    Call  SpeakToNpc    ( .Npc:Player 000C0001 000C0026 00000000 .Npc:Partner 00140191 ) % That's right. This chest is connected to another m ...
+    Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 00140192 ) % Yeah! Wow, that's really cool. So, where is the ot ...
+    Call  SpeakToNpc    ( .Npc:Player 000C0001 000C0026 00000000 .Npc:Partner 00140193 ) % Err... Where IS it...? You know, I can't remember!
+    Call  SetPlayerAnimation    ( 000C0002 )
+    Wait  10`
+    Call  SetPlayerAnimation    ( 000A0001 )
+    Return
+    End
+}
+
+#new:Script $Script_80240BD4
+{
+    Set   *Var[0]  00000000
+    Call  $Function_802402BC ( )
+    Switch  *Var[0]
+        Case  ==  FFFFFFFF
+        Case  ==  00000000
+            Wait  10`
+            Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 00140194 ) % This is that mysterious treasure chest, isn't it?
+            Call  SetPlayerAnimation    ( 000C0000 )
+            Wait  10`
+            Call  SetPlayerAnimation    ( 000C0026 )
+            Call  SpeakToNpc    ( .Npc:Player 000C0001 000C0026 00000000 .Npc:Partner 00140195 ) % Yes, Twink. It is.
+            Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 00140196 ) % So if I have this right, you can put something in  ...
+            Call  SpeakToNpc    ( .Npc:Player 000C0001 000C0026 00000000 .Npc:Partner 00140197 ) % Yeah, maybe he could! What can I put in?
+            Call  SetPlayerAnimation    ( 000C0002 )
+            Wait  10`
+            Call  SetPlayerAnimation    ( 000A0001 )
+        Default
+            Wait  10`
+            Set   *Var[9]  *Var[0]
+            ExecWait  $Script_80240940
+            Call  $Function_802400B4        ( *Var[9] )
+            Call  SetMessageString  ( *Var[9] 00000000 )
+            Call  ShowMessageAtScreenPos    ( 00140198 000000A0 00000028 ) % You put in
+            Wait  10`
+            ExecWait  $Script_802409F0
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_80240D9C
+{
+    ExecWait  $Script_80240940
+    Set   *Var[0]  00000001
+    Call  $Function_802402BC ( )
+    Switch  *Var[0]
+        Case  ==  FFFFFFFF
+        Case  ==  00000000
+            Call  ShowMessageAtScreenPos    ( 001D00D4 000000A0 00000028 ) % It's empty.
+        CaseOR  ==  0000010D
+        CaseOR  ==  00000129
+        CaseOR  ==  00000111
+            SetGroup  00000000
+            Call  802D5830  ( 00000002 )
+            Call  ShowGotItem   ( *Var[0] .False 00000000 )
+            Call  802D5830  ( 00000000 )
+            Call  AddBadge  ( *Var[0] *Var[1] )
+            Call  $Function_80240500 ( )
+        EndCaseGroup
+        Default
+            Call  $Function_80240568 ( )
+            If  *Var[1]  <=  00000000
+                Call  ShowMessageAtScreenPos    ( 001D00D5 000000A0 00000028 ) % You already have as many items as you can carry.
+            Else
+                Call  ShowGotItem   ( *Var[0] .False 00000002 )
+                Call  AddItem       ( *Var[0] *Var[1] )
+                Call  $Function_80240500 ( )
+            EndIf
+    EndSwitch
+    ExecWait  $Script_802409F0
+    Return
+    End
+}
+
+#new:Script $Script_80240F38
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  DisablePartnerAI      ( 00000001 )
+    If  *StoryProgress  <  0000005F
+        If  *Flag_KKJ_04  ==  .False
+            ExecWait  $Script_80240AA0
+            Set   *Flag_KKJ_04  .True
+        Else
+            ExecWait  $Script_80240BD4
+        EndIf
+    Else
+        ExecWait  $Script_80240D9C
+    EndIf
+    Call  EnablePartnerAI ( )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_80240FF8
+{
+    Bind  $Script_80240F38 .Trigger:WallPressA ~Collider:o89 00000001 00000000
+    Return
+    End
+}
+
+PADDING: 80241024 to 80241030 (00001024 to 00001030)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80241030
+{
+    "kkj_11"
+}
+
+PADDING: 80241038 to 80241040 (00001038 to 00001040)
+00000000 00000000
+

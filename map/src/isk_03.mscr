@@ -1,0 +1,483 @@
+% Script File: isk_03.mscr
+% Decoded from: 0 to 17E0 (isk_03)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  369.0   50.0  408.0   59.0
+    ~Vec4f:Entry1 %  401.0 -140.0  447.0   59.0
+    ~Vec4f:Entry2 %  557.0 -155.0  224.0  209.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000003
+    [Background]  00000000
+    [MapTattle]   00190097
+}
+
+#new:Script $Script_ExitWalk_80240070
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802417D0 00000001 ) % isk_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802400CC
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802417D0 00000002 ) % isk_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_80240128
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry2 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802417D8 00000000 ) % isk_04
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240184
+{
+    Bind  $Script_ExitWalk_80240070 .Trigger:FloorAbove ~Collider:deilinw 00000001 00000000
+    Bind  $Script_ExitWalk_802400CC .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Bind  $Script_ExitWalk_80240128 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:DryDryRuins
+    Call  SetSpriteShading  ( 00020000 )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    If  *StoryProgress  <  FFFFFFC3
+        Call  SetZoneEnabled    ( ~Zone:o2023 .False )
+        Call  SetZoneEnabled    ( ~Zone:03 .False )
+    Else
+        Call  SetZoneEnabled    ( ~Zone:o2023 .False )
+        Call  SetZoneEnabled    ( ~Zone:o2008 .False )
+    EndIf
+    ExecWait  $Script_80241430
+    Exec  $Script_802411A0
+    Exec  $Script_802414F0
+    Switch  *StoryProgress
+        Case  <  FFFFFFC7
+            Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+        Case  <  FFFFFFC8
+            Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+        Case  >=  FFFFFFC8
+            Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+    EndSwitch
+    Set   *Var[0]  $Script_80240184
+    Exec  EnterWalk
+    Return
+    End
+}
+
+PADDING: 802403B8 to 802403C0 (000003B8 to 000003C0)
+00000000 00000000
+
+#new:Script $Script_802403C0
+{
+    Call  SetTexPanner      ( ~Model:o6000 00000004 )
+    Set   *Var[1]  00000000
+    Set   *Var[2]  00000000
+    Label  A
+    Add   *Var[1]  FFFFFC18
+    Add   *Var[2]  000000C8
+    Call  SetTexPanOffset   ( 00000004 00000000 00000000 *Var[1] )
+    Call  SetTexPanOffset   ( 00000004 00000001 *Var[2] 00000000 )
+    Wait  1`
+    If  *StoryProgress  <  FFFFFFC3
+        Goto  A
+    EndIf
+    Call  EnableModel   ( ~Model:o6000 .False )
+    Return
+    End
+}
+
+#new:Script $Script_802404AC
+{
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+    Call  UseSettingsFrom   ( .Cam:Default 000001C6 00000023 0000011D )
+    Call  SetCamDistance    ( .Cam:Default 00000190 )
+    Call  SetCamPosA    ( .Cam:Default 000000FA 00000028 )
+    Call  SetCamPosB    ( .Cam:Default 00000236 FFFFFFCE )
+    Call  SetCamPitch   ( .Cam:Default *Fixed[13.6] *Fixed[-1.5] )
+    Call  SetPanTarget  ( .Cam:Default 000001AD 00000023 00000116 )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Return
+    End
+}
+
+#new:Script $Script_8024057C
+{
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+    Call  SetCamPitch   ( .Cam:Default *Fixed[3.4] *Fixed[-5.5] )
+    Call  SetPanTarget  ( .Cam:Default 000001AD FFFFFF67 00000116 )
+    Return
+    End
+}
+
+#new:Script $Script_802405D4
+{
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+    Call  UseSettingsFrom   ( .Cam:Default 000001AE 00000023 00000127 )
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Call  UseSettingsFrom   ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Call  SetPanTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Wait  1`
+    Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80240688
+{
+    Call  SetTexPanner  ( ~Model:o1350 00000000 )
+    Call  SetTexPanner  ( ~Model:o1351 00000000 )
+    Call  SetTexPanner  ( ~Model:o1352 00000000 )
+    Set   *Var[2]  00000000
+    Call  MakeLerp      ( 00000000 000001F4 0000003C .Easing:QuadraticIn )
+    Label  A
+    Call  UpdateLerp ( )
+    Add   *Var[2]  *Var[0]
+    Call  SetTexPanOffset   ( 00000000 00000000 00000000 *Var[2] )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Label  14
+    Add   *Var[2]  000001F4
+    Call  SetTexPanOffset   ( 00000000 00000000 00000000 *Var[2] )
+    Wait  1`
+    If  *StoryProgress  <  FFFFFFC3
+        Goto  14
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_802407DC
+{
+    Call  SetTexPanner  ( ~Model:o1341 00000001 )
+    Call  SetTexPanner  ( ~Model:o1346 00000002 )
+    Call  SetTexPanner  ( ~Model:o1343 00000003 )
+    Call  SetTexPanner  ( ~Model:o1344 00000003 )
+    Call  SetTexPanner  ( ~Model:o1345 00000003 )
+    Set   *Var[2]  00000000
+    Set   *Var[3]  00000000
+    Set   *Var[4]  00000000
+    Label  A
+    Add   *Var[2]  00001800
+    Add   *Var[3]  FFFFFE0C
+    Add   *Var[4]  FFFFFF9C
+    Call  SetTexPanOffset   ( 00000001 00000000 00000000 *Var[2] )
+    Call  SetTexPanOffset   ( 00000002 00000000 00000000 *Var[3] )
+    Call  SetTexPanOffset   ( 00000003 00000000 00000000 *Var[4] )
+    Wait  1`
+    If  *StoryProgress  <  FFFFFFC3
+        Goto  A
+    EndIf
+    Set   *Var[5]  00001800
+    Set   *Var[6]  FFFFFE0C
+    Set   *Var[7]  FFFFFF9C
+    Loop  0000000A
+        Add   *Var[5]  FFFFFE00
+        Add   *Var[6]  00000032
+        Add   *Var[7]  0000000A
+        Add   *Var[2]  *Var[5]
+        Add   *Var[3]  *Var[6]
+        Add   *Var[4]  *Var[7]
+        Call  SetTexPanOffset   ( 00000001 00000000 00000000 *Var[2] )
+        Call  SetTexPanOffset   ( 00000002 00000000 00000000 *Var[3] )
+        Call  SetTexPanOffset   ( 00000003 00000000 00000000 *Var[4] )
+        Wait  1`
+    EndLoop
+    Return
+    End
+}
+
+#new:Script $Script_80240A44
+{
+    Call  MakeLerp      ( 00000000 00000064 0000003C .Easing:QuadraticIn )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  ScaleModel    ( ~Model:o1351 *Fixed[1.0] *Var[0] *Fixed[1.0] )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80240AD4
+{
+    Call  MakeLerp      ( 00000000 00000032 0000000A .Easing:QuadraticOut )
+    Label  A
+    Call  UpdateLerp ( )
+    DivF  *Var[0]  00000064
+    SetF  *Var[2]  00000001
+    AddF  *Var[2]  *Var[0]
+    SetF  *Var[3]  00000001
+    SubF  *Var[3]  *Var[0]
+    Call  ScaleModel    ( ~Model:o1346 *Var[2] *Var[3] *Var[2] )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80240BB4
+{
+    Call  MakeLerp  ( 00000000 FFFFFF9C 0000003C .Easing:QuadraticIn )
+    Label  A
+    Call  UpdateLerp ( )
+    DivF  *Var[0]  0000000A
+    SetF  *Var[2]  00000000
+    SubF  *Var[2]  *Var[0]
+    Call  TranslateGroup    ( ~Model:g206 00000000 *Var[0] 00000000 )
+    Call  TranslateModel    ( ~Model:o1952 00000000 *Var[2] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  MakeLerp  ( FFFFFF9C FFFFFF06 0000001E .Easing:Linear )
+    Label  14
+    Call  UpdateLerp ( )
+    DivF  *Var[0]  0000000A
+    SetF  *Var[2]  00000000
+    SubF  *Var[2]  *Var[0]
+    Call  TranslateGroup    ( ~Model:g206 00000000 *Var[0] 00000000 )
+    Call  TranslateModel    ( ~Model:o1952 00000000 *Var[2] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  14
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80240D5C
+{
+    Call  802C971C  ( 00000043 )
+    Call  MakeLerp  ( FFFFFF38 00000000 00000078 .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    DivF  *Var[0]  0000000A
+    Call  TranslateGroup    ( ~Model:g210 00000000 *Var[0] 00000000 )
+    Call  TranslateModel    ( ~Model:o1346 00000000 *Var[0] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80240E28
+{
+    Call  MakeLerp  ( 00000000 FFFFFF38 0000000A .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateModel    ( ~Model:o1341 00000000 *Var[0] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80240EB8
+{
+    Wait  5`
+    Call  InterpPlayerYaw       ( 000000B3 00000000 )
+    Call  EnableModel   ( ~Model:o1343 .True )
+    Call  EnableModel   ( ~Model:o1344 .True )
+    Call  EnableModel   ( ~Model:o1345 .True )
+    Call  EnableModel   ( ~Model:o1354 .True )
+    Call  EnableModel   ( ~Model:o1355 .True )
+    Call  EnableModel   ( ~Model:o1356 .True )
+    Call  EnableModel   ( ~Model:o1341 .True )
+    Call  EnableModel   ( ~Model:o1346 .True )
+    Exec  $Script_802404AC
+    Wait  30`
+    Exec  $Script_80240688
+    Exec  $Script_80240A44
+    Exec  $Script_80240BB4
+    Call  PlaySound     ( 00000053 )
+    Wait  75`
+    Exec  $Script_8024057C
+    Wait  30`
+    Exec  $Script_802407DC
+    Exec  $Script_80240D5C
+    Call  PlaySound     ( 00000453 )
+    Wait  120`
+    Exec  $Script_80240E28
+    Wait  5`
+    Exec  $Script_80240AD4
+    Call  PlaySound     ( 00000453 )
+    Wait  10`
+    Call  EnableModel   ( ~Model:o1347 .False )
+    Call  EnableModel   ( ~Model:o1348 .False )
+    Call  EnableModel   ( ~Model:o1349 .False )
+    Call  EnableModel   ( ~Model:o1350 .False )
+    Call  EnableModel   ( ~Model:o1351 .False )
+    Call  EnableModel   ( ~Model:o1352 .False )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o1350 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o1351 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o1352 7FFFFE00 )
+    Set   *StoryProgress  FFFFFFC3
+    Call  SetZoneEnabled        ( ~Zone:o2008 .False )
+    Call  SetZoneEnabled        ( ~Zone:o2023 .True )
+    Wait  20`
+    Exec  $Script_802405D4
+    Wait  5`
+    Call  DisablePlayerInput    ( .False )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_802411A0
+{
+    Set   *AreaFlag[001]  .False
+    Call  802C971C  ( 0000003C )
+    If  *StoryProgress  <  FFFFFFC3
+        Bind  $Script_80240EB8 .Trigger:AreaFlagSet *AreaFlag[001] 00000001 00000000
+        Call  EnableModel   ( ~Model:o1343 .False )
+        Call  EnableModel   ( ~Model:o1344 .False )
+        Call  EnableModel   ( ~Model:o1345 .False )
+        Call  EnableModel   ( ~Model:o1354 .False )
+        Call  EnableModel   ( ~Model:o1355 .False )
+        Call  EnableModel   ( ~Model:o1356 .False )
+        Call  EnableModel   ( ~Model:o1341 .False )
+        Call  EnableModel   ( ~Model:o1346 .False )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1343 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1344 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1345 7FFFFE00 )
+        Exec  $Script_802403C0
+    Else
+        Call  EnableModel   ( ~Model:o1347 .False )
+        Call  EnableModel   ( ~Model:o1348 .False )
+        Call  EnableModel   ( ~Model:o1349 .False )
+        Call  EnableModel   ( ~Model:o1350 .False )
+        Call  EnableModel   ( ~Model:o1351 .False )
+        Call  EnableModel   ( ~Model:o1352 .False )
+        Call  EnableModel   ( ~Model:o1341 .False )
+        Call  EnableModel   ( ~Model:o1346 .False )
+        Call  EnableModel   ( ~Model:o6000 .False )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1350 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1351 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o1352 7FFFFE00 )
+    EndIf
+    If  *StoryProgress  <  FFFFFFC3
+    Else
+        Call  EnableModel   ( ~Model:o6000 .False )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80241430
+{
+    Call  MakeItemEntity    ( .Item:RuinsKey ~Vec3d:Item80241430 00000000 *Flag_ISK_01 )
+    Call  PlayEffect        ( ~FX:Fire:LargeRed 00000166 FFFFFF85 00000166 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect        ( ~FX:Fire:LargeRed 000001C9 FFFFFF85 000000D6 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Return
+    End
+}
+
+PADDING: 802414EC to 802414F0 (000014EC to 000014F0)
+00000000
+
+#new:Script $Script_802414F0
+{
+    Call  ParentColliderToModel ( ~Collider:o1989 ~Model:o1992 )
+    Call  ParentColliderToModel ( ~Collider:o1990 ~Model:o1992 )
+    If  *AreaFlag[001]  ==  .False
+        Bind  $Script_802415A0 .Trigger:FloorTouch ~Collider:o1990 00000001 00000000
+    Else
+        Call  TranslateGroup    ( ~Model:g319 00000000 FFFFFFF2 00000000 )
+        Call  UpdateColliderTransform   ( ~Collider:o1989 )
+        Call  UpdateColliderTransform   ( ~Collider:o1990 )
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_802415A0
+{
+    Call  802D249C  ( *Var[0] )
+    If  *Var[0]  ==  00000000
+        Return
+    EndIf
+    Call  DisablePlayerInput    ( .True )
+    Label  5
+    Wait  1`
+    Call  802CFCA0  ( *Var[0] )
+    If  *Var[0]  ==  00000001
+        Goto  5
+    EndIf
+    Call  GetNpcPos ( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+    If  *Var[1]  <  00000032
+        Thread
+            Call  DisablePartnerAI  ( 00000000 )
+            Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[2.5] )
+            Call  NpcJump0  ( .Npc:Partner 000001D6 00000032 0000010C 0000000A )
+            Wait  10`
+            Call  EnablePartnerAI ( )
+        EndThread
+    EndIf
+    Call  PlaySoundAtCollider       ( ~Collider:o1990 0000208A 00000000 )
+    Call  MakeLerp  ( 00000000 FFFFFFF2 0000001E .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateGroup    ( ~Model:g319 00000000 *Var[0] 00000000 )
+    Call  UpdateColliderTransform   ( ~Collider:o1989 )
+    Call  UpdateColliderTransform   ( ~Collider:o1990 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  PlaySoundAtCollider   ( ~Collider:o1990 0000208B 00000000 )
+    Set   *AreaFlag[001]  .True
+    Unbind
+    Return
+    End
+}
+
+PADDING: 802417C4 to 802417D0 (000017C4 to 000017D0)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_802417D0
+{
+    "isk_02"
+}
+
+#new:ASCII $ASCII_802417D8
+{
+    "isk_04"
+}
+

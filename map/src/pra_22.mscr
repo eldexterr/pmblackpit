@@ -1,0 +1,536 @@
+% Script File: pra_22.mscr
+% Decoded from: 0 to 1170 (pra_22)
+
+#new:Function_Init $Function_Init
+{
+	LAW       V1, 8007419C
+	ADDIU     V0, R0, 1
+	SB        V0, 84 (V1)
+	JR        RA
+	CLEAR     V0
+}
+
+PADDING: 80240018 to 80240020 (00000018 to 00000020)
+00000000 00000000
+
+#new:Function $Function_80240020
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	COPY      S0, A0
+	SW        RA, 14 (SP)
+	LW        V0, C (S0)
+	JAL       ~Func:get_variable
+	LW        A1, 0 (V0)
+	COPY      A2, V0
+	LAH       A1, 8015A550
+	LIA       A0, 8010EFC8
+	BEQ       A1, A2, .o44
+	ADDIU     V0, R0, 14
+	LB        V1, B4 (A0)
+	BEQ       V1, V0, .o58
+	NOP
+	.o44
+	LW        V0, 14 (A0)
+	LUI       V1, FFFF
+	AND       V0, V0, V1
+	BEQ       V0, R0, .o68
+	NOP
+	.o58
+	JAL       ~Func:set_action_state
+	CLEAR     A0
+	BEQ       R0, R0, .oA8
+	SW        R0, 84 (S0)
+	.o68
+	BNEL      A1, A2, .oA8
+	SW        R0, 84 (S0)
+	LB        V1, B4 (A0)
+	ADDIU     V0, R0, 14
+	BEQ       V1, V0, .o90
+	ADDIU     V0, R0, 1
+	BEQ       V1, V0, .o90
+	ADDIU     V0, R0, 2
+	BNEL      V1, V0, .oAC
+	SW        R0, 84 (S0)
+	.o90
+	LW        V0, 4 (A0)
+	ANDI      V0, V0, 1
+	BNEL      V0, R0, .oA8
+	SW        R0, 84 (S0)
+	ADDIU     V0, R0, 1
+	SW        V0, 84 (S0)
+	.oA8
+	ADDIU     V0, R0, 2
+	.oAC
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802400DC
+{
+	ADDIU     SP, SP, FFC0
+	SW        S1, 34 (SP)
+	COPY      S1, A0
+	SW        S0, 30 (SP)
+	LIA       S0, 8010EFC8
+	SW        RA, 38 (SP)
+	LWC1      F0, 84 (S1)
+	CVT.S.W   F0, F0
+	ADDIU     V0, SP, 2C
+	CLEAR     A0
+	ADDIU     A1, SP, 20
+	ADDIU     A2, SP, 24
+	SWC1      F0, 28 (S0)
+	SWC1      F0, 20 (SP)
+	LWC1      F0, 2C (S0)
+	LIF       F2, 10.0
+	LWC1      F4, 30 (S0)
+	LIF       F6, 300.0
+	ADD.S     F0, F0, F2
+	SWC1      F4, 28 (SP)
+	SWC1      F6, 2C (SP)
+	SWC1      F0, 24 (SP)
+	LIF       F0, 270.0
+	LH        V1, B2 (S0)
+	ADDIU     A3, SP, 28
+	SW        V0, 10 (SP)
+	SWC1      F0, 14 (SP)
+	MTC1      V1, F0
+	NOP
+	CVT.S.W   F0, F0
+	JAL       800DC778
+	SWC1      F0, 18 (SP)
+	LWC1      F0, 20 (SP)
+	LWC1      F2, 28 (SP)
+	SWC1      F0, 28 (S0)
+	SWC1      F2, 30 (S0)
+	SW        R0, AC (S1)
+	LWC1      F2, 2C (S0)
+	LWC1      F0, 24 (SP)
+	C.EQ.S    F2, F0
+	NOP
+	BC1T      .oDC
+	NOP
+	SW        R0, 2C (S0)
+	LW        V0, 90 (S1)
+	ADDIU     V0, V0, 1
+	SW        V0, 90 (S1)
+	SLTI      V0, V0, 1E
+	BNE       V0, R0, .oDC
+	ADDIU     V0, R0, 1
+	SW        V0, AC (S1)
+	.oDC
+	LW        RA, 38 (SP)
+	LW        S1, 34 (SP)
+	LW        S0, 30 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_802401D0
+{
+	LIA       V1, 8010EFC8
+	LWC1      F2, 80 (V1)
+	MTC1      R0, F0
+	NOP
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o48
+	NOP
+	LIF       F0, 180.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o54
+	ADDIU     V0, R0, 1A9
+	SW        V0, 84 (A0)
+	LWC1      F2, 80 (V1)
+	.o48
+	LIF       F0, 180.0
+	NOP
+	.o54
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o84
+	NOP
+	LIF       F0, 360.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o84
+	ADDIU     V0, R0, 145
+	SW        V0, 84 (A0)
+	.o84
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_8024025C
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	LIA       V0, 8010EFC8
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LH        V1, 18 (V0)
+	BNE       V1, R0, .o38
+	COPY      S0, V0
+	LIO       A1, *MapVar[0]
+	JAL       ~Func:set_variable
+	CLEAR     A2
+	.o38
+	LH        V1, 18 (S0)
+	ADDIU     V0, R0, FF38
+	BNE       V1, V0, .o58
+	COPY      A0, S1
+	LIO       A1, *MapVar[0]
+	JAL       ~Func:set_variable
+	ADDIU     A2, R0, 1
+	.o58
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+PADDING: 802402CC to 802402D0 (000002CC to 000002D0)
+00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  126.0    0.0  137.0    0.0
+    ~Vec4f:Entry1 %  487.0 -200.0   70.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   00190148
+}
+
+#new:Script $Script_80240330
+{
+    Call  SetMusicTrack ( 00000000 .Song:CrystalPalace 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Basic )
+    Return
+    End
+}
+
+PADDING: 8024036C to 80240370 (0000036C to 00000370)
+00000000
+
+#new:Unknown $???_80240370
+{
+    0000002D FFFFFFFF
+}
+
+#new:Unknown $???_80240378
+{
+    0000002F FFFFFFFF
+}
+
+#new:Script $Script_ExitSingleDoor_80240380
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:deilittssw
+    Set   *Var[2]  ~Model:o1085
+    Set   *Var[3]  .DoorSwing:In % 1
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80241160 00000004 ) % pra_20
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240424
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  00000001
+    Set   *Var[1]  00000019
+    Set   *Var[2]  $???_80240370
+    Set   *Var[3]  $???_80240378
+    Exec  80285EEC
+    Wait  17`
+    Call  GotoMap   ( $ASCII_80241168 00000000 ) % pra_37
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_802404C8
+{
+    Bind  $Script_ExitSingleDoor_80240380 .Trigger:WallPressA ~Collider:deilittssw 00000001 00000000
+    Bind  $Script_80240424 .Trigger:WallPressA ~Collider:deilittsse 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterSingleDoor_80240510
+{
+    Call  GetLoadType   ( *Var[1] )
+    If  *Var[1]  ==  00000001
+        Exec  EnterSavePoint
+        Exec  $Script_802404C8
+        Return
+    EndIf
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[2]  ~Model:o1085
+            Set   *Var[3]  .DoorSwing:In % 1
+            ExecWait  EnterSingleDoor
+        Case  ==  ~Entry:Entry1
+            Set   *Var[2]  $???_80240370
+            Set   *Var[3]  $???_80240378
+            ExecWait  802861B0
+    EndSwitch
+    Exec  $Script_802404C8
+    Return
+    End
+}
+
+#new:Script $Script_80240608
+{
+    Loop  0000001E
+        Call  GetCurrentPartner ( *Var[A] )
+        If  *Var[A]  !=  00000000
+            Set   *Var[8]  FFFFFFFF
+            Return
+        EndIf
+        Call  $Function_80240020    ( *Var[9] )
+        If  *Var[0]  ==  00000000
+            Set   *Var[8]  FFFFFFFF
+            Return
+        Else
+            Call  SetPlayerActionState  ( 00000014 )
+        EndIf
+        Wait  1`
+    EndLoop
+    Call  GetCurrentPartner ( *Var[A] )
+    If  *Var[A]  !=  00000000
+        Set   *Var[8]  FFFFFFFF
+        Return
+    EndIf
+    Call  DisablePlayerInput    ( .True )
+    Thread
+        Call  ShakeCam  ( .Cam:Default 00000000 00000064 *Fixed[0.6] )
+    EndThread
+    Thread
+        If  *Var[6]  >=  *Var[7]
+            Call  InterpPlayerYaw   ( 0000010E 00000000 )
+        Else
+            Call  InterpPlayerYaw   ( 0000005A 00000000 )
+        EndIf
+        Call  SetPlayerActionState  ( 00000014 )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Set   *Var[1]  *Var[0]
+        Set   *Var[2]  *Var[7]
+        Sub   *Var[2]  *Var[6]
+        Add   *Var[1]  *Var[2]
+        Call  MakeLerp  ( *Var[0] *Var[1] 00000064 .Easing:Linear )
+        Set   *Var[3]  00000000
+        Loop
+            Call  SetPlayerActionState  ( 00000014 )
+            Call  UpdateLerp ( )
+            Call  $Function_802400DC ( )
+            If  *Var[A]  ==  00000001
+                BreakLoop
+            EndIf
+            Wait  1`
+            If  *Var[1]  ==  00000000
+                BreakLoop
+            EndIf
+        EndLoop
+        Call  SetPlayerActionState  ( .ActionState:Idle )
+        Wait  1`
+        If  *Var[A]  ==  00000001
+            Call  DisablePlayerPhysics  ( .True )
+            Wait  1`
+            Call  SetPlayerAnimation    ( 00080002 )
+            Wait  15`
+            Call  SetPlayerAnimation    ( 00010002 )
+            Wait  1`
+            Call  DisablePlayerPhysics  ( .False )
+            Call  SetPlayerActionState  ( .ActionState:Falling )
+            Wait  1`
+        EndIf
+        Call  DisablePlayerInput    ( .False )
+    EndThread
+    Call  MakeLerp  ( *Var[6] *Var[7] 00000064 .Easing:Linear )
+    Call  PlaySoundAtCollider   ( ~Collider:o1064 80000010 00000000 )
+    Loop
+        Call  UpdateLerp ( )
+        Call  TranslateModel    ( ~Model:o1005 *Var[0] 00000000 00000000 )
+        Call  TranslateModel    ( ~Model:o1006 *Var[0] 00000000 00000000 )
+        Call  TranslateModel    ( ~Model:o1007 *Var[0] 00000000 00000000 )
+        Call  TranslateModel    ( ~Model:o1008 *Var[0] 00000000 00000000 )
+        Call  TranslateModel    ( ~Model:o1009 *Var[0] 00000000 00000000 )
+        Call  UpdateColliderTransform   ( ~Collider:o1064 )
+        Wait  1`
+        If  *Var[1]  ==  00000000
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  StopSound ( 80000010 )
+    Return
+    End
+}
+
+#new:Script $Script_80240AB0
+{
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    If  *Var[0]  <=  00000151
+        Set   *Var[6]  00000000
+        Set   *Var[7]  00000032
+        Set   *Var[8]  00000002
+    EndIf
+    If  *Var[0]  >=  0000019D
+        Set   *Var[6]  00000000
+        Set   *Var[7]  FFFFFFCE
+        Set   *Var[8]  00000001
+    Else
+        Return
+    EndIf
+    Set   *Var[9]  0000001C
+    ExecWait  $Script_80240608
+    If  *Var[8]  !=  FFFFFFFF
+        Set   *StoryProgress  00000054
+        Set   *Byte_PRA_03  *Var[8]
+        Thread
+            Call  ShakeCam  ( .Cam:Default 00000000 0000000A *Fixed[1.0] )
+        EndThread
+        Unbind
+    EndIf
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:CrystalPalace
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000018 00000018 00000028 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_MakeEntities
+    Exec  $Script_80240330
+    If  *StoryProgress  <  00000054
+        Bind  $Script_80240AB0 .Trigger:WallPush ~Collider:o1064 00000001 00000000
+        Set   *Var[0]  00000000
+    Else
+        Switch  *Byte_PRA_03
+            Case  ==  00000000
+                Set   *Var[0]  FFFFFFCE
+            Case  ==  00000001
+                Set   *Var[0]  FFFFFFCE
+            Case  ==  00000002
+                Set   *Var[0]  00000032
+        EndSwitch
+    EndIf
+    Call  ParentColliderToModel     ( ~Collider:o1064 ~Model:o1005 )
+    Call  TranslateModel    ( ~Model:o1005 *Var[0] 00000000 00000000 )
+    Call  TranslateModel    ( ~Model:o1006 *Var[0] 00000000 00000000 )
+    Call  TranslateModel    ( ~Model:o1007 *Var[0] 00000000 00000000 )
+    Call  TranslateModel    ( ~Model:o1008 *Var[0] 00000000 00000000 )
+    Call  TranslateModel    ( ~Model:o1009 *Var[0] 00000000 00000000 )
+    Call  UpdateColliderTransform   ( ~Collider:o1064 )
+    Exec  $Script_EnterSingleDoor_80240510
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 80240E28 to 80240E30 (00000E28 to 00000E30)
+00000000 00000000
+
+#new:Script $Script_80240E30
+{
+    Label  0
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    If  *Var[1]  >=  *Var[3]
+        Set   *Var[1]  *Var[3]
+    EndIf
+    Call  SetCamTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_80240EC0
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  DisablePlayerPhysics  ( .True )
+    Call  SetPlayerActionState  ( .ActionState:Launch )
+    Call  GetPlayerPos  ( *Var[7] *Var[8] *Var[9] )
+    If  *MapVar[0]  ==  00000000
+        Set   *Var[3]  FFFFFF51
+        Exec  $Script_80240E30 *Var[A]
+        Call  $Function_802401D0 ( )
+        Set   *Var[1]  FFFFFF38
+        Set   *Var[2]  0000000F
+        Call  SetPlayerJumpscale    ( *Fixed[2.0] )
+    Else
+        Set   *Var[3]  00000000
+        Exec  $Script_80240E30 *Var[A]
+        If  *Byte_PRA_03  ==  00000002
+            Set   *Var[0]  00000154
+        Else
+            Set   *Var[0]  0000019A
+        EndIf
+        Set   *Var[1]  00000000
+        Set   *Var[2]  00000023
+        Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+    EndIf
+    Call  PlayerJump    ( *Var[0] *Var[1] *Var[9] *Var[2] )
+    Kill  *Var[A]
+    Call  SetPlayerActionState  ( .ActionState:Idle )
+    Wait  2`
+    Call  DisablePlayerPhysics  ( .False )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Thread
+        Call  $Function_8024025C ( )
+    EndThread
+    Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Entity802410A4 80000000 )
+    Call  AssignScript  ( $Script_80240EC0 )
+    Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity802410D8 .Item:JamminJelly 80000000 )
+    Call  AssignBlockFlag   ( *Flag_PRA_15 )
+    Call  MakeEntity    ( .Entity:HiddenPanel ~Vec4d:Entity80241110 ~Model:o1088 80000000 )
+    Call  AssignPanelFlag   ( *Flag_PRA_16 )
+    Return
+    End
+}
+
+PADDING: 80241158 to 80241160 (00001158 to 00001160)
+00000000 00000000
+
+#new:ASCII $ASCII_80241160
+{
+    "pra_20"
+}
+
+#new:ASCII $ASCII_80241168
+{
+    "pra_37"
+}
+

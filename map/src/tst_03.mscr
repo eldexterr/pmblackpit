@@ -1,0 +1,104 @@
+% Script File: tst_03.mscr
+% Decoded from: 0 to 5F0 (tst_03)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 %  -85.0    0.0   10.0    0.0
+    ~Vec4f:Entry1 % 1536.0    0.0   15.0    0.0
+    ~Vec4f:Entry2 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry3 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry4 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry5 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry6 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry7 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry8 %    0.0    0.0    0.0    0.0
+    ~Vec4f:Entry9 %    0.0    0.0    0.0    0.0
+    ~Vec4f:EntryA %  354.0    0.0  294.0  117.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  0000000B
+    [Background]  00000000
+    [MapTattle]   00000000
+}
+
+#new:Script $Script_802400F0
+{
+    Call  GotoMap   ( $ASCII_802405E0 00000001 ) % tst_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240120
+{
+    Call  GotoMap   ( $ASCII_802405E8 00000000 ) % tst_04
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:Testing
+    Call  SetSpriteShading      ( FFFFFFFF )
+    Call  SetCamPerspective     ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled ( .Cam:Default .True )
+    ExecWait  $Script_MakeEntities
+    Bind  $Script_802400F0 .Trigger:WallPush ~Collider:deilitw 00000001 00000000
+    Bind  $Script_80240120 .Trigger:WallPush ~Collider:deilite 00000001 00000000
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:puku 00000004 )
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:pukut 00000004 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:puku 00080000 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:pukut 00080000 )
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:o264 00000001 )
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:o265 00000002 )
+    Call  ModifyColliderFlags   ( 00000003 ~Collider:o236 00000003 )
+    Return
+    End
+}
+
+PADDING: 802402BC to 802402C0 (000002BC to 000002C0)
+00000000
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:RedBlock ~Vec4d:Entity802402C0 80000000 )
+    Call  MakeEntity    ( .Entity:HiddenRedBlock ~Vec4d:Entity802402E4 80000000 )
+    Call  MakeEntity    ( .Entity:MultiTriggerBlock ~Vec4d:Entity80240308 80000000 )
+    Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity8024032C 80000000 )
+    Call  MakeEntity    ( .Entity:MultiCoinBrick ~Vec4d:Entity80240350 80000000 )
+    Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80240374 80000000 )
+    Call  MakeEntity    ( .Entity:SingleTriggerBlock ~Vec4d:Entity80240398 80000000 )
+    Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity802403BC .Item:Mushroom 80000000 )
+    Call  MakeEntity    ( .Entity:SuperBlock ~Vec4d:Entity802403E4 80000000 )
+    Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80240408 80000000 )
+    Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity8024042C 80000000 )
+    Call  MakeEntity    ( .Entity:PowBlock ~Vec4d:Entity80240450 80000000 )
+    Call  MakeEntity    ( .Entity:Hammer1BlockTiny ~Vec4d:Entity80240474 80000000 )
+    Call  MakeEntity    ( .Entity:Hammer1BlockTiny ~Vec4d:Entity80240498 80000000 )
+    Call  MakeEntity    ( .Entity:Hammer2BlockTiny ~Vec4d:Entity802404BC 80000000 )
+    Call  MakeEntity    ( .Entity:Hammer3BlockTiny ~Vec4d:Entity802404E0 80000000 )
+    Call  MakeEntity    ( .Entity:PowBlock ~Vec4d:Entity80240504 80000000 )
+    Call  MakeEntity    ( .Entity:BoardedFloor ~Vec4d:Entity80240528 80000000 )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity8024054C FFFFFFFF 00000000 80000000 )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity80240578 .Item:Mushroom 00000000 80000000 )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity802405A4 .Item:Mushroom 00000000 80000000 )
+    Return
+    End
+}
+
+#new:ASCII $ASCII_802405E0
+{
+    "tst_02"
+}
+
+#new:ASCII $ASCII_802405E8
+{
+    "tst_04"
+}
+

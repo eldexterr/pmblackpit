@@ -1,0 +1,376 @@
+% Script File: kpa_17.mscr
+% Decoded from: 0 to 16A0 (kpa_17)
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % 1042.0  250.0 -496.0   90.0
+    ~Vec4f:Entry1 % 1168.0   30.0 -560.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   0019015F
+}
+
+#new:Script $Script_80240060
+{
+    Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+    Call  ClearAmbientSounds    ( 000000FA )
+    Call  UseDoorSounds ( .DoorSounds:Metal )
+    Thread
+        Wait  30`
+        Call  802D5FA4  ( 00000005 )
+    EndThread
+    Return
+    End
+}
+
+PADDING: 802400D8 to 802400E0 (000000D8 to 000000E0)
+00000000 00000000
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity802400E0 80000000 )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity80240104 FFFFFFFF 80000000 )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity8024012C .Item:TastyTonic 80000000 )
+    Call  AssignCrateFlag   ( *Flag_KPA_0E )
+    Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity80240164 .Item:LifeShroom 80000000 )
+    Call  AssignCrateFlag   ( *Flag_KPA_0F )
+    Return
+    End
+}
+
+PADDING: 802401AC to 802401B0 (000001AC to 000001B0)
+00000000
+
+#new:Script $Script_ExitWalk_802401B0
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+    Exec  ExitWalk
+    If  *Flag_KPA_0B  ==  .False
+        Call  GotoMap   ( $ASCII_80241698 00000002 ) % kpa_11
+    Else
+        Call  GotoMap   ( $ASCII_80241690 00000002 ) % kpa_10
+    EndIf
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240240
+{
+    Bind  $Script_ExitWalk_802401B0 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterWalk_8024026C
+{
+    Call  GetEntryID    ( *Var[0] )
+    If  *Var[0]  ==  ~Entry:Entry0
+        Exec  $Script_80240240
+        Exec  $Script_802404C8
+    Else
+        Set   *Var[0]  $Script_80240240
+        Exec  EnterWalk
+    EndIf
+    Return
+    End
+}
+
+#new:TriggerCoord $TriggerCoord_802402E0
+{
+    ~BombPos:Bomb_802402E0 % 1186.000000 30.000000 -562.000000 0.000000
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:BowsersCastle
+    Set   *AreaByte[1]  00000000
+    Set   *AreaByte[2]  00000000
+    Set   *AreaByte[3]  00000000
+    Set   *AreaByte[4]  00000000
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    Call  MakeNpcs  ( 00000001 $NpcGroupList_80241674 )
+    ExecWait  $Script_MakeEntities
+    If  *Flag_KPA_0D  ==  .False
+        Bind  $Script_80240854 .Trigger:PointBomb $TriggerCoord_802402E0 00000001 00000000
+    Else
+        Call  SetGroupEnabled       ( ~Model:g296 00000000 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitte 7FFFFE00 )
+    EndIf
+    Exec  $Script_80240060
+    Exec  $Script_EnterWalk_8024026C
+    Return
+    End
+}
+
+PADDING: 80240464 to 80240470 (00000464 to 00000470)
+00000000 00000000 00000000
+
+#new:NpcSettings $NpcSettings_80240470
+{
+    00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00630000
+}
+
+MISSING: 8024049C to 802404C8 (0000049C to 000004C8)
+00000000 00170013 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00630000
+
+#new:Script $Script_802404C8
+{
+    Call  UseSettingsFrom   ( .Cam:Default 00000412 0000001E FFFFFE10 )
+    Call  SetPanTarget      ( .Cam:Default 00000412 0000001E FFFFFE10 )
+    Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+    Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+    Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+    Call  DisablePlayerInput        ( .True )
+    Call  DisablePlayerPhysics      ( .True )
+    Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+    Call  InterpPlayerYaw   ( 0000010E 00000000 )
+    Wait  60`
+    Call  IsCurrentPartnerFlying    ( *Var[0] )
+    If  *Var[0]  ==  .True
+        Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .True )
+    Else
+        Call  802CF56C  ( 00000001 )
+    EndIf
+    Call  PlaySoundAtPlayer     ( 00000161 00000000 )
+    Call  SetPlayerAnimation    ( 00080018 )
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Loop
+        Sub   *Var[1]  00000010
+        Call  SetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        If  *Var[1]  <=  0000001E
+            Call  SetPlayerPos      ( *Var[0] 0000001E *Var[2] )
+            Call  PlaySoundAtPlayer ( 000003FB 00000000 )
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  SetPlayerAnimation    ( 00080018 )
+    Thread
+        Call  ShakeCam  ( .Cam:Default 00000000 00000014 *Fixed[0.6] )
+    EndThread
+    Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+    Call  PlayerJump1   ( 00000406 0000001E FFFFFE10 0000000A )
+    Call  SetPlayerAnimation    ( 00010002 )
+    Wait  1`
+    Call  DisablePlayerPhysics  ( .False )
+    Wait  1`
+    Call  InterpPlayerYaw       ( 0000005A 00000000 )
+    Wait  5`
+    Call  DisablePlayerPhysics  ( .True )
+    Wait  1`
+    Call  SetPlayerAnimation    ( 0001002A )
+    Wait  1`
+    Call  ShowMessageAtScreenPos    ( 00130007 000003E8 00000000 ) % Gaaaah ha ha ha ha!! You fell for it, worm! You'll ...
+    Call  SetPlayerAnimation    ( 00010002 )
+    Wait  10`
+    Call  DisablePlayerPhysics  ( .False )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+    Call  DisablePlayerInput    ( .False )
+    Call  ClearPartnerMoveHistory   ( .Npc:Partner )
+    Call  802CF56C  ( 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_80240854
+{
+    Call  PlayEffect    ( 00000042 00000000 00000008 00000008 00000001 0000000A 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  EnableModel   ( ~Model:g296 .False )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitte 7FFFFE00 )
+    Set   *Flag_KPA_0D  .True
+    Call  802D2508 ( )
+    Call  DisablePlayerInput    ( .True )
+    Wait  80`
+    Call  DisablePartnerAI      ( 00000000 )
+    Wait  5`
+    Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000000 00130016 ) % There we go! It's a piece of cake to break these w ...
+    Call  EnablePartnerAI ( )
+    Wait  10`
+    Call  DisablePlayerInput    ( .False )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80240978
+{
+    Switch  *Flag_KPA_0D
+        Case  ==  00000000
+            Switch  *AreaByte[1]
+                Case  ==  00000000
+                    Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 00130009 ) % Mario, you've come to save us! I just knew you wou ...
+                    Set   *AreaByte[1]  00000001
+                Case  ==  00000001
+                    Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 0013000A ) % All the Toads in here used to work in Peach's Cast ...
+                    Set   *AreaByte[1]  00000000
+            EndSwitch
+        Case  ==  00000001
+            Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 0013000B ) % Mario! You've gotta save the princess! You've just ...
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80240A60
+{
+    Switch  *Flag_KPA_0D
+        Case  ==  00000000
+            Switch  *AreaByte[2]
+                Case  ==  00000000
+                    Call  SpeakToPlayer ( .Npc:Self 00830204 00830201 00000000 0013000C ) % I still can't believe that all of Peach's Castle w ...
+                    Set   *AreaByte[2]  00000001
+                Case  ==  00000001
+                    Call  SpeakToPlayer ( .Npc:Self 00830204 00830201 00000000 0013000D ) % I still can't believe that all of Peach's Castle w ...
+                    Set   *AreaByte[2]  00000000
+            EndSwitch
+        Case  ==  00000001
+            Call  SpeakToPlayer ( .Npc:Self 00830204 00830201 00000000 0013000E ) % Mario, I'm sorry that I can't be of help to you... ...
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80240B48
+{
+    Switch  *Flag_KPA_0D
+        Case  ==  00000000
+            Switch  *AreaByte[3]
+                Case  ==  00000000
+                    Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 0013000F ) % This wouldn't have happened if we'd had better def ...
+                    Set   *AreaByte[3]  00000001
+                Case  ==  00000001
+                    Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00130010 ) % This wouldn't have happened if we'd had better def ...
+                    Set   *AreaByte[3]  00000000
+            EndSwitch
+        Case  ==  00000001
+            Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00130011 ) % I'd love to join you, but I'd just slow you down.. ...
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Interact_80240C30
+{
+    Switch  *Flag_KPA_0D
+        Case  ==  00000000
+            Switch  *AreaByte[4]
+                Case  ==  00000000
+                    Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130012 ) % Oh, Mario! You came at long last! As you can see,  ...
+                    Set   *AreaByte[4]  00000001
+                Case  ==  00000001
+                    Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130013 ) % Oh, Mario! You came at long last! As you can see,  ...
+                    Set   *AreaByte[4]  00000002
+                Case  ==  00000002
+                    Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130014 ) % Oh, Mario! You came at long last! As you can see,  ...
+                    Set   *AreaByte[4]  00000001
+            EndSwitch
+        Case  ==  00000001
+            Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130015 ) % Mario... Please save Princess Peach! We're all rel ...
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240D54
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240978 )
+    Call  SetNpcPos ( .Npc:Self 0000032D 0000001E FFFFFE76 )
+    Call  InterpNpcYaw      ( .Npc:Self 0000010E 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240DAC
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240A60 )
+    Call  SetNpcPos ( .Npc:Self 00000366 0000001E FFFFFE2F )
+    Call  InterpNpcYaw      ( .Npc:Self 0000005A 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240E04
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240B48 )
+    Call  SetNpcPos ( .Npc:Self 000003A2 0000001E FFFFFE70 )
+    Call  InterpNpcYaw      ( .Npc:Self 0000005A 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240E5C
+{
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240C30 )
+    Call  SetNpcPos ( .Npc:Self 0000044C 0000001E FFFFFE3E )
+    Call  InterpNpcYaw      ( .Npc:Self 0000010E 00000000 )
+    Return
+    End
+}
+
+#new:NpcGroup $NpcGroup_80240EB4
+{
+    00000000 $NpcSettings_80240470 ~Vec3f:NPC_80240EB4 % 0 -1000 0
+    00000D01 $Script_Init_80240D54 00000000 00000000 00000000
+    ~NoDrops
+    ~Movement:NPC_80240EB4
+    ~AnimationTable:NPC_80240EB4 % .Sprite:Toad
+    00000000 00000000 00000000 001A0113 % This Toad worked in the castle. Even though he's i ...
+    %
+    % $NpcGroup_80240EB4[1F0]
+    00000001 $NpcSettings_80240470 ~Vec3f:NPC_802410A4 % 0 -1000 0
+    00000D01 $Script_Init_80240DAC 00000000 00000000 00000000
+    ~NoDrops
+    ~Movement:NPC_802410A4
+    ~AnimationTable:NPC_802410A4 % .Sprite:Toad
+    00000000 00000000 00000000 001A0114 % This Toad's been captured. He looks like he's all  ...
+    %
+    % $NpcGroup_80240EB4[3E0]
+    00000002 $NpcSettings_80240470 ~Vec3f:NPC_80241294 % 0 -1000 0
+    00000D01 $Script_Init_80240E04 00000000 00000000 00000000
+    ~NoDrops
+    ~Movement:NPC_80241294
+    ~AnimationTable:NPC_80241294 % .Sprite:ToadGuard
+    00000000 00000000 00000000 001A0115 % He was a soldier at Princess Peach's Castle. He wa ...
+    %
+    % $NpcGroup_80240EB4[5D0]
+    00000003 $NpcSettings_80240470 ~Vec3f:NPC_80241484 % 0 -1000 0
+    00000D01 $Script_Init_80240E5C 00000000 00000000 00000000
+    ~NoDrops
+    ~Movement:NPC_80241484
+    ~AnimationTable:NPC_80241484 % .Sprite:ToadMinister
+    00000000 00000000 00000000 001A0116 % This is the Toad Minister. Uh... Pleasure to meet  ...
+}
+
+#new:NpcGroupList $NpcGroupList_80241674
+{
+    00000004 $NpcGroup_80240EB4 00000000
+    00000000 00000000 00000000
+}
+
+PADDING: 8024168C to 80241690 (0000168C to 00001690)
+00000000
+
+#new:ASCII $ASCII_80241690
+{
+    "kpa_10"
+}
+
+#new:ASCII $ASCII_80241698
+{
+    "kpa_11"
+}
+

@@ -1,0 +1,811 @@
+% Script File: isk_07.mscr
+% Decoded from: 0 to 29F0 (isk_07)
+
+#new:Function $Function_80240000
+{
+	LW        V1, 148 (A0)
+	ADDIU     V0, R0, 3
+	SB        V0, B5 (V1)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80240014
+{
+	CLEAR     T2
+	LIA       V1, 800B0F10
+	SW        R0, 88 (A0)
+	LB        V0, 1C (V1)
+	BLEZ      V0, .o78
+	COPY      T0, T2
+	COPY      T3, V0
+	COPY      T1, V1
+	.o24
+	LW        V1, 28 (T1)
+	BEQL      V1, R0, .o6C
+	ADDIU     T2, T2, 1
+	CLEAR     A1
+	LW        V0, 0 (V1)
+	BLEZ      V0, .o60
+	COPY      A2, A1
+	COPY      A3, V0
+	.o44
+	LW        V0, 4 (V1)
+	BNEL      V0, R0, .o50
+	ADDIU     A2, R0, 1
+	.o50
+	ADDIU     A1, A1, 1
+	SLT       V0, A1, A3
+	BNE       V0, R0, .o44
+	ADDIU     V1, V1, 4
+	.o60
+	BNEL      A2, R0, .o68
+	ADDIU     T0, T0, 1
+	.o68
+	ADDIU     T2, T2, 1
+	.o6C
+	SLT       V0, T2, T3
+	BNE       V0, R0, .o24
+	ADDIU     T1, T1, 4
+	.o78
+	ADDIU     V0, R0, 1
+	BNE       T0, V0, .o8C
+	ADDIU     V0, R0, 2
+	JR        RA
+	SW        T0, 88 (A0)
+	.o8C
+	JR        RA
+	NOP
+}
+
+PADDING: 802400A8 to 802400B0 (000000A8 to 000000B0)
+00000000 00000000
+
+#new:Function $Function_802400B0
+{
+	ADDIU     SP, SP, FFE8
+	SW        RA, 10 (SP)
+	JAL       ~Func:get_entity_by_index
+	LW        A0, 84 (A0)
+	COPY      V1, V0
+	LW        A0, 0 (V1)
+	LUI       A1, 10
+	OR        A0, A0, A1
+	SW        A0, 0 (V1)
+	LW        RA, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 802400E4 to 802400F0 (000000E4 to 000000F0)
+00000000 00000000 00000000
+
+#new:Function $Function_802400F0
+{
+	LAH       V0, 8015A552
+	XORI      V0, V0, 25
+	SLTU      V0, R0, V0
+	JR        RA
+	SLL       V0, V0, 1
+}
+
+PADDING: 80240108 to 80240110 (00000108 to 00000110)
+00000000 00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -283.0 -390.0  530.0  110.0
+    ~Vec4f:Entry1 %  560.0 -340.0  217.0  210.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main_EnterWalk
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   0019009B
+}
+
+#new:Script $Script_ExitWalk_80240170
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802429E0 00000002 ) % isk_08
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_802401CC
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802429E8 00000001 ) % isk_04
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_80240228
+{
+    Bind  $Script_ExitWalk_80240170 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+    Bind  $Script_ExitWalk_802401CC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main_EnterWalk
+{
+    Set   *WorldMapLocation  .Location:DryDryRuins
+    Call  SetSpriteShading  ( 00020004 )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    If  *Flag_ISK_06  ==  .False
+        Call  MakeNpcs  ( 00000001 $NpcGroupList_80241658 )
+    EndIf
+    ExecWait  $Script_MakeEntities
+    Exec  $Script_80241C98
+    Exec  $Script_80241A14
+    Exec  $Script_80241F50
+    Exec  $Script_80242190
+    Switch  *StoryProgress
+        Case  <  FFFFFFC7
+            Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+        Case  <  FFFFFFC8
+            Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+        Case  >=  FFFFFFC8
+            Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+    EndSwitch
+    Set   *Var[0]  $Script_80240228
+    Exec  EnterWalk
+    Return
+    End
+}
+
+PADDING: 80240414 to 80240420 (00000414 to 00000420)
+00000000 00000000 00000000
+
+#new:Script $Script_80240420
+{
+    Set   *Flag_ISK_10  .True
+    Return
+    End
+}
+
+#new:Script $Script_80240440
+{
+    Set   *Flag_ISK_19  .True
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    If  *Flag_ISK_07  ==  .False
+        Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80240470 80000000 )
+        Set   *MapVar[0]  *Var[0]
+    EndIf
+    If  *Flag_ISK_19  ==  .False
+        Call  MakeEntity    ( .Entity:Hammer2BlockWide ~Vec4d:Entity802404BC 80000000 )
+        Call  AssignScript  ( $Script_80240440 )
+    EndIf
+    If  *Flag_ISK_10  ==  .False
+        Call  MakeEntity    ( .Entity:SingleTriggerBlock ~Vec4d:Entity80240508 80000000 )
+        Call  AssignScript  ( $Script_80240420 )
+    EndIf
+    If  *Flag_ISK_06  ==  .True
+        Call  MakeItemEntity    ( .Item:RuinsKey ~Vec3d:Item80240554 00000000 *Flag_ISK_05 )
+    EndIf
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 0000019F FFFFFF3F 00000123 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 00000123 FFFFFF3F 0000019F *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 00000083 FFFFFF3F 000001E9 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFFD4 FFFFFF3F 000001F9 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFF2A FFFFFF3F 000001CB *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 0000019F FFFFFEBD 00000123 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 00000123 FFFFFEBD 0000019F *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed 00000083 FFFFFEBD 000001E9 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFFD4 FFFFFEBD 000001F9 *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFF2A FFFFFEBD 000001CB *Fixed[0.3] *Var[0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  MakeItemEntity    ( .Item:Artifact ~Vec3d:Item80240828 .ItemSpawnMode:Fixed_NeverVanish *Flag_ISK_0E )
+    Return
+    End
+}
+
+PADDING: 8024085C to 80240860 (0000085C to 00000860)
+00000000
+
+#new:AISettings $AISettings_80240860
+{
+    1.8 % move speed
+    40` % move time
+    10` % wait time
+  100.0 % alert radius
+    0.0
+    3`
+    3.0 % chase speed
+    45`
+    6`
+  300.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_80240890
+{
+    Call  $Function_80240000 ( )
+    Call  DoBasicAI ( $AISettings_80240860 )
+    Return
+    End
+}
+
+#new:NpcSettings $NpcSettings_802408BC
+{
+    00000000 0048000F 00000000 00000000 $Script_NpcAI_80240890 80077F70 00000000 8007809C
+    00000000 00000000 000A0000
+}
+
+#new:Script $Script_Defeat_802408E8
+{
+    Call  GetBattleOutcome  ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  00000000
+            If  *Flag_ISK_06  ==  .False
+                Thread
+                    Call  $Function_80240014 ( )
+                    If  *Var[1]  ==  00000001
+                        Call  DisablePlayerInput    ( .True )
+                        Call  PlaySound     ( 0000000B )
+                        Wait  30`
+                        Call  802D5830      ( 00000001 )
+                        Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+                        Call  UseSettingsFrom   ( .Cam:Default FFFFFF6A FFFFFE7A 0000023B )
+                        Call  UseSettingsFrom   ( .Cam:Default FFFFFF05 FFFFFE7A 00000229 )
+                        Call  SetPanTarget  ( .Cam:Default FFFFFF05 FFFFFE7A 00000229 )
+                        Wait  1`
+                        Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+                        Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+                        Wait  45`
+                        Call  MakeItemEntity    ( .Item:RuinsKey ~Vec3d:Item80240A2C .ItemSpawnMode:Fall_NeverVanish *Flag_ISK_05 )
+                        Set   *Flag_ISK_06  .True
+                        ExecWait  $Script_80241E84
+                        Wait  60`
+                        Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+                        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+                        Call  UseSettingsFrom   ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+                        Call  SetPanTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+                        Wait  1`
+                        Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+                        Call  802D5830      ( 00000000 )
+                        Call  DisablePlayerInput    ( .False )
+                    EndIf
+                EndThread
+            EndIf
+            Call  DoNpcDefeat ( )
+        Case  ==  00000002
+            Call  80045900  ( 00000000 )
+        Case  ==  00000003
+            Call  SetEnemyFlagBits  ( .Npc:Self 00000010 00000001 )
+            Call  RemoveNpc ( .Npc:Self )
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_Idle_80240BAC
+{
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000001 )
+    Call  SetNpcFlagBits        ( .Npc:Self 00000002 .True )
+    Label  1
+    If  *AreaFlag[00D]  ==  .False
+        Wait  1`
+        Goto  1
+    EndIf
+    Call  SetNpcYaw ( .Npc:Self 00000069 )
+    Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .True )
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000000 )
+    Call  NpcMoveTo ( .Npc:Self FFFFFF74 00000210 0000000A )
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .False )
+    Call  SetSelfEnemyFlagBits  ( 40000000 00000001 )
+    Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80240890 )
+    Return
+    End
+}
+
+#new:Script $Script_Idle_80240CD8
+{
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000001 )
+    Call  SetNpcFlagBits        ( .Npc:Self 00000002 .True )
+    Label  1
+    If  *AreaFlag[00D]  ==  .False
+        Wait  1`
+        Goto  1
+    EndIf
+    Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+    Wait  15`
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .True )
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000000 )
+    Call  NpcMoveTo ( .Npc:Self 0000002F 0000021F 0000000A )
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .False )
+    Call  SetSelfEnemyFlagBits  ( 40000000 00000001 )
+    Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80240890 )
+    Return
+    End
+}
+
+#new:Script $Script_Idle_80240DFC
+{
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000001 )
+    Call  SetNpcFlagBits        ( .Npc:Self 00000002 .True )
+    Label  1
+    If  *AreaFlag[00D]  ==  .False
+        Wait  1`
+        Goto  1
+    EndIf
+    Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+    Wait  15`
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .True )
+    Call  SetSelfEnemyFlagBits  ( 17100000 00000000 )
+    Call  NpcMoveTo ( .Npc:Self 000000E3 000001E9 0000000A )
+    Call  SetNpcFlagBits    ( .Npc:Self 00000040 .False )
+    Call  SetSelfEnemyFlagBits  ( 40000000 00000001 )
+    Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80240890 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240F20
+{
+    If  *Flag_ISK_06  ==  .False
+        Call  SetSelfEnemyFlags ( 00800000 )
+    EndIf
+    Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80240BAC )
+    Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802408E8 )
+    Call  InterpNpcYaw  ( .Npc:Self 00000064 00000000 )
+    Call  800457C4      ( 00000003 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80240FA8
+{
+    If  *Flag_ISK_06  ==  .False
+        Call  SetSelfEnemyFlags ( 00800000 )
+    EndIf
+    Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80240CD8 )
+    Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802408E8 )
+    Call  800457C4      ( 00000003 )
+    Return
+    End
+}
+
+#new:Script $Script_Init_80241018
+{
+    If  *Flag_ISK_06  ==  .False
+        Call  SetSelfEnemyFlags ( 00800000 )
+    EndIf
+    Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80240DFC )
+    Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802408E8 )
+    Call  800457C4      ( 00000003 )
+    Return
+    End
+}
+
+#new:NpcGroup $NpcGroup_80241088
+{
+    00000000 $NpcSettings_802408BC ~Vec3f:NPC_80241088 % -132 -390 492
+    00000A00 $Script_Init_80240F20 00000000 00000000 00000130
+    ~Items:5:TastyTonic:A ~HP:Generous:2 ~FP:Standard:2 ~CoinBonus:1:2
+    ~Movement:NPC_80241088
+    ~AnimationTable:NPC_80241088 % .Sprite:Pokey
+    00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80241278
+{
+    00000001 $NpcSettings_802408BC ~Vec3f:NPC_80241278 % 45 -390 507
+    00000A00 $Script_Init_80240FA8 00000000 00000000 00000107
+    ~Items:5:TastyTonic:A ~HP:Generous:2 ~FP:Standard:2 ~CoinBonus:1:2
+    ~Movement:NPC_80241278
+    ~AnimationTable:NPC_80241278 % .Sprite:Pokey
+    00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_80241468
+{
+    00000002 $NpcSettings_802408BC ~Vec3f:NPC_80241468 % 220 -389 467
+    00000A00 $Script_Init_80241018 00000000 00000000 000000F4
+    ~Items:5:TastyTonic:A ~HP:Generous:2 ~FP:Standard:2 ~CoinBonus:1:2
+    ~Movement:NPC_80241468
+    ~AnimationTable:NPC_80241468 % .Sprite:Pokey
+    00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_80241658
+{
+    00000001 $NpcGroup_80241088 0B00000D
+    00000001 $NpcGroup_80241278 0B02000D
+    00000001 $NpcGroup_80241468 0B03000D
+    00000000 00000000 00000000
+}
+
+PADDING: 80241688 to 80241690 (00001688 to 00001690)
+00000000 00000000
+
+#new:Script $Script_80241690
+{
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o1994 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o2000 7FFFFE00 )
+    Call  PlaySoundAtCollider   ( ~Collider:o2000 80000002 00000000 )
+    Call  MakeLerp  ( 00000000 0000005A 0000001E .Easing:QuadraticOut )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  RotateModel   ( ~Model:g311 *Var[0] 00000000 00000000 00000001 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  StopSound ( 80000002 )
+    Return
+    End
+}
+
+#new:Script $Script_8024177C
+{
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o1994 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o2000 7FFFFE00 )
+    Call  PlaySoundAtCollider   ( ~Collider:o1994 80000002 00000000 )
+    Call  MakeLerp  ( 0000005A 00000000 0000001E .Easing:QuadraticOut )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  RotateModel   ( ~Model:g311 *Var[0] 00000000 00000000 00000001 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  StopSound ( 80000002 )
+    Return
+    End
+}
+
+#new:Script $Script_80241868
+{
+    Call  802CB008      ( 00000000 00000001 00000171 FFFFFEA3 00000171 00000014 )
+    Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+    Call  UseSettingsFrom   ( .Cam:Default 00000171 FFFFFEA3 00000171 )
+    Call  SetPanTarget  ( .Cam:Default 00000171 FFFFFEA3 00000171 )
+    Wait  1`
+    Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    If  *MapFlag[00]  ==  .False
+        ExecWait  $Script_80241690
+        Set   *MapFlag[00]  .True
+    Else
+        ExecWait  $Script_8024177C
+        Set   *MapFlag[00]  .False
+    EndIf
+    Call  ShakeCam      ( .Cam:Default 00000000 00000003 *Fixed[0.1] )
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Call  SetPanTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+    Call  DisablePlayerInput    ( .False )
+    Set   *AreaFlag[00E]  .False
+    Return
+    End
+}
+
+#new:Script $Script_80241A14
+{
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o1994 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o2000 7FFFFE00 )
+    Set   *MapFlag[00]  .False
+    Bind  $Script_80241868 .Trigger:AreaFlagSet *AreaFlag[00E] 00000001 00000000
+    Return
+    End
+}
+
+#new:ItemList $ItemList_80241A80
+{
+    .Item:RuinsKey
+    00000000
+}
+
+#new:Script $Script_80241A88
+{
+    SetGroup  00000000
+    Call  802D5830  ( 00000001 )
+    Call  802D6420 ( )
+    Switch  *Var[0]
+        Case  ==  00000000
+            Call  ShowMessageAtScreenPos    ( 001D00D8 000000A0 00000028 ) % It's locked! You can't open it.
+            Call  802D6954 ( )
+            Call  802D5830  ( 00000000 )
+            Return
+        Case  ==  FFFFFFFF
+            Call  802D6954 ( )
+            Call  802D5830  ( 00000000 )
+            Return
+    EndSwitch
+    Call  PlaySoundAt       ( 00000269 00000000 FFFFFED4 FFFFFE84 00000212 )
+    Call  RemoveKeyItemAt   ( *Var[1] )
+    Set   *Flag_ISK_07  .True
+    Set   *Var[0]  *MapVar[0]
+    Call  $Function_802400B0 ( )
+    Set   *Var[1]  00000000
+    Wait  5`
+    Call  PlaySoundAtCollider   ( ~Collider:deilittw 00000265 00000000 )
+    Call  MakeLerp  ( 00000000 00000041 00000041 .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateGroup    ( ~Model:g310 00000000 *Var[0] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deilittw 7FFFFE00 )
+    Call  802D6954 ( )
+    Call  802D5830  ( 00000000 )
+    Unbind
+    Return
+    End
+}
+
+#new:Script $Script_80241C98
+{
+    If  *Flag_ISK_07  ==  .False
+        Call  802C971C  ( 0000004F )
+        BindLock  $Script_80241A88 .Trigger:WallPressA 00004000 $ItemList_80241A80 00000000 00000001
+    Else
+        Call  EnableModel   ( ~Model:g310 .False )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:deilittw 7FFFFE00 )
+    EndIf
+    Call  TranslateModel        ( ~Model:o2057 00000000 00000041 00000000 )
+    Call  TranslateModel        ( ~Model:o2058 00000000 00000041 00000000 )
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitte 7FFFFE00 )
+    Return
+    End
+}
+
+#new:Script $Script_80241D74
+{
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:deilitte 7FFFFE00 )
+    Call  PlaySoundAtCollider   ( ~Collider:deilitte 00000266 00000000 )
+    Call  MakeLerp  ( 00000041 00000000 0000000F .Easing:QuadraticIn )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateModel        ( ~Model:o2057 00000000 *Var[0] 00000000 )
+    Call  TranslateModel        ( ~Model:o2058 00000000 *Var[0] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  PlaySoundAtCollider   ( ~Collider:deilitte 00000267 00000000 )
+    Call  ShakeCam  ( .Cam:Default 00000000 0000000A *Fixed[0.3] )
+    Return
+    End
+}
+
+#new:Script $Script_80241E84
+{
+    Call  MakeLerp  ( 00000000 00000041 0000000F .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateModel    ( ~Model:o2057 00000000 *Var[0] 00000000 )
+    Call  TranslateModel    ( ~Model:o2058 00000000 *Var[0] 00000000 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitte 7FFFFE00 )
+    Return
+    End
+}
+
+PADDING: 80241F48 to 80241F50 (00001F48 to 00001F50)
+00000000 00000000
+
+#new:Script $Script_80241F50
+{
+    Call  ParentColliderToModel ( ~Collider:o2022 ~Model:g313 )
+    Bind  $Script_80241F90 .Trigger:FloorTouch ~Collider:o2022 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_80241F90
+{
+    Call  802D249C  ( *Var[0] )
+    If  *Var[0]  ==  00000000
+        Return
+    EndIf
+    Call  DisablePlayerInput    ( .True )
+    Call  PlaySoundAtCollider   ( ~Collider:o2022 0000208A 00000000 )
+    Call  MakeLerp  ( 00000000 FFFFFFF2 0000001E .Easing:Linear )
+    Label  A
+    Call  UpdateLerp ( )
+    Call  TranslateModel        ( ~Model:g313 00000000 *Var[0] 00000000 )
+    Call  UpdateColliderTransform   ( ~Collider:o2022 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  A
+    EndIf
+    Call  PlaySoundAtCollider   ( ~Collider:o2022 0000208B 00000000 )
+    Set   *AreaFlag[00E]  .True
+    Label  F
+    Wait  1`
+    If  *AreaFlag[00E]  ==  .True
+        Goto  F
+    EndIf
+    Call  MakeLerp  ( FFFFFFF2 00000000 00000005 .Easing:Linear )
+    Label  14
+    Call  UpdateLerp ( )
+    Call  TranslateModel    ( ~Model:g313 00000000 *Var[0] 00000000 )
+    Call  UpdateColliderTransform   ( ~Collider:o2022 )
+    Wait  1`
+    If  *Var[1]  ==  00000001
+        Goto  14
+    EndIf
+    Call  $Function_802400F0 ( )
+    Return
+    End
+}
+
+PADDING: 80242188 to 80242190 (00002188 to 00002190)
+00000000 00000000
+
+#new:Script $Script_80242190
+{
+    If  *Flag_ISK_10  ==  .False
+        Set   *AreaFlag[00A]  .False
+        Set   *AreaFlag[00B]  .False
+        Set   *AreaFlag[00C]  .False
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2039 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2040 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2041 7FFFFE00 )
+        Label  A
+        If  *Flag_ISK_10  ==  .False
+            Wait  1`
+            Goto  A
+        EndIf
+        Call  PlaySound ( 0000000A )
+        Call  DisablePlayerInput    ( .True )
+        Call  ShakeCam  ( .Cam:Default 00000000 0000001E *Fixed[1.0] )
+        Call  SetNpcYaw ( 00000000 00000069 )
+        Call  SetNpcFlagBits    ( 00000000 00000002 .False )
+        Call  SetNpcFlagBits    ( 00000001 00000002 .False )
+        Call  SetNpcFlagBits    ( 00000002 00000002 .False )
+        Thread
+            Wait  12`
+            Call  InterpPlayerYaw       ( 0000006D 00000000 )
+            Wait  3`
+            Call  802D2520  ( 00010002 00000005 00000000 00000001 00000001 00000000 )
+            Call  SetPlayerAnimation    ( 0008000A )
+            Wait  20`
+            Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+            Call  SetPlayerAnimation    ( 00010002 )
+        EndThread
+        Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+        Call  UseSettingsFrom       ( .Cam:Default FFFFFF69 FFFFFE7A 00000240 )
+        Call  SetPanTarget  ( .Cam:Default FFFFFF69 FFFFFE7A 00000240 )
+        Wait  1`
+        Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+        Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+        Exec  $Script_8024286C
+        Wait  15`
+        Call  SetPanTarget  ( .Cam:Default 00000033 FFFFFE7A 0000024D )
+        Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+        Exec  $Script_802428E8
+        Wait  15`
+        Call  SetPanTarget  ( .Cam:Default 000000EF FFFFFE7A 00000203 )
+        Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+        Exec  $Script_80242964
+        Wait  15`
+        Call  SetPanTarget  ( .Cam:Default 00000205 FFFFFE7A 00000124 )
+        Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+        Exec  $Script_80241D74
+        Wait  30`
+        Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+        Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+        Call  UseSettingsFrom       ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+        Call  SetPanTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+        Wait  1`
+        Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+        Set   *AreaFlag[00D]  .True
+        Call  DisablePlayerInput    ( .False )
+    Else
+        Set   *AreaFlag[00A]  .True
+        Set   *AreaFlag[00B]  .True
+        Set   *AreaFlag[00C]  .True
+        Call  TranslateModel    ( ~Model:g323 00000026 00000000 0000000D )
+        Call  RotateModel       ( ~Model:g323 00000023 00000000 00000001 00000000 )
+        Call  TranslateModel    ( ~Model:g327 00000026 00000000 0000000D )
+        Call  RotateModel       ( ~Model:g327 00000023 00000000 00000001 00000000 )
+        Call  TranslateModel    ( ~Model:g331 00000026 00000000 0000000D )
+        Call  RotateModel       ( ~Model:g331 00000023 00000000 00000001 00000000 )
+        Wait  5`
+        Set   *AreaFlag[00A]  .False
+        Set   *AreaFlag[00B]  .False
+        Set   *AreaFlag[00C]  .False
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2036 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2037 7FFFFE00 )
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:o2038 7FFFFE00 )
+        Set   *AreaFlag[00D]  .True
+    EndIf
+    Return
+    End
+}
+
+#new:Script $Script_80242750
+{
+    Call  PlaySoundAtModel  ( *Var[3] 000001D1 00000000 )
+    Call  TranslateModel    ( *Var[3] 00000000 00000000 0000000D )
+    Wait  3`
+    Call  MakeLerp  ( 00000000 00000023 00000009 .Easing:CosInOut )
+    Label  A
+    Call  UpdateLerp ( )
+    Set   *Var[2]  *Var[0]
+    MulF  *Var[2]  *Fixed[1.1]
+    Call  TranslateModel    ( *Var[3] *Var[2] 00000000 0000000D )
+    Call  RotateModel       ( *Var[3] *Var[0] 00000000 00000001 00000000 )
+    Wait  1`
+    If  *Var[1]  !=  00000000
+        Goto  A
+    EndIf
+    Wait  3`
+    Return
+    End
+}
+
+#new:Script $Script_8024286C
+{
+    Set   *AreaFlag[00A]  .True
+    Set   *Var[3]  0000006B
+    ExecWait  $Script_80242750
+    Set   *AreaFlag[00A]  .False
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o2036 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o2039 7FFFFE00 )
+    Return
+    End
+}
+
+#new:Script $Script_802428E8
+{
+    Set   *AreaFlag[00B]  .True
+    Set   *Var[3]  00000074
+    ExecWait  $Script_80242750
+    Set   *AreaFlag[00B]  .False
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o2037 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o2040 7FFFFE00 )
+    Return
+    End
+}
+
+#new:Script $Script_80242964
+{
+    Set   *AreaFlag[00C]  .True
+    Set   *Var[3]  0000007D
+    ExecWait  $Script_80242750
+    Set   *AreaFlag[00C]  .False
+    Call  ModifyColliderFlags   ( 00000000 ~Collider:o2038 7FFFFE00 )
+    Call  ModifyColliderFlags   ( 00000001 ~Collider:o2041 7FFFFE00 )
+    Return
+    End
+}
+
+#new:ASCII $ASCII_802429E0
+{
+    "isk_08"
+}
+
+#new:ASCII $ASCII_802429E8
+{
+    "isk_04"
+}
+

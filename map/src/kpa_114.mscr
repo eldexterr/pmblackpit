@@ -1,0 +1,147 @@
+% Script File: kpa_114.mscr
+% Decoded from: 0 to 3C0 (kpa_114)
+
+#new:Function_Init $Function_Init
+{
+	ADDIU     SP, SP, FFE8
+	LIA       A0, 800D9230
+	LIA       A1, $ASCII_80240390
+	SW        RA, 10 (SP)
+	JAL       ~Func:sprintf
+	NOP
+	LIA       A0, 800D91E0
+	LIA       A1, $ASCII_802403A0
+	JAL       ~Func:sprintf
+	RESERVED
+	LW        RA, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+PADDING: 80240044 to 80240050 (00000044 to 00000050)
+00000000 00000000 00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -150.0    0.0  110.0    0.0
+    ~Vec4f:Entry1 %  473.0    0.0  112.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000002
+    [Background]  00000000
+    [MapTattle]   00190182
+}
+
+#new:Script $Script_802400B0
+{
+    Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Metal )
+    Thread
+        Wait  30`
+        Call  802D5FA4  ( 00000006 )
+    EndThread
+    Return
+    End
+}
+
+PADDING: 80240118 to 80240120 (00000118 to 00000120)
+00000000 00000000
+
+#new:Script $Script_ExitWalk_80240120
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802403AC 00000002 ) % kpa_113
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitWalk_8024017C
+{
+    SetGroup  0000001B
+    Call  UseExitHeading    ( 00000028 ~Entry:Entry1 )
+    Exec  ExitWalk
+    Call  GotoMap   ( $ASCII_802403B4 00000000 ) % kpa_115
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_802401D8
+{
+    Bind  $Script_ExitWalk_80240120 .Trigger:FloorAbove 00000012 00000001 00000000
+    Bind  $Script_ExitWalk_8024017C .Trigger:FloorAbove 0000000F 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_80240220
+{
+    Call  GetLoadType   ( *Var[0] )
+    If  *Var[0]  ==  00000001
+        Exec  EnterSavePoint
+        Exec  $Script_802401D8
+        Return
+    EndIf
+    Set   *Var[0]  $Script_802401D8
+    Exec  EnterWalkShort
+    Wait  1`
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:BowsersCastle
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_MakeEntities
+    Exec  $Script_802400B0
+    Exec  $Script_80240220
+    Wait  1`
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80240350 80000000 )
+    Return
+    End
+}
+
+PADDING: 80240384 to 80240390 (00000384 to 00000390)
+00000000 00000000 00000000
+
+#new:ASCII $ASCII_80240390
+{
+    "kpa_112_shape"
+}
+
+#new:ASCII $ASCII_802403A0
+{
+    "kpa_112_hit"
+}
+
+#new:ASCII $ASCII_802403AC
+{
+    "kpa_113"
+}
+
+#new:ASCII $ASCII_802403B4
+{
+    "kpa_115"
+}
+
+PADDING: 802403BC to 802403C0 (000003BC to 000003C0)
+00000000
+

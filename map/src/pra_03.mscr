@@ -1,0 +1,340 @@
+% Script File: pra_03.mscr
+% Decoded from: 0 to 9E0 (pra_03)
+
+#new:Function_Init $Function_Init
+{
+	LAW       V1, 8007419C
+	ADDIU     V0, R0, 1
+	SB        V0, 84 (V1)
+	JR        RA
+	CLEAR     V0
+}
+
+PADDING: 80240018 to 80240020 (00000018 to 00000020)
+00000000 00000000
+
+#new:Function $Function_80240020
+{
+	LIA       V1, 8010EFC8
+	LWC1      F2, 80 (V1)
+	MTC1      R0, F0
+	NOP
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o48
+	NOP
+	LIF       F0, 180.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o54
+	ADDIU     V0, R0, 96
+	SW        V0, 84 (A0)
+	LWC1      F2, 80 (V1)
+	.o48
+	LIF       F0, 180.0
+	NOP
+	.o54
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o84
+	NOP
+	LIF       F0, 360.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o84
+	ADDIU     V0, R0, 5F
+	SW        V0, 84 (A0)
+	.o84
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_802400AC
+{
+	LIA       V1, 8010EFC8
+	LWC1      F2, 80 (V1)
+	MTC1      R0, F0
+	NOP
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o48
+	NOP
+	LIF       F0, 180.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o54
+	ADDIU     V0, R0, A5
+	SW        V0, 84 (A0)
+	LWC1      F2, 80 (V1)
+	.o48
+	LIF       F0, 180.0
+	NOP
+	.o54
+	C.LE.S    F0, F2
+	NOP
+	BC1F      .o84
+	NOP
+	LIF       F0, 360.0
+	NOP
+	C.LT.S    F2, F0
+	NOP
+	BC1F      .o84
+	ADDIU     V0, R0, 46
+	SW        V0, 84 (A0)
+	.o84
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_80240138
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	COPY      S1, A0
+	LIA       V0, 8010EFC8
+	SW        RA, 18 (SP)
+	SW        S0, 10 (SP)
+	LH        V1, 18 (V0)
+	BNE       V1, R0, .o38
+	COPY      S0, V0
+	LIO       A1, *MapVar[0]
+	JAL       ~Func:set_variable
+	CLEAR     A2
+	.o38
+	LH        V1, 18 (S0)
+	ADDIU     V0, R0, FF38
+	BNE       V1, V0, .o58
+	COPY      A0, S1
+	LIO       A1, *MapVar[0]
+	JAL       ~Func:set_variable
+	ADDIU     A2, R0, 1
+	.o58
+	LW        RA, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	CLEAR     V0
+	JR        RA
+	ADDIU     SP, SP, 20
+}
+
+PADDING: 802401A8 to 802401B0 (000001A8 to 000001B0)
+00000000 00000000
+
+#new:EntryList $EntryList
+{
+    ~Vec4f:Entry0 % -128.0    0.0 -137.0  180.0
+    ~Vec4f:Entry1 %  237.0    0.0  -70.0  270.0
+    ~Vec4f:Entry2 %  237.0 -200.0  -70.0  270.0
+}
+
+#new:Header $Header
+{
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000003
+    [Background]  00000000
+    [MapTattle]   00190138
+}
+
+#new:Script $Script_80240220
+{
+    Call  SetMusicTrack ( 00000000 .Song:CrystalPalace 00000000 00000008 )
+    Call  UseDoorSounds ( .DoorSounds:Basic )
+    Return
+    End
+}
+
+PADDING: 8024025C to 80240260 (0000025C to 00000260)
+00000000
+
+#new:Script $Script_ExitSingleDoor_80240260
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry0
+    Set   *Var[1]  ~Collider:deilittnnw
+    Set   *Var[2]  ~Model:o774
+    Set   *Var[3]  .DoorSwing:Out % FFFFFFFF
+    Exec  ExitSingleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_802409C0 00000001 ) % pra_02
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitDoubleDoor_80240304
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry1
+    Set   *Var[1]  ~Collider:deilittne
+    Set   *Var[2]  ~Model:o880
+    Set   *Var[3]  ~Model:o878
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_802409C8 00000000 ) % pra_38
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_ExitDoubleDoor_802403A8
+{
+    SetGroup  0000001B
+    Call  DisablePlayerInput    ( .True )
+    Set   *Var[0]  ~Entry:Entry2
+    Set   *Var[1]  ~Collider:deilittnne
+    Set   *Var[2]  ~Model:o989
+    Set   *Var[3]  ~Model:o988
+    Exec  ExitDoubleDoor
+    Wait  17`
+    Call  GotoMap   ( $ASCII_802409D0 00000000 ) % pra_09
+    Wait  100`
+    Return
+    End
+}
+
+#new:Script $Script_8024044C
+{
+    Bind  $Script_ExitSingleDoor_80240260 .Trigger:WallPressA ~Collider:deilittnnw 00000001 00000000
+    Bind  $Script_ExitDoubleDoor_80240304 .Trigger:WallPressA ~Collider:deilittne 00000001 00000000
+    Bind  $Script_ExitDoubleDoor_802403A8 .Trigger:WallPressA ~Collider:deilittnne 00000001 00000000
+    Return
+    End
+}
+
+#new:Script $Script_EnterDoubleDoor_802404B0
+{
+    Call  GetLoadType   ( *Var[1] )
+    If  *Var[1]  ==  00000001
+        Exec  EnterSavePoint
+        Exec  $Script_8024044C
+        Return
+    EndIf
+    Call  GetEntryID    ( *Var[0] )
+    Switch  *Var[0]
+        Case  ==  ~Entry:Entry0
+            Set   *Var[2]  ~Model:o774
+            Set   *Var[3]  .DoorSwing:Out % FFFFFFFF
+            ExecWait  EnterSingleDoor
+        Case  ==  ~Entry:Entry1
+            Set   *Var[2]  ~Model:o880
+            Set   *Var[3]  ~Model:o878
+            ExecWait  EnterDoubleDoor
+        Case  ==  ~Entry:Entry2
+            Set   *Var[2]  ~Model:o989
+            Set   *Var[3]  ~Model:o988
+            ExecWait  EnterDoubleDoor
+    EndSwitch
+    Exec  $Script_8024044C
+    Return
+    End
+}
+
+#new:Script_Main $Script_Main
+{
+    Set   *WorldMapLocation  .Location:CrystalPalace
+    Call  SetSpriteShading  ( FFFFFFFF )
+    Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+    Call  SetCamBGColor     ( .Cam:Default 00000018 00000018 00000028 )
+    Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    Call  SetCamEnabled     ( .Cam:Default .True )
+    ExecWait  $Script_MakeEntities
+    Exec  $Script_80240220
+    If  *Flag_PRA_07  ==  .True
+        Call  ModifyColliderFlags   ( 00000000 ~Collider:deilittn 7FFFFE00 )
+        Call  EnableModel   ( ~Model:g286 .False )
+    Else
+        Call  EnableModel   ( ~Model:o998 .False )
+    EndIf
+    Exec  $Script_EnterDoubleDoor_802404B0
+    Wait  1`
+    Return
+    End
+}
+
+PADDING: 80240704 to 80240710 (00000704 to 00000710)
+00000000 00000000 00000000
+
+#new:Script $Script_80240710
+{
+    Label  0
+    Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    If  *Var[1]  >=  *Var[3]
+        Set   *Var[1]  *Var[3]
+    EndIf
+    Call  SetCamTarget  ( .Cam:Default *Var[0] *Var[1] *Var[2] )
+    Wait  1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_802407A0
+{
+    Call  DisablePlayerInput    ( .True )
+    Call  DisablePlayerPhysics  ( .True )
+    Call  SetPlayerActionState  ( .ActionState:Launch )
+    Call  GetPlayerPos  ( *Var[7] *Var[8] *Var[9] )
+    If  *MapVar[0]  ==  00000000
+        Set   *Var[3]  FFFFFF51
+        Exec  $Script_80240710 *Var[A]
+        Call  $Function_802400AC ( )
+        Call  SetPlayerJumpscale    ( *Fixed[2.0] )
+        Set   *Var[1]  FFFFFF38
+        Set   *Var[2]  0000000F
+    Else
+        Set   *Var[3]  00000000
+        Exec  $Script_80240710 *Var[A]
+        Call  $Function_80240020 ( )
+        Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+        Set   *Var[1]  00000000
+        Set   *Var[2]  00000023
+    EndIf
+    Call  PlayerJump    ( *Var[0] *Var[1] *Var[9] *Var[2] )
+    Kill  *Var[A]
+    Call  SetPlayerActionState  ( .ActionState:Idle )
+    Wait  2`
+    Call  DisablePlayerPhysics  ( .False )
+    Call  DisablePlayerInput    ( .False )
+    Return
+    End
+}
+
+#new:Script $Script_MakeEntities
+{
+    Thread
+        Call  $Function_80240138 ( )
+    EndThread
+    Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Entity80240950 80000000 )
+    Call  AssignScript  ( $Script_802407A0 )
+    Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80240984 80000000 )
+    Return
+    End
+}
+
+PADDING: 802409B8 to 802409C0 (000009B8 to 000009C0)
+00000000 00000000
+
+#new:ASCII $ASCII_802409C0
+{
+    "pra_02"
+}
+
+#new:ASCII $ASCII_802409C8
+{
+    "pra_38"
+}
+
+#new:ASCII $ASCII_802409D0
+{
+    "pra_09"
+}
+
+PADDING: 802409D8 to 802409E0 (000009D8 to 000009E0)
+00000000 00000000
+
