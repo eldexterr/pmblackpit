@@ -193,11 +193,23 @@ FFC9 (-100) % top
 }
 
 % Flower Icon
-@Function 81D38 % 800E8888
+@Hook 81D38 % 800E8888
 {
+    % vanilla code
+    COPY    GP, A0 % copy iconIndex
     ADDIU	A1, A1, 0063 % x pos
     JAL	    ~Func:set_icon_render_pos
     ADDIU	A2, A2, 000D % y pos
+    PUSH    RA, V0, V1, A0, A1, A2, A3
+    %=====
+    % Change Size
+    LIO     A1, 41D00000 % 26.0 % Width
+    LIO     A2, 41D00000 % 26.0 % Lenght
+    JAL     $SetIconSize2
+    COPY    A0, GP
+    POP     RA, V0, V1, A0, A1, A2, A3
+    J       800E8894
+    NOP
 }
 
 % HP 00/00
@@ -281,7 +293,7 @@ FFC9 (-100) % top
 #new:Data $IconScript_FPPickup
 {
 00000008
-00000006 % SetSize
+00000007 % "SetSize"
 00000003
 00000002 % Icon Size
 0000000D 00000008 0002EF60 0002F160

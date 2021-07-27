@@ -7,17 +7,19 @@
 	If *MapVar[2] == FE % First Time Mario get Coins from a Chest
 		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
 		If *Var[0] == .False % DisablePlayerInputs == False
+		Call 	$WriteAddress ( 8010EFDD 0 .False 0 .False ) % Player Inputs's Byteflag
 			Call 	DisablePlayerInput ( .True )
 		EndIf
 		Call	 ShowMessageAtScreenPos ( $CoinsString 000000A0 00000028 )
 		Call	 ShowCoinCounter 	( .True )
-		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
-		If *Var[0] == .True % DisablePlayerInputs == True
-			Call 	DisablePlayerInput ( .False )
-		EndIf
 		Call     ShowGotItem 	( .Item:Coin .True 00000010 ) % ItemID ??? Message
 		ExecWait $LoadChestFloor
 		Call	 ShowCoinCounter 	( .False )
+		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
+		If *Var[0] == .True % DisablePlayerInputs == True
+			Call 	$WriteAddress ( 8010EFDD 0 .True 0 .False ) % Player Inputs's Byteflag
+			Call 	DisablePlayerInput ( .False )
+		EndIf
 	Else
 		If *MapVar[2] == FF % Second Time Coins
 			Call	 ShowCoinCounter 	( .True )

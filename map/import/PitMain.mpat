@@ -79,7 +79,7 @@ EndIf
 Call     DisablePlayerPhysics 	( .True )
 % Spawn NPCs
 Call    RandInt	( 200` *MapVar[0] ) % Use to spawn a Mover instead of an Enemy
-Call  	$Function_ResetEnemiesFlag % To always spawn an enemy if you arrive on any floor
+Call  	ClearDefeatedEnemies % reset all enemies beated flags
 ExecWait $Script_SpawnNPCs
 ExecWait $Script_MakeEntities
 % Roguelike Mode Functions
@@ -146,6 +146,16 @@ End
 #new:Script $Script_TrackEvents
 {
 	If *EventCount == 0 % If there isn't any events left to trigger finish
+		Return
+	EndIf
+	% Don't do anything if a Mover spawned
+	% Check if a Mover spawned
+	Call	GetNpcPos ( 6 0 *Var[0] 0 )
+	If *Var[0] > -100` % Mover non-spawned Y pos
+		Return
+	EndIf
+	Call	GetNpcPos ( 7 0 *Var[0] 0 )
+	If *Var[0] > -100` % Mover non-spawned Y pos
 		Return
 	EndIf
 	% Mario have at least one partner?
@@ -564,7 +574,7 @@ Return
 End
 }
 
-#new:Function $Function_ResetEnemiesFlag
+#new:Function $Function_ResetEnemiesFlag % unused
 {
 % The Pit has 49 unique enemies Floors
 % Each map use 12 Words (48 Bytes) so to clean all the Pit Maps

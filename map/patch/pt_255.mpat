@@ -36,6 +36,7 @@ Call 	SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
 Call 	SetCamBGColor     ( .Cam:Default 0 0 0 ) % black
 Call 	SetCamEnabled     ( .Cam:Default .True )
 Call 	SetCamLeadPlayer  ( .Cam:Default .False )
+Call 	$WriteAddress ( 8015C790 2 00000000 .False .False ) % Set fade color as Black % needed if you come from a white fade from Floor 100
 % Hide Pipe
 If 	*BlackPit_Unlocked == .False
 	Call	EnableGroup ( ~Model:black_pit .False )
@@ -61,6 +62,15 @@ Switch	*Var[0]
 		Call	DisablePlayerPhysics ( .True )
 		Call	GetCurrentPartnerID ( *LastPartner ) % save partner
 		Call    $DespawnPartner
+		% Disable all partners
+		Call 	$WriteAddress ( 8010F2AC 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2B4 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2BC 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2C4 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2EC 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2D4 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2DC 0 .False .False .False )
+		Call 	$WriteAddress ( 8010F2E4 0 .False .False .False )
 		Wait	15` % to not see when the partner get despawned when the screen unfade
 		Call	ModifyColliderFlags ( .False ~Collider:Col1 7FFFFE00 ) % disable being able to go to pre_01
 		Thread

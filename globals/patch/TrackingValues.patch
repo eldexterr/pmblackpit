@@ -8,8 +8,8 @@ NOP
 POP		RA
 ADDIU	A0, R0, 1
 J		8025E2C8
-LUI		AT, 802A %/
-}
+LUI		AT, 802A 
+}%/
 
 % Get double coins if Mario won a battle without getting any damage
 % you can found a lot of unused code because the badge got changed from "get double coins if you win a battle in the 1st turn"
@@ -229,7 +229,7 @@ ADDIU	A1, R0, 1
 POP     RA, A0, A1, A2, A3, V0, V1
 J       8027318C % skip to the end of ~Func:calc_player_damage_enemy
 NOP
-}
+}%/
 
 @Hook 1A7054 % 80278774 % Zap Tap/Volt Shroom
 {
@@ -249,7 +249,7 @@ POP     RA, V1
 SH	    V0, 0180 (S3) % Amount Dealt
 J       8027877C
 SH	    V0, 01F8 (S0)
-}
+}%/
 
 % ~Func:calc_item_damage_enemy
 @Hook 180394 % 80251AB4 % Star Powers and Items
@@ -289,7 +289,7 @@ ADDIU	A1, R0, 1
 POP     RA, A0, A1, A2, A3, V0, V1
 J       802526F8 % skip to the end of ~Func:calc_item_damage_enemy
 NOP
-}
+}%/
 
 % ~Func:calc_partner_damage_enemy
 @Hook 1AD468 % 8027EB88 % Partners Hook
@@ -329,7 +329,7 @@ ADDIU	A1, R0, 1
 POP     RA, A0, A1, A2, A3, V0, V1
 J       8027F998 % skip to the end of ~Func:calc_partner_damage_enemy
 NOP
-}
+}%/
 
 #new:Script:Battle $Script_ReflectMariosAttack0
 {
@@ -346,7 +346,7 @@ NOP
 }
 
 % PlayEffect is supposed to save the pointer of the FX in Var[F], although this doesn't happen always
-% this patches fixes that, this is necesary for the reflect scripts.
+% this patches fixes that, this is neccesary for the reflect scripts.
 @Data FE040 % 802D9690
 {
     10400005 % BEQZ	V0, 802D96A8
@@ -482,7 +482,7 @@ POP     RA, V1
 SH      V0, 0180 (S4) % Amount Received
 J       80277B6C
 SH	    V0, 01F8 (S3)
-}
+}%/
 
 @Hook 1A1B54 % 80273274 % Used when reciving damage when landing on Spikes, an Ember, while being Poisoned, etc
 {
@@ -499,7 +499,7 @@ POP     RA, V1
 SH	    V0, 0180 (S3) % Amount Received
 J       8027327C
 LBU	    V0, 01B8 (S0)
-}
+}%/
 
 @Hook FB70C % 802D6D5C % When using an Item
 {
@@ -517,17 +517,18 @@ SAB     T0, $TotalItemsUsed
 POP 	RA, V1
 CVT.S.W	F0, F0
 J       802D6D64
-MFC1	A1, F0%/
-}
+MFC1	A1, F0
+}%/
 
+% *out = V1
 #new:Function $Function_CheckPitFlag
 {
-PUSH	RA, V0, A1, A2
+PUSH	RA, V0, A0, A1, A2, A3
 LIO 	A1, *PitFlag
 JAL 	~Func:get_variable 
 NOP
 COPY    V1, V0 % Copy V0 in V1
-POP		RA, V0, A1, A2
+POP		RA, V0, A0, A1, A2, A3
 JR 		RA
 NOP
 }
@@ -538,6 +539,7 @@ NOP
 01= Mario is in a battle
 02= Game Paused%/
 
+% Advance timer
 @Hook 1B78 % 80026778
 {
 PUSH	RA, V0, V1, A0, A1, A2
@@ -668,7 +670,7 @@ ADDIU	V0, V0, 2
     SH      V1, 0290 (A0)
     J       802809A4
     LH	    S0, 017A (A1)
-}
+}%/
 
 % Save total partners turns used
 @Hook 175500 % 80246C20
@@ -691,7 +693,7 @@ ADDIU	V0, V0, 2
     ORI	    V0, V0, 0010
     J       80246C28
     AND	    V1, V1, A0
-}
+}%/
 
 % Enemies Tattles - Flag_Cheev_Global_25
 % Track if the player have all tattles to complete this challenge
@@ -833,7 +835,7 @@ ADDIU	V0, V0, 2
     LAW     V1, 800DC4DC
     J       802425E8
     RESERVED
-}
+}%/
 
 /% unused
 @Hook 79FF0 % 800E0B40

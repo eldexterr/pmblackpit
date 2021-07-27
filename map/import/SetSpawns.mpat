@@ -48,6 +48,7 @@
 		EndIf
 	EndIf
 	% On swoopula floor's don't spawn any of cealing formations on roguelike
+	% Note: cealing formations got scrapped at the end
 	If *Flag_Mode_Rogue == .True
 		Switch *PitMapID
 			CaseOR == 73`
@@ -309,30 +310,31 @@
 			EndIf
 		EndIf
 	Else
-	%==MOUSTAFA==%
+		%==MOUSTAFA==%
 		Set *MoverID 0 % Normal
-		% Overwrite the ID to the Bandit One if Mario just got scammed by the bandit
-		Switch *BanditState
-			CaseOR == 2
-			CaseOR == 3
-				If *Flag_Mode_Rogue == .False
-					Set *BanditState 3
-					Set *MoverID 1 % Bandit
-					Return
-				EndIf
-			EndCaseGroup
-		EndSwitch
 		 % Use a Bandit Mover if Mario is on floors >90
 		 If *PitMapID > 90`
 			Set *MoverID 1 % Bandit
 		EndIf
-		% Bandit's Badge
-		Set *Var[0] .Item:FryingPan % 0023
-		ExecWait $IsBadgeEquipped_Script % return bool in var0
-		If *Var[0] == .True
-			If *PitMapID > 10` % bandit can't spawn on floors below 10
+	EndIf
+	%=============
+	% Always overwrite the ID to Bandit if Mario got scammed
+	Switch *BanditState
+		CaseOR == 2
+		CaseOR == 3
+			If *Flag_Mode_Rogue == .False
+				Set *BanditState 3
 				Set *MoverID 1 % Bandit
+				Return
 			EndIf
+		EndCaseGroup
+	EndSwitch
+	% Bandit's Badge
+	Set *Var[0] .Item:FryingPan % 0023
+	ExecWait $IsBadgeEquipped_Script % return bool in var0
+	If *Var[0] == .True
+		If *PitMapID > 10` % bandit can't spawn on floors below 10
+			Set *MoverID 1 % Bandit
 		EndIf
 	EndIf
 	Return

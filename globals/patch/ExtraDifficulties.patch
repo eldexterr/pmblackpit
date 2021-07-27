@@ -101,10 +101,83 @@ SB		V0, 01B9 (S1) % write max hp
     MFLO    T0
     ADDU    V0, V0, T0 % EnemyHP+50% = 1.5x HP
     .End
+    % Pierce Mario's defense?
+    % Used only by Bonetail's breaths attacks.
+    PUSH    RA, A0, A1, A2, A3, V1
+    COPY    GP, V0 % push V0
+    LIO     A1, *PierceDefense
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .DontPierce
+    COPY    V0, GP % pop V0
+    JAL     $Function_GetMarioDefense
+    NOP
+    ADDU    V0, V0, A1
+    .DontPierce
+    POP     RA, A0, A1, A2, A3, V1
     % restore vanilla code
     SH	    V0, 017E (S1)
     J       8027CD50
     LW	    A1, 0000 (S0)
+}
+
+% *out = A1
+#new:Function $Function_GetMarioDefense
+{
+    PUSH    RA
+	.CheckWaterBlock
+	% Check if Mario have Sushie's Water Block Activated
+	ADDIU   A1, R0, 0 % init A1
+	LABU    T0, 800DC10D % Water Block: Remaining Turns
+	BNEL    T0, R0, .CheckDefensePlus % If Turns isn't equal to 0, add 1 to A2
+	ADDI    A1, A1, 1
+	.CheckDefensePlus
+	% Check if Mario have the following Badges
+	JAL     $IsBadgeEquiped0 % Save a bolean value in T2
+	ADDIU   T2, R0, 00FB % Badge ID
+	BNEL    T2, R0, .CheckPDownDUp
+	ADDI    A1, A1, 1
+	.CheckPDownDUp
+	JAL   $IsBadgeEquiped0 % Save a bolean value in T2
+	ADDIU   T2, R0, 0116 % Badge ID
+	BNEL    T2, R0, .End
+	ADDI    A1, A1, 1
+	% Damage Dodge doesn't boost Mario's defense so was removed
+	/%.CheckDamageDodgeA
+	JAL     $IsBadgeEquiped0 % Save a bolean value in T2
+	ADDIU   T2, R0, 0130 % Badge ID
+	BNEL    T2, R0, .CheckDamageDodgeB
+	ADDI    A1, A1, 1
+	.CheckDamageDodgeB
+	JAL     $IsBadgeEquiped0 % Save a bolean value in T2
+	ADDIU   T2, R0, 013A % Badge ID
+	BNEL    T2, R0, .End
+	ADDI    A1, A1, 1%/
+    .End
+	POP     RA
+	JR	    RA
+	NOP
+}
+
+% T2 = Badge ID
+% *out = bool (T2)
+#new:Function $IsBadgeEquiped0
+{
+	PUSH	T0, T1, T3
+	.Init
+	LIO		T0, 8010F498	% position in list
+	ADDIU	T3, T0, 78		% end of list
+	.Loop
+	LH		T1, 0 (T0)
+	BEQL	T2, T1, .End
+	ADDIU	T2, R0, 1 % return true
+	BNE		T0, T3, .Loop
+	ADDIU	T0, T0, 2
+	ADDIU	T2, R0, 0 % return false
+	.End
+	POP		T0, T1, T3
+	JR		RA
+	NOP
 }
 
 % Enemies' Damage

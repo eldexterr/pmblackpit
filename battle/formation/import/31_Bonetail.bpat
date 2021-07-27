@@ -36,7 +36,7 @@
 [Level]         201`b 
 [MaxHP]         200`b 
 [Coins]         0`b 
-[Flags]       00000004 % Hide Shadow
+[Flags]       00000004 % No Shadow
 [StatusTable] $StatusTable_Bonetail 
 % ai
 [PartsCount]   4`s 
@@ -585,10 +585,7 @@ End
 	Call     MoveBattleCamOver 	( 100` )
 	Wait     13`
 	% Read ActorVar 0 and trigger the status
-	% Damage Mario % Pierce Mario's Defense
-	Call	$Function_GetMarioDefense ( *Var[1] )
-	Set 	*Var[0] 8 % Attack Damage
-	Add		*Var[0] *Var[1] % Add Mario defense to Attack Damage
+	Set		*PierceDefense .True % Pierce Mario's Defense, the code that handLe this is at /globals/patch/ExtraDifficulties.patch
 	Call	 GetActorVar ( .Actor:Self 0 *Var[2] )
 	% Check if Mario already had an stat
 	Call	 GetStatusFlags ( .Actor:Player *Var[3] )
@@ -624,20 +621,21 @@ End
 			Goto Statusless % If the player already had an status use this one
 	EndSwitch
 	Label Sleep
-	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80001264 *Var[0] 00000020 ) % 80001264 = ?AAABCC (AAA= StatusFlagID, B=Turns, CC= % to be succesful (64=100%))
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80001264 00000008 00000020 ) % 80001264 = ?AAABCC (AAA= StatusFlagID, B=Turns, CC= % to be succesful (64=100%))
 	Goto End
 	Label Dizzy
-	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80040264 *Var[0] 00000020 )
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80040264 00000008 00000020 )
 	Goto End
 	Label Shrunk
-	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80080264 *Var[0] 00000020 )
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80080264 00000008 00000020 )
 	Goto End
 	Label Frozen
-	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80004264 *Var[0] 00000020 )
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 80004264 00000008 00000020 )
 	Goto End
 	Label Statusless
-	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 *Var[0] 00000020 )
+	Call    EnemyDamageTarget 	( .Actor:Self *Var[F] 00000000 0000FFFF 00000000 00000008 00000020 )
 	Label End
+	Set		*PierceDefense .False
 	Wait    15`
 	Call    SetAnimation 	  ( .Actor:Self 00000001 .Anim_Breath_ClosingMouth )
 	Wait	7
@@ -659,66 +657,6 @@ End
 	SH		  T0, 1 (SP) % Crasher
 	POP RA, V0, A1
 	JR RA
-	NOP
-}
-	
-#new:Function $Function_GetMarioDefense
-{
-	PUSH  RA, S4, V0, A1, A2
-	.CheckWaterBlock
-	% Check if Mario have Sushie's Water Block Activated
-	ADDIU  A2, R0, 0 % Set A2 as 0
-	LAB   T0, 800DC10D %Water Block: Remaining Turns
-	BNEL  T0, R0, .CheckDefensePlus % If Turns isn't equal to 0, add 1 to A2
-	ADDI  A2, A2, 1
-	.CheckDefensePlus
-	% Check if Mario have the following Badges
-	JAL   $IsBadgeEquiped % Save a bolean value in S4
-	ADDIU S4, R0, 00FB % Badge ID
-	BNEL  S4, R0, .CheckPDownDUp
-	ADDI  A2, A2, 1
-	.CheckPDownDUp
-	JAL   $IsBadgeEquiped % Save a bolean value in S4
-	ADDIU S4, R0, 0116 % Badge ID
-	BNEL  S4, R0, .SetVar
-	ADDI  A2, A2, 1
-	% Damage Dodge doesn't boost Mario's defense so was removed
-	/%.CheckDamageDodgeA
-	JAL   $IsBadgeEquiped % Save a bolean value in S4
-	ADDIU S4, R0, 0130 % Badge ID
-	BNEL  S4, R0, .CheckDamageDodgeB
-	ADDI  A2, A2, 1
-	.CheckDamageDodgeB
-	JAL   $IsBadgeEquiped % Save a bolean value in S4
-	ADDIU S4, R0, 013A % Badge ID
-	BNEL  S4, R0, .SetVar
-	ADDI  A2, A2, 1%/
-	% Save *Var[1]
-	.SetVar
-	LIO  A1, *Var[1]
-	JAL  ~Func:set_variable
-	RESERVED
-	POP  RA, S4, V0, A1, A2
-	JR	 RA
-	NOP
-}
-	
-	#new:Function $IsBadgeEquiped
-{
-	PUSH	S1, S2, S3
-	.Init
-	LIO		S2, 8010F498	% position in list
-	ADDIU	S3, S2, 78		% end of list
-	.Loop
-	LH		S1, 0 (S2)
-	BEQL	S4, S1, .End
-	ADDIU	S4, R0, 1 % return true
-	BNE		S2, S3, .Loop
-	ADDIU	S2, S2, 2
-	ADDIU	S4, R0, 0 % return false
-	.End
-	POP		S1, S2, S3
-	JR		RA
 	NOP
 }
 	

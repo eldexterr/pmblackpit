@@ -236,10 +236,13 @@ EndIf
 % Unlock the Chest?
 Call    $ReadAddress ( $Maze_ChestData_Special1 2 *Var[0] 0 .False )
 Call    $ReadAddress ( $Maze_ChestData_Special1 2 *Var[1] 4 .False )
-If *Var[0] == *Var[1]
-    Call    ModifyColliderFlags ( .False ~Collider:Chest5 7FFFFE00 )
+If *Var[0] != *Var[1] % Chest can't be opened
+    % Make the chest impossible to open
+    Call    $GetEntityPointer ( 2 *Var[0] ) % Sprite Chest will always be Entity #2
+    % EntityPointer(+0x1C)>NOP = The chest will not be able to be opened
+    Call    $WriteAddress ( *Var[0] 2 .False 1C .False )
 EndIf
-/% Spawn Invicible Blocks
+/% Spawn Invicible Blocks % was for testing purposes
 Call    ParentColliderToModel ( ~Collider:Cube1 ~Model:CubeModel )
 Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[1] 0 .False ) % get x
 Call  $ReadAddress ( $Maze_ChestData_Special1_Blocks_Coords 2 *Var[2] 4 .False ) % get y

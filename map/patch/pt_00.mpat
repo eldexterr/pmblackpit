@@ -1334,7 +1334,7 @@ End
 
 #new:Script $P1Trigger % I use this Script mostly to just test a bunch of stuff
 {
-	Exec	$Classic_AllChestsOpened
+	Exec $Classic_AllChestsOpened
 	Return
 	Switch *PitMapID
 		Case < 9
@@ -1435,7 +1435,7 @@ End
    Set		*Flag_Peekaboo .True
    Set		*Flag_LuckyDay .True
    Set		*Flag_SlowGo .True
-   % Partners
+   /% Partners
    Set		*Flag_Goombario .True
    Set		*Flag_Kooper .True
    Set		*Flag_Bombette .True
@@ -1443,7 +1443,7 @@ End
    Set		*Flag_Bow .True
    Set		*Flag_Watt .True
    Set		*Flag_Sushie .True
-   Set		*Flag_Lakilester .True
+   Set		*Flag_Lakilester .True%/
    Return
    End
 }
@@ -1477,7 +1477,7 @@ ADDIU     V0, R0, 2
 
 #new:NpcGroupList $NpcGroups
 {
-00000001 $NpcGroup_Cheato 	37020000
+00000001 $NpcGroup_Cheato 	3C030000
 00000001 $NpcGroup_Merlee 	00000000
 00000001 $NpcGroup_Fishmael	00000000
 00000001 $NpcGroup_Oaklie	00000000
@@ -5268,31 +5268,31 @@ Switch *MapVar[B]
 	Case == 1 % Doopliss
 		Set *Var[3] 100`
 	Case == 2 % B&W
-		Set *Var[3] 150`
+		Set *Var[3] 120`
 	Case == 3 % Gameboy
-		Set *Var[3] 150`
+		Set *Var[3] 120`
 	Case == 4 % Luigi
-		Set *Var[3] 200`
+		Set *Var[3] 150`
 	Case == 5 % Wario
-		Set *Var[3] 200`
+		Set *Var[3] 150`
 	Case == 6 % Waluigi
-		Set *Var[3] 250`
+		Set *Var[3] 170`
 	Case == 7 % Fire Flower
-		Set *Var[3] 300`
+		Set *Var[3] 200`
 	Case == 8 % Icy Flower
-		Set *Var[3] 300`
+		Set *Var[3] 200`
 	Case == 9 % Jumpman
-		Set *Var[3] 350`
+		Set *Var[3] 220`
 	Case == 10` % SMB1
-		Set *Var[3] 400`
+		Set *Var[3] 250`
 	Case == 11` % SMB3
-		Set *Var[3] 350`
+		Set *Var[3] 250`
 	Case == 12` % Maker
-		Set *Var[3] 400`
+		Set *Var[3] 250`
 	Case == 13` % Modern
-		Set *Var[3] 400`
+		Set *Var[3] 100`
 	Case == 14` % Black Pit
-		Set *Var[3] 500`
+		Set *Var[3] 300`
 	Case == 15` % Gold
 		Set *Var[3] 0
 EndSwitch
@@ -6058,31 +6058,31 @@ for [PushColor][Color:07][Var:01][PopColor] coins?
 	% Get Skin Price
 	Switch *MapVar[B]
 		Case == 0 % Candy Cane
-			Set *Var[3] 100`
+			Set *Var[3] 50`
 		Case == 1 % Sarcophagus
-			Set *Var[3] 200`
+			Set *Var[3] 70`
 		Case == 2 % Painting
-			Set *Var[3] 200`
+			Set *Var[3] 70`
 		Case == 3 % Jack
-			Set *Var[3] 300`
+			Set *Var[3] 100`
 		Case == 4 % Statue
-			Set *Var[3] 350`
+			Set *Var[3] 100`
 		Case == 5 % Flowers
-			Set *Var[3] 400`
+			Set *Var[3] 150`
 		Case == 6 % Snowman
-			Set *Var[3] 350`
+			Set *Var[3] 200`
 		Case == 7 % Ship
-			Set *Var[3] 400`
+			Set *Var[3] 300`
 		Case == 8 % Stars
-			Set *Var[3] 500`
-		Case == 9 % HBD
-			Set *Var[3] 20`
-		Case == 10` % Exor
-			Set *Var[3] 550`
-		Case == 11` % M&L
 			Set *Var[3] 350`
+		Case == 9 % HBD
+			Set *Var[3] 200`
+		Case == 10` % Exor
+			Set *Var[3] 300`
+		Case == 11` % M&L
+			Set *Var[3] 250`
 		Case == 12` % Late 90s
-			Set *Var[3] 1000`
+			Set *Var[3] 500`
 	EndSwitch
 	% Hide the description Box when the asking prompt appears
 	Call	$WriteAddress ( $DescriptionBox_Data 2 .False 0 .False )
@@ -6702,12 +6702,14 @@ always feels great!
 	LIO 	A1, *Rogue_MaxHP
 	JAL 	~Func:get_variable
 	NOP
+	SAB		V0, 8010F292 % Current HP
 	SAB		V0, 8010F293 % MaxHP1
 	SAB		V0, 8010F294 % MaxHP2
 	% FP
 	LIO 	A1, *Rogue_MaxFP
 	JAL 	~Func:get_variable
 	NOP
+	SAB		V0, 8010F295 % Current FP
 	SAB		V0, 8010F296 % MaxFP1
 	SAB		V0, 8010F297 % MaxFP2
 	% Boots
@@ -8339,7 +8341,7 @@ Hey! Did you wake up!
 Good to see that, I was
 starting to get worried.
 [WAIT][NEXT][...]
-Is everything okay? how did
+Is everything okay? How did
 you even manage to get into
 this place?!
 [WAIT][END]
@@ -8351,7 +8353,7 @@ this place?!
 	I see, hmm... hey wait a minute!
 	[WAIT][NEXT][...]
 	My bad! I never introduced
-	myself hehe. I'm Cheato and
+	myself hehe. I'm Cheato, and
 	you are?
 	[WAIT][END]
 }
@@ -8418,7 +8420,7 @@ Remember my house is your house,
 you can use the bed if you want
 too. I'll be cheering on you.
 [WAIT][NEXT][...]
-Oh by the way, I want to
+Oh, and by the way, I want to
 introduce you some friends after
 you come back from the pit.
 [WAIT][NEXT][...]

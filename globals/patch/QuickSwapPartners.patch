@@ -23,40 +23,40 @@ LABU 	T0, 80074037 % One frame Inputs
 SLL	 	T0, T0, 27`
 SRL  	T0, T0, 31` % Move all bits to just leave bit4
 ADDIU 	T1, R0, 1
-BNE		T0, T1, .End % If the player didn't pressed the R Button, just end the function
+BNE		T0, T1, .End % If the player didn't pressed D Pad Up, just end the function
 NOP
-% Check Conditions
+.CheckConditions
 % Checking if Mario isn't touching the ground
 LABU	T0, 800B1D83
 BEQ		T0, T1, .End % If mario isn't touching solid ground, finish the function
 NOP
-% The player is using any other partner?
-LABU	T0, 8010CD33 % Using a partner
-ANDI	T0, T0, 8 % bit3 % using a partner
-BEQ		T0, R0, .CheckInputsLocked % it isn't
-NOP
-% The player is using a Partner check if isn't Bow, Watt or Lakilester
 % Checking Partners
 ADDIU	T2, R0, 0
-LABU	T0, 8010F2A2 % Partner ID
+LAB		T0, 8010F2A2 % Partner ID
+ADDIU 	T1, R0, 8 	 % Lakilester
+BEQ		T0, T1, .SwapPartner % If the player have laki just launch the script, the lock inputs flag work different when using laki
+NOP
 % The player have Bow out?
 ADDIU 	T1, R0, 9 	 % Bow ID
-BEQL	T0, T1, .BowWattLaki
-ADDIU	T2, R0, 1	 % Set T2 as 1, it means Mario have Bow or Watt out so the player can quick swap while using them
+BEQL	T0, T1, .BowOrWatt
+ADDIU	T2, R0, 1	 % Set T2 as 1, it means Mario have Bow or Watt out so the Commands list can be opened while using them
 % The player have Watt out?
 ADDIU 	T1, R0, 6 	 % Watt ID
-BEQL	T0, T1, .BowWattLaki
+BEQL	T0, T1, .BowOrWatt
 ADDIU	T2, R0, 1	 % Set T2 as 1
-% The player have Laki out?
-ADDIU 	T1, R0, 8 	 % Lakilester ID
-BEQL	T0, T1, .BowWattLaki
-ADDIU	T2, R0, 1
-.BowWattLaki
+.BowOrWatt
 BNE		T2, R0, .SwapPartner
+NOP
+% The player is using any other partner?
+LAB		T0, 8010CD33 % Using a partner
+SLL		T0, T0, 28`
+SRL  	T0, T0, 31`  % Move all bits to just leave bit3
+ADDIU 	T1, R0, 1
+BEQ		T0, T1, .End % If the player is using any other partner, don't open the Commands list
 NOP
 .CheckInputsLocked
 LABU	T0, 8010EFCA % PlayerFlags (3rd Byte)
-ANDI  	T0, T0, 30 % bit4+5
+ANDI 	T0, T0, 30 % bit4+5
 BNE		T0, R0, .End % If the player have the controls locked, finish the function
 NOP
 % Launch Script

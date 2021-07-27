@@ -80,50 +80,66 @@
 
 #new:NpcSettings $NpcSettings_Enemy1
 {
-00000000 00140015 00000000 00000000 $Script_EnemyAI 80077F70 00000000 8007809C 
-00000000 00000000 00060002 
+00000000 00190016 00000000 00000000 $Script_EnemyAI 80077F70 00000000 8007809C 
+00000000 00000000 000E0001 
 }
 
 #new:Script $Script_EnemyAI
 {
     0:  Call     SetSelfVar 	( 00000000 00000000 )
-   14:  Call     SetSelfVar 	( 00000005 FFFFFE0C )
-   28:  Call     SetSelfVar 	( 00000006 00000015 )
-   3C:  Call     SetSelfVar 	( 00000001 00000244 )
-   50:  Call     $Function_8024130C ( $AISettings_Enemy )
+   14:  Call     SetSelfVar 	( 00000005 FFFFFD76 )
+   28:  Call     SetSelfVar 	( 00000006 0000001E )
+   3C:  Call     SetSelfVar 	( 00000001 00000258 )
+   50:  Call     $Function_802416AC ( $AISettings_Enemy )
    60:  Return
    68:  End
 }
-   
-#new:ConstDouble $ConstDouble_80243440
+	
+#new:AISettings $AISettings_Enemy
+{
+1.8 % move speed
+0` % move time
+0` % wait time
+120.0 % alert radius
+30.0
+3`
+4.0 % chase speed
+60`
+3`
+150.0 % chase radius
+30.0
+1`
+}
+	
+#new:ConstDouble $ConstDouble_80244CB0
 {
 32767.000000d
 }
 
-#new:ConstDouble $ConstDouble_80243448
+#new:ConstDouble $ConstDouble_80244CB8
 {
 0.090000d
 }
 
-#new:ConstDouble $ConstDouble_80243450
+#new:ConstDouble $ConstDouble_80244CC0
 {
 0.090000d
 }
 
-#new:JumpTable $JumpTable_80243458
-{
-$Function_8024130C[10C] $Function_8024130C[11C] $Function_8024130C[134] $Function_8024130C[144] 
-$Function_8024130C[1C4] $Function_8024130C[1C4] $Function_8024130C[1C4] $Function_8024130C[1C4] 
-$Function_8024130C[1C4] $Function_8024130C[1C4] $Function_8024130C[15C] $Function_8024130C[16C] 
-$Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4] 
-}
-
-#new:FloatTable $FloatTable_80241B2C
+#new:FloatTable $FloatTable_80242EF0
 {
 40900000 40600000 40266666 40000000 3FC00000 41A00000 
 }
 
-#new:Function $Function_8024130C
+#new:JumpTable $JumpTable_80244CC8
+{
+$Function_802416AC[10C] $Function_802416AC[11C] $Function_802416AC[134] $Function_802416AC[144] 
+$Function_802416AC[1C4] $Function_802416AC[1C4] $Function_802416AC[1C4] $Function_802416AC[1C4] 
+$Function_802416AC[1C4] $Function_802416AC[1C4] $Function_802416AC[15C] $Function_802416AC[16C] 
+$Function_802416AC[184] $Function_802416AC[19C] $Function_802416AC[1B4] 
+}
+	
+	#new:Function $Function_802416AC
 {
     0:  ADDIU     SP, SP, FFB0
     4:  SW        S4, 40 (SP)
@@ -168,7 +184,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    A4:  DADDU     A0, S5, R0
    A8:  DADDU     A1, S2, R0
    AC:  DADDU     A2, S4, R0
-   B0:  JAL       $Function_802411E8
+   B0:  JAL       $Function_80241588
    B4:  DADDU     A3, S0, R0
         .oB8
    B8:  ADDIU     V0, R0, FFFE
@@ -188,65 +204,65 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    EC:  SLTIU     V0, V1, F
    F0:  BEQ       V0, R0, .o1C4
    F4:  SLL       V0, V1, 2
-   F8:  LTW       V0, V0 ($JumpTable_80243458)
+   F8:  LTW       V0, V0 ($JumpTable_80244CC8)
   104:  JR        V0
   108:  NOP
-% LBL: from $JumpTable_80243458 , entry 0`
+% LBL: from $JumpTable_80244CC8 , entry 0`
   10C:  DADDU     A0, S4, R0
   110:  DADDU     A1, S0, R0
-  114:  JAL       $Function_80240000
+  114:  JAL       $Function_802403A0
   118:  DADDU     A2, S3, R0
-% LBL: from $JumpTable_80243458 , entry 1`
+% LBL: from $JumpTable_80244CC8 , entry 1`
   11C:  DADDU     A0, S4, R0
   120:  DADDU     A1, S0, R0
-  124:  JAL       $Function_802401B0
+  124:  JAL       $Function_80240550
   128:  DADDU     A2, S3, R0
   12C:  BEQ       R0, R0, .o1C8
   130:  DADDU     V0, R0, R0
-% LBL: from $JumpTable_80243458 , entry 2`
+% LBL: from $JumpTable_80244CC8 , entry 2`
   134:  DADDU     A0, S4, R0
   138:  DADDU     A1, S0, R0
-  13C:  JAL       $Function_802407D8
+  13C:  JAL       $Function_80240B78
   140:  DADDU     A2, S3, R0
-% LBL: from $JumpTable_80243458 , entry 3`
+% LBL: from $JumpTable_80244CC8 , entry 3`
   144:  DADDU     A0, S4, R0
   148:  DADDU     A1, S0, R0
-  14C:  JAL       $Function_80240898
+  14C:  JAL       $Function_80240C38
   150:  DADDU     A2, S3, R0
   154:  BEQ       R0, R0, .o1C8
   158:  DADDU     V0, R0, R0
-% LBL: from $JumpTable_80243458 , entry 10`
+% LBL: from $JumpTable_80244CC8 , entry 10`
   15C:  DADDU     A0, S4, R0
   160:  DADDU     A1, S0, R0
-  164:  JAL       $Function_80240BDC
+  164:  JAL       $Function_80240F7C
   168:  DADDU     A2, S3, R0
-% LBL: from $JumpTable_80243458 , entry 11`
+% LBL: from $JumpTable_80244CC8 , entry 11`
   16C:  DADDU     A0, S4, R0
   170:  DADDU     A1, S0, R0
-  174:  JAL       $Function_80240C54
+  174:  JAL       $Function_80240FF4
   178:  DADDU     A2, S3, R0
   17C:  BEQ       R0, R0, .o1C8
   180:  DADDU     V0, R0, R0
-% LBL: from $JumpTable_80243458 , entry 12`
+% LBL: from $JumpTable_80244CC8 , entry 12`
   184:  DADDU     A0, S4, R0
   188:  DADDU     A1, S0, R0
-  18C:  JAL       $Function_80240CC0
+  18C:  JAL       $Function_80241060
   190:  DADDU     A2, S3, R0
   194:  BEQ       R0, R0, .o1C8
   198:  DADDU     V0, R0, R0
-% LBL: from $JumpTable_80243458 , entry 13`
+% LBL: from $JumpTable_80244CC8 , entry 13`
   19C:  DADDU     A0, S4, R0
   1A0:  DADDU     A1, S0, R0
-  1A4:  JAL       $Function_80240DF4
+  1A4:  JAL       $Function_80241194
   1A8:  DADDU     A2, S3, R0
   1AC:  BEQ       R0, R0, .o1C8
   1B0:  DADDU     V0, R0, R0
-% LBL: from $JumpTable_80243458 , entry 14`
+% LBL: from $JumpTable_80244CC8 , entry 14`
   1B4:  DADDU     A0, S4, R0
   1B8:  DADDU     A1, S0, R0
-  1BC:  JAL       $Function_80240E58
+  1BC:  JAL       $Function_802411F8
   1C0:  DADDU     A2, S3, R0
-% LBL: from $JumpTable_80243458 , entry 9`
+% LBL: from $JumpTable_80244CC8 , entry 9`
         .o1C4
   1C4:  DADDU     V0, R0, R0
         .o1C8
@@ -261,7 +277,83 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   1E8:  ADDIU     SP, SP, 50
 }
   
-  #new:Function $Function_80240000
+  #new:Function $Function_80241588
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S0, 28 (SP)
+    8:  DADDU     S0, A1, R0
+    C:  SW        S1, 2C (SP)
+   10:  DADDU     S1, A2, R0
+   14:  SW        RA, 34 (SP)
+   18:  SW        S2, 30 (SP)
+   1C:  SW        R0, 70 (S1)
+   20:  LW        V1, 0 (A0)
+   24:  ADDIU     V0, R0, FDFF
+   28:  SH        R0, 8E (A0)
+   2C:  AND       V1, V1, V0
+   30:  ORI       A1, V1, 800
+   34:  SW        A1, 0 (A0)
+   38:  LW        V0, D0 (S0)
+   3C:  LW        V0, 34 (V0)
+   40:  BEQ       V0, R0, .o50
+   44:  DADDU     S2, A3, R0
+   48:  BEQ       R0, R0, .o58
+   4C:  ORI       V0, V1, 808
+        .o50
+   50:  ADDIU     V0, R0, FFF7
+   54:  AND       V0, A1, V0
+        .o58
+   58:  SW        V0, 0 (A0)
+   5C:  ADDIU     V0, SP, 24
+   60:  ADDIU     A1, SP, 18
+   64:  LWC1      F0, 38 (A0)
+   68:  LWC1      F2, 3C (A0)
+   6C:  LWC1      F4, 40 (A0)
+   70:  LIF       F6, 1000.0
+   78:  ADDIU     A2, SP, 1C
+   7C:  SWC1      F0, 18 (SP)
+   80:  SWC1      F2, 1C (SP)
+   84:  SWC1      F4, 20 (SP)
+   88:  SWC1      F6, 24 (SP)
+   8C:  SW        V0, 10 (SP)
+   90:  LW        A0, 80 (A0)
+   94:  JAL       800DCB7C
+   98:  ADDIU     A3, SP, 20
+   9C:  LWC1      F2, 24 (SP)
+   A0:  LIF       F5, 3.390625
+   A8:  MTC1      R0, F4
+   AC:  CVT.D.S   F2, F2
+   B0:  MUL.D     F2, F2, F4
+   B4:  NOP
+   B8:  LWC1      F0, 1C (SP)
+   BC:  CVT.D.S   F0, F0
+   C0:  MUL.D     F0, F0, F4
+   C4:  NOP
+   C8:  LIF       F5, 1.75
+   D0:  MTC1      R0, F4
+   D4:  NOP
+   D8:  ADD.D     F2, F2, F4
+   DC:  SW        R0, 74 (S0)
+   E0:  ADD.D     F0, F0, F4
+   E4:  SW        R0, 90 (S0)
+   E8:  TRUNC.W.D F8, F2
+   EC:  SWC1      F8, 78 (S0)
+   F0:  TRUNC.W.D F8, F0
+   F4:  SWC1      F8, 88 (S0)
+   F8:  LW        V0, 14 (S2)
+   FC:  SW        V0, 74 (S1)
+  100:  LW        V0, B0 (S0)
+  104:  ORI       V0, V0, 10
+  108:  SW        V0, B0 (S0)
+  10C:  LW        RA, 34 (SP)
+  110:  LW        S2, 30 (SP)
+  114:  LW        S1, 2C (SP)
+  118:  LW        S0, 28 (SP)
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 38
+}
+  
+  #new:Function $Function_802403A0
 {
     0:  ADDIU     SP, SP, FFC8
     4:  SW        S3, 2C (SP)
@@ -347,7 +439,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   140:  BEQ       R0, R0, .o168
   144:  SWC1      F0, 18 (S0)
         .o148
-  148:  LAD       F2, $ConstDouble_80243440
+        LAD       F2, $ConstDouble_80244CB0
   150:  MTC1      V0, F0
   154:  NOP
   158:  CVT.D.W   F0, F0
@@ -374,7 +466,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   1AC:  ADDIU     SP, SP, 38
 }
 
-#new:Function $Function_802401B0
+#new:Function $Function_80240550
 {
     0:  ADDIU     SP, SP, FF80
     4:  SW        S3, 4C (SP)
@@ -476,7 +568,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   184:  BEQ       V0, R0, .o1B0
   188:  MOV.S     F4, F24
   18C:  SUB.S     F2, F24, F20
-        LAD       F0, $ConstDouble_80243448
+        LAD       F2, $ConstDouble_80244CB8
   198:  CVT.D.S   F2, F2
   19C:  MUL.D     F2, F2, F0
   1A0:  NOP
@@ -501,7 +593,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   1EC:  LWC1      F4, 2C (SP)
   1F0:  ADD.S     F4, F4, F26
   1F4:  SUB.S     F2, F4, F20
-        LAD       F0, $ConstDouble_80243450
+        LAD       F2, $ConstDouble_80244CC0
   200:  CVT.D.S   F2, F2
   204:  MUL.D     F2, F2, F0
   208:  NOP
@@ -568,7 +660,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   2F0:  NOP
   2F4:  ADD.S     F0, F24, F0
         .o2F8
-  %2F8:  SWC1      F0, 3C (S0)	% Bypassing changing NPC coordinates to use the ones from SetSpawns.mpat
+  %2F8:  SWC1      F0, 3C (S0) % Ignored to not overwrite NPC coordinates from SetSpawns.mpat
   2FC:  LW        V0, 74 (S1)
   300:  ADDIU     V0, V0, A
   304:  MTC1      V0, F12
@@ -778,7 +870,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   624:  ADDIU     SP, SP, 80
 }
 
-#new:Function $Function_802407D8
+#new:Function $Function_80240B78
 {
     0:  ADDIU     SP, SP, FFD8
     4:  SW        S3, 1C (SP)
@@ -829,7 +921,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    BC:  ADDIU     SP, SP, 28
 }
 
-#new:Function $Function_80240898
+#new:Function $Function_80240C38
 {
     0:  ADDIU     SP, SP, FF88
     4:  SW        S3, 4C (SP)
@@ -916,7 +1008,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   140:  NOP
   144:  ADD.S     F0, F26, F0
         .o148
-  %148:  SWC1      F0, 3C (S0)	% Bypassing changing NPC coordinates to use the ones from SetSpawns.mpat
+  148:  SWC1      F0, 3C (S0)
   14C:  LW        V0, 74 (S1)
   150:  ADDIU     V0, V0, A
   154:  MTC1      V0, F12
@@ -1045,7 +1137,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   340:  ADDIU     SP, SP, 78
 }
 
-#new:Function $Function_80240BDC
+#new:Function $Function_80240F7C
 {
     0:  ADDIU     SP, SP, FFE0
     4:  SW        S2, 18 (SP)
@@ -1078,7 +1170,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    74:  ADDIU     SP, SP, 20
 }
 
-#new:Function $Function_80240C54
+#new:Function $Function_80240FF4
 {
     0:  ADDIU     SP, SP, FFE8
     4:  SW        S0, 10 (SP)
@@ -1093,7 +1185,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    28:  SLL       V1, V1, 10
    2C:  SRA       V1, V1, E
    30:  SH        A0, 8E (V0)
-   34:  LTF       F2, V1 ($FloatTable_80241B2C)
+   34:  LTF       F2, V1 ($FloatTable_80242EF0)
    40:  LH        V1, 8E (V0)
    44:  ADD.S     F0, F0, F2
    48:  SLTI      V1, V1, 5
@@ -1108,7 +1200,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    68:  ADDIU     SP, SP, 18
 }
 
-#new:Function $Function_80240CC0
+#new:Function $Function_80241060
 {
     0:  ADDIU     SP, SP, FFD8
     4:  SW        S3, 1C (SP)
@@ -1189,7 +1281,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   130:  ADDIU     SP, SP, 28
 }
 
-#new:Function $Function_80240DF4
+#new:Function $Function_80241194
 {
     0:  ADDIU     SP, SP, FFE8
     4:  SW        S0, 10 (SP)
@@ -1220,7 +1312,7 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
    60:  ADDIU     SP, SP, 18
 }
 
-#new:Function $Function_80240E58
+#new:Function $Function_802411F8
 {
     0:  ADDIU     SP, SP, FFB0
     4:  SW        S2, 30 (SP)
@@ -1458,118 +1550,26 @@ $Function_8024130C[184] $Function_8024130C[19C] $Function_8024130C[1B4]
   388:  JR        RA
   38C:  ADDIU     SP, SP, 50
 }
-  
-  #new:Function $Function_802411E8
-{
-    0:  ADDIU     SP, SP, FFC8
-    4:  SW        S0, 28 (SP)
-    8:  DADDU     S0, A1, R0
-    C:  SW        S1, 2C (SP)
-   10:  DADDU     S1, A2, R0
-   14:  SW        RA, 34 (SP)
-   18:  SW        S2, 30 (SP)
-   1C:  SW        R0, 70 (S1)
-   20:  LW        V1, 0 (A0)
-   24:  ADDIU     V0, R0, FDFF
-   28:  SH        R0, 8E (A0)
-   2C:  AND       V1, V1, V0
-   30:  ORI       A1, V1, 800
-   34:  SW        A1, 0 (A0)
-   38:  LW        V0, D0 (S0)
-   3C:  LW        V0, 34 (V0)
-   40:  BEQ       V0, R0, .o50
-   44:  DADDU     S2, A3, R0
-   48:  BEQ       R0, R0, .o58
-   4C:  ORI       V0, V1, 808
-        .o50
-   50:  ADDIU     V0, R0, FFF7
-   54:  AND       V0, A1, V0
-        .o58
-   58:  SW        V0, 0 (A0)
-   5C:  ADDIU     V0, SP, 24
-   60:  ADDIU     A1, SP, 18
-   64:  LWC1      F0, 38 (A0)
-   68:  LWC1      F2, 3C (A0)
-   6C:  LWC1      F4, 40 (A0)
-   70:  LIF       F6, 1000.0
-   78:  ADDIU     A2, SP, 1C
-   7C:  SWC1      F0, 18 (SP)
-   80:  SWC1      F2, 1C (SP)
-   84:  SWC1      F4, 20 (SP)
-   88:  SWC1      F6, 24 (SP)
-   8C:  SW        V0, 10 (SP)
-   90:  LW        A0, 80 (A0)
-   94:  JAL       800DCB7C
-   98:  ADDIU     A3, SP, 20
-   9C:  LWC1      F2, 24 (SP)
-   A0:  LIF       F5, 3.390625
-   A8:  MTC1      R0, F4
-   AC:  CVT.D.S   F2, F2
-   B0:  MUL.D     F2, F2, F4
-   B4:  NOP
-   B8:  LWC1      F0, 1C (SP)
-   BC:  CVT.D.S   F0, F0
-   C0:  MUL.D     F0, F0, F4
-   C4:  NOP
-   C8:  LIF       F5, 1.75
-   D0:  MTC1      R0, F4
-   D4:  NOP
-   D8:  ADD.D     F2, F2, F4
-   DC:  SW        R0, 74 (S0)
-   E0:  ADD.D     F0, F0, F4
-   E4:  SW        R0, 90 (S0)
-   E8:  TRUNC.W.D F8, F2
-   EC:  SWC1      F8, 78 (S0)
-   F0:  TRUNC.W.D F8, F0
-   F4:  SWC1      F8, 88 (S0)
-   F8:  LW        V0, 14 (S2)
-   FC:  SW        V0, 74 (S1)
-  100:  LW        V0, B0 (S0)
-  104:  ORI       V0, V0, 10
-  108:  SW        V0, B0 (S0)
-  10C:  LW        RA, 34 (SP)
-  110:  LW        S2, 30 (SP)
-  114:  LW        S1, 2C (SP)
-  118:  LW        S0, 28 (SP)
-  11C:  JR        RA
-  120:  ADDIU     SP, SP, 38
-}
 	
-	#new:AISettings $AISettings_Enemy
-{
-    1.6 % move speed
-    60` % move time
-    30` % wait time
-   80.0 % alert radius
-    0.0
-    5`
-    2.2 % chase speed
-    60`
-    15`
-  100.0 % chase radius
-    0.0
-    1`
-}
-	
-	#new:Script $Script_DisableEnemyAI
+#new:Script $Script_DisableEnemyAI
 {
 	Call     DoBasicAI   	( $AISettings_DisableEnemy )
 	Return
 	End
 }
 	
-		#new:AISettings $AISettings_DisableEnemy
+#new:AISettings $AISettings_DisableEnemy
 {
-    0.0 % move speed
-    0` % move time
-    30` % wait time
-  0.0 % alert radius
-    0.0
-    1`
-    0.0 % chase speed
-    180` % max turn rate (0 = enemy rushes at position where the player was detected and keeps going)
-    3`
-  0.0 % chase radius
-    0.0
-    1`
+0.0 % move speed
+0` % move time
+30` % wait time
+0.0 % alert radius
+0.0
+1`
+0.0 % chase speed
+180` % max turn rate (0 = enemy rushes at position where the player was detected and keeps going)
+3`
+0.0 % chase radius
+0.0
+1`
 }

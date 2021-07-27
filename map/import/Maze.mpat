@@ -788,22 +788,8 @@ Ruby King's crown[END]
                     Case == 18` % mze_10
                         Set *Var[2] $Maze_ChestData_Map18_20
                 EndSwitch
-                % Disable Colliders
-                Loop 2
-                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
-                    Switch *Var[0]
-                        Case == 0
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
-                        Case == 1
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
-                        Case == 2
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
-                        Case == 3
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
-                    EndSwitch
-                    Add *Var[1] 1
-                    Wait 1
-                EndLoop
+                % Make Mario posible to interact with stuff again
+                Call    $WriteBitFlag ( 8010EFCE .False .False 0 .False )
             EndCaseGroup
             CaseOR == 5 % mze_03
             CaseOR == 13` % mze_05
@@ -818,30 +804,12 @@ Ruby King's crown[END]
                     Case == 20` % mze_11
                         Set *Var[2] $Maze_ChestData_Map18_20
                 EndSwitch
-                % Disable Colliders
-                Loop 2
-                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
-                    Switch *Var[0]
-                        Case == 0
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
-                        Case == 1
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
-                        Case == 2
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
-                        Case == 3
-                            Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
-                    EndSwitch
-                    Add *Var[1] 1
-                    Wait 1
-                EndLoop
+                % Make Mario posible to interact with stuff again
+                Call    $WriteBitFlag ( 8010EFCE .False .False 0 .False )
             EndCaseGroup
         EndSwitch
     Else % if all enemies hasn't been defeated lock all chests
-        % Disable all chest's collisions and then only enable the one from the spawned chests
-        Call    ModifyColliderFlags ( .False ~Collider:Chest1 7FFFFE00 )
-        Call    ModifyColliderFlags ( .False ~Collider:Chest2 7FFFFE00 )
-        Call    ModifyColliderFlags ( .False ~Collider:Chest3 7FFFFE00 )
-        Call    ModifyColliderFlags ( .False ~Collider:Chest4 7FFFFE00 )
+        Call    $WriteBitFlag ( 8010EFCE .False .False 0 .False )
         % Lock Chests
         % Var1 = Offset
         Switch *Dungeon_MapID
@@ -858,22 +826,7 @@ Ruby King's crown[END]
                     Case == 18` % mze_10
                         Set *Var[2] $Maze_ChestData_Map18_20
                 EndSwitch
-                % Disable Colliders
-                Loop 2
-                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
-                    Switch *Var[0]
-                        Case == 0
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest1 7FFFFE00 )
-                        Case == 1
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest2 7FFFFE00 )
-                        Case == 2
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest3 7FFFFE00 )
-                        Case == 3
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest4 7FFFFE00 )
-                    EndSwitch
-                    Add *Var[1] 1
-                    Wait 1
-                EndLoop
+                Call    $WriteBitFlag ( 8010EFCE .False .False 0 .True ) % Mario can't no longer interact with anything
             EndCaseGroup
             CaseOR == 5 % mze_03
             CaseOR == 13` % mze_05
@@ -888,22 +841,7 @@ Ruby King's crown[END]
                     Case == 20` % mze_11
                         Set *Var[2] $Maze_ChestData_Map18_20
                 EndSwitch
-                % Disable Colliders
-                Loop 2
-                    Call    $ReadAddress ( *Var[2] 0 *Var[0] *Var[1] .False )
-                    Switch *Var[0]
-                        Case == 0
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest1 7FFFFE00 )
-                        Case == 1
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest2 7FFFFE00 )
-                        Case == 2
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest3 7FFFFE00 )
-                        Case == 3
-                            Call    ModifyColliderFlags ( .True ~Collider:Chest4 7FFFFE00 )
-                    EndSwitch
-                    Add *Var[1] 1
-                    Wait 1
-                EndLoop
+                Call    $WriteBitFlag ( 8010EFCE .False .False 0 .True ) % Mario can't no longer interact with anything
             EndCaseGroup
         EndSwitch
     EndIf

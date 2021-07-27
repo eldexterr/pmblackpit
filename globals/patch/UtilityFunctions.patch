@@ -776,10 +776,12 @@ ORI     V0, R0, 2
     % bit5=PlayerInputs
     Call 	$ReadBitFlag ( 8010EFCA .False .False 4 *Var[0] )
     If *Var[0] == .True % DisablePlayerPhysics == True
+        Call 	$WriteAddress ( 8010EFDC 0 .True 0 .False ) % Player Physic's Byteflag
         Call 	DisablePlayerPhysics ( .False )
     EndIf
     Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
     If *Var[0] == .True % DisablePlayerInputs == True
+        Call 	$WriteAddress ( 8010EFDD 0 .True 0 .False ) % Player Inputs's Byteflag
         Call 	DisablePlayerInput ( .False )
     EndIf
     % Enable Partner AI
@@ -1464,7 +1466,7 @@ If  *Var[0] != .Partner:Empty
 		SubF	*Var[2] *Var[0] % fade speed
 		If *Var[2] <= *Var[1]
 			SetF 	*Var[2] *Var[1]
-            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % enable brightness lock
+            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % Use default fade shape
 			Call 	$WriteAddressFloat  ( 80156904 2 *Var[2] .False .False ) % save brightness
 			BreakLoop
 		EndIf
@@ -1492,7 +1494,7 @@ If  *Var[0] != .Partner:Empty
 		AddF	*Var[2] *Var[0] % fade speed
 		If *Var[2] >= *Var[1]
 			SetF 	*Var[2] *Var[1]
-            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % enable brightness lock
+            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % Use default fade shape
 			Call 	$WriteAddressFloat  ( 80156904 2 *Var[2] .False .False ) % save brightness
 			BreakLoop
 		EndIf
@@ -1595,6 +1597,42 @@ If  *Var[0] != .Partner:Empty
     End
 }
 
+% Stop all Sounds currently playing
+%
+% Call    $ClearSoundFXs
+#new:Function $ClearSoundFXs % unused, is kinda buggy
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    % The game can play 8 sounds at most, stop all sounds currently playing
+    % Each Sound pointer has a negative 0xAC offset between them
+    % So Sound #1 Data is located at 801D9780
+    % And Sound #8 Data is located at 801D92CC (0xAC*7(Because 7 more sounds slots) = 4B4 = 801D92CC(0x4B4) = Sound #1 Data )
+    LIO     T0, 801D92CC % Sound #8 Pointer Data
+    LIO     T1, 801D9780 % Sound #1 Pointer Data
+    .Loop
+    % Start stopping sounds from highest slot to the lowest
+    % Stop and nuke this sound data
+    SW      R0, 0, (T0) % Sound Data Pointer
+    SW      R0, 8C, (T0) % SoundID
+    SW      R0, 94, (T0) % ?
+    ORI     T2, R0, 1
+    SB      T2, 9A, (T0) % ?
+    ADDIU   T0, T0, AC % go for the next sound
+    % All sounds have been nuked?
+    SLTU    T2, T1, T0
+    BEQ     T2, R0, .Loop
+    NOP
+    .BreakLoop
+    % Play a dummy sfx to stop everything
+    ADDIU	A0, R0, 0100 % Sound ID
+    ADDIU	A2, R0, 18
+    JAL 	~Func:_play_sound
+    CLEAR 	A1
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    ORI     V0, R0, 2
+}
+
 #export $RestoreInputs
 #export $WriteAddress
 #export $ReadAddress
@@ -1623,3 +1661,4 @@ If  *Var[0] != .Partner:Empty
 %
 #export $PlayerStopUsingPartner
 #export $SetNpcGroupBattleID
+#export $ClearSoundFXs

@@ -34,6 +34,7 @@ JPOP 	RA, A0, A1
 {
 Call    SetSpriteShading  	( -1` )
 Call    SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+Call    $WriteBitFlag ( 8010EFCE .False .False 0 .False ) % Make posible for Mario to interact with stuff again
 Call    SetCamBGColor     	( .Cam:Default 0 0 0 )
 Call    SetCamEnabled       ( .Cam:Default .True )
 Call    SetCamLeadPlayer    ( .Cam:Default .False )
@@ -220,7 +221,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_HP1 .Trigger:FloorAbove ~Collider:StandAbove_Chest1 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 200` % Amount needed to open this chest
+        If  *Var[4] >= 150` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest1 00000001 00000000
         EndIf
     EndIf
@@ -231,7 +232,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_HP2 .Trigger:FloorAbove ~Collider:StandAbove_Chest2 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest2 00000001 00000000
         EndIf
     EndIf
@@ -242,7 +243,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_HP3 .Trigger:FloorAbove ~Collider:StandAbove_Chest3 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest3 00000001 00000000
         EndIf
     EndIf
@@ -253,7 +254,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_HP4 .Trigger:FloorAbove ~Collider:StandAbove_Chest4 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 500` % Amount needed to open this chest
+        If  *Var[4] >= 450` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest4 00000001 00000000
         EndIf
     EndIf
@@ -264,7 +265,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_FP1 .Trigger:FloorAbove ~Collider:StandAbove_Chest5 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 200` % Amount needed to open this chest
+        If  *Var[4] >= 150` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest5 00000001 00000000
         EndIf
     EndIf
@@ -275,7 +276,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_FP2 .Trigger:FloorAbove ~Collider:StandAbove_Chest6 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest6 00000001 00000000
         EndIf
     EndIf
@@ -286,7 +287,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_FP3 .Trigger:FloorAbove ~Collider:StandAbove_Chest7 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest7 00000001 00000000
         EndIf
     EndIf
@@ -297,7 +298,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_FP4 .Trigger:FloorAbove ~Collider:StandAbove_Chest8 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest8 00000001 00000000
         EndIf
     EndIf
@@ -308,7 +309,7 @@ End
     Else
         Bind    $Script_StandAbove_Chest_FP5 .Trigger:FloorAbove ~Collider:StandAbove_Chest9 00000001 00000000
         % Bind this trigger only if the player can buy this chest
-        If  *Var[4] >= 350` % Amount needed to open this chest
+        If  *Var[4] >= 250` % Amount needed to open this chest
             Bind    $Script_BuyChest .Trigger:WallPressA ~Collider:Trigger_Chest9 00000001 00000000
         EndIf
     EndIf
@@ -472,7 +473,7 @@ End
 #new:Script $Script_StandAbove_Chest_HP1
 {
 Set .Chest 1 % current chest
-Set .Price 200` % Star Pieces needed to open this chest
+Set .Price 150` % Star Pieces needed to open this chest
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -481,7 +482,7 @@ End
 #new:Script $Script_StandAbove_Chest_HP2
 {
 Set .Chest 2 % current chest
-Set .Price 350` % Star Pieces needed to open this chest
+Set .Price 250` % Star Pieces needed to open this chest
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -490,7 +491,7 @@ End
 #new:Script $Script_StandAbove_Chest_HP3
 {
 Set .Chest 3 % current chest
-Set .Price 350` % Star Pieces needed to open this chest
+Set .Price 250` % Star Pieces needed to open this chest
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -499,7 +500,7 @@ End
 #new:Script $Script_StandAbove_Chest_HP4
 {
 Set .Chest 4 % current chest
-Set .Price 500` % Star Pieces needed to open this chest
+Set .Price 450` % Star Pieces needed to open this chest
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -508,7 +509,7 @@ End
 #new:Script $Script_StandAbove_Chest_FP1
 {
 Set .Chest 5 % current chest
-Set .Price 200`
+Set .Price 150`
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -517,7 +518,7 @@ End
 #new:Script $Script_StandAbove_Chest_FP2
 {
 Set .Chest 6 % current chest
-Set .Price 350`
+Set .Price 250`
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -526,7 +527,7 @@ End
 #new:Script $Script_StandAbove_Chest_FP3
 {
 Set .Chest 7 % current chest
-Set .Price 350`
+Set .Price 250`
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -535,7 +536,7 @@ End
 #new:Script $Script_StandAbove_Chest_FP4
 {
 Set .Chest 8 % current chest
-Set .Price 350`
+Set .Price 250`
 Set *Flag_ChestRoom_Price .True
 Return
 End
@@ -544,7 +545,7 @@ End
 #new:Script $Script_StandAbove_Chest_FP5
 {
 Set .Chest 9 % current chest
-Set .Price 350`
+Set .Price 250`
 Set *Flag_ChestRoom_Price .True
 Return
 End

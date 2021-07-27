@@ -1,0 +1,95 @@
+% Patch made by Rain
+% It fixes the cursor position from the C-Right menu when you don't have each partner in order (needed by Roguelike)
+
+% Added a very small fixes by me :D
+
+%fix partner menu defaulting position
+
+#new:Data $PartnerList { %space for 9 partners
+00b
+00b
+00b
+00b
+00b
+00b
+00b
+00b
+00b
+}
+
+#new:Function $BuildPartnerList {
+      PUSH s0, s1, s2, s3, ra
+      LIO s0, $PartnerList
+      LIO s1, 8010F2AC %start of partner list
+      ORI   S2, R0, 1 % Init Loop counter
+      ORI s3, r0, 5 %bow partner index in menu
+      .partnerLoop
+      BEQ s3, s2, .isBow
+      NOP
+      LB t0, 0000 (s1)
+      .afterBowCheck
+      BNE t0, r0 .hasPartner
+      NOP
+      .continueLoop
+      ADDIU s2, s2, 1 %increment for loop iterator
+      ADDIU s1, s1, 8 %increment to next partner
+      SLTI t0, s2, A %if less than 10 partners
+      BEQ t0, r0, .exit
+      NOP
+      BEQ r0, r0, .partnerLoop
+      NOP
+      .hasPartner
+      SB s2, 0000 (s0)
+      BEQ r0, r0, .continueLoop
+      ADDIU s0, s0, 1
+      .exit
+      JPOP s0, s1, s2, s3, ra
+
+      .isBow
+      LAB t0, 8010F2EC
+      BNE t0, r0, .hasBow
+      NOP
+      BEQ r0, r0, .continueLoop
+      NOP
+      .hasBow
+      ORI t0, r0, 9
+      SB t0, 0000 (s0)
+      BEQ r0, r0, .continueLoop
+      ADDIU s0, s0, 1
+}
+
+#new:Function $FindPartnerInTable {
+      LAB t0, 8010F2A2 % Current Partner ID
+      LIO t1, $PartnerList
+      DADDU t2, r0, r0 %loop counter
+      .loop
+      LB t3, 0000 (t1)
+      BEQ t0, t3, .partnerFound
+      NOP
+      ADDIU t2, t2, 1
+      SLTI t3, t2, A %10 partners
+      BEQ t3, r0, .exit
+      ADDIU v0, r0, FFFF
+      BEQ r0, r0, .loop
+      ADDIU t1, t1, 1
+      .partnerFound
+      ADDIU v0, t2, 1
+      .exit
+      JR RA
+      NOP
+}
+
+@Hook:Global 800E6E88 {
+      JAL   $BuildPartnerList
+      SW	V1, 0318 (S2)
+      JAL   $FindPartnerInTable
+      NOP
+      % V0 = Cursor Pos - Start
+      % If the cursor pos is negative just set the pos as 1
+      SLTI  T0, V0, 0
+      BNEL  T0, R0, .NegativePos
+      COPY  V0, T0 % set pos as 1 if negative
+      .NegativePos
+      J 800E6EA0
+      NOP
+}

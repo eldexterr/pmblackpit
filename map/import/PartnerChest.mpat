@@ -456,6 +456,9 @@
 			Goto RogueHard
 		EndIf
    		ExecWait $GetBadge
+		If *MapVar[1] == .False % Invalid Badge, happens when the player already have all Badges
+			Goto RogueHard
+		EndIf
 		Call     MakeItemEntity ( *MapVar[1] ~Vec3d:Item_Badge 00000011 .False )
 		Call     GetNpcPos   	( .Npc:Self *Var[3] *Var[4] *Var[5] )
 		Add		*Var[3]		2											% Moving the Badge a little to the right, so it looks is at parakarry's hands
@@ -1179,7 +1182,7 @@ B8:  Call     NpcJump1    	 ( .Npc:Self -535` 65` -17` 29 )		% Set Cordinates to
   % Sushie Animation
   %%
 	Call     SetNpcPos   		( .Npc:Self -526` 7` -19` )			% Set NPC position before doing the 1st jump (you need to set this manually)
-	Call	 SetNpcRotation		( .Npc:Self	0 -180` 0 )
+	Call	InterpNpcYaw ( .Npc:Self -90` 0 )
 	ChildThread
 		Call	PlaySound	( 2015 ) % Swimming
 		Wait	25`
@@ -1194,19 +1197,12 @@ B8:  Call     NpcJump1    	 ( .Npc:Self -535` 65` -17` 29 )		% Set Cordinates to
 	Call	 SetNpcAnimation	( .Npc:Self 00070001 )
 	Call     PlayerFaceNpc 		( .Npc:Self 00000000 )
 	If *Flag_Mode_Rogue == .False
-		Set		*Var[0] -180`
-		Loop 10`
-			Call	 SetNpcRotation		( .Npc:Self	0 *Var[0] 0 )
-			Add		 *Var[0] 18`
-			Wait	1
-		EndLoop		
-		Call     SpeakToPlayer 		( .Npc:Self 00070004 00070001 00000000 $String_Sushie_1 )
+		Call	InterpNpcYaw ( .Npc:Self 90` 0 )
+		Wait	10`
+		Call    SpeakToPlayer 		( .Npc:Self 00070004 00070001 00000000 $String_Sushie_1 )
 		Set		*Var[0] 0`
-		Loop 10`
-			Call	 SetNpcRotation		( .Npc:Self	0 *Var[0] 0 )
-			Add		 *Var[0] -18`
-			Wait	1
-		EndLoop
+		Call	InterpNpcYaw ( .Npc:Self -90` 0 )
+		Wait	10`
 	EndIf
 	% Jump 2
 	ChildThread
@@ -1216,13 +1212,8 @@ B8:  Call     NpcJump1    	 ( .Npc:Self -535` 65` -17` 29 )		% Set Cordinates to
 	Call     SetNpcJumpscale 	( .Npc:Self *Fixed[1.5] )
 	Call     NpcJump1    		( .Npc:Self -564` 6` -2` D )
 	%
-	Set		*Var[0] -180`
-	Loop 10`
-		Call	 SetNpcRotation		( .Npc:Self	0 *Var[0] 0 )
-		Add		 *Var[0] 18`
-		Wait	1
-	EndLoop
 	Call	InterpNpcYaw ( .Npc:Self 90` 0 )
+	Wait	10`
 	%% Animation Ended
 	If *Flag_Mode_Rogue == .False
 		Call     SpeakToPlayer 		( .Npc:Self 00070004 00070001 00000000 $String_Sushie_2 )
@@ -1564,7 +1555,9 @@ B8:  Call     NpcJump1    	 ( .Npc:Self -535` 65` -17` 29 )		% Set Cordinates to
 			If *PitMapID != 0 % Isn't Floor Zero
 				% Challenges Code
 				Set *Flag_Cheev_Rogue_02 .True % Challenge Completed
-				Add	*BadgesEquipped_Rogue 1
+				If *MapVar[2] != E % Parakarry % Parakarry's Badge is actually just an overworld that get added when the player touch it
+					Add	*BadgesEquipped_Rogue 1
+				EndIf
 				% Rogue_TotalBadges(16-bit) == GameByte[0D6] == 803560D6
 				Call 	 $ReadAddress 		( 803560D6 1 *Var[0] .False .False )
 				Add		*Var[0] 1
@@ -1940,9 +1933,9 @@ Woooh, I see.
 Nice to meet you Mario.
 [WAIT][NEXT][...]
 Hey! Let's have a deal!
-What If I help you on your
+What if I help you on your
 journey of getting out of
-this Pit!
+this Pit?
 [WAIT][NEXT][...]
 I'm in debt with you, you saved
 me from that chest. So what do
@@ -1953,10 +1946,10 @@ you think?
 #string $String_Goombario_4
 {
 [STYLE:RIGHT][...]
-Oh yeah, I was trapped on that
+Oh yeah, I was trapped in that
 chest along with this thing too.
 [WAIT][NEXT][...]
-I dunno exactly what It does
+I dunno exactly what it does
 but maybe it can be useful to you.
 [WAIT][END]
 }

@@ -272,7 +272,7 @@ Switch	*Var[0]
 	Case == 14` % Spring - Goombario Only
         Set .Rogue_ID 14`
         Set .Rogue_ID_Flags .Spring
-    Case == 15` % Spring - Bow Based % unused
+    Case == 15` % Spring - Bow Based % scrapped
         Set .Rogue_ID 15`
 	Case == 16` % Spring - Watt Only
         Set .Rogue_ID 16`
@@ -525,13 +525,12 @@ Switch .Rogue_ID
 EndSwitch%/
 /% testing - For multiple traps
 If .Rogue_LoadedID != FF
-    Set .Rogue_ID 20` % Springs - Coins Based
-    Set .Rogue_ID_Flags .Spring
+    Set .Rogue_ID 10` % Gaps - Parakarry
+    Set .Rogue_ID_Flags .Pillars
 Else % 1st Trap
     Set .Rogue_ID 0 % Block - Super Hammer
     Set .Rogue_ID_Flags .Blocks % can't spawn L/R stairs when using vertical floors
 EndIf%/
-%/
 % testing
 /% Always load a kind of traps in specific
 If .Rogue_ID_Flags != .Pillars
@@ -539,8 +538,8 @@ If .Rogue_ID_Flags != .Pillars
 EndIf%/
 /% testing
 % Always load a trap in specific
-Set .Rogue_ID 13` % Spikes - Lakilester Only
-Set .Rogue_ID_Flags .OnlySize1 %/
+Set .Rogue_ID 6 % Grab Item - Kooper Only
+Set .Rogue_ID_Flags .Pillars %/
 % Check if is the 2nd trap to load when having an Spawn Amount of .1Thing2Traps
 If .Rogue_SpawnAmount == .1Thing2Traps
     If .Rogue_LoadedID != FF
@@ -579,10 +578,22 @@ Switch	*Var[0]
         EndIf
 EndSwitch
 %Set .Rogue_SpawnPoint 4 % testing stuff
+/% For Multiple traps % testing
+If .Rogue_LoadedID != FF
+    Set .Rogue_SpawnPoint 2
+Else % 1st Trap
+    Set .Rogue_SpawnPoint 4
+EndIf%/
 % Which stair to use?
 Label   SpawnSide
 Call	RandInt ( 1 .Rogue_SpawnSide ) % 0 == Down/Up / 1 = Right/Left
 %Set .Rogue_SpawnSide 1 % testing stuff
+/% For Multiple traps % testing
+If .Rogue_LoadedID != FF
+    Set .Rogue_SpawnSide 0
+Else % 1st Trap
+    Set .Rogue_SpawnSide 1
+EndIf%/
 % Check if the loaded stair can be used
 Switch .Rogue_ID_Flags
     CaseOR == .Spring % Size 0 only traps, don't need to check this.
@@ -761,6 +772,12 @@ Switch *Var[0]
 		Set .Rogue_Size 2
 EndSwitch
 %Set .Rogue_Size 1 % testing stuff
+/% For Multiple traps % testing
+If .Rogue_LoadedID != FF
+    Set .Rogue_Size 1
+Else % 1st Trap
+    Set .Rogue_Size 1
+EndIf%/
 Jump $Script_Roguelike_LoadFloor
 Return
 End
@@ -1138,6 +1155,102 @@ If .Rogue_ID_Flags == .Spring
                 Else % wasn't used
                     Set .Rogue_SpawnPoint 1
                     Set .Rogue_SpawnSide  0
+                EndIf
+            EndIf
+    EndSwitch
+    Wait 1
+    Goto LoadTrap
+EndIf
+% Check if the current trap is #10 (Gaps - Parakarry)
+% It checks for the .Pillars flag but trap #10 is the only one that can be used with 1Thing2Traps anyways
+If .Rogue_ID_Flags == .Pillars
+    Switch	.Rogue_SpawnPoint
+        Case == 1 % Upper Left
+            If .Rogue_SpawnSide == 0 % v
+                If .Rogue_Flag_Geometry_Floors_Right == .True
+                    % Only possible with Size 2
+                    Set .Rogue_SpawnPoint 4
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner4
+                    Exec $Script_Rogue_Load_Stairs1_4-1
+                    ExecWait $Script_Rogue_Load_PillarDown_100
+                    ExecWait $Script_Rogue_Load_PillarDown_001
+                EndIf
+            Else % <
+                If .Rogue_Flag_Geometry_Floors_Down == .False
+                    % Only possible with Size 1
+                    Set .Rogue_SpawnPoint 3
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner3
+                    Exec $Script_Rogue_Load_Stairs1_3-1
+                    ExecWait $Script_Rogue_Load_PillarDown_100
+                    ExecWait $Script_Rogue_Load_PillarDown_001
+                EndIf
+            EndIf
+        Case == 2 % Upper Right
+            If .Rogue_SpawnSide == 0 % v
+                If .Rogue_Flag_Geometry_Floors_Left == .True
+                    % Only possible with Size 2
+                    Set .Rogue_SpawnPoint 3
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner3
+                    Exec $Script_Rogue_Load_Stairs1_3-1
+                    ExecWait $Script_Rogue_Load_PillarDown_100
+                    ExecWait $Script_Rogue_Load_PillarDown_001
+                EndIf
+            Else % <
+                If .Rogue_Flag_Geometry_Floors_Down == .False
+                    % Only possible with Size 1
+                    Set .Rogue_SpawnPoint 4
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner4
+                    Exec $Script_Rogue_Load_Stairs1_4-1
+                    ExecWait $Script_Rogue_Load_PillarDown_100
+                    ExecWait $Script_Rogue_Load_PillarDown_001
+                EndIf
+            EndIf
+        Case == 3 % Bottom Right
+            If .Rogue_SpawnSide == 0 % v
+                If .Rogue_Flag_Geometry_Floors_Left == .True
+                    % Only possible with Size 2
+                    Set .Rogue_SpawnPoint 2
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner2
+                    Exec $Script_Rogue_Load_Stairs1_2-1
+                    ExecWait $Script_Rogue_Load_PillarUp_100
+                    ExecWait $Script_Rogue_Load_PillarUp_001
+                EndIf
+            Else % <
+                If .Rogue_Flag_Geometry_Floors_Up == .False
+                    % Only possible with Size 1
+                    Set .Rogue_SpawnPoint 1
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner1
+                    Exec $Script_Rogue_Load_Stairs1_1-1
+                    ExecWait $Script_Rogue_Load_PillarUp_100
+                    ExecWait $Script_Rogue_Load_PillarUp_001
+                EndIf
+            EndIf
+        Case == 4 % Bottom Left
+            If .Rogue_SpawnSide == 0 % v
+                If .Rogue_Flag_Geometry_Floors_Right == .True
+                    % Only possible with Size 2
+                    Set .Rogue_SpawnPoint 1
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner1
+                    Exec $Script_Rogue_Load_Stairs1_1-1
+                    ExecWait $Script_Rogue_Load_PillarUp_100
+                    ExecWait $Script_Rogue_Load_PillarUp_001
+                EndIf
+            Else % <
+                If .Rogue_Flag_Geometry_Floors_Up == .False
+                    % Only possible with Size 1
+                    Set .Rogue_SpawnPoint 2
+                    Set .Rogue_SpawnSide  0
+                    Exec $Script_Rogue_LoadCorner2
+                    Exec $Script_Rogue_Load_Stairs1_2-1
+                    ExecWait $Script_Rogue_Load_PillarUp_100
+                    ExecWait $Script_Rogue_Load_PillarUp_001
                 EndIf
             EndIf
     EndSwitch
@@ -3178,7 +3291,11 @@ End
 #new:Script:Map $Script_Rogue_Entities_SetSpawn_SuperBlock
 {
 Call $Function_Reward_GetDataX
+% The super block are actually 2 entites, one for the block and for the thing inside the block
 ExecWait    $Script_Rogue_CheckFlags_Entities % check entity to use now
+Set *Var[4] *Var[9] % push Block entity Index
+ExecWait    $Script_Rogue_CheckFlags_Entities
+Set *Var[9] *Var[4] % pop Block entity index
 % Load SpawnPoint
 Switch *Var[B] % trap ID
     CaseOR == 2
@@ -3771,9 +3888,9 @@ End
         EndIf
     EndIf
     % substract
+    Call    $WriteAddress ( 8010EF90 2 00000001 0 .False ) % Force status menu to appear
     Switch  *Var[7]
         Case == 1 % Key lock
-            Call    $ShowStatusBar
             Wait    10`
             Loop *Var[8]
                 Sub     *Rogue_Keys 1
@@ -4387,7 +4504,7 @@ JPOP	RA, V0, A1, A2
 [STYLE:INSPECT][...]
 Looks like the Spring is stuck.
 [WAIT][NEXT][...]
-Maybe If I knew someone with
+Maybe if I knew someone with
 enough knowledge.
 [WAIT][END]
 }
@@ -4472,8 +4589,8 @@ JPOP	RA, V0, A1, A2
 Look's like the Spring doesn't
 have the enough energy.
 [WAIT][NEXT][...]
-Maybe If I knew someone with
-the enough power.
+Maybe if I knew someone with
+enough power.
 [WAIT][END]
 }
 
@@ -4920,7 +5037,7 @@ staring at it!
 }
 
 % Entities Spawn Positions
-% Why always 3 vectors? I dunno, when using at least 3 was always the only time it worked :) (yeah i changed the amount on LoadPath)
+% Why always 3 vectors? I dunno, when using at least 3 was always the only time it worked :)
 
 % Corners
 % Set 1
@@ -4943,17 +5060,17 @@ staring at it!
 % Bottom Right
 #new:Data $VectorList_Entity_Spawn_Corners_Set1_3
 {
--330.000000 24.000000 128.000000
--330.000000 25.000000 128.000000
--330.000000 26.000000 128.000000 % Spawn Coords
+-330.000000 24.000000 144.000000
+-330.000000 25.000000 144.000000
+-330.000000 26.000000 144.000000 % Spawn Coords
 }
 
 % Bottom Left
 #new:Data $VectorList_Entity_Spawn_Corners_Set1_4
 {
--734.000000 24.000000 128.000000
--734.000000 25.000000 128.000000
--734.000000 26.000000 128.000000 % Spawn Coords
+-734.000000 24.000000 144.000000
+-734.000000 25.000000 144.000000
+-734.000000 26.000000 144.000000 % Spawn Coords
 }
 
 % Set 2
@@ -5373,7 +5490,14 @@ End
 Call $Function_Reward_GetDataX
 Call   RandInt ( 4 *Var[5] ) % Bonus RNG 2
 Add   *MapVar[F] *Var[5]
-%Set   *MapVar[F] 6` % testing
+%Set   *MapVar[F] 9 % testing
+/% For Multiple traps % testing
+Call 	$ReadAddress ( $Data_Reward_DataX 0 *Var[5] 2 .False ) % get current trap ID
+If *Var[5] != .Rogue_LoadedID
+    %Set *MapVar[F] 10`
+Else % 1st Trap
+    Set *MapVar[F] 9
+EndIf%/
 Switch *MapVar[F]
     Case <= 2 % Item
         Jump $Script_Reward_SpawnItem
@@ -5390,7 +5514,7 @@ Switch *MapVar[F]
         If *Var[5] <= 1 % Badge - 66%
             % Check if Mario already have all badges
             ExecWait $Script_Reward_Badges_CheckAllFlags
-            If *Var[1] == 60` % All Badges
+            If *Var[1] >= 60` % All Badges
                 % If yes spawn an item instead
                 Jump $Script_Reward_SpawnItem
             EndIf
@@ -5728,6 +5852,13 @@ If *Var[1] >= 100`
 EndIf
 Call RandInt ( 3 *Var[0] ) % get reward
 %Set *Var[0] 2 % testing stuff
+/% For multiple traps % testing
+Call 	$ReadAddress ( $Data_Reward_DataX 0 *Var[5] 2 .False ) % get current trap ID
+If *Var[5] != .Rogue_LoadedID
+    %Set *Var[0] 0
+Else % 1st Trap
+    Set *Var[0] 2
+EndIf%/
 Switch *Var[0]
     Case == 0 % Max FP
         % Check if the player have max FP
@@ -5900,9 +6031,9 @@ Exec     $Script_GiantChest_Main
 ExecWait $Script_Rogue_Entities_SetSpawn_Chests
 Call    $Function_WriteGiantChestID
 Call    $Function_Reward_GetDataX % save in varA/B/C
-% The chest is in moving spikes trap?
+% The chest is in a moving spikes trap?
 If *Var[B] == 11` % Spikes - Bow and Lakilester
-    Set .Flag_GiantChestParentToSpikes .True
+    Set .Flag_GiantChestParentToSpikes .True % Stop the spikes when the player open the chest
 EndIf
 ExecWait $Script_RotateChest
 % save rarity var for current reward
@@ -6066,13 +6197,6 @@ End
     ADDIU		V0, R0, 2
     JR			RA
     ADDIU		SP, SP, 18
-}
-
-#new:Function $ShowStatusBar
-{
-    SAB    R0, 8010EF92 % Stats Bar State, 00=Active / 01=Inactive
-    JR     RA
-    NOP
 }
 
 % Patch ShowGotItem

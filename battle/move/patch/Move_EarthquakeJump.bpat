@@ -25,10 +25,10 @@
     0:  ExecWait $Script_Init_Move
     C:  Call     PlayerTestEnemy  ( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
    30:  If  *Var[0]  ==  00000006 
-   40:    ExecWait $Script_802A1FEC 
+   40:    ExecWait $Script_Miss 
    4C:    Return
    54:  EndIf
-   5C:  ExecWait $Script_802A26B4 
+   5C:  ExecWait $Script_ShakeCam 
    68:  Wait     00000001 
    74:  Call     DidActionSucceed ( *Var[0] )
    84:  Switch  *Var[0] 
@@ -40,9 +40,9 @@
   124:  EndSwitch
   12C:  Switch  *Var[0] 
   138:    Case  >  00000000 
-  144:      ExecWait $Script_802A15D8 
+  144:      ExecWait $Script_BackToHome_ActionSucceed
   150:    Default
-  158:      ExecWait $Script_BackToHome_ActionSucceed 
+  158:      ExecWait $Script_BackToHome_ActionFailed 
   164:  EndSwitch
   16C:  Return
   174:  End
@@ -53,10 +53,10 @@
     0:  ExecWait $Script_Init_Move 
     C:  Call     PlayerTestEnemy  ( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
    30:  If  *Var[0]  ==  00000006 
-   40:    ExecWait $Script_802A1FEC 
+   40:    ExecWait $Script_Miss 
    4C:    Return
    54:  EndIf
-   5C:  ExecWait $Script_802A26B4 
+   5C:  ExecWait $Script_ShakeCam 
    68:  Wait     00000001 
    74:  Call     DidActionSucceed ( *Var[0] )
    84:  Switch  *Var[0] 
@@ -68,9 +68,9 @@
   124:  EndSwitch
   12C:  Switch  *Var[0] 
   138:    Case  >  00000000 
-  144:      ExecWait $Script_802A15D8 
+  144:      ExecWait $Script_BackToHome_ActionSucceed
   150:    Default
-  158:      ExecWait $Script_BackToHome_ActionSucceed 
+  158:      ExecWait $Script_BackToHome_ActionFailed 
   164:  EndSwitch
   16C:  Return
   174:  End
@@ -81,26 +81,28 @@
     0:  ExecWait $Script_Init_Move 
     C:  Call     PlayerTestEnemy   ( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
    30:  If  *Var[0]  ==  00000006 
-   40:   ExecWait $Script_802A1FEC 
-   4C:   Return
+   40:      ExecWait $Script_Miss 
+   4C:      Return
    54:  EndIf
-   5C:  ExecWait $Script_802A26B4 
+   5C:  ExecWait $Script_ShakeCam 
    68:  Wait     00000001 
    74:  Call     DidActionSucceed ( *Var[0] )
    84:  Switch  *Var[0] 
    90:   Case  >  00000000 
    9C:      Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
-   DC:   Default
+   DC:   Default % Action Command Failed
    E4:      Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
-  100:      Call     PlayerDamageEnemy    ( 00000000 00000080 00000000 00000000 FFFFFF00 00000030 )  
-            Call     SetGoalToTarget  ( .Actor:Enemy0 )
-            Call     EnemyDamageTarget   ( .Actor:Enemy0 *Var[0] 10000000 00000000 00000000 00000003 00000020 )         
+  100:      Call     PlayerDamageEnemy    ( 00000000 00000080 00000000 00000000 FFFFFF00 00000030 )
+            % This lines are the responsables of sometimes hurting the player when he fails
+            % Got removed, they was really buggy and sometimes can even crash the game.
+            %Call     SetGoalToTarget  ( .Actor:Enemy0 )
+            %Call     EnemyDamageTarget   ( .Actor:Enemy0 *Var[0] 10000000 00000000 00000000 00000003 00000020 )
   124:  EndSwitch
   12C:  Switch  *Var[0] 
   138:   Case  >  00000000 
-  144:      ExecWait $Script_802A15D8 
+  144:      ExecWait $Script_BackToHome_ActionSucceed
   150:   Default
-  158:      ExecWait $Script_BackToHome_ActionSucceed 
+  158:      ExecWait $Script_BackToHome_ActionFailed 
   164:  EndSwitch
   16C:  Return
   174:  End
@@ -110,7 +112,7 @@
 {
     0:  Call     LoadActionCommand  ( 00000001 )
         Exec     $Script_RestartTrackerData
-   1C:  ExecWait $Script_802A11AC 
+   1C:  ExecWait $Script_PlayerRunToGoal 
    28:  ExecWait $Script_802A1320 
    34:  Call     802A9120 ( *Var[A] 00000003 )
         Exec     $Script_DoStylish 0
@@ -167,10 +169,10 @@ End
     End
 }
 
-#new:Script $Script_802A1FEC
+#new:Script $Script_Miss
 {
     0:  Call     SetJumpAnimations  ( .Actor:Player 00000000 00000000 00000000 0001000C )
-   20:  Call     PlayerLandJump ( )
+   20:  Call     PlayerLandJump
    2C:  Call     SetAnimation    ( .Actor:Player 00000000 0001000C )
    44:  Wait     00000002 
    50:  ChildThread
@@ -195,7 +197,7 @@ End
   190:  End
 }
 
-#new:Script $Script_802A26B4
+#new:Script $Script_ShakeCam
 {
     0:  Call     StartRumble ( 00000009 )
    10:  ChildThread
@@ -208,19 +210,19 @@ End
    98:  End
 }
  
-#new:Script $Script_802A15D8 %EDIT THIS FOR TORNADOJUMP ANIMATION THAMZ
+#new:Script $Script_BackToHome_ActionSucceed%EDIT THIS FOR TORNADOJUMP ANIMATION THAMZ
 {
-    0:  Call     80276EFC ( )
+    0:  Call     80276EFC
     C:  Call     SetBattleFlagBits  ( 00000100 .False )
    20:  Call     UseCamPreset    ( 00000003 )
-   30:  Call     802693F0 ( )
+   30:  Call     802693F0
    3C:  Call     SetGoalToHome   ( .Actor:Player )
    4C:  Call     GetGoalPos   ( .Actor:Player *Var[0] *Var[1] *Var[2] )
    68:  Add  *Var[0]  00000028 
    78:  Call     SetJumpAnimations  ( .Actor:Player 00000000 00010007 00010008 00010009 )
    98:  Call     SetActorJumpGravity  ( .Actor:Player *Fixed[1.3007812] )
    AC:  Call     SetGoalPos    ( .Actor:Player *Var[0] *Var[1] *Var[2] )
-   C8:  Call     $Function_802A1000 ( )
+   C8:  Call     $Function_802A1000
    D4:  Call     80273444 ( *Var[0] 00000000 00000000 )
    EC:  Call     SetAnimation    ( .Actor:Player 00000000 00010009 )
   104:  Wait     00000001 
@@ -239,7 +241,7 @@ End
   1E4:  End
 }
 
-#new:Script $Script_BackToHome_ActionSucceed
+#new:Script $Script_BackToHome_ActionFailed
 {
   Call  80276EFC
   Call  SetBattleFlagBits  ( 00000100 .False )
@@ -287,17 +289,17 @@ End
    E0:  End
 }
 
-#new:Script $Script_802A11AC
+#new:Script $Script_PlayerRunToGoal
 {
-    0:  Call     SetGoalToFirstTarget ( FFFFFF81 )
+    0:  Call     SetGoalToFirstTarget ( .Actor:Self )
    10:  Call     GetGoalPos   ( .Actor:Self *Var[0] *Var[1] *Var[2] )
    2C:  Sub  *Var[0]  00000028 
-   3C:  Call     InitTargetIterator    ( )
+   3C:  Call     InitTargetIterator 
    48:  Call     SetGoalToTarget    ( .Actor:Player )
    58:  Call     GetGoalPos   ( .Actor:Player *Var[3] *Var[4] *Var[5] )
    74:  Sub  *Var[3]  *Fixed[70.0] 
    84:  If  *Var[0]  <  *Var[3] 
-   94:   Set  *Var[3]  *Var[0] 
+   94:      Set  *Var[3]  *Var[0] 
    A4:  EndIf
    AC:  Call     SetGoalPos    ( .Actor:Player *Var[3] *Var[4] *Var[5] )
    C8:  Call     UseCamPreset    ( 0000001A )
@@ -306,13 +308,13 @@ End
   104:  Call     CancelablePlayerRunToGoal ( 00000000 *Var[0] )
   118:  Call     SetAnimation    ( .Actor:Player 00000000 00010002 )
   130:  Call     SetGoalToTarget    ( .Actor:Player )
-  140:  ExecWait $Script_802A1130 
+  140:  ExecWait $Script_PrepareToJump 
   14C:  Call     SetAnimation    ( .Actor:Player 00000000 00010006 )
   164:  Return
   16C:  End
 }
 
-#new:Script $Script_802A1130
+#new:Script $Script_PrepareToJump
 {
     0:  Call     SetAnimation    ( .Actor:Player 00000000 00010006 )
    18:  Loop     00000005 
@@ -393,7 +395,7 @@ End
    E0:  ADDIU     SP, SP, 28
 }
 
-#new:Script $TornadoJumpInit  
+#new:Script $TornadoJumpInit
 {
     ExecWait $TornadoJumpAnim1
     ExecWait $TornadoJumpDamage
@@ -403,7 +405,7 @@ End
     
 #new:Script $TornadoJumpDamage
 {
-    Call     InitTargetIterator   ( )
+    Call     InitTargetIterator
     Call     SetGoalToTarget  ( .Actor:Self )
     Call     ChooseNextTarget   ( .Iter:First *Var[0] )
     Label    00000002
@@ -414,14 +416,14 @@ End
     EndIf
     Call     GetGoalPos   ( .Actor:Self *Var[0] *Var[1] *Var[2] )
     Call     $TornadoJumpFunction ( *Var[0] *Var[1] *Var[2] )
-    Call     ItemDamageEnemy  ( *Var[0] 38040000 8004034B 0000000C 00000020 )
+    Call     ItemDamageEnemy  ( *Var[0] 38040000 8004034B 0000000C 00000020 ) % 75% chances to dazze an enemy
     Label    00000003 
     Wait     0000000A 
     Call     ChooseNextTarget   ( .Iter:Next *Var[0] )
     If  *Var[0]  !=  FFFFFFFF 
       Goto     00000002 
     EndIf
-    Wait     0000004A
+    Wait     74`
     Return
     End
 }
@@ -431,7 +433,7 @@ End
     Call     PlaySoundAtActor  ( .Actor:Player 00000288 )      
     Call     PlaySoundAtActor  ( .Actor:Player 00000288 ) 
     Call     PlaySoundAtActor  ( .Actor:Player 00000288 ) 
-    Wait     0000000A                                             %
+    Wait     0000000A
     Call     PlayEffect    ( ~FX:Whirlwind 00000012 00000000 00000000 00000001 0000002A )
     Call     PlayEffect    ( ~FX:BigSteamPuff 00000000 00000000 00000000 0000003B )
     Call     PlayEffect    ( ~FX:BigSteamPuff 000000A4 00000008 00000000 0000003B )

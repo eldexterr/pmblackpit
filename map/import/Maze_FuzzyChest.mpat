@@ -379,11 +379,8 @@ Byte struct % each jump use 8 bytes
     Add *Var[0] *Flag_Maze_Fuzzy2
     Add *Var[0] *Flag_Maze_Fuzzy3
     If *Var[0] >= 3
-        If *AreaByte[0] == 0 % Left
-            Call    ModifyColliderFlags ( .False ~Collider:ChestL 7FFFFE00 )
-        Else % Right
-            Call    ModifyColliderFlags ( .False ~Collider:ChestR 7FFFFE00 )
-        EndIf
+        % Make Mario posible to interact with stuff again
+        Call    $WriteBitFlag ( 8010EFCE .False .False 0 .False )
     EndIf
     Call  GetNpcPos ( .Npc:Self *Var[0] *Var[1] *Var[2] )
     Thread

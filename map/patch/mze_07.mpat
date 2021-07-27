@@ -39,8 +39,6 @@ Call    SetCamBGColor     	( .Cam:Default .Cam:Default .Cam:Default .Cam:Default
 Call    SetCamEnabled       ( .Cam:Default .True )
 Call    SetCamLeadPlayer    ( .Cam:Default .False )
 Call    $Function_SetupFog
-Call    ModifyColliderFlags ( .False ~Collider:ChestL 7FFFFE00 )
-Call    ModifyColliderFlags ( .False ~Collider:ChestR 7FFFFE00 )
 Call    $ReadAddress    ( $Maze_ChestData_Special2 0 *Var[0] .False .False )
 If *Var[0] == *Dungeon_MapID % giant chest room
     Call    MakeNpcs ( 0 $NpcGroupList_Fuzzies )
@@ -51,11 +49,8 @@ If *Var[0] == *Dungeon_MapID % giant chest room
     Add *Var[0] *Flag_Maze_Fuzzy3
     If *Var[0] < 3
         If *Flag_Maze_SpecialChest2 == .False
-            If *AreaByte[0] == 0 % Left
-                Call    ModifyColliderFlags ( .True ~Collider:ChestL 7FFFFE00 )
-            Else % Right
-                Call    ModifyColliderFlags ( .True ~Collider:ChestR 7FFFFE00 )
-            EndIf
+            % Make Mario imposible to interact with stuff
+            Call    $WriteBitFlag ( 8010EFCE .False .False 0 .True )
         EndIf
     EndIf
 EndIf

@@ -121,25 +121,28 @@
                   Call	DoNpcDefeat
 		Case  ==  1 % When you die
 			SuspendOthers .True
+                  % Set Mario Animation
                   Call SetPlayerAnimation ( 0001000F ) % Dead
-                  % bypass if rogue is active, because the spring keepers
-                  ExecWait $Script_SetEnemyIdle		 % Set the Enemy NPC animation to idle
+			ExecWait $Script_SetEnemyIdle		 % Set the Enemy NPC animation to idle
 			Call GetCurrentPartnerID 	( *Var[0] )
 			If  *Var[0]  !=  0 
-				Call DisablePartnerAI ( 1 )
+				Call DisablePartnerAI ( .True )
 			EndIf
 			Call     $Function_RevivePlayer
-			WaitSeconds 1
-			Call ShowCoinCounter ( .True )
-                  Call DisablePlayerInput	( .True )
+                  WaitSeconds 1
+			Call DisablePlayerInput	( .True )
                   % bypass if rogue is active
                   If *Flag_Mode_Rogue == .True
-                        WaitSeconds 1
                         % Roguelike - Give half of the total gained coins on this playthrough
                         ExecWait $Script_Rogue_GiveHalfCoins
-                        Call GotoMap ( "pt_00" 6 )
+                        If *Flag_Demo == .True
+                              Call GotoMap ( "dmo_00" 0 )
+                        Else
+                              Call GotoMap ( "pt_00" 6 )
+                        EndIf
                         Return
                   EndIf
+                  Call ShowCoinCounter ( .True )
 			Jump $Script_SubstractCoins
 	EndSwitch
 	Return
@@ -607,18 +610,24 @@ You got [PushColor][Color:7][Var:00] coins[PopColor] back!
 		Wait 35`
 		Call GotoMap ( "pt_00" 6 ) 
 	EndThread
-	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
-	If	*Var[0]	<= -530` % The Sack will go to the Right
-		ExecWait	$Script_SackAnimation_Start_GoToTheRight
-	Else % The Sack will go to the Left
-		ExecWait	$Script_SackAnimation_Start_GoToTheLeft
-	EndIf
+      Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+      If	*Var[0]	<= -530` % The Sack will go to the Right
+            ExecWait	$Script_SackAnimation_Start_GoToTheRight
+      Else % The Sack will go to the Left
+            ExecWait	$Script_SackAnimation_Start_GoToTheLeft
+      EndIf
 	Return
 	End
 }
 	
 	#new:Script $NPC_Sack_AnimationEnd
 {
+      If *PitMapID == 100`
+            ExecWait	$Script_SackAnimation_SackAppears_100
+            Call	DisablePlayerInput ( .False )
+	      Call	BindNpcAI ( .Npc:Self $Script_NpcAI_MoneySack ) % Bind Sack AI when his animation just finished
+            Return
+      EndIf
 	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
 	If	*Var[0]	<= -530` % The Sack will come from the Right
 		ExecWait	$Script_SackAnimation_End_Right
@@ -630,12 +639,30 @@ You got [PushColor][Color:7][Var:00] coins[PopColor] back!
 	Return
 	End
 }
+
+#new:Script $Script_SackAnimation_SackAppears_100
+{
+	Call        InterpNpcYaw ( .Npc:Self -90` 0 )
+	Call        GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+	Add		*Var[0] 400` % X
+	Call	      SetNpcPos		( .Npc:Self *Var[0] *Var[1] *Var[2] )
+      Loop 4 % Do 4 Jumps
+            Add		*Var[0] -50`	% X
+            Call        SetNpcJumpscale 	( .Npc:Self *Fixed[1.0] )
+            Call        NpcJump1    	( .Npc:Self *Var[0] *Var[1] *Var[2] D )
+            Call	      PlaySoundAtNpc	( .Npc:Self 0333 0 ) % Fuzzy Jump
+            Wait	1
+      EndLoop
+	Call        InterpNpcYaw ( .Npc:Self -90` 0 )
+	Return
+	End
+}
 	
-	#new:Script	$Script_SackAnimation_Start_GoToTheRight
+#new:Script	$Script_SackAnimation_Start_GoToTheRight
 {
 	Call	 SetNpcRotation		( .Npc:Self	0 -180` 0 )
 	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
-	Add		*Var[1] -30`% Y Coords
+	Add		*Var[1] -30` % Y Coords
 	Call	SetNpcPos		( .Npc:Self *Var[0] *Var[1] *Var[2] )
 	Add		*Var[1] 30`	% Y Coords
 	Add		*Var[0] 50`	% X Coords
@@ -669,7 +696,7 @@ You got [PushColor][Color:7][Var:00] coins[PopColor] back!
 	#new:Script	$Script_SackAnimation_Start_GoToTheLeft
 {
 	Call	GetPlayerPos	( *Var[0] *Var[1] *Var[2] )
-	Add		*Var[1] -30`% Y Coords
+	Add		*Var[1] -30` % Y Coords
 	Call	SetNpcPos		( .Npc:Self *Var[0] *Var[1] *Var[2] )
 	Add		*Var[1] 30`	% Y Coords
 	Add		*Var[0] -50`	% X Coords
