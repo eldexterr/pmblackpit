@@ -17,3 +17,6 @@
 ```
 Mystery00000000 = 0
 ```
+After all this you should be able to compile with Star Rod 0.3.2\
+\
+![](https://cdn.discordapp.com/emojis/866747027299500073.png)
