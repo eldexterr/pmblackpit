@@ -21,6 +21,10 @@ Mystery00000000 = 0
 ```
  \database\types\partners.enum
 ```
+or here if applicable:
+```
+ \globals\enum\partners.enum
+```
 **6 .** Add this as a new line and save:
 ```
 0 = Empty
