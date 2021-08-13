@@ -259,8 +259,8 @@ End
             SetF	*Var[0] *Fixed[25.0] % speed
             SetF	*Var[1] *Fixed[5.0]  % fully bright
             ExecWait $Script_FadeScreenIn
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*Var[A]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -284,6 +284,11 @@ End
             Return
         EndCaseGroup
         Case == .Outcome:PlayerLost
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            Call    SetPlayerAnimation ( 0001000F ) % dead
+            Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
+            Call    $RunFunction ( 800E9B6C )
+            Wait    5
             Call    GotoMap ( "bp_01" 4 )
     EndSwitch
     Return
@@ -505,8 +510,8 @@ End
             SuspendAll 2
             Call    SetPlayerFlagBits ( 00005000 .False ) % Force PlayerMoveTo to stop
             Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*Var[A]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -547,8 +552,8 @@ End
             SetF	*Var[0] *Fixed[25.0] % speed
             SetF	*Var[1] *Fixed[5.0]  % fully bright
             ExecWait $Script_FadeScreenIn
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*Var[A]
 			ResumeAll 2
 		EndIf
 		Wait 1

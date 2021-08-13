@@ -107,7 +107,7 @@ Set *AreaByte[1] .Default
 Set *Maze_ChestsOpened_CurrentP .False
 Call $Function_NukeTrapsData % Restart trap's data
 % Clear Enemies Defeated Flags (RAM)
-Call $CleanEnemiesFlags
+Call ClearDefeatedEnemies
 Call GetEntryID ( *Var[0] )
 If  *Var[0] == 2 % Respawn
     Exec    $Script_MakeExits
@@ -423,7 +423,7 @@ JR      RA
 ADDIU   V0, R0, 2
 }
 
-#new:Function $CleanEnemiesFlags
+#new:Function $CleanEnemiesFlags % unused
 {
 % Nuke all Enemies Defeated flags from the Maze
 % Each map use 12 Words (48 Bytes) the maze has 12 maps
@@ -656,7 +656,7 @@ End
                             If *Var[2] != 6 % Walls - 2 Sides
                                 Set *Var[4] 10`
                             Else
-                                Set *Var[4] 0
+                                Set *Var[4] 2
                             EndIf
                         Else
                             Set *Var[4] 0 % Don't spawn any chests
@@ -884,43 +884,35 @@ End
 #new:Script $Script_SavePartnersData
 {
     % Goombario
-    Call $ReadAddress ( 8010F2AC 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Goombario == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 0 .False )
     EndIf
     % Kooper
-    Call $ReadAddress ( 8010F2B4 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Kooper == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 1 .False )
     EndIf
     % Bombette
-    Call $ReadAddress ( 8010F2BC 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Bombette == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 2 .False )
     EndIf
     % Parakarry
-    Call $ReadAddress ( 8010F2C4 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Parakarry == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 3 .False )
     EndIf
     % Bow
-    Call $ReadAddress ( 8010F2EC 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Bow == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 4 .False )
     EndIf
     % Watt
-    Call $ReadAddress ( 8010F2D4 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Watt == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 5 .False )
     EndIf
     % Sushie
-    Call $ReadAddress ( 8010F2DC 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Sushie == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 6 .False )
     EndIf
     % Lakilester
-    Call $ReadAddress ( 8010F2E4 0 *Var[0] .False .False )
-    If *Var[0] == .True
+    If *Flag_Lakilester == .True
         Call $WriteAddress ( $Maze_PartnerData 0 .True 7 .False )
     EndIf
     Return

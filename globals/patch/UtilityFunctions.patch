@@ -807,13 +807,13 @@ If  *Var[0] != .Partner:Empty
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
             % Fade Screen Brightness
             SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
             Kill	*Var[A]
-            Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-            ResumeAll .True
+            ResumeAll 2
             Thread % Fade Screen Brightness
                 SetF	*Var[0] *Fixed[25.0] % speed
                 SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -1597,6 +1597,30 @@ If  *Var[0] != .Partner:Empty
     End
 }
 
+% Get the amount of true bitflags from a value in specific
+% (It only reads 1 byte long values)
+%
+% A0 = value : v0 = *out
+#new:Function $GetBitFlags
+{
+    PUSH    A0, T0, T1
+    CLEAR   V0
+    ORI     T1, R0, 31` % 31` = bit0
+    .Loop
+    COPY    T0, A0
+    SLLV   	T0, T0, T1
+    SRL 	T0, T0, 31`
+    ADDU    V0, V0, T0 % add bitflag
+    ADDI    T1, T1, FFFF % read next bitflag
+    % All bitflags has been readed?
+    SLTI    T0, T1, 24` % 24` = bit7
+    BEQ     T0, R0, .Loop
+    NOP
+    POP     A0, T0, T1
+    JR      RA
+    NOP
+}
+
 % Stop all Sounds currently playing
 %
 % Call    $ClearSoundFXs
@@ -1661,4 +1685,5 @@ If  *Var[0] != .Partner:Empty
 %
 #export $PlayerStopUsingPartner
 #export $SetNpcGroupBattleID
+#export $GetBitFlags
 #export $ClearSoundFXs

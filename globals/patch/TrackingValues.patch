@@ -1,75 +1,63 @@
 % This file track a few addresses and values
 
-@Hook 18CBA4 % 8025E2C4 % Used when Mario won the battle
+@Hook 18CBA4 % 8025E2C4 % Used when Mario wins a battle
 {
-PUSH	RA
-JAL		$CheckCoinQuicker
+PUSH	RA, A0, A1, A2, A3, V0, V1, S0, S1
+JAL		$Function_CheckCoinQuicker
 NOP
-POP		RA
+POP		RA, A0, A1, A2, A3, V0, V1, S0, S1
 ADDIU	A0, R0, 1
-J		8025E2C8
+J		8025E2CC
 LUI		AT, 802A 
 }%/
 
-% Get double coins if Mario won a battle without getting any damage
-% you can found a lot of unused code because the badge got changed from "get double coins if you win a battle in the 1st turn"
-#new:Function $CheckCoinQuicker % This function check if is neccesary to use coin quicker after Mario won a battle
+% This Function give a 2x coin boost if the player finished a fight without getting harmed
+% The one that give you all other coins boosts is in ExtraDifficulties.patch - Hook 1AB2A8 % 8027C9C8
+%
+% Also you can found a lot of unused code here because Coin Quicker got changed from "get double coins if you win a battle in the 1st turn"
+#new:Function $Function_CheckCoinQuicker
 {
-ADDIU	SP, SP, -28
-SW		S0, 0010 (SP)
-SW		S1, 0014 (SP)
-SW		RA, 0018 (SP)
-SWC1	F0, 001C (SP)
-SWC1	F1, 0020 (SP)
-% PUSH
-LABU	S0, 800DC0EB % Mario's Damage
-BNE		S0, R0, .Finish % If Mario received any damage, just skip the confetti and badge code
-NOP
-JAL		$IsBadgeEquiped % Save a boolean value inside A0
-ADDIU	A0, R0, 0150	% A0, R0, XX = Badge ID
-BEQ		A0, R0, .Finish % If Mario doesn't have the badge just finish the function
-NOP
-% Making Calculation
+PUSH    RA
 LABU	S1, 800DC0E8 	% Current Coins gained in battle
-ORI     T0, R0, 2 % get 50%
-DIV     S1, T0 % Coins / 2 = 50%
-MFLO    T0
-ADDU    S1, S1, T0 % Coins+50% = 1.5x Coins
+JAL     $Function_GiveCoinBoost_CoinQuicker
+NOP
 % Check 255 gained cap
 SLTIU	S0, S1, 100	 	% Current gained are less than 256?
 BNE		S0, R0, .StoreGained1
 NOP
 ORI 	S1, R0, FF	 	% Lock the gained value to 255 if the player got +255 coins
 .StoreGained1
-SAB		S1, 800DC0E8
-% Playing Sound and Confetti
-JAL		$Function_RunScript
-CLEAR 	A1
-.Finish
-%% Duplighost's x3 Coin Boost
-LABU    S0, 803560CB % *Dupli_Floors (ModByte)
-LABU	S1, 800DC0E8 % Current coins gained in battle
-COPY    T0, S1
-DADDU   S1, S1, T0
-BEQ     S0, R0, .Pop
-DADDU   S1, S1, T0   % triple gained coins
-% Check 255 gained cap
-SLTIU	S0, S1, 100	 	% Current gained are less than 256?
-BNE		S0, R0, .StoreGained2
-NOP
-ORI 	S1, R0, FF	 	% Lock the gained value to 255 if the player got +255 coins
-.StoreGained2
 SAB		S1, 800DC0E8 % save gained coins
-% POP
 .Pop
-LW		S0, 0010 (SP)
-LW		S1, 0014 (SP)
-LW		RA, 0018 (SP)
-LWC1	F0, 001C (SP)
-LWC1	F1, 0020 (SP)
-ADDIU	SP, SP, 28
-JR	RA
+POP     RA
+JR	    RA
 NOP
+}
+
+#new:Function $Function_GiveCoinBoost_CoinQuicker
+{
+    % S1 = Current coins cained
+    % The player is inside the Pit?
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    JAL		$IsBadgeEquiped % Save a bool inside A0
+    ADDIU	A0, R0, 0150	% A0, R0, XX = Badge ID
+    BEQ		A0, R0, .End
+    NOP
+    LABU	T0, 800DC0EB % Mario's Damage
+    BNE		T0, R0, .End
+    NOP
+    % Making Calculation
+    ORI     T0, R0, 2 % get 50%
+    DIV     S1, T0 % Coins / 2 = 50%
+    MFLO    T0
+    ADDU    S1, S1, T0 % Coins+50% = 1.5x Coins
+    % Playing Sound and Confetti
+    JAL		$Function_RunScript_Confetti
+    CLEAR 	A1
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
 }
 
 #new:Function $IsBadgeEquiped
@@ -91,7 +79,7 @@ JR		RA
 NOP
 }
 
-#new:Function $Function_RunScript
+#new:Function $Function_RunScript_Confetti
 {
 PUSH	RA, V0, V1
 CLEAR	A2
@@ -707,7 +695,7 @@ ADDIU	V0, V0, 2
 %/
 @Hook 182724 % 80253E44
 {
-    % Check if the player have all tattles - 73 enemies
+    % Check if the player have all tattles - 71 enemies
     PUSH    RA, A0, A1, A2, A3, V0, V1, T0, T1, T2
     JAL     $Function_GetTattleFlags
     NOP
@@ -728,7 +716,7 @@ ADDIU	V0, V0, 2
 % Same thing as above but his is for enemies that has multiple groups on the same tattle
 @Hook 1826B0 % 80253DD0
 {
-    % Check if the player have all tattles - 73 enemies
+    % Check if the player have all tattles - 71 enemies
     PUSH    RA, A0, A1, A2, A3, V0, V1, T0, T1, T2
     JAL     $Function_GetTattleFlags
     NOP

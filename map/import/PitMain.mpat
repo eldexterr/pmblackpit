@@ -88,6 +88,7 @@ Exec 	$Script_DisableColliders_Roguelike				% Disable all Rogue Colliders % from
 % Check if Roguelike is True
 If *Flag_Mode_Rogue == .True
 	ExecWait	$Script_Roguelike_GetSpawnAmount % from RoguelikeMode.mpat
+	Set *MapFlag[25] .True % stop tracking an infinite loop in Main
 EndIf
 Return
 End
@@ -280,8 +281,8 @@ End
 			ExecWait $Script_FadeScreenOut
 			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
 			Call	EnablePartnerAI
-            Kill	*Var[B]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+            Kill	*Var[B]
             Thread % Fade Screen Brightness
                 SetF	*Var[0] *Fixed[25.0] % speed
                 SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -685,25 +686,24 @@ NOP
 		CaseOR == 0 
 		CaseOR == 2
 			Set *MapVar[1] *Var[0]
-			Set *Var[2] -50` % This one is the quantity to exctract from Mario's money
-			Set *Var[0] 50` % This one is to track if mario have enought coins
+			Set *Var[1] 50` % Amount needed
 		EndCaseGroup
 		Case == 1
 			Set *MapVar[1] *Var[0]
-			Set *Var[2] -100`
-			Set *Var[0] 100`
+			Set *Var[1] 100` % Amount needed
 		Case == 3
 			Call    ShowCoinCounter     ( .False )
 			Call    ContinueSpeech    ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverCancel ) % If Mario Press 'B' the dialog is closed
 		Return
 	EndSwitch
-	Call     $LoadCoinsMover
-	If  *Var[1]  ==  0
+	Call    AddCoin     ( 0 ) % save coins in var0
+	If *Var[0] < *Var[1] % Player don't have enough coins
 		Call     ShowCoinCounter     ( .False )
 		Call     ContinueSpeech     ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverNoCoins ) % Mario doesn't have enough coins
 		Return
 	EndIf
-	Call    AddCoin     ( *Var[2] )
+	Mul		*Var[1] -1
+	Call    AddCoin     ( *Var[1] )
 	Call    ShowCoinCounter     ( .False )
 	Call    ContinueSpeech    ( .Npc:Self 00BC0004 00BC0003 00000000 $MoverEnd ) % Call GotoMap
 	If	*Flag_Mode_Rogue == .True % Roguelike - Give the total gained coins on this playthrough
@@ -839,22 +839,20 @@ NOP
             CaseOR == 0 
 			CaseOR == 2
 				Set *MapVar[1] *Var[0]
-                Set *Var[2] -50` % This one is the quantity to extract from Mario's money
-                Set *Var[0] 50` % This one is the amount to track if mario have enought coins
+                Set *Var[2] 50` % Amount needed
 				Set .ChosenOption 0
 			EndCaseGroup
             Case == 1
 				Set *MapVar[1] *Var[0]
-                Set *Var[2] -100`
-                Set *Var[0] 100`
+                Set *Var[2] 100` % Amount needed
 				Set .ChosenOption 1
             Case == 3
 				Call    ShowCoinCounter     ( .False )
 				Call	ContinueSpeech    ( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverCancel ) % If Mario Press 'B' the dialog is closed
 				Return
             EndSwitch
-            Call     $LoadCoinsMover ( )
-            If  *Var[1]  ==  0
+            Call    AddCoin     ( 0 ) % save coins in var0
+			If *Var[0] < *Var[2] % Player don't have enough coins
                 Call     ShowCoinCounter     ( .False )
                 Call     ContinueSpeech     ( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverNoCoins ) % Mario doesn't have enough coins
                 Return
@@ -869,7 +867,7 @@ NOP
 						If *Var[3] == 10` % If Mario declined, just close everything
 							Return
 						EndIf
-						Set *Var[2] -100` % Amount to substract from Mario
+						Set *Var[2] 100` % Amount to substract from Mario
 						Call    ShowCoinCounter	( .True )
 					EndIf
 					Set *BanditState 1
@@ -880,7 +878,8 @@ NOP
 			If	*MoversUsedAmount >= 10`
 				Set		*Flag_Cheev_Classic_11 .True % Challenge Completed
 			EndIf
-            Call    AddCoin			( *Var[2] )
+            Mul		*Var[2] -1
+			Call    AddCoin     ( *Var[2] )
             Call    ShowCoinCounter	( .False )
             Call    SpeakToPlayer    	( .Npc:Self 009C000E 009C0001 00000000 $BanditMoverEnd ) % Call GotoMap
 			Call 	PlaySound		( 20C3 )
@@ -1609,14 +1608,13 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Call	SetNpcAnimation ( .Npc:Self 009C0005 ) % running
 			SuspendOthers .True
 			Call SetPlayerAnimation ( 0001000F ) % Dead
-			ExecWait $Script_SetEnemyIdle		 % Set the Enemy NPC animation to idle
 			Call GetCurrentPartnerID 	( *Var[0] )
 			If  *Var[0]  !=  0 
 				Call DisablePartnerAI ( .True )
 			EndIf
-			Call     $Function_RevivePlayer
-                  WaitSeconds 1
-                  Set  *Flag_Cheev_Classic_03 .True % Challenged Completed
+			Call $Function_RevivePlayer
+			WaitSeconds 1
+			Set  *Flag_Cheev_Classic_03 .True % Challenged Completed
 			Call ShowCoinCounter ( .True )
 			Call DisablePlayerInput	( .True )
 			% Check if Mario has the Debit Card
@@ -1809,7 +1807,7 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -1863,9 +1861,9 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False

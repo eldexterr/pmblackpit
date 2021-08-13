@@ -402,9 +402,9 @@ to attack[PopColor] in the meantime.
 % Toad
 %===============
 
-#define .Collider:item1 15
-#define .Collider:item2 16
-#define .Collider:item3 17
+#define .Collider:item1 F
+#define .Collider:item2 10
+#define .Collider:item3 11
 
 #new:Script $Script_Init_Toad
 {
@@ -1724,17 +1724,20 @@ If *Var[3] == *MapVar[1] % It works basically only on Floors without Partners...
 	Call $GetNpcPointer ( D *Var[0] )
 	Add  *Var[0] 6C % Pointer(+6C) = NpcVars
 	% Var0 = Toad NpcVars Pointer
-	% Var1 = Prices Set Counter
-	Call $ReadAddress  ( *Var[0] 0 *Var[1] 2 .False )
-	Add  *Var[1] 1 % One Price has been already set :)
-	Call $WriteAddress ( *Var[0] 0 *Var[1] 2 .False ) % save in memory
+	% Var1 = Current amount of badges already spawned
+	Call $ReadAddress  ( *Var[0] 0 *Var[1] 3 .False )
+	Add  *Var[1] -1 % Reduce the amount of badges needed to spawn
+	Call $WriteAddress ( *Var[0] 0 *Var[1] 3 .False ) % save in memory
+	Call $ReadAddress  ( *Var[0] 0 *Var[0] 2 .False )
 	% There's more prices left to be set?
-	Call $ReadAddress ( *Var[0] 0 *Var[0] 3 .False )
-	% Var0 = Total Badges Spawned
-	% Var1 = Prices Set Counter
+	% Var0 = Total Badges needed to be spawned
+	% Var1 = Current amount of badges already spawned
 	If *Var[0] != *Var[1]
 		Jump $Script_Toad_GetBadgesData
 	Else
+		If *Var[1] == 0
+			Return
+		EndIf
 		Goto SpawnItems
 	EndIf
 EndIf

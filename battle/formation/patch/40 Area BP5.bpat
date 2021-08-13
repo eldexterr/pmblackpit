@@ -9,7 +9,7 @@
 
 #new:FormationTable $FormationTable
 {
-00000000 00000001 $Formation_HuffPuffBP	    $Stage_BlackPit 00000000 % 0
+00000000 00000001 $Formation_HuffPuffBP	    $Stage_BlackPit_LavaPiranha 00000000 % 0
 00000000 00000000 00000000 00000000 00000000
 }
 #new:Formation $Formation_HuffPuffBP
@@ -26,15 +26,15 @@ $3C_HuffNPuffBP 	$Vector3D_HuffPuff 00000000 00000000 00000000 00000000 00000000
 
 #new:StageTable $StageTable 
 {
-"bp_02" $Stage_BlackPit
+"bp_02" $Stage_BlackPit_LavaPiranha
 00000000 00000000 
 }
 
-#new:Stage $Stage_BlackPit
+#new:Stage $Stage_BlackPit_LavaPiranha
 {
 "tik_tex"
-"bp_bt01_shape"
-"bp_bt01_hit"
+"bp_bt04_shape"
+"bp_bt04_hit"
 $Script_BeforeBattle_BlackPit
 $Script_AfterBattle_BlackPit
 00000000 % Stage Background
@@ -48,27 +48,14 @@ $Script_AfterBattle_BlackPit
 	Call	SetSpriteShading	( -1 )
 	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % Black
 	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
-	% Disable General's Guy Tank or Tutankoopa platform
-	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
-	If *Var[0] != 3D00 % general guy's formation
-		Call	EnableGroup ( 40 .False ) % ~Model:sensya
-	EndIf
-	If *Var[0] != 3C02 % tutankoopa's formation
-		Call	EnableGroup ( 10 .False ) % ~Model:tutankoopa
-	EndIf
-	ExecWait	$Script_SetNumber
+	Call  	EnableGroup ( 3C .False ) % Hide all Lava Piranha's body models
+	%ExecWait	$Script_SetNumber % not for Lava Piranha and Ruff Puff
 	Return
 	End
 }
 
 #new:Script $Script_AfterBattle_BlackPit
 {
-	% Player died?
-	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False ) % read current hp
-	If	*Var[0] == .False
-		Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
-		Call    GotoMap ( "bp_01" 4 )
-	EndIf
 	Return
 	End
 }

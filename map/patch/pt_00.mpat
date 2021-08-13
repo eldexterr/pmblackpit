@@ -99,6 +99,7 @@ JPOP 	RA, A0, A1
 	Set		*Rogue_LastHelper .False
 	Set		*Dupli_Floors .False % To get a x2 coins boost on all battles
 	Set		*4Chests_Cooldown .False % To spawn 4 chests without any traps in between
+	Set		*Rogue_SaveFileReloaded .False %To don't show the final results screen if the save file was reloaded in the middle of a playthrough
 	Call	$Function_ResetHighscores
 	%% Load Unlocked Pieces of Furniture
 	Exec	$Script_SetAllFurniture
@@ -1334,7 +1335,7 @@ End
 
 #new:Script $P1Trigger % I use this Script mostly to just test a bunch of stuff
 {
-	Exec $Classic_AllChestsOpened
+	Exec	$Classic_AllChestsOpened
 	Return
 	Switch *PitMapID
 		Case < 9
@@ -1477,7 +1478,7 @@ ADDIU     V0, R0, 2
 
 #new:NpcGroupList $NpcGroups
 {
-00000001 $NpcGroup_Cheato 	3C030000
+00000001 $NpcGroup_Cheato 	3C040000
 00000001 $NpcGroup_Merlee 	00000000
 00000001 $NpcGroup_Fishmael	00000000
 00000001 $NpcGroup_Oaklie	00000000
@@ -1930,7 +1931,7 @@ End
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -1941,9 +1942,9 @@ End
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False
@@ -2863,7 +2864,7 @@ Happy saving!
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -2874,9 +2875,9 @@ Happy saving!
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False
@@ -2911,7 +2912,7 @@ Happy saving!
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -2922,9 +2923,9 @@ Happy saving!
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False
@@ -4080,7 +4081,7 @@ withdraw[END]
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -4091,9 +4092,9 @@ withdraw[END]
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False
@@ -7074,6 +7075,9 @@ Good luck over there.
 			EndIf
 			Call 	 DisablePlayerInput ( .False )
 		Case == 9 %~Entry:Entry_MazeOpen % Maze Opened Cutscene
+			Call 	DisablePlayerInput ( .True )
+			Call	EnableModel ( ~Model:ee_kousi .True ) % Always show bars
+			Call    TranslateModel ( ~Model:ee_kousi 10` 0 0 )
 			If	*Flag_Mode_Rogue == .True % If Roguelike Mode are Activated
 				ExecWait $Script_RestoreData_Roguelike
 				% Check Mario current HP/FP doesn't bypass his max one
@@ -7093,9 +7097,6 @@ Good luck over there.
 				EndIf
 				Call    $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
 			EndIf
-			Call 	DisablePlayerInput ( .True )
-			Call	EnableModel ( ~Model:ee_kousi .True ) % Always show bars
-			Call    TranslateModel ( ~Model:ee_kousi 10` 0 0 )
 			Wait	40`
 			Call	GetPlayerPos ( *Var[0] *Var[1] *Var[2] )
 			Add		*Var[0] 52`
@@ -7305,6 +7306,7 @@ Good luck over there.
 			Set *LastPartnerUsed .False
 		EndIf
 	EndIf
+	Call 	$RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
 	Return
 	End
 }
@@ -7380,7 +7382,7 @@ Good luck over there.
 			Wait 1
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -7391,9 +7393,9 @@ Good luck over there.
 			Set		*Var[1] -237` % y
 			Set		*Var[2] -232` % z
 			Call	SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 			Thread % Fade Screen Brightness
 				SetF	*Var[0] *Fixed[25.0] % speed
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -7501,7 +7503,7 @@ Good luck over there.
 			Wait 1
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -7517,9 +7519,9 @@ Good luck over there.
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False
@@ -7766,7 +7768,7 @@ been in that Pit as well.
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -7783,9 +7785,9 @@ been in that Pit as well.
 			Call	SetNpcPos 	( .Npc_Cheato *Var[0] *Var[1] *Var[2] )
 			Call	SetNpcAnimation 	( .Npc_Cheato 00AE0001 ) % idle
 			Call	SetPlayerAnimation ( .PlayerAnim:StandStill ) % idle
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
 			Kill	*Var[A]
-			Call 	 $WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			ResumeAll 2
 			Call	SetNpcVar ( .Npc_Cheato 3 .True )
 			Call	GetNpcVar ( .Npc_Cheato 2 *Var[0] )
 			If *Var[0] > 0 % something will be teached
@@ -7962,13 +7964,13 @@ been in that Pit as well.
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 1st try
             % Fade Screen Brightness
             SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
             Kill	*Var[A]
-            Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-            ResumeAll .True
+            ResumeAll 2
 			Wait	5
             Thread % Fade Screen Brightness
                 SetF	*Var[0] *Fixed[25.0] % speed

@@ -469,8 +469,8 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			SetF	*Var[0] *Fixed[25.0] % speed
 			SetF	*Var[1] *Fixed[5.0]  % fully bright
 			ExecWait $Script_FadeScreenIn
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*MapVar[D]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -519,8 +519,8 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			SetF	*Var[0] *Fixed[25.0] % speed
 			SetF	*Var[1] *Fixed[5.0]  % fully bright
 			ExecWait $Script_FadeScreenIn
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*MapVar[D]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -633,11 +633,13 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Call    ShakeCam   			( .Cam:Default 0 30` *Fixed[1.0] )
 			Wait	30`
 			% Check if the player got a better time to beat the Pit
-			If	*Flag_GoldenLS3 == .False % Golden Life Shroom didn't got activated in this playthrough?
-				If *Flag_Mode_Rogue == .False
-					Call	$Function_SaveBetterTotalTime_Classic
-				Else
-					Call	$Function_SaveBetterTotalTime_Rogue
+			If *Rogue_SaveFileReloaded == .False % The save file didn't got reloaded in this run
+				If	*Flag_GoldenLS3 == .False % Golden Life Shroom didn't got activated in this playthrough?
+					If *Flag_Mode_Rogue == .False
+						Call	$Function_SaveBetterTotalTime_Classic
+					Else
+						Call	$Function_SaveBetterTotalTime_Rogue
+					EndIf
 				EndIf
 			EndIf
 			% Open Final Results
@@ -661,8 +663,12 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 				ExecWait $Script_Rogue_GiveTotalCoins % from TrackBattle.mpat
 			EndIf
 			Call    ResetCam   	( .Cam:Default *Fixed[1000.0] )
-			Call 	PlaySound ( C9 )
-			Set		*ShowFinalResultValues .True  % The box's code is at MiscHooks.patch
+			If *Rogue_SaveFileReloaded == .True
+				Call    DisablePlayerInput ( .False )
+			Else
+				Call 	PlaySound ( C9 )
+				Set		*ShowFinalResultValues .True  % The box's code is at MiscHooks.patch
+			EndIf
 		Case  ==  1 % When you die
 			SuspendOthers .True
 			Call SetPlayerAnimation ( 0001000F ) % Dead
@@ -1026,8 +1032,8 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			SetF	*Var[0] *Fixed[25.0] % speed
 			SetF	*Var[1] *Fixed[5.0]  % fully bright
 			ExecWait $Script_FadeScreenIn
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*MapVar[D]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -1078,8 +1084,8 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			SetF	*Var[0] *Fixed[25.0] % speed
 			SetF	*Var[1] *Fixed[5.0]  % fully bright
 			ExecWait $Script_FadeScreenIn
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
+			Kill	*MapVar[D]
 			ResumeAll 2
 		EndIf
 		Wait 1
@@ -1333,6 +1339,16 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 				CaseOR == FE % First Time Mario get Coins from a Chest
 				CaseOR == FF % Second Time Coins
 					ExecWait $CoinChest %% loaded from CoinChest.mpat
+					If *Flag_Chpt1 == .False % Mario still haven't realized he is in a cycle?
+						Set		*Var[0] *Flag_BonetailRemains
+						Add		*Var[0] *Flag_RubyCrown
+						If	*Var[0] >= 2 % Both Pits beated
+							If *Flag_Mistar == .True % The player already beated the Maze too
+								Call	 DisablePlayerInput ( .True )
+								ExecWait $Script_EverythingBeated
+							EndIf
+						EndIf
+					EndIf
 					Return
 				EndCaseGroup
 			EndSwitch
@@ -1377,7 +1393,7 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 	If  *Var[A]  !=  00000000 
 		ExecWait $Script_GetItem 
 	EndIf
-	/%If *Flag_Mode_Rogue == 1 % Isn't neccesary on Pit100
+	/%If *Flag_Mode_Rogue == .True % Isn't neccesary on Pit100
 		Call	$Function_ActivateBadge % Activate the current badge automatically
 		Goto BypassAddingBadge
 	EndIf%/
@@ -1543,15 +1559,15 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
 			% After cutscene code
 			Set *MapFlag[00] .True
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*MapVar[D]
+			ResumeAll 2
 			Thread % Fade Screen Brightness
 				SetF	*Var[0] *Fixed[25.0] % speed
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -1862,7 +1878,7 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -1876,9 +1892,9 @@ FFFFFFF4 0000006B 00000078 00000000 00000000 00000001 00000000 00000000
 			Call	SetNpcYaw ( 1 90` )
 			Call	InterpPlayerYaw ( -90` 1 )
 			Call 	SetMusicTrack 	( .Default .Song:TwinkTheme 0 20` )
-			Kill	*MapVar[D]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*MapVar[D]
+			ResumeAll 2
 			Thread % Fade Screen Brightness
 				SetF	*Var[0] *Fixed[25.0] % speed
 				SetF	*Var[1] *Fixed[5.0]  % fully bright

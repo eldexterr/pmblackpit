@@ -166,6 +166,8 @@ ADDIU   T1, R0, 0094
 BEQ     T0, T1, .0094
 ADDIU   T1, R0, 0095
 BEQ     T0, T1, .0095
+ADDIU   T1, R0, 0096
+BEQ     T0, T1, .0096
 ADDIU   T1, R0, 009A
 BEQ     T0, T1, .009A_9B_9C_9D
 ADDIU   T1, R0, 009B
@@ -349,6 +351,20 @@ ADDIU   A0, R0, 20000`
 LAHU    A0, 80356038 % Total Damage Dealt in the entire game
 BEQ     R0, R0, .SaveVarValue
 NOP
+%===============
+.0096
+%===============
+% Check if the Challenge has been already done, to just put the needed value in the var
+LIO 	A1, *Flag_Cheev_Global_25
+JAL 	~Func:get_variable 
+RESERVED
+BNEL    V0, R0, .SaveVarValue
+ADDIU   A0, R0, 71`
+% The achievement hasn't been achieved
+JAL     $Function_GetTattles % save in V0
+NOP
+BEQ     R0, R0, .SaveVarValue
+COPY    A0, V0
 %===============
 .009A_9B_9C_9D
 %===============
@@ -866,6 +882,102 @@ NOP
      COPY      A0, S0
      POP       RA, A1, A2, A3, V0, V1, S0, S1
      JR        RA
+     NOP
+}
+
+% saves in v0
+#new:Function $Function_GetTattles
+{
+     PUSH    RA, T0, T1, V1
+     CLEAR   V1 % init V1
+     LIO     T0, 800DBEDD % Tattle Flags - Start
+     % Actors 00-07 flags
+     LBU     T1, 0 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 83
+     ADDU    V1, V1, V0 % add to the total flags counter
+     % Actors 08-0F flags
+     LBU     T1, 1 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 1B
+     ADDU    V1, V1, V0
+     % Actors 10-17 flags
+     LBU     T1, 2 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, E8
+     ADDU    V1, V1, V0
+     % Actors 18-1F flags
+     LBU     T1, 3 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, C6
+     ADDU    V1, V1, V0
+     % Actors 20-27 flags
+     LBU     T1, 4 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, DE
+     ADDU    V1, V1, V0
+     % Actors 28-2F flags
+     LBU     T1, 5 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, FE
+     ADDU    V1, V1, V0
+     % Actors 30-37 flags
+     LBU     T1, 6 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 56
+     ADDU    V1, V1, V0
+     % Actors 38-3F flags
+     LBU     T1, 7 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 0F
+     ADDU    V1, V1, V0
+     % Actors 40-47 flags
+     LBU     T1, 8 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, E0
+     ADDU    V1, V1, V0
+     % Actors 48-4F flags
+     LBU     T1, 9 (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 18
+     ADDU    V1, V1, V0
+     % Actors 50-57 flags
+     LBU     T1, A (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, A0
+     ADDU    V1, V1, V0
+     % Actors 58-5F flags
+     LBU     T1, B (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 08
+     ADDU    V1, V1, V0
+     % Actors D0-D7 flags
+     LBU     T1, 1A (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, F0
+     ADDU    V1, V1, V0
+     % Actors D8-DF flags
+     LBU     T1, 1B (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 53
+     ADDU    V1, V1, V0
+     % Actors E0-E7 flags
+     LBU     T1, 1C (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, FF
+     ADDU    V1, V1, V0
+     % Actors E8-EF flags
+     LBU     T1, 1D (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, EB
+     ADDU    V1, V1, V0
+     % Actors F0-F7 flags
+     LBU     T1, 1E (T0)
+     JAL     $GetBitFlags
+     ANDI    A0, T1, 1F
+     ADDU    V0, V1, V0 % save final value in V0
+     POP     RA, T0, T1, V1
+     JR      RA
      NOP
 }
 
@@ -5135,6 +5247,7 @@ SW        R0, 74 (S0)
 .o20
 LHU       V0, 76 (S0)
 ADDIU     A0, SP, 10
+SAB       R0, 800A0949 % Set game state back to "Main Menu"
 JAL       801382AC
 SH        V0, 10 (SP)
 SLL       V0, V0, 10

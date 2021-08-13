@@ -187,15 +187,15 @@ here (they use a really large amount of functions and stuff).%/
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
 			Call	SetNpcAnimation 	( .Npc_Oaklie 00BE0001 ) % idle
 			Call 	SetPlayerAnimation ( 00010002 ) % idle
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 			Thread % Fade Screen Brightness
 				SetF	*Var[0] *Fixed[25.0] % speed
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -2371,8 +2371,8 @@ to buy?
 #string $Choice_BuyBadges
 {
 [STYLE:CHOICE:47:60:C0:2E][...]
-[DelayOff][Cursor:00][Option:00]Common - $500
-[Cursor:01][Option:01]Rare - $1000
+[DelayOff][Cursor:00][Option:00]Common - 500 coins
+[Cursor:01][Option:01]Rare - 1000 coins
 [Option:FF][DelayOn][SetCancel:02][EndChoice:02][END]
 }
 
@@ -2380,7 +2380,7 @@ to buy?
 {
 [STYLE:CHOICE:47:60:C0:2E][...]
 [DelayOff][PushColor][Color:13][STAR] [Color:0B]Common[PopColor]
-[Cursor:00][Option:00]Rare - $1000
+[Cursor:00][Option:00]Rare - 1000 coins
 [Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
 }
 
@@ -2388,15 +2388,15 @@ to buy?
 {
 [STYLE:CHOICE:47:60:C0:2E][...]
 [DelayOff][PushColor][Color:13][STAR] [Color:0B]Rare[PopColor]
-[Cursor:00][Option:00]Common - $500
+[Cursor:00][Option:00]Common - 500 coins
 [Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
 }
 
 #string $Choice_BuyBadges_NotEnoughCoins_Rare
 {
 [STYLE:CHOICE:47:60:C0:2E][...]
-[DelayOff][PushColor][Color:0B]Rare - $1000[PopColor]
-[Cursor:00][Option:00]Common - $500
+[DelayOff][PushColor][Color:0B]Rare - 1000 coins[PopColor]
+[Cursor:00][Option:00]Common - 500 coins
 [Option:FF][DelayOn][SetCancel:01][EndChoice:01][END]
 }
 
@@ -3363,6 +3363,21 @@ Best time beating this Pit:
 					Call 	$WriteAddress ( 8010F51E 0 1 0 .False )   % Star Spirits
 					Call 	$WriteAddress ( 8010F520 1 100 0 .False ) % Star Power
 					Call 	PlaySound ( 20D5 )
+				EndIf
+			EndIf
+		Case == 1001` % Receive 2000 coins in your bank account
+			If *Var[1] == 0102`
+				If *Var[2] == 0013`
+					If *Cheats_FreeCoins == .False % This cheat can only be used a single time
+						Call 	$ReadAddress ( 803560DC 2 *Var[0] .False .False ) % Bank Account
+						Add	*Var[0] 2000`
+						If *Var[0] > 9999999` % account's cap
+							Set *Var[0] 9999999`
+						EndIf
+						Call 	$WriteAddress ( 803560DC 2 *Var[0] .False .False ) % Bank Account
+						Call PlaySound ( 20DA )
+						Set *Cheats_FreeCoins .True
+					EndIf
 				EndIf
 			EndIf
 		/% Activate God Mode

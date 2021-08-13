@@ -49,20 +49,39 @@ $Script_AfterBattle_BlackPit
 	Call	SetSpriteShading	( -1 )
 	Call	SetCamBGColor		( .Cam:Battle 0 0 0 ) % Black
 	Call    SetBattleFlagBits 	( 00800000 .True ) % To not trigger a Game Over
+	Call  	EnableGroup ( 3C .False ) % Hide all Lava Piranha's body models
 	ExecWait	$Script_SetNumber
-  	Call  	EnableGroup ( 4D .False ) % Hide all Lava Piranha's body models
+	ExecWait 	$CloneModels
 	Return
 	End
 }
 
 #new:Script $Script_AfterBattle_BlackPit
 {
-	% Player died?
-	Call 	$ReadAddress ( 8010F292 0 *Var[0] .False .False ) % read current hp
-	If	*Var[0] == .False
-		Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % Set HP as 1
-		Call    GotoMap ( "bp_01" 4 )
-	EndIf
+	Return
+	End
+}
+
+#define .Model_p00 C % ID from Black Pit Battle Map
+#define .Model_p00_actual 1D  % ID from Lava Piranha's original map
+#define .Model_s09_actual 4C
+
+% The game will crash at the start if I don't do this
+%
+% Piranha's models need to have the same ID as the original Lava Piranha's battle map
+#new:Script $CloneModels
+{
+	Set *Var[0] .Model_p00
+	Set *Var[1] .Model_p00_actual
+	Loop
+		Call	CloneModel ( *Var[0] *Var[1] )
+		Call	EnableModel ( *Var[1] .False )
+		If *Var[1] == .Model_s09_actual
+			BreakLoop
+		EndIf
+		Add		*Var[0] 1
+		Add		*Var[1] 1
+	EndLoop
 	Return
 	End
 }
@@ -76,7 +95,24 @@ $Script_AfterBattle_BlackPit
 % Set current number by reading the formation ID
 #new:Script $Script_SetNumber
 {
+	% Disable a few models, this fight and Huff Puff can sometimes crash the game
+	% if the game renders to many things on screen, by things I mean any geometry,
+	% icons or sprites.
+	%
+	% Disable all geometry and just leave the floor visible.
+	%
+	% This script is unused on this map
+	Return
+	% I was testing some stuff here:
+	Call	EnableModel ( 12 .False )	
 	Call	EnableGroup ( 1B .False ) % disable all numbers
+	Call	EnableModel ( 0 .False )
+	Call	EnableModel ( 1 .False )
+	Call	EnableModel ( 14 .False )
+	Call	EnableModel ( 15 .False )
+	Call	EnableModel ( 16 .False )
+	Return
+	% Actual script
 	Call 	$ReadAddress ( 800DC4EA 1 *Var[0] .False .False ) % read battle ID
 	Switch *Var[0]
 		Case == 3C00 % 1

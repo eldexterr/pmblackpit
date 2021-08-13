@@ -217,6 +217,7 @@ End
 	Set		*Rogue_LastHelper .False
 	Set		*Dupli_Floors .False % To get a x2 coins boost on all battles
 	Set		*4Chests_Cooldown .False % To spawn 4 chests without any traps in between
+	Set		*Rogue_SaveFileReloaded .False %To don't show the final results screen if the save file was reloaded in the middle of a playthrough
 	Call	$Function_ResetHighscores
     Return
     End
@@ -749,7 +750,7 @@ Let's go Mario!!!
 			Set 	*Flag_Skip .False
 			% Fade Screen Brightness
 			SetGroup 0
-			SuspendAll .True
+			SuspendAll 2
 			SetF	*Var[0] *Fixed[25.0]  % speed
 			SetF	*Var[1] *Fixed[255.0] % fully dark
 			ExecWait $Script_FadeScreenOut
@@ -761,9 +762,9 @@ Let's go Mario!!!
 				SetF	*Var[1] *Fixed[5.0]  % fully bright
 				ExecWait $Script_FadeScreenIn
 			EndThread
-			Kill	*Var[A]
 			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-			ResumeAll .True
+			Kill	*Var[A]
+			ResumeAll 2
 		EndIf
 		Wait 1
 		If *Flag_Skip == .False

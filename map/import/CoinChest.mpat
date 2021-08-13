@@ -11,10 +11,30 @@
 			Call 	DisablePlayerInput ( .True )
 		EndIf
 		Call	 ShowMessageAtScreenPos ( $CoinsString 000000A0 00000028 )
-		Call	 ShowCoinCounter 	( .True )
+		If *Flag_Mode_Rogue == .False % only in classic
+			Call	 ShowCoinCounter 	( .True )
+		EndIf
 		Call     ShowGotItem 	( .Item:Coin .True 00000010 ) % ItemID ??? Message
 		ExecWait $LoadChestFloor
-		Call	 ShowCoinCounter 	( .False )
+		If *Flag_Mode_Rogue == .False % only in classic
+			Call	 ShowCoinCounter 	( .False )
+			Switch *BadgeList % Challenge Completed
+				Case >= 62`
+					Set	*Flag_Cheev_Classic_07 .True
+					Set	*Flag_Cheev_Classic_06 .True
+					Set	*Flag_Cheev_Classic_05 .True
+					Set	*Flag_Cheev_Classic_04 .True
+				Case >= 40`
+					Set	*Flag_Cheev_Classic_06 .True
+					Set	*Flag_Cheev_Classic_05 .True
+					Set	*Flag_Cheev_Classic_04 .True
+				Case >= 20`
+					Set	*Flag_Cheev_Classic_05 .True
+					Set	*Flag_Cheev_Classic_04 .True
+				Case >= 5
+					Set	*Flag_Cheev_Classic_04 .True
+			EndSwitch
+		EndIf
 		Call 	$ReadBitFlag ( 8010EFCA .False .False 5 *Var[0] )
 		If *Var[0] == .True % DisablePlayerInputs == True
 			Call 	$WriteAddress ( 8010EFDD 0 .True 0 .False ) % Player Inputs's Byteflag
@@ -22,10 +42,30 @@
 		EndIf
 	Else
 		If *MapVar[2] == FF % Second Time Coins
-			Call	 ShowCoinCounter 	( .True )
+			If *Flag_Mode_Rogue == .False % only in classic
+				Call	 ShowCoinCounter 	( .True )
+			EndIf
 			Call     ShowGotItem 	( .Item:Coin .True 00000010 )
 			ExecWait $LoadChestFloor
-			Call	 ShowCoinCounter 	( .False )
+			If *Flag_Mode_Rogue == .False % only in classic
+				Call	 ShowCoinCounter 	( .False )
+				Switch *BadgeList % Challenge Completed
+					Case >= 62`
+						Set	*Flag_Cheev_Classic_07 .True
+						Set	*Flag_Cheev_Classic_06 .True
+						Set	*Flag_Cheev_Classic_05 .True
+						Set	*Flag_Cheev_Classic_04 .True
+					Case >= 40`
+						Set	*Flag_Cheev_Classic_06 .True
+						Set	*Flag_Cheev_Classic_05 .True
+						Set	*Flag_Cheev_Classic_04 .True
+					Case >= 20`
+						Set	*Flag_Cheev_Classic_05 .True
+						Set	*Flag_Cheev_Classic_04 .True
+					Case >= 5
+						Set	*Flag_Cheev_Classic_04 .True
+				EndSwitch
+			EndIf
 			Set 	*Flag_Coins2 .False
 			Call 	DisablePlayerInput ( .False )
 		EndIf
@@ -38,26 +78,74 @@
 {
 	Switch *PitMapID
 		Case == 10` % pit10
-			Call AddCoin ( 100` )
+			Set *Var[0] 100`
 		Case == 20` % pit20
-			Call AddCoin ( 100` )
+			Set *Var[0] 100`
 		Case == 30` % pit30
-			Call AddCoin ( 100` )
+			Set *Var[0] 100`
 		Case == 40` % pit40
-			Call AddCoin ( 150` )
+			Set *Var[0] 150`
 		Case == 50` % ...
-			Call AddCoin ( 150` )
+			Set *Var[0] 150`
 		Case == 60` % ...
-			Call AddCoin ( 200` )
+			Set *Var[0] 200`
 		Case == 70` % ...
-			Call AddCoin ( 200` )
+			Set *Var[0] 200`
 		Case == 80` % ...
-			Call AddCoin ( 400` )
+			Set *Var[0] 400`
 		Case == 90`
-			Call AddCoin ( 500` )
+			Set *Var[0] 500`
 		Case == 100` % pit100
-			Call AddCoin ( 1000` )
+			Set *Var[0] 1000`
 	EndSwitch
+	If *Flag_Mode_Rogue == .False
+		Call	AddCoin ( *Var[0] )
+	Else % Roguelike
+		% For Roguelike add to your bank account instead
+		% Needed only in Floor 100
+		% show bank's coin box
+		Set   	*Var[A] *Var[0]
+		Set		*BankTextBoxPosition 1
+		Set		*TalkingToFishmael .True
+		Wait 	10`
+		Call 	$ReadAddress  ( 803560DC 2 *Var[1] .False .False ) % load bank account
+		Add		*Var[1] *Var[0]
+		SetTimescale *Fixed[15.0]
+		Loop
+			Call 	$ReadAddress  ( 803560DC 2 *Var[2] .False .False ) % load bank account
+			Add	*Var[2] 1
+			% Bank Account Cap
+			If *Var[2] > 9999999` % 9,999,999 / 0098967F
+				BreakLoop
+			EndIf
+			Call 	$WriteAddress ( 803560DC 2 *Var[2] .False .False ) % save bank account
+			Call	PlaySound ( 0211 ) % coin
+			If *Var[2] == *Var[1]
+				BreakLoop
+			EndIf
+			Wait	1
+		EndLoop
+		SetTimescale *Fixed[1.0] % Back to Normal
+		Call $ReadAddress ( 803560DC 2 *Var[1] .False .False ) % load bank account
+		% Check Challenges
+		Switch *Var[1]
+			Case >= 40000`
+				Set *Flag_Cheev_Global_13 .True
+				Set *Flag_Cheev_Global_12 .True
+				Set *Flag_Cheev_Global_11 .True
+			Case >= 10000`
+				Set *Flag_Cheev_Global_12 .True
+				Set *Flag_Cheev_Global_11 .True
+			Case >= 1000`
+				Set *Flag_Cheev_Global_11 .True
+		EndSwitch
+		Call	SetMessageValue ( *Var[A] 1 )
+		Call  	ShowMessageAtScreenPos  ( $String_Rogue_CoinsAdded 000000A0 00000028 )
+		% close bank's coin box
+		Call 	$WriteAddress ( $BoxAnimation_State  2 2 .False .False )
+		Call 	$WriteAddress ( $BoxAnimation_Offset 2 7 .False .False )
+		Wait	10`
+	EndIf
 	Return
 	End
 }

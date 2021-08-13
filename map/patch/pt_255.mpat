@@ -62,15 +62,6 @@ Switch	*Var[0]
 		Call	DisablePlayerPhysics ( .True )
 		Call	GetCurrentPartnerID ( *LastPartner ) % save partner
 		Call    $DespawnPartner
-		% Disable all partners
-		Call 	$WriteAddress ( 8010F2AC 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2B4 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2BC 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2C4 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2EC 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2D4 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2DC 0 .False .False .False )
-		Call 	$WriteAddress ( 8010F2E4 0 .False .False .False )
 		Wait	15` % to not see when the partner get despawned when the screen unfade
 		Call	ModifyColliderFlags ( .False ~Collider:Col1 7FFFFE00 ) % disable being able to go to pre_01
 		Thread
@@ -91,9 +82,11 @@ Switch	*Var[0]
 				Case == 2 % one pit + the other pit beated or maze
 					Exec	$Script_Animation_Mario_Falling2 *MapVar[2] % save script ID
 					Exec	$SkipCutscene_Animation_Mario_Falling2
+					Exec	$Script_DisableAllPartners
 				Case == 3 % both pits and maze beated
 					Exec	$Script_Animation_Mario_Falling3 *MapVar[2] % save script ID
 					Exec	$SkipCutscene_Animation_Mario_Falling3
+					Exec	$Script_DisableAllPartners
 			EndSwitch
 		EndThread
 	Case == ~Entry:Entry2 % If is the 1st time starting the game
@@ -960,6 +953,15 @@ JPOP    RA, V0, V1, A1, A2, A3
 
 #new:Script $Script_Exit1
 {
+	% Time to restore partners?
+	% Needed if the player beated the pit and got Cutscene #2 or #3
+	If *Flag_Mode_Rogue == .False
+		% Only classic because on Rogue everything get restored when arriving to the lobby
+		Call	GetEntryID ( *Var[0] )
+		If *Var[0] == 0 % ~Entry:Entry0 % When you beat the pit
+			Exec $Script_RestorePartners
+		EndIf
+	EndIf
 	Call     UseExitHeading  	( 3C 1 )
 	Exec     ExitWalk
 	If *MapFlag[00] == .True % Pit Beated - Cutscene 2 & 3
@@ -982,6 +984,59 @@ JPOP    RA, V0, V1, A1, A2, A3
 	Wait     100` 
 	Return
 	End
+}
+
+#new:Script $Script_DisableAllPartners
+{
+	% Disable all partners
+	Call 	$WriteAddress ( 8010F2AC 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2B4 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2BC 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2C4 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2EC 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2D4 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2DC 0 .False .False .False )
+	Call 	$WriteAddress ( 8010F2E4 0 .False .False .False )
+	Return
+	End
+}
+
+#new:Script $Script_RestorePartners
+{
+    % Goombario
+    If *Flag_Goombario == .True
+        Call $WriteAddress ( 8010F2AC 0 .True .False .False )
+    EndIf
+    % Kooper
+    If *Flag_Kooper == .True
+        Call $WriteAddress ( 8010F2B4 0 .True .False .False )
+    EndIf
+    % Bombette
+    If *Flag_Bombette == .True
+        Call $WriteAddress ( 8010F2BC 0 .True .False .False )
+    EndIf
+    % Parakarry
+    If *Flag_Parakarry == .True
+        Call $WriteAddress ( 8010F2C4 0 .True .False .False )
+    EndIf
+    % Bow
+    If *Flag_Bow == .True
+        Call $WriteAddress ( 8010F2EC 0 .True .False .False )
+    EndIf
+    % Watt
+    If *Flag_Watt == .True
+        Call $WriteAddress ( 8010F2D4 0 .True .False .False )
+    EndIf
+    % Sushie
+    If *Flag_Sushie == .True
+        Call $WriteAddress ( 8010F2DC 0 .True .False .False )
+    EndIf
+    % Lakilester
+    If *Flag_Lakilester == .True
+        Call $WriteAddress ( 8010F2E4 0 .True .False .False )
+    EndIf
+    Return
+    End
 }
 
 #new:Script $Script_Exit3

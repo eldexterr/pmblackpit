@@ -41,6 +41,13 @@ NOP
 % Track Inputs
 JAL         $TrackInput % track an input and return a bool
 NOP
+JAL         $Function_FixKooperBehaviour % from FixKooperBehaviour.patch
+NOP
+JAL         $Function_HoldLToDie
+NOP
+% Test FXs % unused
+%JAL         $Function_TestFXs
+%NOP
 LW        RA, 008C (SP)
 J        800E92B0
 NOP
@@ -3798,6 +3805,42 @@ ORI     V0, R0, 2
     NOP
 }
 
+/%
+Zap Tab misc notes
+8025891C % Show Thunder Icon
+80258624 % Zap/Thunder Shroom Swap Palettes - Main
+80258670 % Zap Tab - Swap Palettes (Only if you started wearing Zap-Tab inside battle, basically impossible)
+
+80259D9C % Blink Thunder Palette Main code?
+%/
+
+% Add Skin "compatibility" for Zap-Tab/Volt Shrooms
+%
+% Hammers' Electrified palettes are 0x14/15/16 for each hammer, but #15 & #16 are actually some skins
+% So this hook disables using any electrified palette for any hammer, just use their normal palettes
+@Hook 188938 % 8025A058
+{
+% T1 = Palette Counter
+% 3 = Hammer
+% 4 = Super Hammer
+% 5 = Ultra Hammer
+LW	    A2, 0000 (V0) % load palette pointer
+% Is a hammer palette?
+ORI     V0, R0, 3 % Hammer
+BEQL    T1, V0, .End
+CLEAR   A2 % A2 = 0 = Don't overwrite palette
+ORI     V0, R0, 4 % Super Hammer
+BEQL    T1, V0, .End
+CLEAR   A2
+ORI     V0, R0, 5 % Ultra Hammer
+BEQL    T1, V0, .End
+CLEAR   A2
+.End
+% restore vanilla code
+J       8025A060
+SLL	    V0, T1, 5
+}
+
 % Lock Player Inputs when you open a giant chest with AssignScript
 @Hook 108A84 % 802E7204
 {
@@ -3973,6 +4016,325 @@ ORI     V0, R0, 2
 
 #export $Data_Inputs
 
+#new:Data $LButton_Timer
+{ 0000 }
+
+% Die when the player holds L button
+#new:Function $Function_HoldLToDie
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    % Impossible if the player isn't inside a Pit
+    LIO     A1, *PitFlag
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .NukeTimer
+    NOP
+    .CheckConditions
+    % Checking if Mario isn't touching the ground
+    LABU	T0, 800B1D83
+    BNE		T0, R0, .NukeTimer % If mario isn't touching solid ground, skip
+    NOP
+    % The player is using a partner?
+    LAB		T0, 8010CD33 % Using a partner
+    SLL		T0, T0, 28`
+    SRL  	T0, T0, 31`  % Move all bits to just leave bit3
+    ADDIU 	T1, R0, 1
+    BEQ		T0, T1, .NukeTimer % If the player is using a partner, skip
+    NOP
+    .CheckInputsLocked
+    LABU	T0, 8010EFCA % PlayerFlags (3rd Byte)
+    ANDI 	T0, T0, 30 % bit4+5
+    BNE		T0, R0, .NukeTimer % If the player have the controls locked, skip
+    NOP
+    %====
+    .Start
+    LABU    T0, 80074057 % inputs
+    ANDI    T1, T0, 20 % bit5 / L Button
+    BEQ     T1, R0, .NukeTimer
+    NOP
+    % Is the first time the player pressed L?
+    LIO     A1, *Flag_AutoKill_Tutorial
+    JAL     ~Func:get_variable
+    RESERVED
+    BEQ     V0, R0, .RunScript
+    NOP
+    LAHU    T0, $LButton_Timer
+    ADDIU   T0, T0, 1
+    SAH     T0, $LButton_Timer
+    .CheckTimer
+    LAHU    T0, $LButton_Timer
+    SLTI    T1, T0, 14
+    BNE     T1, R0, .End
+    NOP
+    .RunScript
+    % Kill the player
+    LIO     A0, $Script_KillPrompt
+    CLEAR	A2
+    JAL		~Func:start_script
+    ADDIU	A1, R0, 1
+    .NukeTimer
+    SAH     R0, $LButton_Timer
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+#string $String_Kill1
+{
+[STYLE:INSPECT][...]
+Do you want to auto kill you and
+[PushColor][Color:07]end your run here[PopColor]?
+[Func_04][END]
+}
+
+#string $String_Kill2
+{
+[STYLE:INSPECT][...]
+Auto kill is not available inside
+chest floors.
+[WAIT][END]
+}
+
+#string $String_Kill3
+{
+[STYLE:INSPECT][...]
+Hey, looks like you pressed the
+[PushColor][Color:07]L button[PopColor]!
+[WAIT][NEXT][...]
+When you're [PushColor][Color:07]inside a Pit[PopColor] you can
+end your run by [PushColor][Color:07]holding[PopColor] the
+[PushColor][Color:07]L button[PopColor].
+[WAIT][NEXT][...]
+The game will ask you for
+[PushColor][Color:07]confirmation[PopColor] so why not give it a
+try?
+[WAIT][END]
+}
+
+#new:Script:Map $Script_KillPrompt
+{
+    SetGroup 0
+    SuspendAll 2
+    Call    DisablePlayerInput ( .True )
+    If *Flag_AutoKill_Tutorial == .False
+        Call    ShowMessageAtScreenPos ( $String_Kill3 A0 28 )
+        Set     *Flag_AutoKill_Tutorial .True
+        ResumeAll 2
+        Call    DisablePlayerInput ( .False )
+        Return
+    EndIf
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010014 ) % guard
+    % The player isn't in a chest floor?
+    Switch *PitMapID
+        CaseOR == 10`
+        CaseOR == 20`
+        CaseOR == 30`
+        CaseOR == 40`
+        CaseOR == 50`
+        CaseOR == 60`
+        CaseOR == 70`
+        CaseOR == 80`
+        CaseOR == 90`
+            Call    ShowMessageAtScreenPos ( $String_Kill2 A0 28 )
+            Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+            ResumeAll 2
+            Call    DisablePlayerInput ( .False )
+            Return
+    EndSwitch
+    Call    ShowMessageAtScreenPos ( $String_Kill1 A0 28 )
+    Call    ShowChoice    ( 001E001D ) % yes no
+	If	*Var[0] == 1 % no
+        Call	CloseMessage
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        Call    SetPlayerAnimation ( 0001002D ) % cough
+        Wait    20`
+        Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+        ResumeAll 2
+        Call    DisablePlayerInput ( .False )
+        Return
+    EndIf
+    Call	CloseMessage
+    % Take damage
+    Call    SetPlayerAnimation ( .PlayerAnim:StandStill )
+    Call    SetPlayerAnimation ( 00010019 ) % O_o!
+    Wait    30`
+    Call 	$WriteAddress ( 8010F292 0 0 .False .False ) % set HP as zero
+    Call    $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
+    Call    SetPlayerAnimation ( 00010002 ) % idle
+    Call    SetPlayerAnimation ( 00010017 ) % taking damage
+    Call    PlaySound ( 00E1 ) % taking damage
+    Call    GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Add     *Var[1] 13` % y
+    Call    PlayEffect   ( ~FX:Firework:White *Var[0] *Var[1] *Var[2] *Fixed[0.7] 0 0 0 0 0 0 0 0 )
+    Call    DisablePlayerPhysics ( .True )
+    Call    GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+    Loop 2
+        Add *Var[1] 2
+        Call SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+        Wait 2
+        Sub *Var[1] 2
+        Call SetPlayerPos ( *Var[0] *Var[1] *Var[2] )
+        Wait 2
+    EndLoop
+    Wait    10`
+    Call    $WriteAddress ( 8010EF90 2 00000000 0 .False ) % Force status menu to hide
+    Call    SetPlayerAnimation ( 00010018 ) % on the floor
+    Wait    10`
+    If *Flag_Mode_Rogue == .True
+        ExecWait $Script_Rogue_GiveHalfCoins
+        If *Flag_Demo == .True
+            Call GotoMap ( $ASCII_dmo_00 0 )
+        Else
+            Call GotoMap ( $ASCII_pt_00 6 )
+        EndIf
+        Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % set HP as 1
+        Call    $RunFunction ( 800E9B6C ) % ~Func:sync_status_menu
+    Else % Spawn Sack of coins
+        ResumeAll 2
+        SuspendOthers .True
+        Call ShowCoinCounter ( .True )
+        ExecWait $Script_SubstractCoins
+        Call 	$WriteAddress ( 8010F292 0 1 .False .False ) % set HP as 1
+    EndIf
+    Return
+    End
+}
+
+% Subtract all Mario coins if he died
+#new:Script:Map $Script_SubstractCoins
+{
+    If *LostCoinsMapID != 0 % If mario just lost his coins forever
+        Set   *Flag_Cheev_Classic_03 .True % Challenged Completed
+    EndIf
+	Set     *LostCoinsMapID *PitMapID
+	Call    AddCoin ( 0 )
+	% If Mario doesn't have any coins
+	% just bypass everything
+	If	*Var[0] == 0
+        Call    $WriteAddress ( 8010F2B0 1 0 .False .False ) % Nuke coins losted
+		Goto	BypassCoins
+	EndIf
+    Wait	6
+    Call    $WriteAddress ( 8010F2B0 1 *Var[0] .False .False ) % Save current coins in "coins losted"
+	Mul	    *Var[0] -1
+	Call	AddCoin ( *Var[0] )
+	Call	SetNpcVar	( 40 0 .True ) % Set Coins Sack Var0 as true to start his leaving animation
+	Return
+	Label	BypassCoins
+	Call    ShowCoinCounter ( .False )
+	WaitSeconds 1
+	Call GotoMap ( $ASCII_pt_00 6 )
+	Return
+	End
+}
+
+#export $Script_SubstractCoins % used by map/import/TrackBattle.mpat
+
+#new:Function $Function_TestFXs
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LABU    T0, 80074037 % one time inputs
+    ANDI    T1, T0, 20 % bit5 / L Button
+    BEQ     T1, R0, .End
+    NOP
+    % Test stuff by pressing L
+    LIO     A0, $Script_TestFXs
+    CLEAR	A2
+    JAL		~Func:start_script
+    ADDIU	A1, R0, 1
+    .End
+    % Print static strings
+    LIO     A0, $FX
+    ORI     A1, R0, 0077 % x pos
+    ORI     A2, R0, 00BA % y pos
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, 00FF
+    LIO     A0, $SubFX
+    ORI     A1, R0, 0058 % x pos
+    ORI     A2, R0, 00CA % y pos
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, 00FF
+    %========Print FX1
+    % Print Current Cheat
+    % Convert Data to ASCII
+    LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+    LIO     A1, $ASCII_FX     % Type of Format to use
+    LIO     A2, $FXID1
+    LHU     A2, 0 (A2)
+    JAL     ~Func:sprintf
+    NOP
+    % Convert ASCII to String and Print
+    LIO     A1, $ASCII_Buffer       % previously converted ASCII
+    LIO     A0, $String_Buffer      % Pointer to Save Final String
+    JAL     $ConvertAsciiToPM64String % The final result will be stored in A0
+    RESERVED
+    ORI     A1, R0, 0085 % x pos
+    ORI     A2, R0, 00BA % y pos
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, 00FF
+    %========Print FX2
+    % Print Current Cheat
+    % Convert Data to ASCII
+    LIO     A0, $ASCII_Buffer          % Pointer to Save ASCII
+    LIO     A1, $ASCII_FX     % Type of Format to use
+    LIO     A2, $FXID1
+    LHU     A2, 2 (A2)
+    JAL     ~Func:sprintf
+    NOP
+    % Convert ASCII to String and Print
+    LIO     A1, $ASCII_Buffer       % previously converted ASCII
+    LIO     A0, $String_Buffer      % Pointer to Save Final String
+    JAL     $ConvertAsciiToPM64String % The final result will be stored in A0
+    RESERVED
+    ORI     A1, R0, 0085 % x pos
+    ORI     A2, R0, 00CA % y pos
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    JAL     ~Func:draw_string
+    ORI     A3, R0, 00FF
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+#string $FX
+{
+FxID:[END]
+}
+
+#string $SubFX
+{
+Sub FxID:[END]
+}
+
+#new:Data $FXID1
+{ 00000000 }
+
+#new:ASCII $ASCII_FX
+{
+"%04X"
+}
+
+#new:Script:Map $Script_TestFXs
+{
+    Call    HidePlayerShadow ( .True )
+    Call    $WriteBitFlag ( 8010EFCC .False 2 5 .True ) % turn player invicible
+    Loop
+        Call    $ReadAddress ( $FXID1 1 *Var[0] 0 .False )
+        Call    $ReadAddress ( $FXID1 1 *Var[1] 2 .False )
+        Call    GetPlayerPos ( *Var[2] *Var[3] *Var[4] )
+        Add     *Var[3] 20` % y
+        Call    PlayEffect  	( *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] 2 2 2 0 0 0 0 0 0 )
+        Wait    1
+    EndLoop
+    Return
+    End
+}
+
 #new:Function $ToogleCheats
 {
     PUSH    RA, A0, A1, A2, A3, V0, V1
@@ -3994,7 +4356,7 @@ ORI     V0, R0, 2
     JAL 	~Func:_play_sound
     COPY 	A3, A1
     /% Test stuff by pressing L
-    LIO     A0, $Script_SwapModel00_RederMode
+    LIO     A0, $Script_Test
     CLEAR	A2
     JAL		~Func:start_script
     ADDIU	A1, R0, 1%/
@@ -4273,21 +4635,6 @@ NOP
     POP     RA, A0, A1, A2, A3, V0, V1
     JR      RA
     NOP
-}
-
-#new:Script:Map $Script_SwapModel00_RederMode
-{
-    Call $GetModelPointer ( 0 *Var[0] )
-    Call $ReadAddress ( *Var[0] 0 *Var[1] A6 .False )
-    Add *Var[1] 1
-    % Model's Render Mode
-    If *Var[1] == 30
-        Set *Var[1] 1
-        Call    PlaySound ( 6 )
-    EndIf
-    Call $WriteAddress ( *Var[0] 0 *Var[1] A6 .False )
-    Return
-    End
 }
 
 % 80155676 - Cursor Posion (Func_04)

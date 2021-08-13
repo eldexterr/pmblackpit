@@ -1,0 +1,17 @@
+% Fix being able to stop kooper's animation when using him in the overworld in Star Rod 0.3.2
+
+#new:Function $Function_FixKooperBehaviour
+{
+    % On Star Rod 0.3.2 (I dunno if happens on previous versions too)
+    % SR nukes all this addresses (why???) this can cause some problems with Kooper.
+    %
+    % Place this function on any function that always run in the overworld by using a Hook (Like 82758 % 800E92A8)
+    LIO     T0, 800F80E8
+    LIO     T1, 800EA514
+    SW      T1, 0 (T0)
+    SW      T1, 4 (T0)
+    JR      RA
+    SW      T1, 84 (T0)
+}
+
+#export $Function_FixKooperBehaviour % used in MiscHooks.patch

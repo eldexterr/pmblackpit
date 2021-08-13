@@ -19,7 +19,7 @@
 #new:Header $Header
 {
 00000000 00000000 00000000 00000000
-$Script_Main $EntryList 00000003 00000000
+$Script_Main $EntryList 00000004 00000000
 00000000 00000000 00000000 00000000
 00000000 00000000 80200000 $Function_GetTattle2 % loaded from SignStringLoader.mpat
 }
@@ -29,11 +29,12 @@ $Script_Main $EntryList 00000003 00000000
 ~Vec4f:Entry0
 ~Vec4f:Entry1
 ~Vec4f:Entry2
+~Vec4f:Entry3 % Save Block
 }
 
 #new:Function_Init $Function_Init
 {
-PUSH RA, A0, A1
+PUSH 	RA, A0, A1
 LIA  	A0, 800B0CF0
 LIA  	A1, "tik_tex" 
 JAL  	~Func:sprintf
@@ -51,6 +52,8 @@ NOP
     Call SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
     Call SetCamEnabled       ( .Cam:Default .True )
 	Call SetCamLeadPlayer       ( .Cam:Default .False )
+	Call ModifyColliderFlags ( .False ~Collider:saveblock_warning 7FFFFE00 )
+	Bind $Trigger_SaveBlock_Instructions .Trigger:CeilingTouch ~Collider:saveblock_warning 00000001 00000000 
 	If *Flag_Mode_Rogue == .True
 		If *PitMapID == 0 % Roguelike (Hard/Very-Hard) Floor Zero
 			Set		 *PitFlag .True
@@ -95,10 +98,26 @@ NOP
 	EndIf
 	Set  *Flag_LockInputs_GiantChest .True % lock player inputs at the moment he open a giant chest
 	ExecWait $GetBadge
+	ExecWait $Script_SetPipesPosition % Enable/Disable Pipes blue or green
+	Exec     $Script_MakeExits
+	Call	GetLoadType 	( *Var[1] )
+	If	*Var[1] ==  1
+		Exec	EnterSavePoint
+		Set 	*Rogue_SaveFileReloaded .True
+		Call     EnableModel 	( ~Model:water .False )
+		Call	ModifyColliderFlags ( .False ~Collider:item1 7FFFFE00 )
+		Call	ModifyColliderFlags ( .False ~Collider:item2 7FFFFE00 )
+		Call	ModifyColliderFlags ( .False ~Collider:item3 7FFFFE00 )
+		ExecWait $Script_MakeEntities_SaveFileLoaded
+		% Enable down pipe
+		Call     ModifyColliderFlags 	( .True 5 7FFFFE00 )
+		Call     ModifyColliderFlags 	( .True 6 7FFFFE00 )
+		Call     EnableModel 	( B .True ) % ModelID Boolean % Blue Bottom Pipe
+		Return
+	Else
+		Exec	 $CommingDownPipe
+	EndIf
 	ExecWait $Script_MakeEntities
-	Exec	 $CommingDownPipe
-    Exec     $Script_MakeExits
-	Exec	 $Script_SetPipesPosition % Enable/Disable Pipes blue or green
 	Call 	 MakeNpcs		( 0 $NpcGroups )
 	%% Check if Mario is fully upgraded, if yes, don't spawn oaklie
 	Call 	$ReadAddress ( 8010F291 0 *Var[3] .False .False ) % load hammer
@@ -211,7 +230,7 @@ NOP
 				EndIf
 		EndSwitch
 	EndIf
-	/% Always spawn an NPC
+	/% Always spawn a NPC
 	Call	 SetNpcPos		( C -689` -12` 25` ) % testing purposes%/
 	Return
     End
@@ -613,6 +632,14 @@ NOP
 	If	*MapFlag[1] != .True % If is the first time arriving to that chest floor don't spawn the switch until Mario open the chest
 		Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
 		Call     AssignScript	( $PipeSpawning )
+		If *Flag_Mode_Rogue == .True
+			If *PitMapID != 0
+				Call     MakeEntity  	( .Entity:SavePoint  ~Vec4d:SaveBlock 0 80000000 )
+				If *Rogue_SaveBlock_FirstTime == .False
+					Call 	 ModifyColliderFlags ( .True ~Collider:saveblock_warning 7FFFFE00 )
+				EndIf
+			EndIf
+		EndIf
 	EndIf
 	Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe 70000000 )
 	Call     MakeEntity 	( .Entity:GiantChest ~Vec4d:Chest0 80000000 )
@@ -843,6 +870,55 @@ NOP
 	Call     AssignScript 	( $Script_ReadSignExit )
 	Return
 	End
+}
+
+#new:Script $Script_MakeEntities_SaveFileLoaded
+{
+	Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe 70000000 )
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignA 80000000 )
+	Call     AssignScript 	( $Script_ReadSign ) %% Loaded from SignStringLoader.mpat
+	Call     MakeEntity 	( .Entity:Signpost ~Vec4d:SignB 80000000 )
+	Call     AssignScript 	( $Script_ReadSignExit )
+	Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 0 80000000 )
+	Call  	 MakeEntity    ( .Entity:GiantChest ~Vec4d:Chest0 .False 80000000 )
+	Call	 AssignFlag ( *Flag_LockInputs_GiantChest ) % this will make to always spawn already open
+	Return
+	End
+}
+
+#new:Script $Trigger_SaveBlock_Instructions
+{
+	Call    DisablePlayerInput	( .True )
+	Call	ShowMessageAtScreenPos ( $String_SaveBlock1 A0 28 )
+	Call    DisablePlayerInput	( .False )
+	Set 	*Rogue_SaveBlock_FirstTime .True
+	Call 	ModifyColliderFlags ( .False ~Collider:saveblock_warning 7FFFFE00 )
+	Unbind
+	Return
+	End
+}
+
+#string $String_SaveBlock1
+{
+[STYLE:INSPECT][...]
+Save blocks are [PushColor][Color:07]only available in
+the Roguelike Pit[PopColor].
+[WAIT][NEXT][...]
+If you [PushColor][Color:07]reload[PopColor] your save file
+in the the middle of a playthrough.
+[WAIT][NEXT][...]
+The final results screen will no
+longer appear at floor 100 in
+that run.
+[WAIT][NEXT][...]
+Plus the [PushColor][Color:07]giant chest[PopColor] and [PushColor][Color:07]any NPC[PopColor]
+will [PushColor][Color:07]not spawn[PopColor] on that floor after
+reloading.
+[WAIT][NEXT][...]
+So remember to always save [PushColor][Color:07]only
+after you are ready to go to the
+next floor[PopColor].
+[WAIT][END]
 }
 
 % Chest Animation - when a Partner is inside the chest, made by Rain :)
@@ -1235,6 +1311,20 @@ End
 			Call     PlaySound  	( .Sound:SmokeBurst )
 			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
 			Call     AssignScript	( $PipeSpawning )
+			If *Flag_Mode_Rogue == .True
+				If *PitMapID != 0
+					% Smoke fx
+					Set		*Var[0] ~PosXd:SaveBlock
+					Set		*Var[1] ~PosYd:SaveBlock
+					Set		*Var[2] ~PosZd:SaveBlock
+					Add 	*Var[2] 12` % z
+					Call     PlayEffect 	( ~FX:BigSmokePuff *Var[0] *Var[1] *Var[2] )
+					Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 0 80000000 )
+					If *Rogue_SaveBlock_FirstTime == .False
+						Call 	 ModifyColliderFlags ( .True ~Collider:saveblock_warning 7FFFFE00 )
+					EndIf
+				EndIf
+			EndIf
 			Set		*MapFlag[1] .False
 		Else
 			Call	SetPlayerAnimation ( .PlayerAnim:StandStill )
@@ -1410,7 +1500,7 @@ Have fun [HEART]!
 	SetGroup 1B
 	Set  *Var[A]  1 % Entry ID
 	Set  *Var[B] ~Collider:col1
-	ExecWait $Script_TrackPlayer 
+	ExecWait $Script_TrackPlayer
 	Return
 	End  
 }

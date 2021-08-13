@@ -754,9 +754,9 @@ the mysterious tree...
 		Case  ==  0 % Save
 			Call	GetEntryID ( *Var[0] )
 			If *Var[0] == ~Entry:White_GameFinished % 7
-				Call  	$Script_Save_GameFinished
+				Call  	$Function_Save_GameFinished
 			Else
-				Call  	$Script_Save
+				Call  	$Function_Save
 			EndIf
             Wait  	10`
 			Call	PlaySound ( 0010 ) % game saved
@@ -792,7 +792,7 @@ the mysterious tree...
 	[WAIT][END]
 }
 
-#new:Function $Script_Save
+#new:Function $Function_Save
 {
 	ADDIU     SP, SP, FFD0
 	LIA       A0, $ASCII_pt_255
@@ -832,7 +832,7 @@ the mysterious tree...
 	ADDIU     SP, SP, 30
 }
 
-#new:Function $Script_Save_GameFinished
+#new:Function $Function_Save_GameFinished
 {
 	ADDIU     SP, SP, FFD0
 	LIA       A0, $ASCII_bp_03
@@ -844,24 +844,24 @@ the mysterious tree...
 	SW        S2, 20 (SP)
 	SW        S1, 1C (SP)
 	LW        V0, 0 (S0)
-	LHU       S1, 86 (V0)
-	LHU       S2, 8C (V0)
-	LHU       S3, 8E (V0)
+	LHU       S1, 86 (V0) % Load Area ID
+	LHU       S2, 8C (V0) % Load Map ID
+	LHU       S3, 8E (V0) % Load Entry ID
 	JAL       ~Func:get_map_IDs_by_name
 	ADDIU     A2, SP, 12
 	LW        V1, 0 (S0)
 	LHU       V0, 10 (SP)
 	LHU       A1, 12 (SP)
-	LBU       A0, 166 (V1)
-	SH        V0, 86 (V1)
-	ADDIU     V0, R0, 4 % entry ID
-	SH        A1, 8C (V1)
+	LBU       A0, 166 (V1) % load save file index
+	SH        V0, 86 (V1) % set areaID
+	ADDIU     V0, R0, 4 % entryID
+	SH        A1, 8C (V1) % set mapID
 	JAL       ~Func:fio_save_game
-	SH        V0, 8E (V1)
+	SH        V0, 8E (V1) % set entryID
 	LW        V1, 0 (S0)
-	SH        S1, 86 (V1)
-	SH        S2, 8C (V1)
-	SH        S3, 8E (V1)
+	SH        S1, 86 (V1) % set areaID
+	SH        S2, 8C (V1) % set mapID
+	SH        S3, 8E (V1) % set entryID
 	LW        RA, 28 (SP)
 	LW        S3, 24 (SP)
 	LW        S2, 20 (SP)

@@ -102,6 +102,7 @@ MapVarF - Rogue Misc
 
 #new:Script:Map $Script_Roguelike_GetSpawnAmount
 {
+Exec    $Script_TrackInfiniteLoopInMain
 % Disable Green Pipe from the top right corner
 Call     EnableModel 			( 20 .False )
 Call     ModifyColliderFlags 	( .False A 7FFFFE00 )
@@ -155,6 +156,28 @@ EndIf%/
 Jump    $Script_Roguelike_GetFloor
 Return
 End
+}
+
+% Track if the game got softlocked while trying to enter a floor in
+% rogue, this was made to fix a softlock on laters floors in the pit.
+%
+% I know this isn't the most ideal way, I would love to actually fix
+% the bug but I gave up with this one....
+#new:Script:Map $Script_TrackInfiniteLoopInMain
+{
+    Loop 150` % wait 150 frames
+        If *MapFlag[25] == .True % The map has been loaded
+            Return
+        EndIf
+        Wait    1
+    EndLoop
+    % If all this time has passed and the game is still in a black screen
+    % reload the current map
+    Call    $ReadAddress ( 800740AB 0 *Var[0] .False .False ) % load AreaID
+    Call    $ReadAddress ( 800740B1 0 *Var[1] .False .False ) % load MapID
+    Call    GotoMapByID ( *Var[0] *Var[1] 0 )
+    Return
+    End
 }
 
 #export $Script_Roguelike_GetSpawnAmount
@@ -538,8 +561,8 @@ If .Rogue_ID_Flags != .Pillars
 EndIf%/
 /% testing
 % Always load a trap in specific
-Set .Rogue_ID 6 % Grab Item - Kooper Only
-Set .Rogue_ID_Flags .Pillars %/
+Set .Rogue_ID 12` % Water Gaps - Sushie
+Set .Rogue_ID_Flags .OnlyHorizontal % Always load horizontals floors %/
 % Check if is the 2nd trap to load when having an Spawn Amount of .1Thing2Traps
 If .Rogue_SpawnAmount == .1Thing2Traps
     If .Rogue_LoadedID != FF
@@ -2365,7 +2388,7 @@ SAW     R0, $Entity_Var1
 SAW     R0, $Entity_Var2
 SAW     R0, $Entity_Var3
 SAW     R0, $Entity_Var4
-SAB     R0, $LockVar
+SAH     R0, $LockVar
 SAB     R0, $RewardVar
 SAW     R0, $Data_Reward_Data1
 SAW     R0, $Data_Reward_Data2
@@ -3656,14 +3679,14 @@ PUSH	RA, V0, A1, A2
 LIO 	A1, *Var[D]
 JAL 	~Func:get_variable 
 RESERVED
-SAB     V0, $LockVar
+SAH     V0, $LockVar
 JPOP    RA, V0, A1, A2
 }
 
 #new:Function $Function_ReadLockVar
 {
 PUSH	RA, V0, A1, A2
-LABU    A2, $LockVar
+LAHU    A2, $LockVar
 LIO 	A1, *Var[D]
 JAL 	~Func:set_variable
 RESERVED
@@ -4180,7 +4203,7 @@ NOP
 .CheckVar4
 LIO     T0, $Entity_Var4
 .SetAmount
-LABU    V0, $LockVar
+LAHU    V0, $LockVar
 SH      V0, 2 (T0) % Save amount in 0000XXXX on that EntityVar
 POP 	RA, V0, A1, A2
 JR      RA

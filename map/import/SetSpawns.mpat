@@ -265,8 +265,8 @@
 	End
 }
 	
-	% Setting the amount of floors that need to be loaded to spawn a mover
-	#new:Script $Script_LoadOdds
+% Setting the amount of floors that need to be loaded to spawn a mover
+#new:Script $Script_LoadOdds
 {
 	Switch *MapVar[0]
 		Case > 190` % 5% chance
@@ -277,7 +277,7 @@
 			Set *MoverCounter 15`
 		Case > 80` % 30% chance
 			Set *MoverCounter 20`
-		Case > 0 % 40% chance
+		Case >= 0 % 40% chance
 			Set *MoverCounter 30`
 	EndSwitch
 	Return
@@ -863,24 +863,7 @@ NOP
 	NOP
 }
 	
-	#new:Function $LoadCoinsMover
-{
-	PUSH a0, a1, a2, t0, v0, ra
-	LIO a1, FE363C80
-	JAL ~Func:get_variable
-	NOP
-	%v0 now = what Var[0] holds
-	LAH t0, 8010F29C
-	SLT a2, v0, t0 %if right most register is larger than the register to the left, store 01
-	LIO a1, FE363C81
-	JAL ~Func:set_variable
-	NOP
-	POP a0, a1, a2, t0, v0, ra
-	JR RA
-	NOP
-}
-	
-	#new:Script $LoadMapBandit
+#new:Script $LoadMapBandit
 {
 	Set *Var[0] *MapVar[1]
 	Call $GetFloorBandit ( *Var[1] ) % Down 2 Levels

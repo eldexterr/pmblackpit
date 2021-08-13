@@ -555,7 +555,7 @@ and save his Area Flag %/
             Set 	*Flag_Skip .False
             % Fade Screen Brightness
             SetGroup 0
-            SuspendAll .True
+            SuspendAll 2
             SetF	*Var[0] *Fixed[25.0]  % speed
             SetF	*Var[1] *Fixed[255.0] % fully dark
             ExecWait $Script_FadeScreenOut
@@ -565,9 +565,9 @@ and save his Area Flag %/
             If *Var[0] == .False
                 Call    AddKeyItem  	( 7 ) % Black Star
             EndIf
+			Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
             Kill	*Var[A]
-            Call 	$WriteAddress ( 80155128 0 3 0 .False ) % Close active dialog bubble - 2nd try
-            ResumeAll .True
+            ResumeAll 2
             Thread % Fade Screen Brightness
                 SetF	*Var[0] *Fixed[25.0] % speed
                 SetF	*Var[1] *Fixed[5.0]  % fully bright
@@ -634,13 +634,13 @@ I'm Mistar, and you are?
 #string $String_Mistar_6
 {
 [STYLE:RIGHT][...]
-Mario? I see
+Mario? I see.
 [WAIT][NEXT][...]
 Also...
 [WAIT][NEXT][...]
 yes...
 [WAIT][NEXT][...]
-This is one is my true form,
+This one is my true form,
 but don't be fooled!
 [WAIT][NEXT][...]
 I'm actually stronger and

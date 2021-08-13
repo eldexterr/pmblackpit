@@ -47,7 +47,9 @@ LHU	V0, 000C (S5)
 }
 
 @Function 18CD00 % 8025E420 % needed to get the correct sp value at the moment a battle ends
-{ NOP }
+{
+NOP
+}
 
 @Hook 16EEB8 % 802405D8 % Lock current gained coins to 255 if the player got 255+ coins
 {
@@ -62,6 +64,30 @@ ORI 	V0, R0, FF	 	% Set gained to 255
 POP     T0
 J       802405E0
 SB	    V0, 0078 (T3)
+}
+
+% Fix the game not waiting for all coins to be retrieved at the end of the fight if the value is too high - 1
+@Function 172EF4 % 80244614
+{
+    LBU	    V0, 0079 (S3)
+}
+
+% Fix the game not waiting for all coins to be retrieved at the end of the fight if the value is too high - 2
+@Function 18CADC % 8025E1FC
+{
+    LBU	    V0, 0079 (FP)
+}
+
+% Remove the 127 star points per actor cap - 1
+@Function 16EEA8 % 802405C8
+{
+    LBU     V0, 0079 (T3)
+}
+
+% Remove the 127 star points per actor cap - 2
+@Function 16EEE4 % 80240604
+{
+    LBU     V0, 0079 (T3)
 }
 
 @Hook 18CD30 % 8025E450 % Store the Exp as Coins
