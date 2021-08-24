@@ -553,6 +553,20 @@
 				Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
 				Call     AssignScript	( $PipeSpawning )
 				Set		*MapFlag[1] .False
+				% Enable save block
+				If *Flag_Mode_Rogue == .True
+					% Smoke fx
+					Call    PlaySound  	( .Sound:SmokeBurst )
+					Set		*Var[0] ~PosXd:SaveBlock
+					Set		*Var[1] ~PosYd:SaveBlock
+					Set		*Var[2] ~PosZd:SaveBlock
+					Add 	*Var[2] 12` % z
+					Call     PlayEffect 	( ~FX:BigSmokePuff *Var[0] *Var[1] *Var[2] )
+					Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 0 80000000 )
+					If *Rogue_SaveBlock_FirstTime == .False
+						Call 	 ModifyColliderFlags ( .True ~Collider:saveblock_warning 7FFFFE00 )
+					EndIf
+				EndIf
 			EndIf
 		EndIf
 		ExecWait $Script_SetNPC

@@ -30,6 +30,20 @@
 			Default % all other chest floors
 				% Get Random Partner
 				Label 80_Normal
+				% Check if the player already have all partners
+				% Needed by the save blocks to don't cause a softlock
+				% when reloading the game.
+				Set *Var[0] *Flag_Goombario2
+				Add *Var[0] *Flag_Kooper2
+				Add *Var[0] *Flag_Bombette2
+				Add *Var[0] *Flag_Parakarry2
+				Add *Var[0] *Flag_Bow2
+				Add *Var[0] *Flag_Watt2
+				Add *Var[0] *Flag_Sushie2
+				Add *Var[0] *Flag_Lakilester2
+				If *Var[0] == 8
+					Goto Start % get a badge instead
+				EndIf
 				Call RandInt ( 7 *Var[0] )
 				Switch *Var[0]
 					Case == 0 % Goombario

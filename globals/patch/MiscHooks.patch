@@ -4114,6 +4114,11 @@ try?
 
 #new:Script:Map $Script_KillPrompt
 {
+    % Check if the Sack got beaten on this floor to don't do anything
+    Call    GetNpcPointer ( 00000040 *Var[0] ) % Check if the sack is still alive
+    If *Var[0] == .False
+        Return
+    EndIf
     SetGroup 0
     SuspendAll 2
     Call    DisablePlayerInput ( .True )
