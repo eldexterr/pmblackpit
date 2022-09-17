@@ -7,7 +7,7 @@
 ```
 **2.** Add this as a new line and save:
 ```
-.Default = 0
+Default = 0
 ```
 **3.** In your Star Rod's files go to:
 ```
