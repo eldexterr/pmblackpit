@@ -699,6 +699,52 @@ JR      RA
 ORI     V0, R0, 2
 }
 
+% Call $GetActorSelfID ( *out )
+#export:Function:Battle $GetActorSelfID
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1, S2
+    COPY    S2, A0
+    LW      S0, C (A0)
+    LW	    A2, 0148 (S2) % load self id
+    % Write Var
+    COPY    A0, S2
+    JAL     ~Func:set_variable
+    LW      A1, 0 (S0)
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1, S2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+% Call $GetFreeActorSlots ( *out )
+%
+% Get amount of available actor indexes
+#export:Function $GetFreeActorSlots
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    COPY    S0, A0
+    CLEAR   V0
+    LIO     A0, 800DC150 % ActorTable(0x0C)=Enemies Data - Start
+    ORI     A3, R0, 24` % because last enemy is Enemy23
+    SLL     A3, A3, 2
+    ADDU    A3, A0, A3
+    .Loop
+    LW      A1, 0 (A0)
+    BEQL    A1, R0, .Add1ToCounter
+    ADDI    V0, V0, 1
+    .Add1ToCounter
+    ADDI    A0, A0, 4
+    BNE     A0, A3, .Loop
+    NOP
+    COPY    A0, S0
+    LW      A1, C (S0)
+    LW      A1, 0 (A1)
+    JAL     ~Func:set_variable
+    COPY    A2, V0
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    JR      RA
+    ORI     V0, R0, 2
+}
+
 % Call $GetNpcPointer ( NpcID *out )
 %
 % Get the data pointer from an NPC by reading his ID

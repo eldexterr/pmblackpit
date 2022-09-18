@@ -1,4 +1,18 @@
-% Battle Script's rebuild from Clover's Pro Mode's Rematch fights
+% Black Pit 1.3.4:
+% Base code grabbed from the 'All bosses in the same battle' romhack, is way more stable than the original battle code.
+% (Needed to fix a crash in console)
+
+% Dynamic ActorIDs, isn't really neccesary for Black Pit, it's used in the all bosses mod.
+#new:IntTable $ActorIDs_Lava {
+ 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+ 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+}
+
+#define .Actor:LavaPiranha *Array[0]
+#define .Actor:LavaBudLeft *Array[1]
+#define .Actor:LavaBudRight *Array[2]
+#define .Actor:PetitPiranha1 *Array[3]
+#define .Actor:PetitPiranha2 *Array[4]
 
 #new:Actor $3C_LavaPiranhaBP
 {
@@ -30,6 +44,7 @@
 
 #new:Script $Script_TakeTurn_LavaPiranha
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorFlags 	( .Actor:Self *Var[0] )
    14:  If       *Var[0]  &  00400000 
    24:     Return
@@ -56,22 +71,22 @@
   170:              Wait     0000001E 
   17C:              Loop     0000000A 
   188:                 Call     OverrideBattleDmaDest ( $End[9230] )
-  198:                 Call     LoadBattleDmaData ( 00000001 )
+  198:                 Call     $LoadLavaPiranhaAnimation ( 00000001 )
   1A8:                 Call     PlayModelAnimation ( 00000000 $End[9230] )
   1BC:                 Wait     00000004 
   1C8:              EndLoop
   1D0:              Call     UseCamPreset 	( 00000002 )
   1E0:              Call     MoveBattleCamOver 	( 0000000F )
   1F0:              Call     PlaySoundAtActor 	( .Actor:Self 000003BB )
-  204:              Set      *Var[0] 00000200 
+  204:              Set      *Var[0] .Actor:LavaPiranha 
   214:              ExecWait $Script_80222EF0 
   220:              Call     SetAnimation 	( .Actor:Self 00000001 00790804 )
   238:              Call     OverrideBattleDmaDest ( $End[9230] )
-  248:              Call     LoadBattleDmaData ( 0000000E )
+  248:              Call     $LoadLavaPiranhaAnimation ( 0000000E )
   258:              Call     PlayModelAnimation ( 00000000 $End[9230] )
   26C:              Wait     0000000E 
   278:              Call     OverrideBattleDmaDest ( $End[9230] )
-  288:              Call     LoadBattleDmaData ( 00000000 )
+  288:              Call     $LoadLavaPiranhaAnimation ( 00000000 )
   298:              Call     PlayModelAnimation ( 00000000 $End[9230] )
   2AC:              Call     EnableIdleScript 	( .Actor:Self 00000001 )
   2C0:           EndIf
@@ -150,11 +165,11 @@
    F4:           ExecWait $Script_802275E4 
   100:        EndIf
   108:     Case     ==  .Event:BurnDeath
-  114:        ExecWait $Script_80226B58 
-  120:     Case     ==  .Event:MultibounceHit
+  114:        ExecWait $Script_LavaBud_DoDeath 
+  120:     Case     ==  .Event:SpinSmashHit
   12C:        ExecWait $Script_802275E4 
-  138:     Case     ==  .Event:MultibounceDeath
-  144:        ExecWait $Script_80226B58 
+  138:     Case     ==  .Event:SpinSmashDeath
+  144:        ExecWait $Script_LavaBud_DoDeath 
   150:     Case     ==  .Event:ShockHit
   15C:        SetConst *Var[0] 00000001 
   16C:        Call     GetActorVar 	( .Actor:Self 00000008 *Var[1] )
@@ -172,7 +187,7 @@
   208:     Case     ==  .Event:AirLiftFailed
   214:     Case     ==  .Event:SpikeTaunt
   220:     Case     ==  .Event:Death
-  22C:        ExecWait $Script_80226B58 
+  22C:        ExecWait $Script_LavaBud_DoDeath 
   238:     Case     ==  .Event:EndFirstStrike
   244:     Case     ==  .Event:RecoverStatus
   250:        Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
@@ -189,7 +204,7 @@
   300:     Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
   318:     Call     802CD418 ( *Var[0] 00040000 00000001 )
   330:  EndIf
-		ExecWait	$Script_UpdateDefenseTable
+        ExecWait $Script_UpdateDefenseTable
   338:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
   34C:  Call     UseIdleAnimation 	( .Actor:Self .True )
   360:  Return
@@ -198,6 +213,7 @@
 
 #new:Script $Script_ShootBombs
 {
+        UseArray $ActorIDs_Lava
     0:  Call     UseIdleAnimation 	( .Actor:Self .False )
    14:  Thread
    1C:     Wait     00000008 
@@ -218,8 +234,8 @@
   118:  Else
   120:     Call     OverrideBattleDmaDest ( $End[3230] )
   130:  EndIf
-  138:  Call     LoadBattleDmaData ( 00000012 )
-  148:  ExecWait $Script_802256E0 
+  138:  Call     $LoadLavaPiranhaAnimation ( 00000012 )
+  148:  ExecWait $Script_SetAnimation_LavaBud 
   154:  Thread
   15C:     Wait     00000014 
   168:     Call     SetAnimation 	( .Actor:Self 00000001 007B0805 )
@@ -232,8 +248,8 @@
   1E8:     Else
   1F0:        Call     OverrideBattleDmaDest ( $End[3230] )
   200:     EndIf
-  208:     Call     LoadBattleDmaData ( 0000001F )
-  218:     ExecWait $Script_802256E0 
+  208:     Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  218:     ExecWait $Script_SetAnimation_LavaBud 
   224:  EndThread
   22C:  Wait     00000038 
   238:  Call     SummonEnemy 	( $SpecialFormation_80226B3C 00000000 )
@@ -272,14 +288,14 @@
   4BC:  EndSwitch
   4C4:  Call     SetTargetActor ( *Var[5] .Actor:Player )
   4D8:  Call     SetGoalToTarget 	( *Var[5] )
-  4E8:  Call     SetActorSpeed 	( *Var[5] *Fixed[18.0] )	% increased speed (14 -> 18)
+  4E8:  Call     SetActorSpeed 	( *Var[5] *Fixed[14.0] )
   4FC:  Call     SetActorJumpGravity 	( *Var[5] *Fixed[1.8007812] )
   510:  Call     FlyToGoal  	( *Var[5] 00000000 00000000 .Easing:Linear )
   52C:  Wait     00000002 
   538:  Call     SetGoalToTarget 	( *Var[5] )
   548:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
   55C:  Call     SetGoalToTarget 	( .Actor:Self )
-  56C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[9] 00000002 0000FFFF 00000000 00000007 00000020 )
+  56C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[9] 00000002 0000FFFF 00000000 00000004 00000020 )
   594:  Switch   *Var[9] 
   5A0:     CaseOR   ==  00000000 
   5AC:     CaseOR   ==  00000002 
@@ -471,72 +487,73 @@
 	
 #new:Script $Script_80222EF0
 {
+        UseArray $ActorIDs_Lava
     0:  Switch   *Var[0] 
-    C:     Case     ==  00000201 
-   18:        Call     SetActorVar 	( .Actor:Enemy1 0000000A 00000023 )
+    C:     Case     ==  .Actor:LavaBudLeft 
+   18:        Call     SetActorVar 	( .Actor:LavaBudLeft 0000000A 00000023 )
    30:        Call     802CD7D8 ( 00000001 00000008 *Var[1] *Var[2] *Var[3] )
    50:        Call     802CD8F8 ( 00000001 00000008 *Var[4] *Var[5] *Var[6] )
    70:        Set      *Var[7] 0000000A 
    80:        Set      *Var[8] FFFFFFF1 
    90:        Call     $Function_80218BE8 ( *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[3] *Var[4] )
-   B8:        Call     GetPartOffset 	( .Actor:Enemy1 00000001 *Var[0] *Var[1] *Var[2] )
+   B8:        Call     GetPartOffset 	( .Actor:LavaBudLeft 00000001 *Var[0] *Var[1] *Var[2] )
    D8:        Sub      *Var[2] 00000003 
    E8:        Call     PlayEffect  	( 00000020 00000001 *Var[3] *Var[4] *Var[2] *Fixed[0.30078125] *Var[A] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  12C:        Call     SetActorVar 	( .Actor:Enemy1 00000006 *Var[A] )
-  144:        Call     SetIdleAnimations 	( .Actor:Enemy1 00000001 $IdleAnimations_802250D4 )
-  15C:        Call     SetDefenseTable 	( .Actor:Enemy1 00000001 $DefenseTable_80225128 )
-  174:        Call     SetDefenseTable 	( .Actor:Enemy1 00000002 $DefenseTable_80225128 )
-  18C:        Call     SetPartEventBits 	( .Actor:Enemy1 00000001 00000002 .True )
-  1A8:        Call     SetPartEventBits 	( .Actor:Enemy1 00000002 00000002 .True )
-  1C4:        Call     SetActorVar 	( .Actor:Enemy1 00000007 007B0804 )
-  1DC:        Call     SetActorVar 	( .Actor:Enemy1 00000008 007B080B )
-  1F4:        Call     SetActorVar 	( .Actor:Enemy1 00000005 00000001 )
-  20C:        Call     SetPartFlagBits 	( .Actor:Enemy1 00000002 00020000 .False )
-  228:        Call     SetActorFlagBits 	( .Actor:Enemy1 00040000 .False )
-  240:     Case     ==  00000202 
-  24C:        Call     SetActorVar 	( .Actor:Enemy2 0000000A 00000023 )
+  12C:        Call     SetActorVar 	( .Actor:LavaBudLeft 00000006 *Var[A] )
+  144:        Call     SetIdleAnimations 	( .Actor:LavaBudLeft 00000001 $IdleAnimations_802250D4 )
+  15C:        Call     SetDefenseTable 	( .Actor:LavaBudLeft 00000001 $DefenseTable_80225128 )
+  174:        Call     SetDefenseTable 	( .Actor:LavaBudLeft 00000002 $DefenseTable_80225128 )
+  18C:        Call     SetPartEventBits 	( .Actor:LavaBudLeft 00000001 00000002 .True )
+  1A8:        Call     SetPartEventBits 	( .Actor:LavaBudLeft 00000002 00000002 .True )
+  1C4:        Call     SetActorVar 	( .Actor:LavaBudLeft 00000007 007B0804 )
+  1DC:        Call     SetActorVar 	( .Actor:LavaBudLeft 00000008 007B080B )
+  1F4:        Call     SetActorVar 	( .Actor:LavaBudLeft 00000005 00000001 )
+  20C:        Call     SetPartFlagBits 	( .Actor:LavaBudLeft 00000002 00020000 .False )
+  228:        Call     SetActorFlagBits 	( .Actor:LavaBudLeft 00040000 .False )
+  240:     Case     ==  .Actor:LavaBudRight 
+  24C:        Call     SetActorVar 	( .Actor:LavaBudRight 0000000A 00000023 )
   264:        Call     802CD7D8 ( 00000002 00000008 *Var[1] *Var[2] *Var[3] )
   284:        Call     802CD8F8 ( 00000002 00000008 *Var[4] *Var[5] *Var[6] )
   2A4:        Set      *Var[7] 0000000A 
   2B4:        Set      *Var[8] FFFFFFF1 
   2C4:        Call     $Function_80218BE8 ( *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[3] *Var[4] )
-  2EC:        Call     GetPartOffset 	( .Actor:Enemy2 00000001 *Var[0] *Var[1] *Var[2] )
+  2EC:        Call     GetPartOffset 	( .Actor:LavaBudRight 00000001 *Var[0] *Var[1] *Var[2] )
   30C:        Sub      *Var[2] 00000003 
   31C:        Call     PlayEffect  	( 00000020 00000001 *Var[3] *Var[4] *Var[2] *Fixed[0.30078125] *Var[A] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  360:        Call     SetActorVar 	( .Actor:Enemy2 00000006 *Var[A] )
-  378:        Call     SetIdleAnimations 	( .Actor:Enemy2 00000001 $IdleAnimations_802250D4 )
-  390:        Call     SetDefenseTable 	( .Actor:Enemy2 00000001 $DefenseTable_80225128 )
-  3A8:        Call     SetDefenseTable 	( .Actor:Enemy2 00000002 $DefenseTable_80225128 )
-  3C0:        Call     SetPartEventBits 	( .Actor:Enemy2 00000001 00000002 .True )
-  3DC:        Call     SetPartEventBits 	( .Actor:Enemy2 00000002 00000002 .True )
-  3F8:        Call     SetActorVar 	( .Actor:Enemy2 00000007 007B0804 )
-  410:        Call     SetActorVar 	( .Actor:Enemy2 00000008 007B080B )
-  428:        Call     SetActorVar 	( .Actor:Enemy2 00000005 00000001 )
-  440:        Call     SetPartFlagBits 	( .Actor:Enemy2 00000002 00020000 .False )
-  45C:        Call     SetActorFlagBits 	( .Actor:Enemy2 00040000 .False )
+  360:        Call     SetActorVar 	( .Actor:LavaBudRight 00000006 *Var[A] )
+  378:        Call     SetIdleAnimations 	( .Actor:LavaBudRight 00000001 $IdleAnimations_802250D4 )
+  390:        Call     SetDefenseTable 	( .Actor:LavaBudRight 00000001 $DefenseTable_80225128 )
+  3A8:        Call     SetDefenseTable 	( .Actor:LavaBudRight 00000002 $DefenseTable_80225128 )
+  3C0:        Call     SetPartEventBits 	( .Actor:LavaBudRight 00000001 00000002 .True )
+  3DC:        Call     SetPartEventBits 	( .Actor:LavaBudRight 00000002 00000002 .True )
+  3F8:        Call     SetActorVar 	( .Actor:LavaBudRight 00000007 007B0804 )
+  410:        Call     SetActorVar 	( .Actor:LavaBudRight 00000008 007B080B )
+  428:        Call     SetActorVar 	( .Actor:LavaBudRight 00000005 00000001 )
+  440:        Call     SetPartFlagBits 	( .Actor:LavaBudRight 00000002 00020000 .False )
+  45C:        Call     SetActorFlagBits 	( .Actor:LavaBudRight 00040000 .False )
   474:     Default
-  47C:        Call     SetActorVar 	( .Actor:Enemy0 0000000A 00000046 )
+  47C:        Call     SetActorVar 	( .Actor:LavaPiranha 0000000A 00000046 )
   494:        Call     802CD7D8 ( 00000000 0000000A *Var[1] *Var[2] *Var[3] )
   4B4:        Call     802CD8F8 ( 00000000 0000000A *Var[4] *Var[5] *Var[6] )
   4D4:        Set      *Var[7] 0000001E 
   4E4:        Set      *Var[8] FFFFFFE2 
   4F4:        Call     $Function_80218BE8 ( *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[3] *Var[4] )
-  51C:        Call     GetPartOffset 	( .Actor:Enemy0 00000001 *Var[0] *Var[1] *Var[2] )
+  51C:        Call     GetPartOffset 	( .Actor:LavaPiranha 00000001 *Var[0] *Var[1] *Var[2] )
   53C:        Sub      *Var[2] 00000003 
   54C:        Call     PlayEffect  	( 00000020 00000001 *Var[3] *Var[4] *Var[2] *Fixed[0.7001953] *Var[A] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  590:        Call     SetActorVar 	( .Actor:Enemy0 00000006 *Var[A] )
-  5A8:        Call     SetIdleAnimations 	( .Actor:Enemy0 00000001 $IdleAnimations_8021D064 )
-  5C0:        Call     SetDefenseTable 	( .Actor:Enemy0 00000001 $DefenseTable_FieryHigh )
-  5D8:        Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_FieryHigh )
-  5F0:        Call     SetPartEventBits 	( .Actor:Enemy0 00000001 00000002 .True )
-  60C:        Call     SetPartEventBits 	( .Actor:Enemy0 00000002 00000002 .True )
-  628:        Call     SetActorVar 	( .Actor:Enemy0 00000007 00790804 )
-  640:        Call     SetActorVar 	( .Actor:Enemy0 00000008 0079080A )
-  658:        Call     SetActorVar 	( .Actor:Enemy0 00000005 00000001 )
+  590:        Call     SetActorVar 	( .Actor:LavaPiranha 00000006 *Var[A] )
+  5A8:        Call     SetIdleAnimations 	( .Actor:LavaPiranha 00000001 $IdleAnimations_8021D064 )
+  5C0:        Call     SetDefenseTable 	( .Actor:LavaPiranha 00000001 $DefenseTable_8021D0F0 )
+  5D8:        Call     SetDefenseTable 	( .Actor:LavaPiranha 00000002 $DefenseTable_8021D0F0 )
+  5F0:        Call     SetPartEventBits 	( .Actor:LavaPiranha 00000001 00000002 .True )
+  60C:        Call     SetPartEventBits 	( .Actor:LavaPiranha 00000002 00000002 .True )
+  628:        Call     SetActorVar 	( .Actor:LavaPiranha 00000007 00790804 )
+  640:        Call     SetActorVar 	( .Actor:LavaPiranha 00000008 0079080A )
+  658:        Call     SetActorVar 	( .Actor:LavaPiranha 00000005 00000001 )
   670:        Call     ForceHomePos 	( .Actor:Self 0000003D 0000003D 00000000 )
   68C:        Call     SetActorFlagBits 	( .Actor:Self 00040000 .False )
   6A4:  EndSwitch
-		ExecWait	$Script_UpdateDefenseTable
+        ExecWait	$Script_UpdateDefenseTable
   6AC:  Return
   6B4:  End
 }
@@ -1142,8 +1159,13 @@
    1C:  ADDIU     A0, SP, 10
    20:  SW        RA, 20 (SP)
    24:  SW        R0, 18 (SP)
+        % Needed to avoid some crashes
+        LAW       T0, $PopupMenu_Byte
+        BNE       T0, R0, .End % if a sub menu is opened
+        NOP
    28:  JAL       ~Func:queue_render_task
    2C:  SW        V0, 10 (SP)
+        .End
    30:  LW        RA, 20 (SP)
    34:  JR        RA
    38:  ADDIU     SP, SP, 28
@@ -1264,6 +1286,11 @@
   164:  ADDIU     SP, SP, 40
 }
 
+/% unused
+
+#new:Unknown $???_80222B68
+{ 00000000 }
+
 #new:Function $Function_80218A98
 {
     0:  ADDIU     SP, SP, FFE0
@@ -1309,7 +1336,7 @@
    94:  LW        RA, 18 (SP)
    98:  JR        RA
    9C:  ADDIU     SP, SP, 20
-}
+}%/
 
 #new:Function $Function_80218B38
 {
@@ -1748,85 +1775,85 @@ FA000000 7F7F7FFF D9FFFFFF 00020000 0101602C $???_802190F0 06000204 00000406
 06181A1C 00181C1E 06202224 00202426 06282A2C 00282C2E DF000000 00000000 
 }
 
-#new:Unknown $???_8021A120
+#new:Unknown $AnimatedModelNode_8021A120
 {
 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-FFFF0000 00000000 00590000 
+FFFF0000 00000000 0059s 0000s
 }
 
-#new:Unknown $???_8021A14C
+#new:Unknown $AnimatedModelNode_8021A14C
 {
-00000000 00F90000 FFF70000 00000000 00000000 00000000 $???_8021A120 00000000 
-FFFF0000 00000000 00580000 
+00000000 00F90000 FFF70000 00000000 00000000 00000000 $AnimatedModelNode_8021A120 00000000 
+FFFF0000 00000000 0058s 0000s
 }
 
-#new:Unknown $???_8021A178
+#new:Unknown $AnimatedModelNode_8021A178
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A14C 00000000 
-FFFF0000 00000000 00570000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A14C 00000000 
+FFFF0000 00000000 0057s 0000s
 }
 
-#new:Unknown $???_8021A1A4
+#new:Unknown $AnimatedModelNode_8021A1A4
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A178 00000000 
-FFFF0000 00000000 00560000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A178 00000000 
+FFFF0000 00000000 0056s 0000s
 }
 
-#new:Unknown $???_8021A1D0
+#new:Unknown $AnimatedModelNode_8021A1D0
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A1A4 00000000 
-FFFF0000 00000000 00550000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A1A4 00000000 
+FFFF0000 00000000 0055s 0000s
 }
 
-#new:Unknown $???_8021A1FC
+#new:Unknown $AnimatedModelNode_8021A1FC
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A1D0 00000000 
-FFFF0000 00000000 00540000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A1D0 00000000 
+FFFF0000 00000000 0054s 0000s
 }
 
-#new:Unknown $???_8021A228
+#new:Unknown $AnimatedModelNode_8021A228
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A1FC 00000000 
-FFFF0000 00000000 00530000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A1FC 00000000 
+FFFF0000 00000000 0053s 0000s
 }
 
-#new:Unknown $???_8021A254
+#new:Unknown $AnimatedModelNode_8021A254
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A228 00000000 
-FFFF0000 00000000 00520000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A228 00000000 
+FFFF0000 00000000 0052s 0000s
 }
 
-#new:Unknown $???_8021A280
+#new:Unknown $AnimatedModelNode_8021A280
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A254 00000000 
-FFFF0000 00000000 00510000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A254 00000000 
+FFFF0000 00000000 0051s 0000s
 }
 
-#new:Unknown $???_8021A2AC
+#new:Unknown $AnimatedModelNode_8021A2AC
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A280 00000000 
-FFFF0000 00000000 00500000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A280 00000000 
+FFFF0000 00000000 0050s 0000s
 }
 
-#new:Unknown $???_8021A2D8
+#new:Unknown $AnimatedModelNode_8021A2D8
 {
-00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A2AC 00000000 
-FFFF0000 00000000 004F0000 
+00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A2AC 00000000 
+FFFF0000 00000000 004Fs 0000s
 }
 
-#new:Unknown $???_8021A304
+#new:Unknown $AnimatedModelNode_8021A304
 {
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 $???_8021A2D8 
-00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021A2D8 
+00000000 00000000 00000000
 }
 
-#new:Unknown $???_8021A330
+#new:Unknown $AnimatedModelTree_8021A330
 {
-$???_8021A304 $???_8021A2D8 $???_8021A2AC $???_8021A280 $???_8021A254 $???_8021A228 $???_8021A1FC $???_8021A1D0 
-$???_8021A1A4 $???_8021A178 $???_8021A14C $???_8021A120 00000000 
+$AnimatedModelNode_8021A304 $AnimatedModelNode_8021A2D8 $AnimatedModelNode_8021A2AC $AnimatedModelNode_8021A280 $AnimatedModelNode_8021A254 $AnimatedModelNode_8021A228 $AnimatedModelNode_8021A1FC $AnimatedModelNode_8021A1D0 
+$AnimatedModelNode_8021A1A4 $AnimatedModelNode_8021A178 $AnimatedModelNode_8021A14C $AnimatedModelNode_8021A120 00000000 
 }
 
-#new:Unknown $???_8021A364
+#new:Unknown $ModelAnimation_8021A364
 {
 00050001 00000000 00000008 00010000 00000000 00110001 00B600B6 00B60005 
 00020000 00000000 00080002 00000000 00000011 000200B6 00B600B6 00050003 
@@ -2084,165 +2111,165 @@ FF710008 00050159 0001000B 0005000A 020CF509 71080008 000AFFF2 FFF90002
 00000000 
 }
 
-#new:Unknown $???_8021C308
+#new:Unknown $AnimatedModelNode_8021C308
 {
-$???_8021C308 00000000 10460000 42CC0000 42C60000 C1200000 00000000 00000000 
+$AnimatedModelNode_8021C308 00000000 10460000 42CC0000 42C60000 C1200000 00000000 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C334
+#new:Unknown $AnimatedModelNode_8021C334
 {
-$???_8021C308 00000000 2B020000 43090000 42BC0000 C1200000 $???_8021C308 00000000 
+$AnimatedModelNode_8021C308 00000000 2B020000 43090000 42BC0000 C1200000 $AnimatedModelNode_8021C308 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C360
+#new:Unknown $AnimatedModelNode_8021C360
 {
-$???_8021C308 00000000 EAD80000 42FE0000 42600000 C1200000 $???_8021C334 00000000 
+$AnimatedModelNode_8021C308 00000000 EAD80000 42FE0000 42600000 C1200000 $AnimatedModelNode_8021C334 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C38C
+#new:Unknown $AnimatedModelNode_8021C38C
 {
-$???_8021C308 00000000 F1C80000 42D40000 41B80000 C1200000 $???_8021C360 00000000 
+$AnimatedModelNode_8021C308 00000000 F1C80000 42D40000 41B80000 C1200000 $AnimatedModelNode_8021C360 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C3B8
+#new:Unknown $AnimatedModelNode_8021C3B8
 {
-$???_8021C308 00000000 15550000 42F40000 C1500000 C1200000 $???_8021C38C 00000000 
+$AnimatedModelNode_8021C308 00000000 15550000 42F40000 C1500000 C1200000 $AnimatedModelNode_8021C38C 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C3E4
+#new:Unknown $AnimatedModelNode_8021C3E4
 {
-$???_8021C308 00000000 52350000 42F00000 42D80000 C1300000 $???_8021C3B8 00000000 
+$AnimatedModelNode_8021C308 00000000 52350000 42F00000 42D80000 C1300000 $AnimatedModelNode_8021C3B8 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C410
+#new:Unknown $AnimatedModelNode_8021C410
 {
-$???_8021C308 00000000 0AEC0000 430C0000 42920000 C1300000 $???_8021C3E4 00000000 
+$AnimatedModelNode_8021C308 00000000 0AEC0000 430C0000 42920000 C1300000 $AnimatedModelNode_8021C3E4 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C43C
+#new:Unknown $AnimatedModelNode_8021C43C
 {
-$???_8021C308 00000000 E0170000 42E00000 42280000 C1300000 $???_8021C410 00000000 
+$AnimatedModelNode_8021C308 00000000 E0170000 42E00000 42280000 C1300000 $AnimatedModelNode_8021C410 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C468
+#new:Unknown $AnimatedModelNode_8021C468
 {
-$???_8021C308 00000000 038E0000 42DC0000 40400000 C1300000 $???_8021C43C 00000000 
+$AnimatedModelNode_8021C308 00000000 038E0000 42DC0000 40400000 C1300000 $AnimatedModelNode_8021C43C 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C494
+#new:Unknown $AnimatedModelNode_8021C494
 {
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 $???_8021C468 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021C468 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C4C0
+#new:Unknown $AnimatedModelTree_LavaPiranha
 {
-$???_8021C494 $???_8021C468 $???_8021C43C $???_8021C410 $???_8021C3E4 $???_8021C3B8 $???_8021C38C $???_8021C360 
-$???_8021C334 $???_8021C308 00000000 00000000 
+$AnimatedModelNode_8021C494 $AnimatedModelNode_8021C468 $AnimatedModelNode_8021C43C $AnimatedModelNode_8021C410 $AnimatedModelNode_8021C3E4 $AnimatedModelNode_8021C3B8 $AnimatedModelNode_8021C38C $AnimatedModelNode_8021C360 
+$AnimatedModelNode_8021C334 $AnimatedModelNode_8021C308 00000000 00000000 
 }
 
-#new:Unknown $???_8021C4F0
+#new:Unknown $AnimatedModelNode_8021C4F0
 {
-$???_8021C4F0 00000000 32DC0000 42780000 42540000 C1A00000 00000000 00000000 
+$AnimatedModelNode_8021C4F0 00000000 32DC0000 42780000 42540000 C1A00000 00000000 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C51C
+#new:Unknown $AnimatedModelNode_8021C51C
 {
-$???_8021C4F0 00000000 330B0000 42C20000 424C0000 C1A00000 $???_8021C4F0 00000000 
+$AnimatedModelNode_8021C4F0 00000000 330B0000 42C20000 424C0000 C1A00000 $AnimatedModelNode_8021C4F0 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C548
+#new:Unknown $AnimatedModelNode_8021C548
 {
-$???_8021C4F0 00000000 D8720000 42960000 41980000 C1A00000 $???_8021C51C 00000000 
+$AnimatedModelNode_8021C4F0 00000000 D8720000 42960000 41980000 C1A00000 $AnimatedModelNode_8021C51C 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C574
+#new:Unknown $AnimatedModelNode_8021C574
 {
-$???_8021C4F0 00000000 007A0400 428A0000 C1980000 C1A00000 $???_8021C548 00000000 
+$AnimatedModelNode_8021C4F0 00000000 007A0400 428A0000 C1980000 C1A00000 $AnimatedModelNode_8021C548 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C5A0
+#new:Unknown $AnimatedModelNode_8021C5A0
 {
-$???_8021C4F0 00000000 60570000 42980000 42780000 C1A80000 $???_8021C574 00000000 
+$AnimatedModelNode_8021C4F0 00000000 60570000 42980000 42780000 C1A80000 $AnimatedModelNode_8021C574 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C5CC
+#new:Unknown $AnimatedModelNode_8021C5CC
 {
-$???_8021C4F0 00000000 05BE0000 42C00000 41E00000 C1A80000 $???_8021C5A0 00000000 
+$AnimatedModelNode_8021C4F0 00000000 05BE0000 42C00000 41E00000 C1A80000 $AnimatedModelNode_8021C5A0 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C5F8
+#new:Unknown $AnimatedModelNode_8021C5F8
 {
-$???_8021C4F0 00000000 EB250000 42860000 00000000 C1A80000 $???_8021C5CC 00000000 
+$AnimatedModelNode_8021C4F0 00000000 EB250000 42860000 00000000 C1A80000 $AnimatedModelNode_8021C5CC 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C624
+#new:Unknown $AnimatedModelNode_8021C624
 {
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 $???_8021C5F8 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021C5F8 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C650
+#new:Unknown $AnimatedModelTree_LavaBud
 {
-$???_8021C624 $???_8021C5F8 $???_8021C5CC $???_8021C5A0 $???_8021C574 $???_8021C548 $???_8021C51C $???_8021C4F0 
+$AnimatedModelNode_8021C624 $AnimatedModelNode_8021C5F8 $AnimatedModelNode_8021C5CC $AnimatedModelNode_8021C5A0 $AnimatedModelNode_8021C574 $AnimatedModelNode_8021C548 $AnimatedModelNode_8021C51C $AnimatedModelNode_8021C4F0 
 00000000 00000000 
 }
 
-#new:Unknown $???_8021C678
+#new:Unknown $AnimatedModelNode_8021C678
 {
-$???_8021C678 00000000 75710000 43040000 C0A00000 C0A00000 00000000 00000000 
+$AnimatedModelNode_8021C678 00000000 75710000 43040000 C0A00000 C0A00000 00000000 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C6A4
+#new:Unknown $AnimatedModelNode_8021C6A4
 {
-$???_8021C678 00000000 C7070000 42C40000 40800000 C0A00000 $???_8021C678 00000000 
+$AnimatedModelNode_8021C678 00000000 C7070000 42C40000 40800000 C0A00000 $AnimatedModelNode_8021C678 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C6D0
+#new:Unknown $AnimatedModelNode_8021C6D0
 {
-$???_8021C678 00000000 59000000 43010000 C1D00000 C0C00000 $???_8021C6A4 00000000 
+$AnimatedModelNode_8021C678 00000000 59000000 43010000 C1D00000 C0C00000 $AnimatedModelNode_8021C6A4 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C6FC
+#new:Unknown $AnimatedModelNode_8021C6FC
 {
-$???_8021C678 00000000 91CB0000 42F00000 41400000 C0C00000 $???_8021C6D0 00000000 
+$AnimatedModelNode_8021C678 00000000 91CB0000 42F00000 41400000 C0C00000 $AnimatedModelNode_8021C6D0 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C728
+#new:Unknown $AnimatedModelNode_8021C728
 {
-$???_8021C678 00000000 E3BC0000 42AE0000 C1500000 C0C00000 $???_8021C6FC 00000000 
+$AnimatedModelNode_8021C678 00000000 E3BC0000 42AE0000 C1500000 C0C00000 $AnimatedModelNode_8021C6FC 00000000 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C754
+#new:Unknown $AnimatedModelNode_8021C754
 {
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 $???_8021C728 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 $AnimatedModelNode_8021C728 
 00000000 00000000 00000000 
 }
 
-#new:Unknown $???_8021C780
+#new:Unknown $AnimatedModelTree_LittleBud
 {
-$???_8021C754 $???_8021C728 $???_8021C6FC $???_8021C6D0 $???_8021C6A4 $???_8021C678 00000000 00000000 
+$AnimatedModelNode_8021C754 $AnimatedModelNode_8021C728 $AnimatedModelNode_8021C6FC $AnimatedModelNode_8021C6D0 $AnimatedModelNode_8021C6A4 $AnimatedModelNode_8021C678 00000000 00000000 
 FFF00000 00000000 00000000 000000FF 000F0000 00000000 04000000 000000FF 
 000F0027 00000000 04000500 000000FF FFF00027 00000000 00000500 000000FF 
 }
@@ -2411,6 +2438,12 @@ FFFF % Lava Bud's outline color
 .Status:End
 }
 
+#new:IdleAnimations $IdleAnimations_LavaPiranha_Dead
+{
+.Status:Normal    0079080F
+.Status:End
+}
+
 #new:StatusTable $StatusTable_8021D148
 {
 .Status:Normal      0`
@@ -2439,12 +2472,15 @@ FFFF % Lava Bud's outline color
 
 #new:PartsTable $PartsTable_8021D1F4
 {
-00120000 01000000 002800FF $IdleAnimations_8021D018 $DefenseTable_High 00000000 00000000 00F80000 00000000 
-00800009 02000000 002800FF 00000000 $DefenseTable_High 00000000 00000000 00F80000 00000000 
+00120000 01000000 002800FF $IdleAnimations_8021D018 $DefenseTable_8021D11C 00000000 00000000 00F80000 00000000 
+00800009 02000000 002800FF 00000000 $DefenseTable_8021D11C 00000000 00000000 00F80000 00000000 
 }
 
 #new:Script $Script_Init_LavaPiranha
 {
+        UseArray $ActorIDs_Lava
+        Call     $GetActorSelfID ( *Var[0] )
+        Set      .Actor:LavaPiranha *Var[0]
     0:  UseArray $End[788] 
     %C:  Call     EnableGroup 	( 00000017 .True )
    %20:  Call     EnableGroup 	( 0000001C .False )
@@ -2460,32 +2496,38 @@ FFFF % Lava Bud's outline color
   104:  Call     SetActorVar 	( .Actor:Self 00000007 00790803 )
   11C:  Call     SetActorVar 	( .Actor:Self 00000008 00790809 )
   134:  Call     ForceHomePos 	( .Actor:Self 0000003D 0000003D 00000000 )
-  150:  Call     LoadModelAnimation  ( 00000000 $???_8021C4C0 )
+  150:  Call     LoadModelAnimation  ( 00000000 $AnimatedModelTree_LavaPiranha )
   164:  Call     OverrideBattleDmaDest ( $End[9230] )
-  174:  Call     LoadBattleDmaData ( 00000000 )
+  174:  Call     $LoadLavaPiranhaAnimation ( 00000000 )
   184:  Call     PlayModelAnimation ( 00000000 $End[9230] )
   198:  Call     802CCFE4 ( 00000000 00000000 00000000 00000000 )
   1B4:  Call     802CD418 ( 00000000 00000080 00000001 )
-  1CC:  Call     LoadModelAnimation  ( 00000001 $???_8021C650 )
+  1CC:  Call     LoadModelAnimation  ( 00000001 $AnimatedModelTree_LavaBud )
   1E0:  Call     OverrideBattleDmaDest ( $End[6230] )
-  1F0:  Call     LoadBattleDmaData ( 0000001F )
+  1F0:  Call     $LoadLavaPiranhaAnimation ( 0000001F )
   200:  Call     PlayModelAnimation ( 00000001 $End[6230] )
   214:  Call     802CCFE4 ( 00000001 00000000 00000000 00000000 )
   230:  Call     802CD418 ( 00000001 00000080 00000001 )
-  248:  Call     LoadModelAnimation  ( 00000002 $???_8021C650 )
+  248:  Call     LoadModelAnimation  ( 00000002 $AnimatedModelTree_LavaBud )
   25C:  Call     OverrideBattleDmaDest ( $End[3230] )
-  26C:  Call     LoadBattleDmaData ( 0000001F )
+  26C:  Call     $LoadLavaPiranhaAnimation ( 0000001F )
   27C:  Call     PlayModelAnimation ( 00000002 $End[3230] )
   290:  Call     802CCFE4 ( 00000002 00000032 0000000E 00000014 )
   2AC:  Call     802CD418 ( 00000002 00000080 00000001 )
-  2C4:  Call     LoadModelAnimation  ( 00000003 $???_8021C780 )
+  2C4:  Call     LoadModelAnimation  ( 00000003 $AnimatedModelTree_LittleBud )
   2D8:  Call     OverrideBattleDmaDest ( $End[1230] )
-  2E8:  Call     LoadBattleDmaData ( 00000022 )
+  2E8:  Call     $LoadLavaPiranhaAnimation ( 00000022 )
   2F8:  Call     PlayModelAnimation ( 00000003 $End[1230] )
   30C:  Call     802CCFE4 ( 00000003 00000000 00000000 00000003 )
   328:  Call     802CD418 ( 00000003 00000080 00000001 )
+        UseArray $ActorIDs_Lava
   340:  Call     SummonEnemy 	( $SpecialFormation_8021FF04 00000000 )
+        Set      .Actor:LavaBudLeft *Var[0]
   354:  Call     SummonEnemy 	( $SpecialFormation_8021FF20 00000000 )
+        Set      .Actor:LavaBudRight *Var[0]
+        Set      .Actor:PetitPiranha1 -1
+        Set      .Actor:PetitPiranha2 -1
+        UseArray $End[788] 
   368:  Wait     00000002 
   374:  Exec     $Script_8021DEEC 
   380:  Call     802CDBA4 ( 00000000 00B70000 )
@@ -2495,10 +2537,12 @@ FFFF % Lava Bud's outline color
   3D8:  Call     BindIdle    	( .Actor:Self $Script_Idle_LavaPiranha )
   3EC:  Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_LavaPiranha )
   %400:  Call     BindNextTurn 	( .Actor:Self $Script_NextTurn_LavaPiranha ) % Kolorado doesn't appears anymore
-  414:  Call     ForceHomePos 	( .Actor:Enemy1 00000039 00000039 00000000 )
-  430:  Call     ForceHomePos 	( .Actor:Enemy2 0000006B 00000047 00000014 )
-  44C:  Call     HPBarToHome 	( .Actor:Enemy1 )
-  45C:  Call     HPBarToHome 	( .Actor:Enemy2 )
+        UseArray $ActorIDs_Lava
+  414:  Call     ForceHomePos 	( .Actor:LavaBudLeft 00000039 00000039 00000000 )
+  430:  Call     ForceHomePos 	( .Actor:LavaBudRight 0000006B 00000047 00000014 )
+  44C:  Call     HPBarToHome 	( .Actor:LavaBudLeft )
+  45C:  Call     HPBarToHome 	( .Actor:LavaBudRight )
+        UseArray $End[788] 
   46C:  Call     $Function_RenderBody
   478:  Return
   480:  End
@@ -2506,12 +2550,13 @@ FFFF % Lava Bud's outline color
 
 #new:Script $Script_Idle_LavaPiranha
 {
+        UseArray $ActorIDs_Lava
     0:  Label    00000000 
     C:  Call     GetActorHP  	( .Actor:Self *Var[0] )
    20:  If       *Var[0] ==  00000000 
    30:     Goto     00000063 
    3C:  EndIf
-   44:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[0] )
+   44:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[0] )
    5C:  If       *Var[0] ==  00000000 
    6C:     Goto     00000063 
    78:  EndIf
@@ -2533,7 +2578,7 @@ FFFF % Lava Bud's outline color
   170:  Set      *Var[0] 0000001E 
   180:  Call     SetActorVar 	( .Actor:Self 0000000D *Var[0] )
   198:  Call     OverrideBattleDmaDest ( $End[9230] )
-  1A8:  Call     LoadBattleDmaData ( 00000001 )
+  1A8:  Call     $LoadLavaPiranhaAnimation ( 00000001 )
   1B8:  Call     PlayModelAnimation ( 00000000 $End[9230] )
   1CC:  Label    00000063 
   1D8:  Wait     00000001 
@@ -2542,7 +2587,8 @@ FFFF % Lava Bud's outline color
   1F8:  End
 }
 
-#new:Script $Script_NextTurn_LavaPiranha % unused
+% unused
+#new:Script $Script_NextTurn_LavaPiranha
 {
     0:  Call     GetBattlePhase ( *Var[0] )
    10:  Switch   *Var[0] 
@@ -2637,9 +2683,13 @@ FFFF % Lava Bud's outline color
     0:  UseArray $End[788] 
     C:  Label    00000000 
    18:  Call     802CD7D8 ( 00000000 0000000A *Var[0] *Var[1] *Var[2] )
-   38:  Call     SetPartPos 	( .Actor:Enemy0 00000001 *Var[0] *Var[1] *Var[2] )
+        UseArray $ActorIDs_Lava
+   38:  Call     SetPartPos 	( .Actor:LavaPiranha 00000001 *Var[0] *Var[1] *Var[2] )
+        UseArray $End[788]
    58:  Call     802CD8F8 ( 00000000 0000000A *Var[0] *Var[1] *Var[2] )
-   78:  Call     SetPartRotation 	( .Actor:Enemy0 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $ActorIDs_Lava
+   78:  Call     SetPartRotation 	( .Actor:LavaPiranha 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $End[788]
    98:  Call     $Function_802188EC ( )
    A4:  Call     802CD7D8 ( 00000000 0000000A *Var[0] *Var[1] *Var[2] )
    C4:  Sub      *Var[2] 00000002 
@@ -2689,11 +2739,15 @@ FFFF % Lava Bud's outline color
   624:  Call     $Function_80218224 ( 00000000 00000008 *Var[0] *Var[1] *Var[2] )
   644:  Call     $Function_802182E4 ( 00000000 00000008 *Fixed[0.71484375] *Fixed[0.71484375] *Fixed[1.0] )
   664:  Call     802CD7D8 ( 00000001 00000008 *Var[0] *Var[1] *Var[2] )
-  684:  Call     SetPartPos 	( .Actor:Enemy1 00000001 *Var[0] *Var[1] *Var[2] )
+        UseArray $ActorIDs_Lava
+  684:  Call     SetPartPos 	( .Actor:LavaBudLeft 00000001 *Var[0] *Var[1] *Var[2] )
   6A4:  Sub      *Var[0] 00000008 
-  6B4:  Call     SetPartPos 	( .Actor:Enemy1 00000002 *Var[0] *Var[1] *Var[2] )
+  6B4:  Call     SetPartPos 	( .Actor:LavaBudLeft 00000002 *Var[0] *Var[1] *Var[2] )
+        UseArray $End[788]
   6D4:  Call     802CD8F8 ( 00000001 00000008 *Var[0] *Var[1] *Var[2] )
-  6F4:  Call     SetPartRotation 	( .Actor:Enemy1 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $ActorIDs_Lava
+  6F4:  Call     SetPartRotation 	( .Actor:LavaBudLeft 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $End[788]
   714:  Call     802CD7D8 ( 00000001 00000008 *Var[0] *Var[1] *Var[2] )
   734:  Sub      *Var[2] 00000002 
   744:  Call     $Function_8021812C ( 00000001 00000000 *Var[0] *Var[1] *Var[2] )
@@ -2733,10 +2787,14 @@ FFFF % Lava Bud's outline color
   B64:  Call     $Function_80218224 ( 00000001 00000006 *Var[0] *Var[1] *Var[2] )
   B84:  Call     $Function_802182E4 ( 00000001 00000006 *Fixed[0.71484375] *Fixed[0.71484375] *Fixed[1.0] )
   BA4:  Call     802CD7D8 ( 00000002 00000008 *Var[0] *Var[1] *Var[2] )
-  BC4:  Call     SetPartPos 	( .Actor:Enemy2 00000001 *Var[0] *Var[1] *Var[2] )
-  BE4:  Call     SetPartPos 	( .Actor:Enemy2 00000002 *Var[0] *Var[1] *Var[2] )
+        UseArray $ActorIDs_Lava
+  BC4:  Call     SetPartPos 	( .Actor:LavaBudRight 00000001 *Var[0] *Var[1] *Var[2] )
+  BE4:  Call     SetPartPos 	( .Actor:LavaBudRight 00000002 *Var[0] *Var[1] *Var[2] )
+        UseArray $End[788]
   C04:  Call     802CD8F8 ( 00000002 00000008 *Var[0] *Var[1] *Var[2] )
-  C24:  Call     SetPartRotation 	( .Actor:Enemy2 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $ActorIDs_Lava
+  C24:  Call     SetPartRotation 	( .Actor:LavaBudRight 00000001 *Var[0] 00000000 *Var[2] )
+        UseArray $End[788]
   C44:  Call     802CD7D8 ( 00000002 00000008 *Var[0] *Var[1] *Var[2] )
   C64:  Sub      *Var[2] 00000002 
   C74:  Call     $Function_8021812C ( 00000002 00000000 *Var[0] *Var[1] *Var[2] )
@@ -2809,22 +2867,30 @@ FFFF % Lava Bud's outline color
  147C:     Call     GetActorVar 	( .Actor:Self 0000000A *Var[9] )
  1494:     Call     $Function_80218930 ( *Var[0] *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[9] )
  14BC:  EndIf
- 14C4:  Call     GetActorVar 	( .Actor:Enemy1 00000006 *Var[0] )
+        UseArray $ActorIDs_Lava
+ 14C4:  Call     GetActorVar 	( .Actor:LavaBudLeft 00000006 *Var[0] )
+        UseArray $End[788]
  14DC:  If       *Var[0] !=  00000000 
  14EC:     Call     802CD7D8 ( 00000001 00000008 *Var[1] *Var[2] *Var[3] )
  150C:     Call     802CD8F8 ( 00000001 00000008 *Var[4] *Var[5] *Var[6] )
  152C:     Set      *Var[7] 0000000A 
  153C:     Set      *Var[8] FFFFFFF1 
- 154C:     Call     GetActorVar 	( .Actor:Enemy1 0000000A *Var[9] )
+           UseArray $ActorIDs_Lava
+ 154C:     Call     GetActorVar 	( .Actor:LavaBudLeft 0000000A *Var[9] )
+           UseArray $End[788]
  1564:     Call     $Function_80218930 ( *Var[0] *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[9] )
  158C:  EndIf
- 1594:  Call     GetActorVar 	( .Actor:Enemy2 00000006 *Var[0] )
+        UseArray $ActorIDs_Lava
+ 1594:  Call     GetActorVar 	( .Actor:LavaBudRight 00000006 *Var[0] )
+        UseArray $End[788]
  15AC:  If       *Var[0] !=  00000000 
  15BC:     Call     802CD7D8 ( 00000002 00000008 *Var[1] *Var[2] *Var[3] )
  15DC:     Call     802CD8F8 ( 00000002 00000008 *Var[4] *Var[5] *Var[6] )
  15FC:     Set      *Var[7] 0000000A 
  160C:     Set      *Var[8] FFFFFFF1 
- 161C:     Call     GetActorVar 	( .Actor:Enemy2 0000000A *Var[9] )
+           UseArray $ActorIDs_Lava
+ 161C:     Call     GetActorVar 	( .Actor:LavaBudRight 0000000A *Var[9] )
+           UseArray $End[788]
  1634:     Call     $Function_80218930 ( *Var[0] *Var[1] *Var[2] *Var[6] *Var[7] *Var[8] *Var[9] )
  165C:  EndIf
  1664:  Wait     00000001 
@@ -2864,10 +2930,10 @@ FFFF % Lava Bud's outline color
   134:     Case     ==  .Event:BurnDeath
   140:        ExecWait $Script_DoDeath 
   14C:        Return
-  154:     Case     ==  .Event:MultibounceHit
+  154:     Case     ==  .Event:SpinSmashHit
   160:        ExecWait $Script_80223764 
   16C:        ExecWait $Script_80223D78 
-  178:     Case     ==  .Event:MultibounceDeath
+  178:     Case     ==  .Event:SpinSmashDeath
   184:        ExecWait $Script_DoDeath 
   190:        Return
   198:     Case     ==  .Event:ShockHit
@@ -2922,6 +2988,7 @@ FFFF % Lava Bud's outline color
 
 #new:Script $Script_8021F9E8
 {
+        UseArray $ActorIDs_Lava
     0:  Thread
     8:     Wait     00000001 
    14:     Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
@@ -2932,7 +2999,7 @@ FFFF % Lava Bud's outline color
    68:     If       *Var[2] ==  00000001 
    78:        Goto     0000000A 
    84:     EndIf
-   8C:     Set      *Var[0] 00000200 
+   8C:     Set      *Var[0] .Actor:LavaPiranha 
    9C:     ExecWait $Script_80222EF0 
    A8:     Label    0000000A 
    B4:  EndThread
@@ -2941,17 +3008,17 @@ FFFF % Lava Bud's outline color
    E4:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
    FC:     If       *Var[0] ==  00000000 
   10C:        Call     OverrideBattleDmaDest ( $End[9230] )
-  11C:        Call     LoadBattleDmaData ( 0000000E )
+  11C:        Call     $LoadLavaPiranhaAnimation ( 0000000E )
   12C:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   140:        Call     SetActorVar 	( .Actor:Self 00000007 00790803 )
   158:        Call     SetActorVar 	( .Actor:Self 00000008 00790809 )
   170:        Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_8021D064 )
-  188:        Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_FieryHigh )
-  1A0:        Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_FieryHigh )
+  188:        Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_8021D0F0 )
+  1A0:        Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_8021D0F0 )
   1B8:        Thread
   1C0:           Wait     0000000E 
   1CC:           Call     OverrideBattleDmaDest ( $End[9230] )
-  1DC:           Call     LoadBattleDmaData ( 00000000 )
+  1DC:           Call     $LoadLavaPiranhaAnimation ( 00000000 )
   1EC:           Call     PlayModelAnimation ( 00000000 $End[9230] )
   200:        EndThread
   208:     EndIf
@@ -2989,7 +3056,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
    B0:     Call     MoveBattleCamOver 	( 0000000F )
    C0:  EndThread
    C8:  Call     OverrideBattleDmaDest ( $End[9230] )
-   D8:  Call     LoadBattleDmaData ( 00000002 )
+   D8:  Call     $LoadLavaPiranhaAnimation ( 00000002 )
    E8:  Call     PlayModelAnimation ( 00000000 $End[9230] )
    FC:  Wait     0000000E 
   108:  Call     SetAnimation 	( .Actor:Self 00000001 00790805 )
@@ -3010,7 +3077,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   254:  Call     GetGoalPos  	( .Actor:Self *Var[3] *Var[4] *Var[5] )
   270:  Call     PlayEffect  	( 00000070 00000000 *Var[3] 00000000 *Var[5] 00000032 00000032 *Fixed[1.0] 00000028 00000037 *Fixed[1.0] *Fixed[1.0] 00000000 00000000 )
   2B4:  Call     OverrideBattleDmaDest ( $End[9230] )
-  2C4:  Call     LoadBattleDmaData ( 00000003 )
+  2C4:  Call     $LoadLavaPiranhaAnimation ( 00000003 )
   2D4:  Call     PlayModelAnimation ( 00000000 $End[9230] )
   2E8:  Call     EnemyTestTarget ( .Actor:Self *Var[A] 00000002 00000000 00000001 00000010 )
   30C:  Switch   *Var[A] 
@@ -3019,7 +3086,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   330:        Call     SetAnimation 	( .Actor:Self 00000001 00790803 )
   348:        Wait     00000013 
   354:        Call     OverrideBattleDmaDest ( $End[9230] )
-  364:        Call     LoadBattleDmaData ( 00000000 )
+  364:        Call     $LoadLavaPiranhaAnimation ( 00000000 )
   374:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   388:        If       *Var[A] ==  00000005 
   398:           Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
@@ -3033,7 +3100,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   418:  EndSwitch
   420:  Wait     00000002 
   42C:  Call     SetGoalToTarget 	( .Actor:Self )
-  43C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000002 0000FFFF 00000000 00000006 00000020 )
+  43C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000002 0000FFFF 00000000 00000005 00000020 )
   464:  Set      *Var[F] *Var[0] 
   474:  Switch   *Var[F] 
   480:     CaseOR   ==  00000000 
@@ -3042,7 +3109,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   4A4:        Call     SetAnimation 	( .Actor:Self 00000001 00790803 )
   4BC:        Wait     00000013 
   4C8:        Call     OverrideBattleDmaDest ( $End[9230] )
-  4D8:        Call     LoadBattleDmaData ( 00000000 )
+  4D8:        Call     $LoadLavaPiranhaAnimation ( 00000000 )
   4E8:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   4FC:        If       *Var[F] ==  0000000A 
   50C:           Return
@@ -3072,7 +3139,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
    B0:     Call     MoveBattleCamOver 	( 0000000F )
    C0:  EndThread
    C8:  Call     OverrideBattleDmaDest ( $End[9230] )
-   D8:  Call     LoadBattleDmaData ( 00000002 )
+   D8:  Call     $LoadLavaPiranhaAnimation ( 00000002 )
    E8:  Call     PlayModelAnimation ( 00000000 $End[9230] )
    FC:  Wait     0000000E 
   108:  Call     SetAnimation 	( .Actor:Self 00000001 0079080E )
@@ -3098,13 +3165,13 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   2D0:     CaseOR   ==  00000005 
   2DC:        Wait     00000014 
   2E8:        Call     OverrideBattleDmaDest ( $End[9230] )
-  2F8:        Call     LoadBattleDmaData ( 00000003 )
+  2F8:        Call     $LoadLavaPiranhaAnimation ( 00000003 )
   308:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   31C:        Call     SetAnimation 	( .Actor:Self 00000001 00790807 )
   334:        Wait     00000013 
   340:        Call     SetAnimation 	( .Actor:Self 00000001 00790804 )
   358:        Call     OverrideBattleDmaDest ( $End[9230] )
-  368:        Call     LoadBattleDmaData ( 00000000 )
+  368:        Call     $LoadLavaPiranhaAnimation ( 00000000 )
   378:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   38C:        If       *Var[A] ==  00000005 
   39C:           Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
@@ -3118,16 +3185,16 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   41C:  EndSwitch
   424:  Wait     00000002 
   430:  Call     SetGoalToTarget 	( .Actor:Self )
-  440:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000002 0000FFFF 00000000 0000000A 00000020 )
+  440:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000002 0000FFFF 00000000 00000007 00000020 )
   468:  Wait     00000014 
   474:  Call     OverrideBattleDmaDest ( $End[9230] )
-  484:  Call     LoadBattleDmaData ( 00000003 )
+  484:  Call     $LoadLavaPiranhaAnimation ( 00000003 )
   494:  Call     PlayModelAnimation ( 00000000 $End[9230] )
   4A8:  Call     SetAnimation 	( .Actor:Self 00000001 00790807 )
   4C0:  Wait     00000013 
   4CC:  Call     SetAnimation 	( .Actor:Self 00000001 00790804 )
   4E4:  Call     OverrideBattleDmaDest ( $End[9230] )
-  4F4:  Call     LoadBattleDmaData ( 00000000 )
+  4F4:  Call     $LoadLavaPiranhaAnimation ( 00000000 )
   504:  Call     PlayModelAnimation ( 00000000 $End[9230] )
   518:  If       *Var[F] ==  0000000A 
   528:     Return
@@ -3141,6 +3208,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
 
 #new:Script $Script_DoDeath
 {
+        UseArray $ActorIDs_Lava
     0:  Call     SetActorVar 	( .Actor:Self 00000001 00000001 )
    18:  ExecWait $Script_80223764 
    24:  Label    00000000 
@@ -3150,14 +3218,14 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
    5C:     Goto     00000000 
    68:  EndIf
    70:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[2] )
-   88:  If       *Var[2] ==  00000000 
-   98:     Call     ClearStatusEffects ( FFFFFF81 )
-   A8:     Call     ClearStatusEffects ( 00000201 )
-   B8:     Call     ClearStatusEffects ( 00000202 )
+   88:  If       *Var[2] ==  00000000 % Phase 1
+   98:     Call     ClearStatusEffects ( .Actor:Self )
+   A8:     Call     ClearStatusEffects ( .Actor:LavaBudLeft )
+   B8:     Call     ClearStatusEffects ( .Actor:LavaBudRight )
    C8:     Call     802CD418 ( 00000000 00040000 00000000 )
-   E0:     Call     GetActorVar 	( .Actor:Enemy1 00000000 *Var[0] )
+   E0:     Call     GetActorVar 	( .Actor:LavaBudLeft 00000000 *Var[0] )
    F8:     Call     802CD418 ( *Var[0] 00040000 00000000 )
-  110:     Call     GetActorVar 	( .Actor:Enemy2 00000000 *Var[0] )
+  110:     Call     GetActorVar 	( .Actor:LavaBudRight 00000000 *Var[0] )
   128:     Call     802CD418 ( *Var[0] 00040000 00000000 )
   140:     Call     8026E208 ( 00000001 )
   150:     Call     UseCamPreset 	( 00000013 )
@@ -3166,18 +3234,18 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   188:     Call     SetBattleCamOffsetZ 	( 00000000 )
   198:     Call     MoveBattleCamOver 	( 000000F0 )
   1A8:     Call     OverrideBattleDmaDest ( $End[9230] )
-  1B8:     Call     LoadBattleDmaData ( 00000009 )
+  1B8:     Call     $LoadLavaPiranhaAnimation ( 00000009 )
   1C8:     Call     PlayModelAnimation ( 00000000 $End[9230] )
   1DC:     Call     OverrideBattleDmaDest ( $End[1230] )
-  1EC:     Call     LoadBattleDmaData ( 00000023 )
+  1EC:     Call     $LoadLavaPiranhaAnimation ( 00000023 )
   1FC:     Call     PlayModelAnimation ( 00000003 $End[1230] )
   210:     Wait     0000000A 
   21C:     Call     OverrideBattleDmaDest ( $End[6230] )
-  22C:     Call     LoadBattleDmaData ( 00000018 )
+  22C:     Call     $LoadLavaPiranhaAnimation ( 00000018 )
   23C:     Call     PlayModelAnimation ( 00000001 $End[6230] )
   250:     Wait     00000005 
   25C:     Call     OverrideBattleDmaDest ( $End[3230] )
-  26C:     Call     LoadBattleDmaData ( 00000018 )
+  26C:     Call     $LoadLavaPiranhaAnimation ( 00000018 )
   27C:     Call     PlayModelAnimation ( 00000002 $End[3230] )
   290:     Wait     00000004 
   29C:     Thread
@@ -3186,12 +3254,12 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   2D0:        Call     PlaySound   	( 000007BC )
   2E0:     EndThread
   2E8:     Call     $Function_80218000 ( 00000050 000000EA )
-  2FC:     Call     8027D32C ( FFFFFF81 )
-  30C:     Call     8027D32C ( 00000201 )
-  31C:     Call     8027D32C ( 00000202 )
+  2FC:     Call     8027D32C ( .Actor:Self )
+  30C:     Call     8027D32C ( .Actor:LavaBudLeft )
+  31C:     Call     8027D32C ( .Actor:LavaBudRight )
   32C:     Call     SetAnimation 	( .Actor:Self 00000001 0079080D )
   344:     Call     OverrideBattleDmaDest ( $End[9230] )
-  354:     Call     LoadBattleDmaData ( 0000000A )
+  354:     Call     $LoadLavaPiranhaAnimation ( 0000000A )
   364:     Call     PlayModelAnimation ( 00000000 $End[9230] )
   378:     Thread
   380:        Call     PlaySoundAtActor 	( .Actor:Self 000003C6 )
@@ -3211,9 +3279,9 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   464:        EndLoop
   46C:     EndThread
   474:     Wait     0000000A 
-  480:     Call     SetAnimation 	( .Actor:Enemy1 00000001 007B080D )
+  480:     Call     SetAnimation 	( .Actor:LavaBudLeft 00000001 007B080D )
   498:     Call     OverrideBattleDmaDest ( $End[6230] )
-  4A8:     Call     LoadBattleDmaData ( 00000019 )
+  4A8:     Call     $LoadLavaPiranhaAnimation ( 00000019 )
   4B8:     Call     PlayModelAnimation ( 00000001 $End[6230] )
   4CC:     Thread
   4D4:        Wait     0000002D 
@@ -3232,9 +3300,9 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   5A4:        EndLoop
   5AC:     EndThread
   5B4:     Wait     00000005 
-  5C0:     Call     SetAnimation 	( .Actor:Enemy2 00000001 007B080D )
+  5C0:     Call     SetAnimation 	( .Actor:LavaBudRight 00000001 007B080D )
   5D8:     Call     OverrideBattleDmaDest ( $End[3230] )
-  5E8:     Call     LoadBattleDmaData ( 00000019 )
+  5E8:     Call     $LoadLavaPiranhaAnimation ( 00000019 )
   5F8:     Call     PlayModelAnimation ( 00000002 $End[3230] )
   60C:     Thread
   614:        Wait     0000002D 
@@ -3263,7 +3331,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   780:     Call     802CCFE4 ( 00000001 00000000 FFFFFF06 00000000 )
   79C:     Call     802CCFE4 ( 00000002 00000000 FFFFFF06 00000000 )
   7B8:     Call     SetActorPos 	( .Actor:Self 00000064 00000000 00000000 )
-  %7D4:     Call     DropStarPoints ( FFFFFF81 )
+  %7D4:     Call     DropStarPoints ( .Actor:Self )
   7E4:     Call     PlaySoundAtActor 	( .Actor:Self .Sound:Death )
   7F8:     Call     ForceHomePos 	( .Actor:Self 0000003D 0000003D 00000000 )
   /%814:     Wait     00000041 
@@ -3335,49 +3403,49 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
   CB8:     Call     SetActorVar 	( .Actor:Self 00000000 00000001 )
   CD0:     Call     SetActorVar 	( .Actor:Self 00000007 00790804 )
   CE8:     Call     SetActorVar 	( .Actor:Self 00000008 0079080A )
-  D00:     Call     SetActorVar 	( .Actor:Enemy1 00000007 007B0804 )
-  D18:     Call     SetActorVar 	( .Actor:Enemy1 00000008 007B080B )
-  D30:     Call     SetActorVar 	( .Actor:Enemy2 00000007 007B0804 )
-  D48:     Call     SetActorVar 	( .Actor:Enemy2 00000008 007B080B )
+  D00:     Call     SetActorVar 	( .Actor:LavaBudLeft 00000007 007B0804 )
+  D18:     Call     SetActorVar 	( .Actor:LavaBudLeft 00000008 007B080B )
+  D30:     Call     SetActorVar 	( .Actor:LavaBudRight 00000007 007B0804 )
+  D48:     Call     SetActorVar 	( .Actor:LavaBudRight 00000008 007B080B )
   D60:     Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_802250D4 )
-  D78:     Call     SetIdleAnimations 	( .Actor:Enemy1 00000001 $IdleAnimations_802250D4 )
-  D90:     Call     SetIdleAnimations 	( .Actor:Enemy2 00000001 $IdleAnimations_802250D4 )
-  DA8:     Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_FieryHigh )
-  DC0:     Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_FieryHigh )
-  DD8:     Call     SetDefenseTable 	( .Actor:Enemy1 00000001 $DefenseTable_80225128 )
-  DF0:     Call     SetDefenseTable 	( .Actor:Enemy1 00000002 $DefenseTable_80225128 )
-  E08:     Call     SetDefenseTable 	( .Actor:Enemy2 00000001 $DefenseTable_80225128 )
-  E20:     Call     SetDefenseTable 	( .Actor:Enemy2 00000002 $DefenseTable_80225128 )
-  E38:     Call     8026D5A4 ( FFFFFF81 00000001 00000002 00000001 )
-  E54:     Call     8026D5A4 ( FFFFFF81 00000002 00000002 00000001 )
-  E70:     Call     8026D5A4 ( 00000201 00000001 00000002 00000001 )
-  E8C:     Call     8026D5A4 ( 00000201 00000002 00000002 00000001 )
-  EA8:     Call     8026D5A4 ( 00000202 00000001 00000002 00000001 )
-  EC4:     Call     8026D5A4 ( 00000202 00000002 00000002 00000001 )
-  EE0:     Call     SetPartFlagBits 	( .Actor:Enemy1 00000002 00002000 .False )
-  EFC:     Call     SetPartFlagBits 	( .Actor:Enemy2 00000002 00002000 .False )
-  F18:     Set      *Var[0] 00000200 
+  D78:     Call     SetIdleAnimations 	( .Actor:LavaBudLeft 00000001 $IdleAnimations_802250D4 )
+  D90:     Call     SetIdleAnimations 	( .Actor:LavaBudRight 00000001 $IdleAnimations_802250D4 )
+  DA8:     Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_8021D0F0 )
+  DC0:     Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_8021D0F0 )
+  DD8:     Call     SetDefenseTable 	( .Actor:LavaBudLeft 00000001 $DefenseTable_80225128 )
+  DF0:     Call     SetDefenseTable 	( .Actor:LavaBudLeft 00000002 $DefenseTable_80225128 )
+  E08:     Call     SetDefenseTable 	( .Actor:LavaBudRight 00000001 $DefenseTable_80225128 )
+  E20:     Call     SetDefenseTable 	( .Actor:LavaBudRight 00000002 $DefenseTable_80225128 )
+  E38:     Call     8026D5A4 ( .Actor:Self 00000001 00000002 00000001 )
+  E54:     Call     8026D5A4 ( .Actor:Self 00000002 00000002 00000001 )
+  E70:     Call     8026D5A4 ( .Actor:LavaBudLeft 00000001 00000002 00000001 )
+  E8C:     Call     8026D5A4 ( .Actor:LavaBudLeft 00000002 00000002 00000001 )
+  EA8:     Call     8026D5A4 ( .Actor:LavaBudRight 00000001 00000002 00000001 )
+  EC4:     Call     8026D5A4 ( .Actor:LavaBudRight 00000002 00000002 00000001 )
+  EE0:     Call     SetPartFlagBits 	( .Actor:LavaBudLeft 00000002 00002000 .False )
+  EFC:     Call     SetPartFlagBits 	( .Actor:LavaBudRight 00000002 00002000 .False )
+  F18:     Set      *Var[0] .Actor:LavaPiranha 
   F28:     ExecWait $Script_80222EF0 
   F34:     Call     SetAnimation 	( .Actor:Self 00000001 00790804 )
-  F4C:     Set      *Var[0] 00000201 
+  F4C:     Set      *Var[0] .Actor:LavaBudLeft
   F5C:     ExecWait $Script_80222EF0 
-  F68:     Call     SetAnimation 	( .Actor:Enemy1 00000001 007B0804 )
-  F80:     Set      *Var[0] 00000202 
+  F68:     Call     SetAnimation 	( .Actor:LavaBudLeft 00000001 007B0804 )
+  F80:     Set      *Var[0] .Actor:LavaBudRight
   F90:     ExecWait $Script_80222EF0 
-  F9C:     Call     SetAnimation 	( .Actor:Enemy2 00000001 007B0804 )
-  FB4:     Call     SetActorType ( FFFFFF81 000000EE )
-  FC8:     Call     SetActorType ( 00000201 000000F0 )
-  FDC:     Call     SetActorType ( 00000202 000000F0 )
+  F9C:     Call     SetAnimation 	( .Actor:LavaBudRight 00000001 007B0804 )
+  FB4:     Call     SetActorType ( .Actor:Self 000000B3 )
+  FC8:     Call     SetActorType ( .Actor:LavaBudLeft 000000B5 )
+  FDC:     Call     SetActorType ( .Actor:LavaBudRight 000000B5 )
   FF0:     Call     SetActorFlagBits 	( .Actor:Self 00001000 .True )
- 1008:     Call     SetActorFlagBits 	( .Actor:Enemy1 00001000 .True )
- 1020:     Call     SetActorFlagBits 	( .Actor:Enemy2 00001000 .True )
+ 1008:     Call     SetActorFlagBits 	( .Actor:LavaBudLeft 00001000 .True )
+ 1020:     Call     SetActorFlagBits 	( .Actor:LavaBudRight 00001000 .True )
  1038:     Call     GetEnemyMaxHP 	( .Actor:Self *Var[0] )
  104C:     Call     SetEnemyHP  	( .Actor:Self *Var[0] )
- 1060:     Call     GetEnemyMaxHP 	( .Actor:Enemy1 *Var[0] )
- 1074:     Call     SetEnemyHP  	( .Actor:Enemy1 *Var[0] )
- 1088:     Call     GetEnemyMaxHP 	( .Actor:Enemy2 *Var[0] )
- 109C:     Call     SetEnemyHP  	( .Actor:Enemy2 *Var[0] )
- 10B0:     Call     EnableModel 	( 0000004E .True )
+ 1060:     Call     GetEnemyMaxHP 	( .Actor:LavaBudLeft *Var[0] )
+ 1074:     Call     SetEnemyHP  	( .Actor:LavaBudLeft *Var[0] )
+ 1088:     Call     GetEnemyMaxHP 	( .Actor:LavaBudRight *Var[0] )
+ 109C:     Call     SetEnemyHP  	( .Actor:LavaBudRight *Var[0] )
+ /%10B0:     Call     EnableModel 	( 0000004E .True ) % BRUH!
  10C4:     Call     EnableModel 	( 0000004F .True )
  10D8:     Call     EnableModel 	( 00000050 .True )
  10EC:     Call     EnableModel 	( 00000051 .True )
@@ -3386,69 +3454,69 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1128:     Call     EnableModel 	( 00000054 .True )
  113C:     Call     EnableModel 	( 00000055 .True )
  1150:     Call     EnableModel 	( 00000057 .True )
- 1164:     Call     EnableModel 	( 00000058 .True )
+ 1164:     Call     EnableModel 	( 00000058 .True )%/
  1178:     Call     PlaySoundAtActor 	( .Actor:Self 000003C5 )
  118C:     Call     PlayEffect  	( 00000070 00000000 00000064 00000000 00000000 00000046 00000050 *Fixed[2.5] 00000050 00000037 *Fixed[2.0] *Fixed[2.0] 00000000 00000000 )
- 11D0:     Call     LoadModelAnimation  ( 00000004 $???_8021A330 )
- %11E4:     Call     PlayModelAnimation ( 00000004 $???_8021A364 ) % Floor doesn't get destroyed anymore
- 11F8:     Call     802CCFE4 ( 00000004 00000000 00000000 00000000 )
+ /%11D0:     Call     LoadModelAnimation  ( 00000004 $AnimatedModelTree_8021A330 )
+ %11E4:     Call     PlayModelAnimation ( 00000004 $ModelAnimation_8021A364 ) % Floor doesn't get destroyed anymore
+ %11F8:     Call     802CCFE4 ( 00000004 00000000 00000000 00000000 )
  %1214:     Call     EnableGroup 	( 00000017 .False )
  %1228:     Call     EnableGroup 	( 0000001C .True )
  123C:     Thread
  1244:        Wait     0000002D 
- 1250:        Call     802CD3C0 ( 00000004 )
- 1260:     EndThread
+ 1250:        Call     DeleteAnimatedModel ( 00000004 )
+ 1260:     EndThread%/
  1268:     Call     OverrideBattleDmaDest ( $End[9230] )
- 1278:     Call     LoadBattleDmaData ( 0000000C )
+ 1278:     Call     $LoadLavaPiranhaAnimation ( 0000000C )
  1288:     Call     PlayModelAnimation ( 00000000 $End[9230] )
  129C:     Call     802CCFE4 ( 00000000 00000000 00000000 00000000 )
  12B8:     Wait     00000005 
  12C4:     Call     802CCFE4 ( 00000002 00000032 0000000E 00000014 )
  12E0:     Call     OverrideBattleDmaDest ( $End[3230] )
- 12F0:     Call     LoadBattleDmaData ( 0000001C )
+ 12F0:     Call     $LoadLavaPiranhaAnimation ( 0000001C )
  1300:     Call     PlayModelAnimation ( 00000002 $End[3230] )
  1314:     Wait     0000000A 
  1320:     Call     802CCFE4 ( 00000001 00000000 00000000 00000000 )
  133C:     Call     OverrideBattleDmaDest ( $End[6230] )
- 134C:     Call     LoadBattleDmaData ( 0000001C )
+ 134C:     Call     $LoadLavaPiranhaAnimation ( 0000001C )
  135C:     Call     PlayModelAnimation ( 00000001 $End[6230] )
  1370:     Wait     0000002D 
  137C:     Call     802CCFE4 ( 00000003 00000000 00000000 00000000 )
  1398:     Call     OverrideBattleDmaDest ( $End[1230] )
- 13A8:     Call     LoadBattleDmaData ( 00000024 )
+ 13A8:     Call     $LoadLavaPiranhaAnimation ( 00000024 )
  13B8:     Call     PlayModelAnimation ( 00000003 $End[1230] )
  13CC:     Call     OverrideBattleDmaDest ( $End[9230] )
- 13DC:     Call     LoadBattleDmaData ( 00000000 )
+ 13DC:     Call     $LoadLavaPiranhaAnimation ( 00000000 )
  13EC:     Call     PlayModelAnimation ( 00000000 $End[9230] )
  %1400:     Call     SetAnimation 	( .Actor:Self 00000001 0079080E )
  1418:     Wait     00000005 
  1424:     Call     OverrideBattleDmaDest ( $End[3230] )
- 1434:     Call     LoadBattleDmaData ( 0000001F )
+ 1434:     Call     $LoadLavaPiranhaAnimation ( 0000001F )
  1444:     Call     PlayModelAnimation ( 00000002 $End[3230] )
  1458:     Wait     0000000A 
  1464:     Call     OverrideBattleDmaDest ( $End[6230] )
- 1474:     Call     LoadBattleDmaData ( 0000001F )
+ 1474:     Call     $LoadLavaPiranhaAnimation ( 0000001F )
  1484:     Call     PlayModelAnimation ( 00000001 $End[6230] )
  %1498:     Wait     15`
  14A4:     Call     OverrideBattleDmaDest ( $End[1230] )
- 14B4:     Call     LoadBattleDmaData ( 00000022 )
+ 14B4:     Call     $LoadLavaPiranhaAnimation ( 00000022 )
  14C4:     Call     PlayModelAnimation ( 00000003 $End[1230] )
- 14D8:     Call     GetEnemyMaxHP 	( .Actor:Enemy1 *Var[0] )
- 14EC:     Call     SetEnemyHP  	( .Actor:Enemy1 *Var[0] )
- 1500:     Call     GetEnemyMaxHP 	( .Actor:Enemy2 *Var[0] )
- 1514:     Call     SetEnemyHP  	( .Actor:Enemy2 *Var[0] )
+ 14D8:     Call     GetEnemyMaxHP 	( .Actor:LavaBudLeft *Var[0] )
+ 14EC:     Call     SetEnemyHP  	( .Actor:LavaBudLeft *Var[0] )
+ 1500:     Call     GetEnemyMaxHP 	( .Actor:LavaBudRight *Var[0] )
+ 1514:     Call     SetEnemyHP  	( .Actor:LavaBudRight *Var[0] )
  1528:     Call     SetActorVar 	( .Actor:Self 00000001 00000000 )
  1540:     Call     EnableIdleScript 	( .Actor:Self 00000001 )
  1554:     Call     UseIdleAnimation 	( .Actor:Self .True )
- 1568:  Else
- 1570:     Call     8027D32C ( 00000201 )
- 1580:     Call     8027D32C ( 00000202 )
- 1590:     Set      *Var[0] 00000203 
- 15A0:     ExecWait $Script_80222B6C 
- 15AC:     Set      *Var[0] 00000204 
- 15BC:     ExecWait $Script_80222B6C 
+ 1568:  Else % Phase 2
+ 1570:     Call     8027D32C ( .Actor:LavaBudLeft )
+ 1580:     Call     8027D32C ( .Actor:LavaBudRight )
+ 1590:     Set      *Var[0] .Actor:PetitPiranha1 
+ 15A0:     ExecWait $Script_PetitPiranha_RemoveActor 
+ 15AC:     Set      *Var[0] .Actor:PetitPiranha2 
+ 15BC:     ExecWait $Script_PetitPiranha_RemoveActor 
  15C8:     Call     OverrideBattleDmaDest ( $End[1230] )
- 15D8:     Call     LoadBattleDmaData ( 00000023 )
+ 15D8:     Call     $LoadLavaPiranhaAnimation ( 00000023 )
  15E8:     Call     PlayModelAnimation ( 00000003 $End[1230] )
  15FC:     Thread
  1604:        Call     PlaySound   	( 000003BC )
@@ -3462,17 +3530,17 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1694:        Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
  16AC:        If       *Var[0] ==  00000000 
  16BC:           Call     OverrideBattleDmaDest ( $End[9230] )
- 16CC:           Call     LoadBattleDmaData ( 00000008 )
+ 16CC:           Call     $LoadLavaPiranhaAnimation ( 00000008 )
  16DC:           Call     PlayModelAnimation ( 00000000 $End[9230] )
  16F0:        Else
  16F8:           Call     OverrideBattleDmaDest ( $End[9230] )
- 1708:           Call     LoadBattleDmaData ( 00000009 )
+ 1708:           Call     $LoadLavaPiranhaAnimation ( 00000009 )
  1718:           Call     PlayModelAnimation ( 00000000 $End[9230] )
  172C:        EndIf
  1734:        Wait     00000013 
- 1740:        Call     8027D32C ( FFFFFF81 )
+ 1740:        Call     8027D32C ( .Actor:Self )
  1750:        Call     OverrideBattleDmaDest ( $End[9230] )
- 1760:        Call     LoadBattleDmaData ( 0000000A )
+ 1760:        Call     $LoadLavaPiranhaAnimation ( 0000000A )
  1770:        Call     PlayModelAnimation ( 00000000 $End[9230] )
  1784:        Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
  179C:        If       *Var[0] ==  00000001 
@@ -3482,7 +3550,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1804:        Call     PlaySoundAtActor 	( .Actor:Self 000003CD )
  1818:        Call     SetAnimation 	( .Actor:Self 00000001 0079080A )
  1830:        Call     OverrideBattleDmaDest ( $End[9230] )
- 1840:        Call     LoadBattleDmaData ( 0000000B )
+ 1840:        Call     $LoadLavaPiranhaAnimation ( 0000000B )
  1850:        Call     PlayModelAnimation ( 00000000 $End[9230] )
  1864:        Wait     0000001E 
  1870:        Call     GetActorVar 	( .Actor:Self 0000000A *Var[0] )
@@ -3498,73 +3566,73 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1910:     EndThread
  1918:     Thread
  1920:        Wait     0000000C 
- 192C:        Call     GetActorVar 	( .Actor:Enemy1 00000005 *Var[0] )
+ 192C:        Call     GetActorVar 	( .Actor:LavaBudLeft 00000005 *Var[0] )
  1944:        If       *Var[0] ==  00000000 
  1954:           Call     OverrideBattleDmaDest ( $End[6230] )
- 1964:           Call     LoadBattleDmaData ( 00000017 )
+ 1964:           Call     $LoadLavaPiranhaAnimation ( 00000017 )
  1974:           Call     PlayModelAnimation ( 00000001 $End[6230] )
  1988:        Else
  1990:           Call     OverrideBattleDmaDest ( $End[6230] )
- 19A0:           Call     LoadBattleDmaData ( 00000018 )
+ 19A0:           Call     $LoadLavaPiranhaAnimation ( 00000018 )
  19B0:           Call     PlayModelAnimation ( 00000001 $End[6230] )
  19C4:        EndIf
  19CC:        Wait     00000013 
  19D8:        Call     OverrideBattleDmaDest ( $End[6230] )
- 19E8:        Call     LoadBattleDmaData ( 00000019 )
+ 19E8:        Call     $LoadLavaPiranhaAnimation ( 00000019 )
  19F8:        Call     PlayModelAnimation ( 00000001 $End[6230] )
- 1A0C:        Call     GetActorVar 	( .Actor:Enemy1 00000005 *Var[0] )
+ 1A0C:        Call     GetActorVar 	( .Actor:LavaBudLeft 00000005 *Var[0] )
  1A24:        If       *Var[0] ==  00000001 
  1A34:           Call     PlayEffect  	( 00000070 00000000 00000043 0000001E 00000002 00000032 00000028 *Fixed[1.3007812] 0000001E 00000046 *Fixed[1.2001953] *Fixed[1.2001953] 00000000 00000000 )
  1A78:        EndIf
  1A80:        Wait     00000060 
  1A8C:        Call     OverrideBattleDmaDest ( $End[6230] )
- 1A9C:        Call     LoadBattleDmaData ( 0000001A )
+ 1A9C:        Call     $LoadLavaPiranhaAnimation ( 0000001A )
  1AAC:        Call     PlayModelAnimation ( 00000001 $End[6230] )
  1AC0:        Wait     0000001E 
- 1ACC:        Call     GetActorVar 	( .Actor:Enemy1 0000000A *Var[0] )
+ 1ACC:        Call     GetActorVar 	( .Actor:LavaBudLeft 0000000A *Var[0] )
  1AE4:        Set      *Var[1] 00000064 
  1AF4:        Loop     00000032 
  1B00:           Sub      *Var[1] 00000002 
  1B10:           SetF     *Var[2] *Var[0] 
  1B20:           MulF     *Var[2] *Var[1] 
  1B30:           MulF     *Var[2] *Fixed[0.0107421875] 
- 1B40:           Call     SetActorVar 	( .Actor:Enemy1 0000000A *Var[2] )
+ 1B40:           Call     SetActorVar 	( .Actor:LavaBudLeft 0000000A *Var[2] )
  1B58:           Wait     00000001 
  1B64:        EndLoop
  1B6C:     EndThread
  1B74:     Thread
  1B7C:        Wait     00000005 
- 1B88:        Call     GetActorVar 	( .Actor:Enemy2 00000005 *Var[0] )
+ 1B88:        Call     GetActorVar 	( .Actor:LavaBudRight 00000005 *Var[0] )
  1BA0:        If       *Var[0] ==  00000000 
  1BB0:           Call     OverrideBattleDmaDest ( $End[3230] )
- 1BC0:           Call     LoadBattleDmaData ( 00000017 )
+ 1BC0:           Call     $LoadLavaPiranhaAnimation ( 00000017 )
  1BD0:           Call     PlayModelAnimation ( 00000002 $End[3230] )
  1BE4:        Else
  1BEC:           Call     OverrideBattleDmaDest ( $End[3230] )
- 1BFC:           Call     LoadBattleDmaData ( 00000018 )
+ 1BFC:           Call     $LoadLavaPiranhaAnimation ( 00000018 )
  1C0C:           Call     PlayModelAnimation ( 00000002 $End[3230] )
  1C20:        EndIf
  1C28:        Wait     00000013 
  1C34:        Call     OverrideBattleDmaDest ( $End[3230] )
- 1C44:        Call     LoadBattleDmaData ( 00000019 )
+ 1C44:        Call     $LoadLavaPiranhaAnimation ( 00000019 )
  1C54:        Call     PlayModelAnimation ( 00000002 $End[3230] )
- 1C68:        Call     GetActorVar 	( .Actor:Enemy2 00000005 *Var[0] )
+ 1C68:        Call     GetActorVar 	( .Actor:LavaBudRight 00000005 *Var[0] )
  1C80:        If       *Var[0] ==  00000001 
  1C90:           Call     PlayEffect  	( 00000070 00000000 00000078 00000023 00000005 00000032 00000028 *Fixed[1.3007812] 0000001E 00000046 *Fixed[1.2001953] *Fixed[1.2001953] 00000000 00000000 )
  1CD4:        EndIf
  1CDC:        Wait     00000060 
  1CE8:        Call     OverrideBattleDmaDest ( $End[3230] )
- 1CF8:        Call     LoadBattleDmaData ( 0000001A )
+ 1CF8:        Call     $LoadLavaPiranhaAnimation ( 0000001A )
  1D08:        Call     PlayModelAnimation ( 00000002 $End[3230] )
  1D1C:        Wait     0000001E 
- 1D28:        Call     GetActorVar 	( .Actor:Enemy2 0000000A *Var[0] )
+ 1D28:        Call     GetActorVar 	( .Actor:LavaBudRight 0000000A *Var[0] )
  1D40:        Set      *Var[1] 00000064 
  1D50:        Loop     00000032 
  1D5C:           Sub      *Var[1] 00000002 
  1D6C:           SetF     *Var[2] *Var[0] 
  1D7C:           MulF     *Var[2] *Var[1] 
  1D8C:           MulF     *Var[2] *Fixed[0.0107421875] 
- 1D9C:           Call     SetActorVar 	( .Actor:Enemy2 0000000A *Var[2] )
+ 1D9C:           Call     SetActorVar 	( .Actor:LavaBudRight 0000000A *Var[2] )
  1DB4:           Wait     00000001 
  1DC0:        EndLoop
  1DC8:     EndThread
@@ -3580,8 +3648,8 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1E48:     Wait     000000D4 
  1E54:     Call     PlaySoundAtActor 	( .Actor:Self 000020EA )
  1E68:     Call     SetAnimation 	( .Actor:Self 00000001 0079080F )
- 1E80:     Call     SetAnimation 	( .Actor:Enemy1 00000001 007B080F )
- 1E98:     Call     SetAnimation 	( .Actor:Enemy2 00000001 007B080F )
+ 1E80:     Call     SetAnimation 	( .Actor:LavaBudLeft 00000001 007B080F )
+ 1E98:     Call     SetAnimation 	( .Actor:LavaBudRight 00000001 007B080F )
  1EB0:     Call     PlayEffect  	( 00000025 00000000 FFFFFFC4 00000000 00000002 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
  1EF4:     Thread
  1EFC:        Call     $Function_80218000 ( 000000B4 00000010 )
@@ -3589,7 +3657,7 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1F2C:     EndThread
  1F34:     Wait     00000003 
  1F40:     Call     SetActorPos 	( .Actor:Self FFFFFFC4 00000000 00000000 )
- %1F5C:     Call     DropStarPoints ( FFFFFF81 )
+ %1F5C:     Call     DropStarPoints ( .Actor:Self )
  1F6C:     Call     PlaySoundAtActor 	( .Actor:Self .Sound:Death )
  1F80:     Wait     0000000F 
  1F8C:     Call     GetActorVar 	( .Actor:Self 00000006 *Var[0] )
@@ -3597,33 +3665,36 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
  1FB4:        Call     SetActorVar 	( .Actor:Self 00000006 00000000 )
  1FCC:        Call     RemoveEffect ( *Var[0] )
  1FDC:     EndIf
- 1FE4:     Call     GetActorVar 	( .Actor:Enemy1 00000006 *Var[0] )
+ 1FE4:     Call     GetActorVar 	( .Actor:LavaBudLeft 00000006 *Var[0] )
  1FFC:     If       *Var[0] !=  00000000 
- 200C:        Call     SetActorVar 	( .Actor:Enemy1 00000006 00000000 )
+ 200C:        Call     SetActorVar 	( .Actor:LavaBudLeft 00000006 00000000 )
  2024:        Call     RemoveEffect ( *Var[0] )
  2034:     EndIf
- 203C:     Call     GetActorVar 	( .Actor:Enemy2 00000006 *Var[0] )
+ 203C:     Call     GetActorVar 	( .Actor:LavaBudRight 00000006 *Var[0] )
  2054:     If       *Var[0] !=  00000000 
- 2064:        Call     SetActorVar 	( .Actor:Enemy2 00000006 00000000 )
+ 2064:        Call     SetActorVar 	( .Actor:LavaBudRight 00000006 00000000 )
  207C:        Call     RemoveEffect ( *Var[0] )
  208C:     EndIf
  2094:     Wait     00000005 
- 20A0:     Call     SetActorFlagBits 	( .Actor:Enemy0 00400000 .True )
- 20B8:     Call     SetPartFlagBits 	( .Actor:Enemy0 00000001 00020000 .True )
- 20D4:     Call     SetPartFlagBits 	( .Actor:Enemy0 00000002 00020000 .True )
- 20F0:     Call     SetActorFlagBits 	( .Actor:Enemy1 00400000 .True )
- 2108:     Call     SetActorFlagBits 	( .Actor:Enemy2 00400000 .True )
-           Call     DropStarPoints ( .Actor:Enemy0 )
+ 20A0:     Call     SetActorFlagBits 	( .Actor:LavaPiranha 00404000 .True )
+ 20B8:     Call     SetPartFlagBits 	( .Actor:LavaPiranha 00000001 00020000 .True )
+ 20D4:     Call     SetPartFlagBits 	( .Actor:LavaPiranha 00000002 00020000 .True )
+ 20F0:     Call     SetActorFlagBits 	( .Actor:LavaBudLeft 00404000 .True )
+ 2108:     Call     SetActorFlagBits 	( .Actor:LavaBudRight 00404000 .True )
+           Call     SetPartFlagBits ( .Actor:LavaBudLeft 00000002 00020000 .True )
+           Call     SetPartFlagBits ( .Actor:LavaBudRight 00000002 00020000 .True )
+           Call     DropStarPoints ( .Actor:LavaPiranha )
+           Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_LavaPiranha_Dead )
+           Call     SetIdleAnimations 	( .Actor:LavaBudLeft 00000001 $IdleAnimations_LavaBud_Dead )
+           Call     SetIdleAnimations 	( .Actor:LavaBudRight 00000001 $IdleAnimations_LavaBud_Dead )
  2120:  EndIf
  2128:  Return
  2130:  End
 }
 
-#new:Unknown $???_80222B68
-{ 00000000 }
-
-#new:Script $Script_80222B6C
+#new:Script $Script_PetitPiranha_RemoveActor
 {
+        UseArray $ActorIDs_Lava
     0:  Call     ActorExists 	( *Var[0] *Var[1] )
    14:  If       *Var[1] ==  00000000 
    24:     Return
@@ -3632,6 +3703,12 @@ $3C_LavaBudBP $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
    48:  If       *Var[1] ==  00000000 
    58:     Return
    60:  EndIf
+        Switch *Var[0]
+            Case == .Actor:PetitPiranha1
+                Set .Actor:PetitPiranha1 -1
+            Case == .Actor:PetitPiranha2
+                Set .Actor:PetitPiranha2 -1
+        EndSwitch
    68:  Thread
    70:     Call     SetAnimation 	( *Var[0] 00000001 007A0403 )
    88:     Wait     0000000A 
@@ -3686,10 +3763,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    58:     Call     GetLastDamage 	( .Actor:Self *Var[0] )
    6C:     If       *Var[0]  <  00000004 
    7C:        Call     OverrideBattleDmaDest ( $End[9230] )
-   8C:        Call     LoadBattleDmaData ( 00000005 )
+   8C:        Call     $LoadLavaPiranhaAnimation ( 00000005 )
    9C:     Else
    A4:        Call     OverrideBattleDmaDest ( $End[9230] )
-   B4:        Call     LoadBattleDmaData ( 00000004 )
+   B4:        Call     $LoadLavaPiranhaAnimation ( 00000004 )
    C4:     EndIf
    CC:     Call     PlayModelAnimation ( 00000000 $End[9230] )
    E0:     Wait     0000001D 
@@ -3698,10 +3775,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   100:     Call     GetLastDamage 	( .Actor:Self *Var[0] )
   114:     If       *Var[0]  <  00000004 
   124:        Call     OverrideBattleDmaDest ( $End[9230] )
-  134:        Call     LoadBattleDmaData ( 00000007 )
+  134:        Call     $LoadLavaPiranhaAnimation ( 00000007 )
   144:     Else
   14C:        Call     OverrideBattleDmaDest ( $End[9230] )
-  15C:        Call     LoadBattleDmaData ( 00000006 )
+  15C:        Call     $LoadLavaPiranhaAnimation ( 00000006 )
   16C:     EndIf
   174:     Call     PlayModelAnimation ( 00000000 $End[9230] )
   188:     Wait     0000001D 
@@ -3720,10 +3797,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    58:     Call     GetLastDamage 	( .Actor:Self *Var[0] )
    6C:     If       *Var[0]  <  00000004 
    7C:        Call     OverrideBattleDmaDest ( $End[9230] )
-   8C:        Call     LoadBattleDmaData ( 00000007 )
+   8C:        Call     $LoadLavaPiranhaAnimation ( 00000007 )
    9C:     Else
    A4:        Call     OverrideBattleDmaDest ( $End[9230] )
-   B4:        Call     LoadBattleDmaData ( 00000006 )
+   B4:        Call     $LoadLavaPiranhaAnimation ( 00000006 )
    C4:     EndIf
    CC:     Call     PlayModelAnimation ( 00000000 $End[9230] )
    E0:     Wait     0000001D 
@@ -3736,10 +3813,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   140:        Call     GetLastDamage 	( .Actor:Self *Var[0] )
   154:        If       *Var[0]  <  00000004 
   164:           Call     OverrideBattleDmaDest ( $End[9230] )
-  174:           Call     LoadBattleDmaData ( 00000005 )
+  174:           Call     $LoadLavaPiranhaAnimation ( 00000005 )
   184:        Else
   18C:           Call     OverrideBattleDmaDest ( $End[9230] )
-  19C:           Call     LoadBattleDmaData ( 00000004 )
+  19C:           Call     $LoadLavaPiranhaAnimation ( 00000004 )
   1AC:        EndIf
   1B4:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   1C8:        Wait     0000001D 
@@ -3747,7 +3824,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   1E0:     Else
   1E8:        Call     SetActorVar 	( .Actor:Self 0000000B 00000002 )
   200:        Call     OverrideBattleDmaDest ( $End[9230] )
-  210:        Call     LoadBattleDmaData ( 00000006 )
+  210:        Call     $LoadLavaPiranhaAnimation ( 00000006 )
   220:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   234:        Call     GetActorVar 	( .Actor:Self 00000006 *Var[0] )
   24C:        If       *Var[0] !=  00000000 
@@ -3757,8 +3834,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   2A0:           Call     PlayEffect  	( 0000006F 00000000 *Var[0] *Var[1] *Var[2] *Fixed[3.0] 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
   2E4:        EndIf
   2EC:        Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_8021D0B0 )
-  304:        Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_High )
-  31C:        Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_High )
+  304:        Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_8021D11C )
+  31C:        Call     SetDefenseTable 	( .Actor:Self 00000002 $DefenseTable_8021D11C )
   334:        Call     SetActorVar 	( .Actor:Self 00000007 0079080A )
   34C:        Call     SetActorVar 	( .Actor:Self 00000008 00790809 )
   364:        Call     SetPartEventBits 	( .Actor:Self 00000001 00000002 .False )
@@ -3766,7 +3843,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   39C:        Wait     0000001D 
   3A8:        Call     PlaySoundAtActor 	( .Actor:Self 000003C8 )
   3BC:        Call     OverrideBattleDmaDest ( $End[9230] )
-  3CC:        Call     LoadBattleDmaData ( 0000000D )
+  3CC:        Call     $LoadLavaPiranhaAnimation ( 0000000D )
   3DC:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   3F0:        Wait     0000000E 
   3FC:        Call     SetActorVar 	( .Actor:Self 00000005 00000000 )
@@ -3777,10 +3854,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   44C:        Call     GetLastDamage 	( .Actor:Self *Var[0] )
   460:        If       *Var[0]  <  00000004 
   470:           Call     OverrideBattleDmaDest ( $End[9230] )
-  480:           Call     LoadBattleDmaData ( 00000005 )
+  480:           Call     $LoadLavaPiranhaAnimation ( 00000005 )
   490:        Else
   498:           Call     OverrideBattleDmaDest ( $End[9230] )
-  4A8:           Call     LoadBattleDmaData ( 00000004 )
+  4A8:           Call     $LoadLavaPiranhaAnimation ( 00000004 )
   4B8:        EndIf
   4C0:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   4D4:        Wait     0000001D 
@@ -3789,10 +3866,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   4F4:        Call     GetLastDamage 	( .Actor:Self *Var[0] )
   508:        If       *Var[0]  <  00000004 
   518:           Call     OverrideBattleDmaDest ( $End[9230] )
-  528:           Call     LoadBattleDmaData ( 00000007 )
+  528:           Call     $LoadLavaPiranhaAnimation ( 00000007 )
   538:        Else
   540:           Call     OverrideBattleDmaDest ( $End[9230] )
-  550:           Call     LoadBattleDmaData ( 00000006 )
+  550:           Call     $LoadLavaPiranhaAnimation ( 00000006 )
   560:        EndIf
   568:        Call     PlayModelAnimation ( 00000000 $End[9230] )
   57C:        Call     PlayEffect  	( 00000070 00000000 00000050 00000032 00000000 0000003C 00000032 *Fixed[1.5] 00000024 0000002A *Fixed[0.80078125] *Fixed[0.80078125] 00000000 00000000 )
@@ -3811,18 +3888,18 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    30:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
    48:  If       *Var[0] ==  00000000 
    58:     Call     OverrideBattleDmaDest ( $End[9230] )
-   68:     Call     LoadBattleDmaData ( 00000000 )
+   68:     Call     $LoadLavaPiranhaAnimation ( 00000000 )
    78:     Call     PlayModelAnimation ( 00000000 $End[9230] )
    8C:     Return
    94:  EndIf
    9C:  Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
    B4:  If       *Var[0] ==  00000000 
    C4:     Call     OverrideBattleDmaDest ( $End[9230] )
-   D4:     Call     LoadBattleDmaData ( 00000001 )
+   D4:     Call     $LoadLavaPiranhaAnimation ( 00000001 )
    E4:     Call     PlayModelAnimation ( 00000000 $End[9230] )
    F8:  Else
   100:     Call     OverrideBattleDmaDest ( $End[9230] )
-  110:     Call     LoadBattleDmaData ( 00000000 )
+  110:     Call     $LoadLavaPiranhaAnimation ( 00000000 )
   120:     Call     PlayModelAnimation ( 00000000 $End[9230] )
   134:  EndIf
   13C:  Return
@@ -3928,20 +4005,20 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   114:        SetConst *Var[2] FFFFFFFF 
   124:        ExecWait DoBurnHit 
   130:        Wait     0000000A 
-  13C:        ExecWait $Script_80224FE8 
+  13C:        ExecWait $Script_PetitPiranha_InitDeath 
   148:        SetConst *Var[0] 00000001 
   158:        SetConst *Var[1] 007A0403 
   168:        ExecWait DoDeath 
   174:        Return
-  17C:     Case     ==  .Event:MultibounceHit
+  17C:     Case     ==  .Event:SpinSmashHit
   188:        SetConst *Var[0] 00000001 
   198:        SetConst *Var[1] 007A0403 
   1A8:        ExecWait 8029B998 
-  1B4:     Case     ==  .Event:MultibounceDeath
+  1B4:     Case     ==  .Event:SpinSmashDeath
   1C0:        SetConst *Var[0] 00000001 
   1D0:        SetConst *Var[1] 007A0403 
   1E0:        ExecWait 8029B998 
-  1EC:        ExecWait $Script_80224FE8 
+  1EC:        ExecWait $Script_PetitPiranha_InitDeath 
   1F8:        SetConst *Var[0] 00000001 
   208:        SetConst *Var[1] 007A0403 
   218:        ExecWait DoDeath 
@@ -3954,7 +4031,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   270:        SetConst *Var[0] 00000001 
   280:        SetConst *Var[1] 007A0403 
   290:        ExecWait DoShockHit 
-  29C:        ExecWait $Script_80224FE8 
+  29C:        ExecWait $Script_PetitPiranha_InitDeath 
   2A8:        SetConst *Var[0] 00000001 
   2B8:        SetConst *Var[1] 007A0403 
   2C8:        ExecWait DoDeath 
@@ -3976,7 +4053,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   394:        SetConst *Var[1] 007A0403 
   3A4:        ExecWait DoNormalHit 
   3B0:        Wait     0000000A 
-  3BC:        ExecWait $Script_80224FE8 
+  3BC:        ExecWait $Script_PetitPiranha_InitDeath 
   3C8:        SetConst *Var[0] 00000001 
   3D8:        SetConst *Var[1] 007A0403 
   3E8:        ExecWait DoDeath 
@@ -4102,13 +4179,13 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   6E0:           Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
   704:        EndIf
   70C:        Call     UseCamPreset 	( 00000002 )
-  71C:        ExecWait $Script_80224FE8 
+  71C:        ExecWait $Script_PetitPiranha_InitDeath 
   728:        Call     RemoveActor 	( .Actor:Self )
   738:        Return
   740:     EndCaseGroup
   748:  EndSwitch
   750:  Wait     00000002 
-  75C:  Set      *Var[8] 8 
+  75C:  Set      *Var[8] 6
   76C:  Call     SetGoalToTarget 	( .Actor:Self )
   77C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[9] 00000002 0000FFFF 00000000 *Var[8] 00000020 )
   7A4:  Switch   *Var[9] 
@@ -4134,22 +4211,30 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   8A8:        Call     UseCamPreset 	( 00000002 )
   8B8:     EndCaseGroup
   8C0:  EndSwitch
-  8C8:  ExecWait $Script_80224FE8 
+  8C8:  ExecWait $Script_PetitPiranha_InitDeath 
   8D4:  Call     RemoveActor 	( .Actor:Self )
   8E4:  Return
   8EC:  End
 }
 
-#new:Script $Script_80224FE8
+#new:Script $Script_PetitPiranha_InitDeath
 {
-    0:  Call     ActorExists 	( .Actor:Enemy0 *Var[0] )
-   14:  If       *Var[0] ==  00000000 
+        UseArray $ActorIDs_Lava
+    0:  Call     ActorExists 	( .Actor:LavaPiranha *Var[0] )
+   14:  If       *Var[0] ==  .False 
    24:     Return
    2C:  EndIf
-   34:  Call     GetActorHP  	( .Actor:Enemy0 *Var[0] )
+   34:  Call     GetActorHP  	( .Actor:LavaPiranha *Var[0] )
    48:  If       *Var[0] ==  00000000 
    58:     Return
    60:  EndIf
+        Call     $GetActorSelfID ( *Var[1] )
+        Switch *Var[1]
+            Case == .Actor:PetitPiranha1
+                Set .Actor:PetitPiranha1 -1
+            Case == .Actor:PetitPiranha2
+                Set .Actor:PetitPiranha2 -1
+        EndSwitch
    68:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
    80:  Call     GetActorVar 	( *Var[0] 00000009 *Var[1] )
    98:  Sub      *Var[1] 00000001 
@@ -4179,6 +4264,12 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 .Status:End
 }
 
+#new:IdleAnimations $IdleAnimations_LavaBud_Dead
+{
+.Status:Normal    007B080F
+.Status:End
+}
+
 #new:DefenseTable $DefenseTable_802250FC
 {
 .Element:Normal 00000000
@@ -4194,6 +4285,24 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 .Element:Normal 00000000
 .Element:Water  FFFFFFFE
 .Element:Ice    FFFFFFFE
+.Element:Fire   00000063
+.Element:Blast  00000000
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_8021D0F0 {
+.Element:Normal 00000000
+.Element:Water  FFFFFFFE
+.Element:Ice    FFFFFFFE
+.Element:Fire   00000063
+.Element:Blast  00000000
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_8021D11C {
+.Element:Normal 00000000
+.Element:Water  00000000
+.Element:Ice    00000000
 .Element:Fire   00000063
 .Element:Blast  00000000
 .Element:End
@@ -4264,8 +4373,9 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_Idle_802253F0
 {
+        UseArray $ActorIDs_Lava
     0:  Label    00000000 
-    C:  Call     GetActorHP  	( .Actor:Enemy0 *Var[0] )
+    C:  Call     GetActorHP  	( .Actor:LavaPiranha *Var[0] )
    20:  If       *Var[0] ==  00000000 
    30:     Goto     00000063 
    3C:  EndIf
@@ -4308,8 +4418,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   280:  Else
   288:     Call     OverrideBattleDmaDest ( $End[3230] )
   298:  EndIf
-  2A0:  Call     LoadBattleDmaData ( 0000001E )
-  2B0:  ExecWait $Script_802256E0 
+  2A0:  Call     $LoadLavaPiranhaAnimation ( 0000001E )
+  2B0:  ExecWait $Script_SetAnimation_LavaBud 
   2BC:  Label    00000063 
   2C8:  Wait     00000001 
   2D4:  Goto     00000000 
@@ -4317,7 +4427,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   2E8:  End
 }
 
-#new:Script $Script_802256E0
+#new:Script $Script_SetAnimation_LavaBud
 {
     0:  If       *Var[0] ==  00000001 
    10:     Call     PlayModelAnimation ( *Var[0] $End[6230] )
@@ -4330,9 +4440,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_80225AA8
 {
+        UseArray $ActorIDs_Lava
     0:  Thread
     8:     Wait     00000001 
-   14:     Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[0] )
+   14:     Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[0] )
    2C:     If       *Var[0] ==  00000000 
    3C:        Goto     0000000A 
    48:     EndIf
@@ -4342,14 +4453,14 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    84:     EndIf
    8C:     Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
    A4:     If       *Var[0] ==  00000001 
-   B4:        Set      *Var[0] 00000201 
+   B4:        Set      *Var[0] .Actor:LavaBudLeft
    C4:     Else
-   CC:        Set      *Var[0] 00000202 
+   CC:        Set      *Var[0] .Actor:LavaBudRight
    DC:     EndIf
    E4:     ExecWait $Script_80222EF0 
    F0:     Label    0000000A 
    FC:  EndThread
-  104:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[0] )
+  104:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[0] )
   11C:  If       *Var[0] !=  00000000 
   12C:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
   144:     If       *Var[0] ==  00000002 
@@ -4359,8 +4470,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   18C:        Else
   194:           Call     OverrideBattleDmaDest ( $End[3230] )
   1A4:        EndIf
-  1AC:        Call     LoadBattleDmaData ( 0000001D )
-  1BC:        ExecWait $Script_802256E0 
+  1AC:        Call     $LoadLavaPiranhaAnimation ( 0000001D )
+  1BC:        ExecWait $Script_SetAnimation_LavaBud 
   1C8:        Call     SetActorVar 	( .Actor:Self 00000007 007B0803 )
   1E0:        Call     SetActorVar 	( .Actor:Self 00000008 007B0809 )
   1F8:        Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_802250D4 )
@@ -4374,8 +4485,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   28C:           Else
   294:              Call     OverrideBattleDmaDest ( $End[3230] )
   2A4:           EndIf
-  2AC:           Call     LoadBattleDmaData ( 0000001F )
-  2BC:           ExecWait $Script_802256E0 
+  2AC:           Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  2BC:           ExecWait $Script_SetAnimation_LavaBud 
   2C8:        EndThread
   2D0:     EndIf
   2D8:  EndIf
@@ -4385,17 +4496,21 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_TakeTurn_80225D98
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorFlags 	( .Actor:Self *Var[0] )
    14:  If       *Var[0]  &  00400000 
    24:     Return
    2C:  EndIf
-   34:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[0] )
+   34:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[0] )
    4C:  If       *Var[0] ==  00000000 
    5C:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
    74:     If       *Var[0] ==  00000002 
    84:        Return
    8C:     EndIf
-   94:     ExecWait $Script_ShootBombs 
+           Call     $GetFreeActorSlots ( *Var[0] )
+           If *Var[0] > 0
+                ExecWait $Script_ShootBombs
+           EndIf
    A0:  Else
    A8:     Call     GetActorVar 	( .Actor:Self 00000004 *Var[1] )
    C0:     If       *Var[1] !=  00000000 
@@ -4405,11 +4520,15 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   100:     EndIf
   108:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
   120:     If       *Var[0] ==  00000001 
+              Call     $GetFreeActorSlots ( *Var[2] )
+              If *Var[2] == .False
+                  Set *Var[1] .True
+              EndIf
   130:        If       *Var[1] !=  00000000 
   140:           Return
   148:        EndIf
   150:        Call     SetActorVar 	( .Actor:Self 00000004 00000001 )
-  168:        ExecWait $Script_8022646C 
+  168:        ExecWait $Script_LavaBud_SummonBombs 
   174:     Else
   17C:        Call     GetActorVar 	( .Actor:Self 0000000B *Var[0] )
   194:        Sub      *Var[0] 00000001 
@@ -4437,8 +4556,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   300:              Else
   308:                 Call     OverrideBattleDmaDest ( $End[3230] )
   318:              EndIf
-  320:              Call     LoadBattleDmaData ( 0000001E )
-  330:              ExecWait $Script_802256E0 
+  320:              Call     $LoadLavaPiranhaAnimation ( 0000001E )
+  330:              ExecWait $Script_SetAnimation_LavaBud 
   33C:              Wait     00000004 
   348:           EndLoop
   350:           Call     UseCamPreset 	( 00000002 )
@@ -4448,9 +4567,9 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   398:           Call     SetAnimation 	( .Actor:Self 00000001 007B0804 )
   3B0:           Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
   3C8:           If       *Var[0] ==  00000001 
-  3D8:              Set      *Var[0] 00000201 
+  3D8:              Set      *Var[0] .Actor:LavaBudLeft
   3E8:           Else
-  3F0:              Set      *Var[0] 00000202 
+  3F0:              Set      *Var[0] .Actor:LavaBudRight
   400:           EndIf
   408:           Call     PlaySoundAtActor 	( *Var[0] 000020BF )
   41C:           ExecWait $Script_80222EF0 
@@ -4460,16 +4579,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   460:           Else
   468:              Call     OverrideBattleDmaDest ( $End[3230] )
   478:           EndIf
-  480:           Call     LoadBattleDmaData ( 0000001D )
-  490:           ExecWait $Script_802256E0 
+  480:           Call     $LoadLavaPiranhaAnimation ( 0000001D )
+  490:           ExecWait $Script_SetAnimation_LavaBud 
   49C:           Wait     0000000E 
   4A8:           If       *Var[0] ==  00000001 
   4B8:              Call     OverrideBattleDmaDest ( $End[6230] )
   4C8:           Else
   4D0:              Call     OverrideBattleDmaDest ( $End[3230] )
   4E0:           EndIf
-  4E8:           Call     LoadBattleDmaData ( 0000001F )
-  4F8:           ExecWait $Script_802256E0 
+  4E8:           Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  4F8:           ExecWait $Script_SetAnimation_LavaBud 
   504:           Call     GetEnemyMaxHP 	( .Actor:Self *Var[0] )
   518:           Call     SetEnemyHP  	( .Actor:Self *Var[0] )
   52C:           Call     EnableIdleScript 	( .Actor:Self 00000001 )
@@ -4483,10 +4602,11 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_8022630C
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorVar 	( .Actor:Self 00000007 *Var[0] )
    18:  Call     SetAnimation 	( .Actor:Self 00000001 *Var[0] )
    30:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
-   48:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[3] )
+   48:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[3] )
    60:  Call     GetActorVar 	( .Actor:Self 00000005 *Var[3] )
    78:  If       *Var[3] ==  00000002 
    88:     If       *Var[0] ==  00000001 
@@ -4494,23 +4614,24 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    A8:     Else
    B0:        Call     OverrideBattleDmaDest ( $End[3230] )
    C0:     EndIf
-   C8:     Call     LoadBattleDmaData ( 0000001E )
-   D8:     ExecWait $Script_802256E0 
+   C8:     Call     $LoadLavaPiranhaAnimation ( 0000001E )
+   D8:     ExecWait $Script_SetAnimation_LavaBud 
    E4:  Else
    EC:     If       *Var[0] ==  00000001 
    FC:        Call     OverrideBattleDmaDest ( $End[6230] )
   10C:     Else
   114:        Call     OverrideBattleDmaDest ( $End[3230] )
   124:     EndIf
-  12C:     Call     LoadBattleDmaData ( 0000001F )
-  13C:     ExecWait $Script_802256E0 
+  12C:     Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  13C:     ExecWait $Script_SetAnimation_LavaBud 
   148:  EndIf
   150:  Return
   158:  End
 }
 
-#new:Script $Script_8022646C
+#new:Script $Script_LavaBud_SummonBombs
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
    18:  If       *Var[0] ==  00000002 
    28:     Return
@@ -4538,8 +4659,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   178:  Else
   180:     Call     OverrideBattleDmaDest ( $End[3230] )
   190:  EndIf
-  198:  Call     LoadBattleDmaData ( 00000012 )
-  1A8:  ExecWait $Script_802256E0 
+  198:  Call     $LoadLavaPiranhaAnimation ( 00000012 )
+  1A8:  ExecWait $Script_SetAnimation_LavaBud 
   1B4:  Thread
   1BC:     Wait     00000014 
   1C8:     Call     SetAnimation 	( .Actor:Self 00000001 007B0807 )
@@ -4552,14 +4673,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   248:     Else
   250:        Call     OverrideBattleDmaDest ( $End[3230] )
   260:     EndIf
-  268:     Call     LoadBattleDmaData ( 0000001F )
-  278:     ExecWait $Script_802256E0 
+  268:     Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  278:     ExecWait $Script_SetAnimation_LavaBud 
   284:  EndThread
   28C:  Wait     00000038 
   298:  If       *Var[0] ==  00000001 
   2A8:     Call     SummonEnemy 	( $SpecialFormation_80226B04 00000000 )
-  2BC:  Else
+           Set      .Actor:PetitPiranha1 *Var[0]
+  2BC:  Else % Right Lava Bud
   2C4:     Call     SummonEnemy 	( $SpecialFormation_80226B20 00000000 )
+           Set      .Actor:PetitPiranha2 *Var[0]
   2D8:  EndIf
   2E0:  Set      *Var[5] *Var[0] 
   2F0:  Call     GetActorVar 	( .Actor:Self 00000009 *Var[0] )
@@ -4567,9 +4690,9 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   318:  Call     SetActorVar 	( .Actor:Self 00000009 *Var[0] )
   330:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
   348:  If       *Var[0] ==  00000001 
-  358:     Call     SetActorVar 	( *Var[5] 00000000 00000201 )
+  358:     Call     SetActorVar 	( *Var[5] 00000000 .Actor:LavaBudLeft )
   370:  Else
-  378:     Call     SetActorVar 	( *Var[5] 00000000 00000202 )
+  378:     Call     SetActorVar 	( *Var[5] 00000000 .Actor:LavaBudRight )
   390:  EndIf
   398:  Call     GetPartOffset 	( .Actor:Self 00000001 *Var[0] *Var[1] *Var[2] )
   3B8:  Sub      *Var[0] 0000000F 
@@ -4605,8 +4728,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   618:  Else
   620:     Call     OverrideBattleDmaDest ( $End[3230] )
   630:  EndIf
-  638:  Call     LoadBattleDmaData ( 0000001F )
-  648:  ExecWait $Script_802256E0 
+  638:  Call     $LoadLavaPiranhaAnimation ( 0000001F )
+  648:  ExecWait $Script_SetAnimation_LavaBud 
   654:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
   668:  Call     UseIdleAnimation 	( .Actor:Self .True )
   67C:  Return
@@ -4625,9 +4748,10 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 #new:SpecialFormation $SpecialFormation_80226B3C
 { $3C_PetitPiranhaBombBP $Vector3D_80226AF8 0000005F 00000000 00000000 00000000 00000000 }
 
-#new:Script $Script_80226B58
+#new:Script $Script_LavaBud_DoDeath
 {
-    0:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[0] )
+        UseArray $ActorIDs_Lava
+    0:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[0] )
    18:  If       *Var[0] !=  00000000 
    28:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[0] )
    40:     If       *Var[0] ==  00000002 
@@ -4642,8 +4766,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    D4:     Else
    DC:        Call     OverrideBattleDmaDest ( $End[3230] )
    EC:     EndIf
-   F4:     Call     LoadBattleDmaData ( 00000015 )
-  104:     ExecWait $Script_802256E0 
+   F4:     Call     $LoadLavaPiranhaAnimation ( 00000015 )
+  104:     ExecWait $Script_SetAnimation_LavaBud 
   110:     Call     SetActorVar 	( .Actor:Self 0000000B 00000002 )
   128:     Call     GetActorVar 	( .Actor:Self 00000006 *Var[0] )
   140:     If       *Var[0] !=  00000000 
@@ -4666,11 +4790,11 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   2A0:     Else
   2A8:        Call     OverrideBattleDmaDest ( $End[3230] )
   2B8:     EndIf
-  2C0:     Call     LoadBattleDmaData ( 0000001B )
-  2D0:     ExecWait $Script_802256E0 
+  2C0:     Call     $LoadLavaPiranhaAnimation ( 0000001B )
+  2D0:     ExecWait $Script_SetAnimation_LavaBud 
   2DC:     Wait     0000000E 
   2E8:     Call     SetActorVar 	( .Actor:Self 00000005 00000002 )
-  300:     Call     GetActorVar 	( .Actor:Enemy0 00000001 *Var[F] )
+  300:     Call     GetActorVar 	( .Actor:LavaPiranha 00000001 *Var[F] )
   318:     If       *Var[F] ==  00000000 
   328:        ExecWait $Script_8022630C 
   334:     EndIf
@@ -4684,8 +4808,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   3AC:     Else
   3B4:        Call     OverrideBattleDmaDest ( $End[3230] )
   3C4:     EndIf
-  3CC:     Call     LoadBattleDmaData ( 00000015 )
-  3DC:     ExecWait $Script_802256E0 
+  3CC:     Call     $LoadLavaPiranhaAnimation ( 00000015 )
+  3DC:     ExecWait $Script_SetAnimation_LavaBud 
   3E8:     Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_802250E8 )
   400:     Call     SetActorVar 	( .Actor:Self 00000007 007B080F )
   418:     Call     SetActorVar 	( .Actor:Self 00000008 007B0809 )
@@ -4697,8 +4821,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   488:     Else
   490:        Call     OverrideBattleDmaDest ( $End[3230] )
   4A0:     EndIf
-  4A8:     Call     LoadBattleDmaData ( 0000001B )
-  4B8:     ExecWait $Script_802256E0 
+  4A8:     Call     $LoadLavaPiranhaAnimation ( 0000001B )
+  4B8:     ExecWait $Script_SetAnimation_LavaBud 
   4C4:     Wait     0000000E 
   4D0:     Call     SetActorVar 	( .Actor:Self 00000005 00000002 )
   4E8:     ExecWait $Script_8022630C 
@@ -4714,10 +4838,11 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_802270B4
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorVar 	( .Actor:Self 00000008 *Var[0] )
    18:  Call     SetAnimation 	( .Actor:Self 00000001 *Var[0] )
    30:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
-   48:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[1] )
+   48:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[1] )
    60:  If       *Var[1] ==  00000000 
    70:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[5] )
    88:     If       *Var[5] !=  00000002 
@@ -4728,16 +4853,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    DC:           Else
    E4:              Call     OverrideBattleDmaDest ( $End[3230] )
    F4:           EndIf
-   FC:           Call     LoadBattleDmaData ( 00000016 )
+   FC:           Call     $LoadLavaPiranhaAnimation ( 00000016 )
   10C:        Else
   114:           If       *Var[0] ==  00000001 
   124:              Call     OverrideBattleDmaDest ( $End[6230] )
   134:           Else
   13C:              Call     OverrideBattleDmaDest ( $End[3230] )
   14C:           EndIf
-  154:           Call     LoadBattleDmaData ( 00000015 )
+  154:           Call     $LoadLavaPiranhaAnimation ( 00000015 )
   164:        EndIf
-  16C:        ExecWait $Script_802256E0 
+  16C:        ExecWait $Script_SetAnimation_LavaBud 
   178:        Wait     0000001D 
   184:     Else
   18C:        Call     GetLastDamage 	( .Actor:Self *Var[5] )
@@ -4747,16 +4872,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   1D0:           Else
   1D8:              Call     OverrideBattleDmaDest ( $End[3230] )
   1E8:           EndIf
-  1F0:           Call     LoadBattleDmaData ( 00000014 )
+  1F0:           Call     $LoadLavaPiranhaAnimation ( 00000014 )
   200:        Else
   208:           If       *Var[0] ==  00000001 
   218:              Call     OverrideBattleDmaDest ( $End[6230] )
   228:           Else
   230:              Call     OverrideBattleDmaDest ( $End[3230] )
   240:           EndIf
-  248:           Call     LoadBattleDmaData ( 00000013 )
+  248:           Call     $LoadLavaPiranhaAnimation ( 00000013 )
   258:        EndIf
-  260:        ExecWait $Script_802256E0 
+  260:        ExecWait $Script_SetAnimation_LavaBud 
   26C:        Wait     0000001D 
   278:     EndIf
   280:  Else
@@ -4769,16 +4894,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   2F4:           Else
   2FC:              Call     OverrideBattleDmaDest ( $End[3230] )
   30C:           EndIf
-  314:           Call     LoadBattleDmaData ( 00000016 )
+  314:           Call     $LoadLavaPiranhaAnimation ( 00000016 )
   324:        Else
   32C:           If       *Var[0] ==  00000001 
   33C:              Call     OverrideBattleDmaDest ( $End[6230] )
   34C:           Else
   354:              Call     OverrideBattleDmaDest ( $End[3230] )
   364:           EndIf
-  36C:           Call     LoadBattleDmaData ( 00000015 )
+  36C:           Call     $LoadLavaPiranhaAnimation ( 00000015 )
   37C:        EndIf
-  384:        ExecWait $Script_802256E0 
+  384:        ExecWait $Script_SetAnimation_LavaBud 
   390:        Wait     0000001D 
   39C:     Else
   3A4:        Call     GetLastDamage 	( .Actor:Self *Var[5] )
@@ -4788,16 +4913,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   3E8:           Else
   3F0:              Call     OverrideBattleDmaDest ( $End[3230] )
   400:           EndIf
-  408:           Call     LoadBattleDmaData ( 00000014 )
+  408:           Call     $LoadLavaPiranhaAnimation ( 00000014 )
   418:        Else
   420:           If       *Var[0] ==  00000001 
   430:              Call     OverrideBattleDmaDest ( $End[6230] )
   440:           Else
   448:              Call     OverrideBattleDmaDest ( $End[3230] )
   458:           EndIf
-  460:           Call     LoadBattleDmaData ( 00000013 )
+  460:           Call     $LoadLavaPiranhaAnimation ( 00000013 )
   470:        EndIf
-  478:        ExecWait $Script_802256E0 
+  478:        ExecWait $Script_SetAnimation_LavaBud 
   484:        Call     GetActorPos 	( .Actor:Self *Var[1] *Var[2] *Var[3] )
   4A0:        Sub      *Var[2] 00000019 
   4B0:        Add      *Var[3] 00000002 
@@ -4811,10 +4936,11 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
 
 #new:Script $Script_802275E4
 {
+        UseArray $ActorIDs_Lava
     0:  Call     GetActorVar 	( .Actor:Self 00000008 *Var[0] )
    18:  Call     SetAnimation 	( .Actor:Self 00000001 *Var[0] )
    30:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
-   48:  Call     GetActorVar 	( .Actor:Enemy0 00000000 *Var[5] )
+   48:  Call     GetActorVar 	( .Actor:LavaPiranha 00000000 *Var[5] )
    60:  If       *Var[5] ==  00000000 
    70:     Call     GetActorVar 	( .Actor:Self 00000005 *Var[5] )
    88:     If       *Var[5] ==  00000000 
@@ -4825,16 +4951,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
    DC:           Else
    E4:              Call     OverrideBattleDmaDest ( $End[3230] )
    F4:           EndIf
-   FC:           Call     LoadBattleDmaData ( 00000016 )
+   FC:           Call     $LoadLavaPiranhaAnimation ( 00000016 )
   10C:        Else
   114:           If       *Var[0] ==  00000001 
   124:              Call     OverrideBattleDmaDest ( $End[6230] )
   134:           Else
   13C:              Call     OverrideBattleDmaDest ( $End[3230] )
   14C:           EndIf
-  154:           Call     LoadBattleDmaData ( 00000015 )
+  154:           Call     $LoadLavaPiranhaAnimation ( 00000015 )
   164:        EndIf
-  16C:        ExecWait $Script_802256E0 
+  16C:        ExecWait $Script_SetAnimation_LavaBud 
   178:        Wait     0000001D 
   184:     Else
   18C:        Call     GetLastDamage 	( .Actor:Self *Var[5] )
@@ -4844,16 +4970,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   1D0:           Else
   1D8:              Call     OverrideBattleDmaDest ( $End[3230] )
   1E8:           EndIf
-  1F0:           Call     LoadBattleDmaData ( 00000014 )
+  1F0:           Call     $LoadLavaPiranhaAnimation ( 00000014 )
   200:        Else
   208:           If       *Var[0] ==  00000001 
   218:              Call     OverrideBattleDmaDest ( $End[6230] )
   228:           Else
   230:              Call     OverrideBattleDmaDest ( $End[3230] )
   240:           EndIf
-  248:           Call     LoadBattleDmaData ( 00000013 )
+  248:           Call     $LoadLavaPiranhaAnimation ( 00000013 )
   258:        EndIf
-  260:        ExecWait $Script_802256E0 
+  260:        ExecWait $Script_SetAnimation_LavaBud 
   26C:        Wait     0000001D 
   278:     EndIf
   280:  Else
@@ -4867,16 +4993,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   304:              Else
   30C:                 Call     OverrideBattleDmaDest ( $End[3230] )
   31C:              EndIf
-  324:              Call     LoadBattleDmaData ( 00000014 )
+  324:              Call     $LoadLavaPiranhaAnimation ( 00000014 )
   334:           Else
   33C:              If       *Var[0] ==  00000001 
   34C:                 Call     OverrideBattleDmaDest ( $End[6230] )
   35C:              Else
   364:                 Call     OverrideBattleDmaDest ( $End[3230] )
   374:              EndIf
-  37C:              Call     LoadBattleDmaData ( 00000013 )
+  37C:              Call     $LoadLavaPiranhaAnimation ( 00000013 )
   38C:           EndIf
-  394:           ExecWait $Script_802256E0 
+  394:           ExecWait $Script_SetAnimation_LavaBud 
   3A0:           Wait     0000001D 
   3AC:        Else
   3B4:           If       *Var[0] ==  00000001 
@@ -4884,8 +5010,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   3D4:           Else
   3DC:              Call     OverrideBattleDmaDest ( $End[3230] )
   3EC:           EndIf
-  3F4:           Call     LoadBattleDmaData ( 00000015 )
-  404:           ExecWait $Script_802256E0 
+  3F4:           Call     $LoadLavaPiranhaAnimation ( 00000015 )
+  404:           ExecWait $Script_SetAnimation_LavaBud 
   410:           Call     SetActorVar 	( .Actor:Self 0000000B 00000002 )
   428:           Call     GetActorVar 	( .Actor:Self 00000006 *Var[0] )
   440:           If       *Var[0] !=  00000000 
@@ -4910,8 +5036,8 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   600:           Else
   608:              Call     OverrideBattleDmaDest ( $End[3230] )
   618:           EndIf
-  620:           Call     LoadBattleDmaData ( 0000001B )
-  630:           ExecWait $Script_802256E0 
+  620:           Call     $LoadLavaPiranhaAnimation ( 0000001B )
+  630:           ExecWait $Script_SetAnimation_LavaBud 
   63C:           Wait     0000000E 
   648:           Call     SetActorVar 	( .Actor:Self 00000005 00000002 )
   660:        EndIf
@@ -4929,16 +5055,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   710:              Else
   718:                 Call     OverrideBattleDmaDest ( $End[3230] )
   728:              EndIf
-  730:              Call     LoadBattleDmaData ( 00000014 )
+  730:              Call     $LoadLavaPiranhaAnimation ( 00000014 )
   740:           Else
   748:              If       *Var[0] ==  00000001 
   758:                 Call     OverrideBattleDmaDest ( $End[6230] )
   768:              Else
   770:                 Call     OverrideBattleDmaDest ( $End[3230] )
   780:              EndIf
-  788:              Call     LoadBattleDmaData ( 00000013 )
+  788:              Call     $LoadLavaPiranhaAnimation ( 00000013 )
   798:           EndIf
-  7A0:           ExecWait $Script_802256E0 
+  7A0:           ExecWait $Script_SetAnimation_LavaBud 
   7AC:           Wait     0000001D 
   7B8:        Else
   7C0:           Call     GetLastDamage 	( .Actor:Self *Var[5] )
@@ -4948,16 +5074,16 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   804:              Else
   80C:                 Call     OverrideBattleDmaDest ( $End[3230] )
   81C:              EndIf
-  824:              Call     LoadBattleDmaData ( 00000016 )
+  824:              Call     $LoadLavaPiranhaAnimation ( 00000016 )
   834:           Else
   83C:              If       *Var[0] ==  00000001 
   84C:                 Call     OverrideBattleDmaDest ( $End[6230] )
   85C:              Else
   864:                 Call     OverrideBattleDmaDest ( $End[3230] )
   874:              EndIf
-  87C:              Call     LoadBattleDmaData ( 00000015 )
+  87C:              Call     $LoadLavaPiranhaAnimation ( 00000015 )
   88C:           EndIf
-  894:           ExecWait $Script_802256E0 
+  894:           ExecWait $Script_SetAnimation_LavaBud 
   8A0:           Call     GetActorPos 	( .Actor:Self *Var[1] *Var[2] *Var[3] )
   8BC:           Sub      *Var[2] 00000019 
   8CC:           Add      *Var[3] 00000002 
@@ -4966,7 +5092,7 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
   92C:        EndIf
   934:     EndIf
   93C:  EndIf
-  944:  Call     GetActorVar 	( .Actor:Enemy0 00000001 *Var[F] )
+  944:  Call     GetActorVar 	( .Actor:LavaPiranha 00000001 *Var[F] )
   95C:  If       *Var[F] ==  00000000 
   96C:     ExecWait $Script_8022630C 
   978:  EndIf
@@ -5100,43 +5226,82 @@ FFFFFFF9 FFFFFFF9 FFFFFFF9 00000063
     8:  End
 }
 
-#new:DmaArgTable $DmaArgTable
+#new:Unknown $LavaPiranhaAnimationsTable
 {
-007B6690 007B70E0 $End[9230] 
-007B5960 007B6690 $End[9230] 
-007C4F50 007C7410 $End[9230] 
-007C7410 007C7E50 $End[9230] 
-007B70E0 007B8030 $End[9230] 
-007B8030 007B8D30 $End[9230] 
-007B8D30 007B97E0 $End[9230] 
-007B97E0 007BA280 $End[9230] 
-007BA280 007BB050 $End[9230] 
-007BB050 007BBD80 $End[9230] 
-007BBD80 007BEDD0 $End[9230] 
-007BEDD0 007C16C0 $End[9230] 
-007C16C0 007C3A00 $End[9230] 
-007C3A00 007C44D0 $End[9230] 
-007C44D0 007C4F50 $End[9230] 
-007C7E50 007CA850 $End[9230] 
-007CA850 007CD5F0 $End[9230] 
-007CD5F0 007CDB30 $End[9230] 
-007CDB30 007CEFF0 $End[9230] 
-007CEFF0 007CFCC0 $End[9230] 
-007CFCC0 007D0860 $End[9230] 
-007D0860 007D14E0 $End[9230] 
-007D14E0 007D2080 $End[9230] 
-007D2080 007D2960 $End[9230] 
-007D2960 007D3260 $End[9230] 
-007D3260 007D5570 $End[9230] 
-007D5570 007D6F80 $End[9230] 
-007D6F80 007D76B0 $End[9230] 
-007D76B0 007D8FF0 $End[9230] 
-007D8FF0 007D96E0 $End[9230] 
-007D96E0 007D98E0 $End[9230] 
-007D98E0 007DA140 $End[9230] 
-007DA140 007DC180 $End[9230] 
-007DC180 007DE970 $End[9230] 
-007DE970 007DF2B0 $End[9230] 
-007DF2B0 007E03B0 $End[9230] 
-007E03B0 007E0E80 $End[9230] 
+007B6690 007B70E0 $End[9230] % 00 % Lava Piranha - Idle(1)
+007B5960 007B6690 $End[9230] % 01 % Lava Piranha - Disabled
+007C4F50 007C7410 $End[9230] % 02 % Lava Piranha - Attack
+007C7410 007C7E50 $End[9230] % 03 % Lava Piranha - Debuff
+007B70E0 007B8030 $End[9230] % 04 % Lava Piranha - Hurt (Disabled)
+007B8030 007B8D30 $End[9230] % 05 % Lava Piranha - Shaking 1
+007B8D30 007B97E0 $End[9230] % 06 % Lava Piranha - Shaking 2
+007B97E0 007BA280 $End[9230] % 07 % Lava Piranha - Shaking 3
+007BA280 007BB050 $End[9230] % 08 % Lava Piranha - Dead 1
+007BB050 007BBD80 $End[9230] % 09 % Lava Piranha - Dead 2
+007BBD80 007BEDD0 $End[9230] % 0A % Lava Piranha - Dead 3
+007BEDD0 007C16C0 $End[9230] % 0B % Lava Piranha - Dead 4
+007C16C0 007C3A00 $End[9230] % 0C % Lava Piranha - Revive
+007C3A00 007C44D0 $End[9230] % 0D % Lava Piranha (Phase 2) - Disabled
+007C44D0 007C4F50 $End[9230] % 0E % Lava Piranha (Phase 2) - Recover
+007C7E50 007CA850 $End[9230] % 0F % Lava Piranha - Appears (Overworld)
+007CA850 007CD5F0 $End[9230] % 10 % Lava Piranha - Crawl
+007CD5F0 007CDB30 $End[9230] % 11 % Lava Piranha - Vibing?
+007CDB30 007CEFF0 $End[9230] % 12 % Lava Bud - Attack
+007CEFF0 007CFCC0 $End[9230] % 13 % Lava Bud - Shaking (Disabled)
+007CFCC0 007D0860 $End[9230] % 14 % Lava Bud - Recover (Disabled)
+007D0860 007D14E0 $End[9230] % 15 % Lava Bud - Recover1(1)
+007D14E0 007D2080 $End[9230] % 16 % Lava Bud - Recover1(2)
+007D2080 007D2960 $End[9230] % 17 % Lava Bud - Death1(1)
+007D2960 007D3260 $End[9230] % 18 % Lava Bud - Death1(2)
+007D3260 007D5570 $End[9230] % 19 % Lava Bud - Death2
+007D5570 007D6F80 $End[9230] % 1A % Lava Bud - Death3
+007D6F80 007D76B0 $End[9230] % 1B % Lava Bud - Disabled(1)
+007D76B0 007D8FF0 $End[9230] % 1C % Lava Bud - Revive
+007D8FF0 007D96E0 $End[9230] % 1D % Lava Bud - Recover
+007D96E0 007D98E0 $End[9230] % 1E % Lava Bud - Disabled(2)
+007D98E0 007DA140 $End[9230] % 1F % Lava Bud - Idle 
+007DA140 007DC180 $End[9230] % 20 % Lava Bud - Appears (Overworld?)
+007DC180 007DE970 $End[9230] % 21 % Lava Bud - Crawl
+007DE970 007DF2B0 $End[9230] % 22 % Lava Bud (Decoration) - Animation1
+007DF2B0 007E03B0 $End[9230] % 23 % Lava Bud (Decoration) - Animation2
+007E03B0 007E0E80 $End[9230] % 24 % Lava Bud (Decoration) - Animation3
+}
+
+% Call  $LoadLavaPiranhaAnimation ( animationIndex )
+%
+% This is basically LoadBattleDmaData but uses $LavaPiranhaAnimationsTable
+%
+% instead of the DMA table.
+#new:Function $LoadLavaPiranhaAnimation
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+        ORI       A0, R0, C
+        MULT      A0, V0
+        MFLO      A0
+        LIO       A2, $LavaPiranhaAnimationsTable
+        ADDU      V0, A2, A0
+   3C:  BEQL      V0, R0, .o78
+   40:  ADDIU     V0, R0, 2
+   44:  LAW       A2, 80284000 % load BattleDmaDest
+   4C:  BNE       A2, R0, .o64
+   50:  NOP
+   54:  LW        A0, 0 (V0)
+   58:  LW        A1, 4 (V0)
+   5C:  BEQ       R0, R0, .o6C
+   60:  LW        A2, 8 (V0)
+        .o64
+   64:  LW        A0, 0 (V0)
+   68:  LW        A1, 4 (V0)
+        .o6C
+   6C:  JAL       ~Func:dma_copy
+   70:  NOP
+   74:  ADDIU     V0, R0, 2
+        .o78
+   78:  LW        RA, 10 (SP)
+   7C:  JR        RA
+   80:  ADDIU     SP, SP, 18
 }
