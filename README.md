@@ -1,4 +1,10 @@
-# How to Compile
+# How to Play
+**1.** Download the patch file from https://github.com/eldexterr/pmblackpit/releases <br/>
+**2.** Get a vanilla paper mario US rom in .z64 format (other formats can be converted to .z64 here https://hack64.net/tools/swapper.php) <br/>
+**3.** Patch the .z64 here with https://hack64.net/tools/patcher.php <br/>
+<br/>
+<br/>
+# How to Compile (For Editing Source Code)
 #### **Note:** Black Pit uses Star Rod 0.3.2
 
 **1.** In your Star Rod's files go to:
