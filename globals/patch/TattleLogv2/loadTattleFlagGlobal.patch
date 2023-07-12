@@ -1,0 +1,147 @@
+#new:Function $GetTotalTattleGroups {
+    LIO t0, $TattleGroups
+    DADDU v0, r0, r0
+    .loop
+    LW t1, 0000 (t0)
+    BEQ t1, r0, .exit
+    NOP
+    ADDIU v0, v0, 1
+    BEQ r0, r0, .loop
+    ADDIU t0, t0, 4 %increment ptr
+    .exit
+    JR RA
+    NOP
+}
+
+#export:Function $load_tattle_flag_copy {
+    PUSH s0, s1, s2, s3, s4, ra
+    LIO s2, 800DBEDD %start of tattle bytes
+    ADDU s0, a0, r0 %actor type copied to s0
+    JAL $find_tattle_group_index
+    NOP
+    ADDU s1, v0, r0 %group index of current tattle
+    ADDIU v1, r0, 00FF
+    BEQ v0, v1, .tattleNotInGroup
+    NOP
+    %if in group
+    LIO s3, $TattleGroups
+    SLL t1, s1, 2 %multiply by 4
+    ADDU t1, t1, s3 %TattleGroups ptr + 
+    LW s3, 0000 (t1) %load pointer to current group
+    ADDIU s4, r0, 00FF %group terminator
+
+    .tattleCheckLoop
+    LBU t1, 0000 (s3)
+    BEQ s4, t1, .exit
+    ORI t0, r0, 0008
+    DIVU t1, t0 %actor type / 8
+    %remainder in HI
+    %result in LO
+    MFLO t0
+    ADDU v1, s2, t0 % (tattleID / 8) + 0x800DBEDD
+    LBU v1, 0000 (v1) %load tattle byte
+    %now get tattle bit
+    MFHI t0
+    SRLV t1, v1, t0 %shift left by remainder of (tattleID / 8)
+    ANDI v0, t1, 1 %return tattle bit
+    BEQ v0, r0, .tattleCheckLoop
+    ADDIU s3, s3, 1 %increment ptr to tattle group array
+    BEQ r0, r0, .exit %return 1
+    NOP
+
+    .tattleNotInGroup
+    %stuff
+    ORI t0, r0, 0008
+    DIVU s0, t0 %actor type / 8
+    %remainder in HI
+    %result in LO
+    MFLO t0
+    ADDU v1, s2, t0 % (tattleID / 8) + 0x800DBEDD
+    LBU v1, 0000 (v1) %load tattle byte
+    %now get tattle bit
+    MFHI t0
+    SRLV t1, v1, t0 %shift left by remainder of (tattleID / 8)
+    ANDI v0, t1, 1 %return tattle bit
+    .exit
+    POP s0, s1, s2, s3, s4, ra
+    JR RA
+    NOP
+}
+
+#export:Function $find_tattle_group_index { %returns 0 if tattle flag is off
+    PUSH s0, s1, s2, s4, s5, s6, ra
+    LIO s0, $TattleGroups %pointer to all groups
+    ADDIU s1, r0, 00FF %list terminator
+
+    %check if tattle is in a group, if so return group index
+    JAL $GetTotalTattleGroups %get total amount of tattle groups
+    NOP
+    ADDU s2, r0, v0 %move for loop count for groups to s2
+    ADDIU v0, r0, 00FF %return FF if tattle flag not found in group
+    DADDU s4, r0, r0 %second for loop count
+    .loop
+        SLT t0, s4, s2 %as long as for loop count is less than tattle groups total
+        BEQ t0, r0, .end
+        NOP
+        LW s5, 0000 (s0) %load tattle group for second for loop
+        DADDU s6, r0, r0 %index of actorType in group
+        .secondloop
+            LBU t0, 0000 (s5) %load actor type
+            BEQ t0, s1, .actorTypeLoopEnd
+            NOP
+            BEQ t0, a0, .actorTypeMatched
+            NOP
+            ADDIU s6, s6, 1
+            BEQ r0, r0, .secondloop
+            ADDIU s5, s5, 1
+    .actorTypeMatched
+    BEQ r0, r0, .end
+    ADDU v0, s4, r0 %return actor group index
+
+    .actorTypeLoopEnd
+    ADDIU s0, s0, 4 %increment ptr
+    BEQ r0, r0, .loop
+    ADDIU s4, s4, 1 %increment for loop
+
+    .end
+    POP s0, s1, s2, s4, s5, s6, ra
+    JR RA
+    NOP 
+}
+
+
+#new:Data $GroupDuplighost { 3Bb 3Cb 3Db 3Eb 3Fb 40b 41b 42b 43b FFb }
+#new:Data $GroupKoopaBros { 9Ab 9Bb 9Cb 9Db 9Eb FFb }
+#new:Data $GroupGroundedMagikoopas { 4Db 51b 53b 55b 57b 59b FFb }
+#new:Data $GroupFlyingMagikoopas { 4Eb 52b 54b 56b 58b 5Ab FFb }
+#new:Data $GroupLee { 7Eb 7Fb 80b 81b 82b 83b 84b 85b 86b FFb }
+#new:Data $GroupCrystalKing { BDb BEb FFb } %ck and ck clone
+#new:Data $GroupLavaPiranha { B3b B4b FFb }
+#new:Data $GroupLavaPiranhaBuds { B5b B6b FFb }
+#new:Data $GroupJrTroopa { 89b 8Ab 8Bb 8Cb 8Db 8Eb 8Fb FFb }
+
+#new:Data $TattleGroups { %each group separated by 0xFF
+    $GroupDuplighost
+    $GroupKoopaBros
+    $GroupGroundedMagikoopas
+    $GroupFlyingMagikoopas
+    $GroupLee
+    $GroupCrystalKing
+    $GroupLavaPiranha
+    $GroupLavaPiranhaBuds
+    $GroupJrTroopa
+    00000000 %null terminated
+}
+
+/%
+#new:Data $TattleGroup0 { 3Bb 3Cb 3Db 3Eb 3Fb 40b 41b 42b 43b FFb }
+#new:Data $TattleGroup1 { 4Db 4Eb 4Fb 50b FFb }
+#new:Data $TattleGroup2 { 51b 52b FFb }
+#new:Data $TattleGroup3 { 53b 54b FFb }
+#new:Data $TattleGroup4 { 57b 58b FFb }
+#new:Data $TattleGroup5 { 59b 5Ab FFb }
+#new:Data $TattleGroup6 { 7Eb 7Fb 80b 81b 82b 83b 84b 85b 86b FFb }
+#new:Data $TattleGroup7 { AAb ABb FFb }
+#new:Data $TattleGroup8 { BDb BEb FFb }
+#new:Data $TattleGroup9 { C3b C5b FFb }
+%/

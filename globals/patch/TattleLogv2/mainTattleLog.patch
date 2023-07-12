@@ -1,0 +1,1006 @@
+#export .analog_Up      0001
+#export .analog_Down    0002
+#export .analog_Left    0004
+#export .analog_Right   0008
+#export .R_Button 0020
+#export .commonPageTotal 3 %real total is .commonPageTotal + 1
+#export .bossPageTotal 2 %real total is .commonPageTotal + 1
+#export .lastTabValue 2
+%if 0 it means not in sub tab
+#export .commonEnemyTabID 00000001
+#export .bossEnemyTabID 00000002
+#export .recipesTabID 00000003
+#export .achievementsTabValue 00000004
+
+#export:Data $subMenuInMapTab { 00000000 }
+#export:Data $mainMenuTabIndex { 00000000 }
+%802700D4 %gCurrentSubMenu (for start screen)
+
+%802700C8 s32 bottom textbox string ID
+%8026F7F8 s32 map tab bottom textbox string ID
+
+#new:Data $currentMenuXOffset { 0 }
+#new:Data $currentMenuYOffset { 0 }
+
+#new:Data $ViewingSpriteBool { 0 }
+
+#export:String $goombarioTattleLog {
+Check Goombario's research
+on foes he's tattled here.[END]
+}
+
+@Hook:Pause 80244570 {
+    LAW at, $subMenuInMapTab
+    BEQ at, r0, .exit
+    NOP
+    ORI t0, r0, .achievementsTabValue
+    BEQ at, t0, .exit
+    NOP
+    LAW t0, $currentPageNumber
+    SLL t1, t0, 2 %multiply by 4
+    LIO t2, $PageStructs
+    ADDU t1, t1, t2 %now points to current page pointer
+    LW t6, 0000 (t1) %t0 holds pointer to current page ($Page0Struct for instance)
+    LIO t5, $cursorPosition
+    LH t2, 0000 (t5) %x pos
+    LH t3, 0002 (t5) %y pos
+    SLL t2, t2, 3 %multiply by 8
+    ORI t4, r0, 14 %
+    MULT t2, t4
+    MFLO t2
+    ORI t4, r0, 0014
+    MULT t3, t4 %multiply y pos by 0x14
+    MFLO t3
+    ADDU t2, t2, t3
+    ADDU t6, t6, t2  %should now point to current enemy struct
+    LW s3, 0004 (t6) %load description pointer
+    %update descriptions
+    J 80244584
+    NOP
+    .exit
+    SW s3, 0000 (v1)
+    J 80244578
+    LUI at, 8027
+}
+
+@Function:Pause 8024DA28 { %pause_map_draw_border_arrows, make function do nothing
+    JR RA
+    NOP
+}
+
+% @Function:Pause 8024E150 { %dont draw mario
+%     NOP
+% }
+
+
+@Function:Pause 8024DD14 { %dont draw map background
+    NOP
+}
+
+@Function:Pause 8024E008 { %dont draw visited places spaces
+    NOP
+}
+
+@Function:Pause 8024E0CC { %dont draw dots between visited places spaces
+    NOP
+}
+
+@Function:Pause 8024E878 { %pause_map_handle_input, make function do nothing
+    J $newMapHandleInput
+    NOP
+}
+
+
+@Function:Pause 8024E5DC { %remove areas popping up in purple text box
+    NOP
+}
+
+@Function:Pause 8024E6AC { %always set map location to 1 (makes cursor not bug)
+    ORI v0, r0, 0001
+}
+
+
+
+%draw boxes depending on current tab
+@Hook:Pause 8024E510 { %hook if draw border
+    SW	V0, 0020 (SP) %restore from hook
+    LAW v0, $subMenuInMapTab
+    BEQ r0, v0, .mainMenu
+    NOP
+    ORI t0, r0, 0001
+    BEQ t0, v0, .isCommonMenu
+    NOP
+    ORI t0, r0, 0002
+    BEQ t0, v0, .isBossMenu
+    NOP
+    BEQ r0, r0, .notInTattleMenu
+    NOP
+    .mainMenu
+    JAL $DrawMainMenu
+    NOP
+    BEQ r0, r0, .exit
+    NOP
+
+    .isCommonMenu
+    JAL ~Func:draw_box
+    NOP
+    BEQ r0, r0, .exit
+    NOP
+
+    .isBossMenu
+    JAL ~Func:draw_box
+    NOP
+    BEQ r0, r0, .exit
+    NOP
+
+    .exit
+    .notInTattleMenu
+    J 8024E518
+    NOP
+
+}
+
+@Hook:Pause 8024E414 {
+    SAW t7, $currentMenuXOffset
+    SAW t6, $currentMenuYOffset
+    DADDU t1, v0, r0
+    J 8024E41C
+    ADDIU v0, v0, 0008
+}
+
+@Function:Pause 8024E4A8 { %extend border width
+    ADDIU	V0, R0, 0106
+}
+
+/%
+@Function:Pause 8024E4B0 { %extend border height
+    ADDIU	V0, R0, 0088
+}
+%/
+
+@Hook:Pause 8024E584 {
+    LAW t0, $subMenuInMapTab
+    BEQ t0, r0, .skip %if in main menu tab
+    NOP
+    ORI t1, r0, .achievementsTabValue
+    BEQ t0, t1, .skip
+    NOP
+    %if in tab greater than 0 (common enemy, rare enemy, recipes)
+    JAL $drawRandLArrows
+    NOP
+    JAL $displayEnemyIcon
+    NOP
+    JAL $displayEnemyDescription
+    NOP
+    .skip
+    LUI s1, 8027
+    J 8024E58C
+    ADDIU s1, s1, 071C
+}
+
+@Hook:Pause  8024E544 {
+    LAW t0, $subMenuInMapTab
+    BEQ t0, r0, .skip
+    NOP
+    ORI t1, r0, 0001
+    BEQ t0, t1, .displayCommon
+    NOP
+    ORI t1, r0, 0002
+    BEQ t0, t1, .displayBoss
+    NOP
+    BEQ r0, r0, .end
+    NOP
+    .displayCommon
+    JAL $displayEnemyNames
+    NOP
+    %JAL $PrintTattleCount
+    %NOP
+    BEQ r0, r0, .end
+    NOP
+    .displayBoss
+    JAL $displayEnemyNames
+    NOP
+    BEQ r0, r0, .end
+    NOP
+    .skip
+    .end
+    LW	RA, 0094 (SP)
+    JR RA
+    ADDIU sp, sp, A0 %restore from hook
+}
+
+@Hook:Pause 8024E604 { %hook pause_map_init to reset our variables
+    PUSH a0, ra
+    JAL $initalizeVariables
+    NOP
+    POP a0, ra
+    ADDIU sp, sp, -28
+    J 8024E60C
+    SW s3, 001C (sp)
+}
+
+#define .column0X 98`s
+#define .column1X 186`s
+
+#define .row0Y 30`s
+#define .row1Y 41`s
+#define .row2Y 52`s
+#define .row3Y 63`s
+#define .row4Y 74`s
+#define .row5Y 85`s
+#define .row6Y 96`s
+#define .row7Y 107`s
+
+#new:Data $EnemyNamePositions {
+/% row 0 %/    .column0X .row0Y %column 0
+/% row 1 %/    .column0X .row1Y %column 0
+/% row 2 %/    .column0X .row2Y %column 0
+/% row 3 %/    .column0X .row3Y %column 0
+/% row 4 %/    .column0X .row4Y %column 0
+/% row 5 %/    .column0X .row5Y %column 0
+/% row 6 %/    .column0X .row6Y %column 0
+/% row 7 %/    .column0X .row7Y %column 0
+
+/% row 0 %/    .column1X .row0Y %column 1
+/% row 1 %/    .column1X .row1Y %column 1
+/% row 2 %/    .column1X .row2Y %column 1
+/% row 3 %/    .column1X .row3Y %column 1
+/% row 4 %/    .column1X .row4Y %column 1
+/% row 5 %/    .column1X .row5Y %column 1
+/% row 6 %/    .column1X .row6Y %column 1
+/% row 7 %/    .column1X .row7Y %column 1
+}
+
+
+@Hook:Pause 80245980 {
+    %SAH r0, 8015A2A0 %set purple box width to 0
+    LIO t0, FCCFFFFF
+    SAW t0, 8026FF18 %change map screen border color 1
+    LIO t0, CCC4F400
+    SAW t0, 8026FF1C %change map screen border color 2
+    LIO t0, 5FFEF5F8
+    SAW t0, 8026FED4 %slight background change
+    SAB r0, 8026FF53 %remove purple bar (pls) (set opacity to 0)
+    ADDIU sp, sp, -80
+    J 80245988
+    SW fp, 0078 (sp)
+}
+
+
+#new:Function $initalizeVariables {
+    SAW r0, $cursorPosition
+    SAW r0, $currentPageNumber
+    LIO t0, $goombarioTattleLog
+    SAW r0, $subMenuInMapTab
+    SAW r0, $mainMenuTabIndex
+    SAW t0, 8026F7F8
+    JR RA
+    NOP
+}
+
+#new:String $testingString {
+    Hello[END]
+}
+
+#new:String $unkString {
+[Size:0C:0C]???[END]
+}
+
+#new:Function $displayEnemyNames {
+    ADDIU sp, sp, -50
+    SW ra, 0020 (sp)
+    SW s0, 0024 (sp)
+    SW s1, 0028 (sp)
+    SW s2, 002C (sp)
+    SW s3, 0030 (sp)
+    SW s4, 0034 (sp)
+    LIO s0, $PageStructs
+    LAW t0, $currentPageNumber
+    SLL t0, t0, 2 %multiply by 4
+    ADDU s0, t0, s0
+    LW s0, 0000 (s0) %pointer to current page struct
+    LIO s1, $EnemyNamePositions
+    DADDU s2, r0, r0 %for loop counter
+    LAW s3, $currentMenuXOffset
+    LAW s4, $currentMenuYOffset
+    .printLoop
+    LW a0, 0000 (s0) %load enemy string name
+    BEQ a0, r0, .skipPrint
+    NOP
+    JAL $load_tattle_flag_copy
+    LW a0, 0008 (s0) %get actor type
+    %temporary, always return true for tattle bool
+    %ORI v0, r0, 0001
+    LIO a0, $unkString
+    BNEL v0, r0, .skipEnemyName
+    LW a0, 0000 (s0) %load enemy string name
+    .skipEnemyName
+    ADDU a1, s3, r0
+    LH a2, 0000 (s1) %load enemy name pos X offset
+    ADDU a1, a1, a2 %final x pos
+    ADDU a2, s4, r0
+    LH a3, 0002 (s1) %load enemy name pos Y offset
+    ADDU a2, a2, a3 %final y pos
+    ORI a3, r0, 00FF %opacity
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+    .skipPrint
+    ADDIU s2, s2, 1
+    ADDIU s1, s1, 4 %size of pagestruct rows
+    ADDIU s0, s0, 14 %size of entry in $Page0Struct
+    SLTI t0, s2, 16` %16 total names on screen at once
+    BEQ t0, r0, .exit
+    NOP
+    BEQ r0, r0, .printLoop
+    NOP
+    .exit
+    LW ra, 0020 (sp)
+    LW s0, 0024 (sp)
+    LW s1, 0028 (sp)
+    LW s2, 002C (sp)
+    LW s3, 0030 (sp)
+    LW s4, 0034 (sp)
+    JR RA
+    ADDIU sp, sp, 50
+}
+
+#new:String $TattleCount {
+[Size:0C:0C]Tattles
+124/124[END]
+}
+
+#new:ASCII $pageformatter {
+"Page: %1d/%1d"
+}
+
+#new:Data $StringBuffer {
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+}
+
+#new:Data $StringBuffer2 {
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+}
+
+#new:Function $asciiToString {
+    %a0 = destination
+    %a1 = source
+    ORI t1, r0, 0020
+    ORI t2, r0, 00FD
+    .loop
+    LBU t0, 0000 (a1) %load character
+    BEQL t0, r0, .exit
+    SB t2, 0000 (a0) %store string terminator
+    BEQ t0, t1, .isSpace
+    ADDIU v0, t0, FFE0
+    .afterSpaceCheck
+    SB v0, 0000 (a0) %store into destination
+    ADDIU a0, a0, 1
+    ADDIU a1, a1, 1
+    BEQ r0, r0, .loop
+    NOP
+    .isSpace
+    BEQ r0, r0, .afterSpaceCheck
+    ORI v0, r0, 00F7 %space
+    .exit
+    JR RA
+    NOP
+}
+%80439068
+    
+
+#new:Function $PrintTattleCount {
+    ADDIU sp, sp, -50
+    SW ra, 001C (sp)
+    LIO a0, $TattleCount
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 0026
+    ADDIU a2, a2, 0060
+    ORI a3, r0, 00FF
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+    
+    LIO a0, $StringBuffer
+    LIO a1, $pageformatter
+    LAW a2, $currentPageNumber
+    ADDIU a2, a2, 1 %currentPageNumber is an index
+    ORI a3, r0, .commonPageTotal
+    ADDIU a3, a3, 1 %pageTotal is an index
+    JAL ~Func:sprintf
+    NOP
+
+    LIO a0, $StringBuffer2
+    LIO a1, $StringBuffer
+    JAL $asciiToString
+    NOP
+
+    LAW a0, $currentMenuXOffset
+    LAW a1, $currentMenuYOffset
+    ADDIU a0, a0, 0046
+    ADDIU a1, a1, 0073
+    ORI a2, r0, 0090
+    ORI a3, r0, 1A
+    ORI t0, r0, 0005 %000A is blue, also good. 000C green
+    JAL $DrawMenuBox
+    ORI t1, r0, 00FF
+
+
+    LIO a0, $StringBuffer2
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 0068
+    ADDIU a2, a2, 0078
+    ORI a3, r0, 00FF
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+
+
+    LW ra, 001C (sp)
+    JR RA
+    ADDIU sp, sp, 50
+}
+
+#new:Function $CopyPageStructs { %2 args
+%a0 = source struct ptr
+%a1 = amount to copy
+    DADDU t3, r0, r0 %for loop counter
+    LIO t1, $PageStructs
+    .loop
+    LW t0, 0000 (a0) %load page ptr struct
+    SW t0, 0000 (t1) %store page ptr struct
+    ADDIU a0, a0, 4
+    ADDIU t1, t1, 4
+    SLT t4, t3, a1
+    BNE t4, r0, .loop
+    ADDIU t3, t3, 1
+    JR RA
+    NOP
+}
+
+/% args for $DrawMenuBox
+% A0 = posX
+% A1 = posY
+% A2 = sizeX
+% A3 = sizeY
+% T0 = style
+% T1 = opacity
+%/
+
+%in ttyd when scrolling a page the text changes instantly
+%but the cursor lags slightly behind
+
+#export:Data $currentPageNumber { 0 }
+#export:Data $cursorPosition { 0s 0s } %X, Y
+#export:Data $cursorPositionsForMainOptions {
+    0s -18`s
+    0s 3`s
+    0s 24`s
+}
+#new:Function $handleMainMenuCursorPosition {
+    LIO t0, 80270714 %x float pos of cursor
+    LAW t7, 8027070C %X offset for cursor to not misalign?
+    ADDIU t7, t7, -42`
+    MTC1 t7, f20
+    CVT.S.W f20, f20
+    LAW t8, 80270710 %Y offset for cursor to not misalign?
+    LAW t1, $mainMenuTabIndex
+    LIO t2, $cursorPositionsForMainOptions
+    SLL t3, t1, 2 %multiply by sizeof entries in table
+    ADDU t3, t3, t2 %now points to correct offset in table
+    LH t7, 0002 (t3) %load offset
+    ADDU t8, t8, t7
+    MTC1 t8, f22
+    CVT.S.W f22, f22
+    SWC1 f20, 0000 (t0)
+    SWC1 f22, 0004 (t0)
+    JR RA
+    NOP
+}
+
+#new:Function $DrawMainMenu {
+    ADDIU sp, sp, -20
+    SW ra, 0018 (sp)
+    SW s0, 001C (sp)
+    LAW a0, $currentMenuXOffset
+    LAW a1, $currentMenuYOffset
+    ADDIU a0, a0, 0048
+    ADDIU a1, a1, 0030
+    ORI a2, r0, 0090
+    ORI a3, r0, 1A
+    ORI t0, r0, 000C %000A is blue, also good. 000C green
+    JAL $DrawMenuBox
+    ORI t1, r0, 00FF
+
+    LAW a0, $currentMenuXOffset
+    LAW a1, $currentMenuYOffset
+    ADDIU a0, a0, 0048
+    ADDIU a1, a1, 0045
+    ORI a2, r0, 0090
+    ORI a3, r0, 1A
+    ORI t0, r0, 000C %000A is blue, also good. 000C green
+    JAL $DrawMenuBox
+    ORI t1, r0, 00FF
+
+    LAW a0, $currentMenuXOffset
+    LAW a1, $currentMenuYOffset
+    ADDIU a0, a0, 0048
+    ADDIU a1, a1, 005A
+    ORI a2, r0, 0090
+    ORI a3, r0, 1A
+    ORI t0, r0, 000C %000A is blue, also good. 000C green
+    JAL $DrawMenuBox
+    ORI t1, r0, 00FF
+
+    LIO a0, $commonEnemiesString
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 66
+    ADDIU a2, a2, 36
+    ORI a3, r0, 00FF 
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+
+    LIO a0, $bossEnemiesString
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 66
+    ADDIU a2, a2, 4B
+    ORI a3, r0, 00FF 
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+
+    LIO a0, $AchievementsString
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 66
+    ADDIU a2, a2, 60
+    ORI a3, r0, 00FF 
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+
+    LW ra, 0018 (sp)
+    LW s0, 001C (sp)
+    JR RA
+    ADDIU sp, sp, 20
+}
+
+#new:String $commonEnemiesString {
+[Size:0C:0C]Common Enemies[END]
+}
+
+#new:String $bossEnemiesString {
+[Size:0C:0C]Rare Enemies[END]
+}
+
+#new:String $AchievementsString {
+[Size:0C:0C]Achievements[END]
+}
+
+#new:Function $handleInputMainMenu {
+    PUSH s0, ra
+    LAH t0, 80074036
+    ANDI t1, t0, 4000 %B button
+    BNE t1, r0, .BPressed
+    NOP
+    ANDI t1, t0, 8000 %A button
+    BNE t1, r0, .APressed
+    NOP
+    LIO s0, 80074044 %button input that reset every 4 frames
+    LH t1, 0000 (s0) %load analog input
+    ANDI t0, t1, .analog_Up
+    BNE t0, r0, .upPressed
+    NOP
+    ANDI t0, t1, .analog_Down
+    BNE t0, r0, .downPressed
+    NOP
+    .exit
+    
+    JAL $handleMainMenuCursorPosition
+    NOP
+    JPOP s0, ra
+
+
+    .Bpressed
+    JAL ~Func:play_sound
+    ORI a0, r0, 00CA %leave menu sound
+    SAB r0, 802700D4 %gPauseMenuCurrentTab
+    LAW t0, $subMenuInMapTab
+    ORI t1, r0, .achievementsTabValue
+    BEQ t0, t1, .dontOverwriteDescBox
+    NOP
+    LIO t0, $goombarioTattleLog
+    SAW t0, 8026F7F8
+    SAW t0, 80270108 %also bottom text box?
+    .dontOverwriteDescBox
+    BEQ r0, r0, .exit
+    NOP
+
+    .upPressed
+    JAL ~Func:play_sound
+    ORI a0, r0, 00C7 %move cursor sound
+    SAW r0, $currentPageNumber
+    SAW r0, $cursorPosition %clear cursor position x and y
+    LAW t0, $mainMenuTabIndex
+    ADDIU t0, t0, FFFF
+    BLTL t0, t1, .wrapValue
+    ORI t0, r0, .lastTabValue
+    .wrapValue
+    SAW t0, $mainMenuTabIndex
+    BEQ r0, r0, .exit
+    NOP
+
+    .downPressed
+    JAL ~Func:play_sound
+    ORI a0, r0, 00C7 %move cursor sound
+    SAW r0, $currentPageNumber
+    SAW r0, $cursorPosition %clear cursor position x and y
+    LAW t0, $mainMenuTabIndex
+    ADDIU t0, t0, 1
+    ORI t1, r0, .lastTabValue
+    BGTL t0, t1, .setToZero
+    ORI t0, r0, 0
+    .setToZero
+    SAW t0, $mainMenuTabIndex
+    BEQ r0, r0, .exit
+    NOP
+
+    .APressed
+    JAL ~Func:play_sound
+    ORI a0, r0, 00C9 %enter menu sound
+    LAW t0, $mainMenuTabIndex
+    BEQ t0, r0, .commonEnemyTab
+    NOP
+    ORI t1, r0, .bossEnemyTabID
+    ADDIU t1, t1, FFFF %-1 because comparing index to non index
+    BEQ t0, t1, .bossEnemyTab
+    NOP
+    ORI t1, r0, .lastTabValue
+    BEQ t0, t1, .achievementsTab
+    NOP
+    BEQ r0, r0, .end
+    ORI v0, r0, 0
+    %is bossTabID
+    .bossEnemyTab
+    LIO a0, $bossPageStructs
+    LIO a1, .bossPageTotal
+    JAL $CopyPageStructs
+    NOP
+    ORI v0, r0, .bossEnemyTabID
+    ORI t1, r0, 1
+    SAH t1, $cursorPosition %set x axis value to 1, it will stay 1 on boss tab
+    .afterBossEnemyID
+    .end
+    SAW v0, $subMenuInMapTab
+    BEQ r0, r0, .exit
+    NOP
+
+    .achievementsTab
+    BEQ r0, r0, .end
+    ORI v0, r0, .achievementsTabValue
+
+    .commonEnemyTab
+    LIO a0, $commonPageStructs
+    LIO a1, .commonPageTotal
+    JAL $CopyPageStructs
+    NOP
+    BEQ r0, r0, .end
+    ORI v0, r0, .commonEnemyTabID
+}
+
+#export:Function $cursorArrayPosToFloatPosition {
+    LIO t0, 80270714 %x float pos of cursor
+    %8024EFA8 cursor position as s32
+    LIO t2, $cursorPosition
+    LH t3, 0000 (t2) %x pos
+    LH t4, 0002 (t2) %y pos
+
+    LIO t5, $EnemyNamePositions
+    SLL t3, t3, 5 %multiply by 0x20
+    SLL t4, t4, 2 %multiply by 4
+    ADDU t3, t3, t4
+    ADDU t4, t5, t3
+
+    LH t6, 0000 (t4)
+    ADDIU t6, t6, FF6C
+    MTC1 t6, f20
+    CVT.S.W f20, f20
+    LAW t7, 8027070C %X offset for cursor to not misalign?
+    MTC1 t7, f22
+    CVT.S.W f22, f22
+    ADD.S f20, f22, f20
+    SWC1 f20, 0000 (t0)
+
+    LH t6, 0002 (t4)
+    ADDIU t6, t6, FFB8
+    MTC1 t6, f20
+    CVT.S.W f20, f20
+    LAW t7, 80270710 %Y offset for cursor to not misalign?
+    MTC1 t7, f22
+    CVT.S.W f22, f22
+    ADD.S f20, f22, f20
+    SWC1 f20, 0004 (t0)
+
+    JR RA
+    NOP
+}
+
+
+#new:Function $displayEnemyDescription {
+    PUSH s0, s1, s2, ra
+    LAW t0, $currentPageNumber
+    SLL t1, t0, 2 %multiply by 4
+    LIO t2, $PageStructs
+    ADDU t1, t1, t2 %now points to current page pointer
+    LW s0, 0000 (t1) %t0 holds pointer to current page ($Page0Struct for instance)
+    LIO s1, $cursorPosition
+    LH t2, 0000 (s1) %x pos
+    LH t3, 0002 (s1) %y pos
+    SLL t2, t2, 3 %multiply by 8
+    ORI t4, r0, 14 %
+    MULT t2, t4
+    MFLO t2
+    ORI t4, r0, 0014
+    MULT t3, t4 %multiply y pos by 0x14
+    MFLO t3
+    ADDU t2, t2, t3
+    ADDU s0, s0, t2  %should now point to current enemy struct
+    JAL $load_tattle_flag_copy
+    LW a0, 0008 (s0) %load actor type
+    %temporary, always return true for tattle flag
+    % ORI v0, r0, 0001
+    %%%%
+    LW t0, 0004 (s0) %load current enemy description string
+    BEQL v0, r0, .next
+    ORI t0, r0, 0
+    .next
+    SAW t0, 8026F7F8 %set bottom text box
+    SAW t0, 80270108 %also bottom text box?
+
+    JPOP s0, s1, s2, ra
+}
+
+/%
+#export:Data $BigLanternGhostRaster { ~RasterFile:CI-4:tattleLogSprites/BigLanternGhost/[0]big_lantern_ghost.png }
+#export:Data $LanternRaster { ~RasterFile:CI-4:tattleLogSprites/BigLanternGhost/[1]lantern.png }
+%/
+
+#new:Data $RButtonIconRaster { ~RasterFile:CI-4:tattleLogIcons/RButtonDown.png }
+#new:Data $RButtonIconPalette { ~PaletteFile:CI-4:tattleLogIcons/RButtonDown.png }
+
+#new:Data $ZButtonIconRaster { ~RasterFile:CI-4:tattleLogIcons/ZButtonUp.png }
+#new:Data $ZButtonIconPalette { ~PaletteFile:CI-4:tattleLogIcons/ZButtonUp.png }
+
+#new:Function $drawRandLArrows {
+    ADDIU sp, sp, -50
+    SW ra, 004C (sp)
+    %draw R button image
+    LIO a0, $RButtonIconRaster
+    ORI a1, r0, 0010 %16 pixels in width
+    ORI a2, r0, 0010 %16 pixels in height (16 x 16 image)
+    ORI a3, r0, 2 % ~TileFormat:CI-4 %CI-4 image format
+    LIO t0, 0 % ~TileDepth:CI-4
+    SW t0, 0010 (sp) %bit depth
+    LIO t0, $RButtonIconPalette
+    SW t0, 0014 (sp)
+    ORI t0, r0, 011C %x pos
+    ORI t1, r0, 00A4 %y pos
+    SW t0, 0018 (sp)
+    SW t1, 001C (sp)
+    SW r0, 0020 (sp) %set clipULx
+    %ORI t0, r0, 320`
+    SW r0, 0024 (sp) %set clipULy
+    ORI t0, r0, 13F
+    SW t0, 0028 (sp) %set clipLRx
+    ORI t0, r0, EF
+    SW t0, 002C (sp) %clipLRy
+    ORI t0, r0, 00FF
+    SW t0, 0030 (sp) %set opacity
+    JAL 8012E9A0 % ~Func:draw_ci_image_with_clipping
+    NOP
+
+    %draw Z button image
+    LIO a0, $ZButtonIconRaster
+    ORI a1, r0, 0010 %16 pixels in width
+    ORI a2, r0, 0010 %16 pixels in height (16 x 16 image)
+    ORI a3, r0, 2 % ~TileFormat:CI-4 %CI-4 image format
+    LIO t0, 0 % ~TileDepth:CI-4
+    SW t0, 0010 (sp) %bit depth
+    LIO t0, $ZButtonIconPalette
+    SW t0, 0014 (sp)
+    ORI t0, r0, 011C %x pos
+    ORI t1, r0, 002B %y pos
+    SW t0, 0018 (sp)
+    SW t1, 001C (sp)
+    SW r0, 0020 (sp) %set clipULx
+    %ORI t0, r0, 320`
+    SW r0, 0024 (sp) %set clipULy
+    ORI t0, r0, 13F
+    SW t0, 0028 (sp) %set clipLRx
+    ORI t0, r0, EF
+    SW t0, 002C (sp) %clipLRy
+    ORI t0, r0, 00FF
+    SW t0, 0030 (sp) %set opacity
+    JAL 8012E9A0 % ~Func:draw_ci_image_with_clipping
+    NOP
+
+    LW ra, 004C (sp)
+    JR RA
+    ADDIU sp, sp, 50
+}
+
+#new:Function $displayEnemyIcon {
+    ADDIU sp, sp, -90
+    SW ra, 008C (sp)
+    SW s0, 0088 (sp)
+    SW s1, 0084 (sp)
+    SW s2, 0080 (sp)
+    SW s3, 007C (sp)
+    SW s4, 0078 (sp)
+    LAW t0, $currentPageNumber
+    SLL t1, t0, 2 %multiply by 4
+    LIO t2, $PageStructs
+    ADDU t1, t1, t2 %now points to current page pointer
+    LW s0, 0000 (t1) %t0 holds pointer to current page ($Page0Struct for instance)
+    LIO s1, $cursorPosition
+    LH t2, 0000 (s1) %x pos
+    LH t3, 0002 (s1) %y pos
+    SLL t2, t2, 3 %multiply by 8
+    ORI t4, r0, 14 %
+    MULT t2, t4
+    MFLO t2
+    ORI t4, r0, 14
+    MULT t3, t4 %multiply y pos by 0x14
+    MFLO t3
+    ADDU t2, t2, t3
+    ADDU s0, s0, t2  %should now point to current enemy struct
+    DADDU s1, r0, r0 %for loop counter
+    LW s2, 0010 (s0) %s2 holds pointer to EnemyData (ex $GoombaData)
+    BEQ s2, r0, .exit
+    NOP
+    LW s3, 0000 (s2) %load component total
+    BEQ s3, r0, .exit
+    ADDIU s2, s2, 4
+    JAL $load_tattle_flag_copy
+    LW a0, 0008 (s0) %load actor type
+    %temporary, always return true on tattle flag
+    %ORI v0, r0, 0001
+    BEQ v0, r0, .exit
+    NOP
+    %set up image for display
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    .imageLoop
+    LW a0, 0000 (s2)
+    LH a1, 000C (s2)%width
+    LH a2, 000E (s2)%height
+    ORI a3, r0, 2 % ~TileFormat:CI-4 %CI-4 image format
+    LIO t0, 0 % ~TileDepth:CI-4
+    SW t0, 0010 (sp) %bit depth
+    LW t0, 0004 (s2) %load palette
+    SW t0, 0014 (sp) %ptr palette
+    LH t0, 0008 (s2) %xPos
+    LH t1, 000C (s0) %load origin x position
+    %testing
+    ADDIU t1, t1, 74`
+    ADDU t0, t0, t1
+    LH t1, 000C (s2) %width
+    SRL t1, t1, 1 %divide by 2
+
+    MTC1 t1, f20
+    CVT.S.W f20, f20
+    NEG.S f20, f20
+    CVT.W.S f20, f20
+    MFC1 t1, f20
+
+    ADDU t0, t0, t1
+    SW t0, 0018 (sp) %set X pos
+    LH t0, 000A (s2)%yPos
+    LH t1, 000E (s0) %load origin y position
+    %testing
+    ADDIU t1, t1, 128`
+    %end of testing
+    ADDU t0, t0, t1
+    LH t1, 000E (s2) %load y pos
+    MTC1 t1, f20
+    CVT.S.W f20, f20
+    NEG.S f20, f20
+    CVT.W.S f20, f20
+    MFC1 t1, f20
+    ADDU t0, t0, t1
+    SW t0, 001C (sp) %set y pos
+    SW r0, 0020 (sp) %set clipULx
+    %ORI t0, r0, 320`
+    SW r0, 0024 (sp) %set clipULy
+    ORI t0, r0, 13F
+    SW t0, 0028 (sp) %set clipLRx
+    ORI t0, r0, EF
+    SW t0, 002C (sp) %clipLRy
+    ORI t0, r0, 00FF
+    SW t0, 0030 (sp) %set opacity
+    JAL 8012E9A0 % ~Func:draw_ci_image_with_clipping
+    NOP
+    ADDIU s1, s1, 1
+    SLT t0, s1, s3
+    BNE t0, r0, .imageLoop
+    ADDIU s2, s2, 10 %size of entry in EnemyData
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    .exit
+    LW ra, 008C (sp)
+    LW s0, 0088 (sp)
+    LW s1, 0084 (sp)
+    LW s2, 0080 (sp)
+    LW s3, 007C (sp)
+    LW s4, 0078 (sp)
+    JR RA
+    ADDIU sp, sp, 90
+}
+
+#new:Function $handleInputAchievements {
+    ADDIU sp, sp, -20
+    SW ra, 0018 (sp)
+    LAH t0, 80074036
+    % ANDI t1, t0, 4000 %B button
+    % BNE t1, r0, .BPressed
+    % NOP
+    %draw achievements menu
+    % JAL $Function_DisplayExtraTab
+    % NOP
+    LW ra, 0018 (sp)
+    JR RA
+    ADDIU sp, sp, 20
+    .BPressed
+    SAW r0, $subMenuInMapTab
+    LW ra, 0018 (sp)
+    JR RA
+    ADDIU sp, sp, 20
+}
+
+
+#new:Function $newMapHandleInput {
+    PUSH s0, s1, s2, s3, s4, ra
+    LAW t0, $subMenuInMapTab
+    BEQ t0 r0, .inMainMapMenu
+    NOP
+    ORI t1, r0, .commonEnemyTabID
+    BEQ t0, t1, .commonEnemyTab
+    NOP
+    ORI t1, r0, .bossEnemyTabID
+    BEQ t0, t1, .bossEnemyTab
+    NOP
+    ORI t1, r0, .achievementsTabValue
+    BEQ t0, t1, .achievementsTab
+    NOP
+    .realexit
+    JPOP s0, s1, s2, s3, s4, ra
+
+    .commonEnemyTab
+    JAL $handleInputCommonMenu
+    NOP
+    BEQ r0, r0, .realexit
+    NOP
+
+    .inMainMapMenu
+    JAL $handleMainMenuCursorPosition
+    NOP
+    JAL $handleInputMainMenu
+    NOP
+    BEQ r0, r0, .realexit
+    NOP
+
+    .bossEnemyTab
+    JAL $handleInputBossMenu
+    NOP
+    BEQ r0, r0, .realexit
+    NOP
+
+    .achievementsTab
+    JAL $handleInputAchievements
+    NOP
+    BEQ r0, r0, .realexit
+    NOP
+}

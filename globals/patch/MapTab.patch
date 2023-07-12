@@ -4,34 +4,34 @@
 % Remove everything from the Map Tab
 %===============================
 % Remove map picture
-@Function 141054 % 8024DD14
-{
-NOP
-}
+% @Function 141054 % 8024DD14
+% {
+% NOP
+% }
 
-% Disable all Map places
-@Function 1412FC % 8024DFBC
-{
-NOP
-}
+% % Disable all Map places
+% @Function 1412FC % 8024DFBC
+% {
+% NOP
+% }
 
-% The hand cursor always stay on the same place after pressing A
-@Function 1414A4 % 8024E164
-{
-NOP
-}
+% % The hand cursor always stay on the same place after pressing A
+% @Function 1414A4 % 8024E164
+% {
+% NOP
+% }
 
 #new:Data $MapTab_GlobalXYOffset
 { 00000000 00000000 }
 
-% Disable map's picture frame
-@Hook 1417E8 % 8024E4A8
-{
-% restore vanilla code
-CLEAR     V0         % ADDIU	V0, R0, 00FA - Picture Frame X Size
-J         8024E4B0
-SW	     V0, 0014 (SP)
-}
+% % Disable map's picture frame
+% @Hook 1417E8 % 8024E4A8
+% {
+% % restore vanilla code
+% CLEAR     V0         % ADDIU	V0, R0, 00FA - Picture Frame X Size
+% J         8024E4B0
+% SW	     V0, 0014 (SP)
+% }
 
 % Remove Mario's icon
 @Hook 	141490 % 8024E150
@@ -40,53 +40,58 @@ PUSH	     RA, V0
 LIO       V0, $MapTab_GlobalXYOffset
 SW        S2, 0 (V0) % save pos x
 SW        T7, 4 (V0) % save pos y
+LAW v0, $subMenuInMapTab
+ORI ra, r0, .achievementsTabValue
+BNE v0, ra, .dontDraw
+NOP
 JAL		$Function_DisplayExtraTab
 NOP
+.dontDraw
 POP		RA, V0
 J       8024E158
 NOP % <-- mario gif removed
 }
 
-% Hide the Purple Box from the Map Tab
-@Hook DE070 % 80147970
-{
-ADDIU	T0, R0, 7C % The one with 7C inside V1 is the purple one
-BNE		V1, T0, .SaveBoxPos
-NOP
-ADDIU	T0, R0, 47 % the box with position 47 is the purple one
-BEQL	     V0, T0, .SaveBoxPos
-ADDIU	V0, R0, 7FFF
-.SaveBoxPos
-SW		V0, 0094 (SP)
-J		80147978
-ADDU	     V1, V1, T3
-}
+% % Hide the Purple Box from the Map Tab
+% @Hook DE070 % 80147970
+% {
+% ADDIU	T0, R0, 7C % The one with 7C inside V1 is the purple one
+% BNE		V1, T0, .SaveBoxPos
+% NOP
+% ADDIU	T0, R0, 47 % the box with position 47 is the purple one
+% BEQL	     V0, T0, .SaveBoxPos
+% ADDIU	V0, R0, 7FFF
+% .SaveBoxPos
+% SW		V0, 0094 (SP)
+% J		80147978
+% ADDU	     V1, V1, T3
+% }
 
-% Don't overwrite the hand cursor x pos (inside map tab)
-@Function 141CE8 % 8024E9A8
-{
-     % The hand cursor isn't visible anymore but if you don't do this
-     % everything inside the map tab will get moved to the right if
-     % you hold the stick enough to the right, like on vanilla's map tab.
-     NOP
-}
+% % Don't overwrite the hand cursor x pos (inside map tab)
+% @Function 141CE8 % 8024E9A8
+% {
+%      % The hand cursor isn't visible anymore but if you don't do this
+%      % everything inside the map tab will get moved to the right if
+%      % you hold the stick enough to the right, like on vanilla's map tab.
+%      NOP
+% }
 
-% Hide the Purple Box from the Map Tab (when the menu is rotating)
-@Hook DE04C % 8014794C
-{
-% vanilla code
-SW	     V0, 0090 (SP)
-ANDI	     V0, T3, 0001
-% new code
-ORI       T0, R0, 2A % S2 = 2A = Map Tab's purple box is currently active
-BEQL      S2, T0, .HidePurpleBox
-CLEAR     V0 % V0 = 0 = Hide box
-.HidePurpleBox
-J         80147954
-NOP
-}
+% % Hide the Purple Box from the Map Tab (when the menu is rotating)
+% @Hook DE04C % 8014794C
+% {
+% % vanilla code
+% SW	     V0, 0090 (SP)
+% ANDI	     V0, T3, 0001
+% % new code
+% ORI       T0, R0, 2A % S2 = 2A = Map Tab's purple box is currently active
+% BEQL      S2, T0, .HidePurpleBox
+% CLEAR     V0 % V0 = 0 = Hide box
+% .HidePurpleBox
+% J         80147954
+% NOP
+% }
 
-% Enlarge Map BG Impression Area
+% % Enlarge Map BG Impression Area
 @Hook 1410BC % 8024DD7C
 {
 ADDIU	V1, R0, 0   % Print Area - Y Pos
@@ -97,20 +102,20 @@ J		8024DD84
 SW		V0, 4 (A1)
 }
 
-% To only leave the Extra Tab if the player is at the start Menu
-@Hook 141F40 % 8024EC00
-{
-LIO       T0, $ExtraTab_CursorData
-LBU       T0, 1 (T0) % Load Current Menu
-BNE       T0, R0, .DontLeaveExtraTab
-NOP
-SAB       R0, 802700D4
-.DontLeaveExtraTab
-J         8024EC08
-NOP
-}
+% % To only leave the Extra Tab if the player is at the start Menu
+% @Hook 141F40 % 8024EC00
+% {
+% LIO       T0, $ExtraTab_CursorData
+% LBU       T0, 1 (T0) % Load Current Menu
+% BNE       T0, R0, .DontLeaveExtraTab
+% NOP
+% SAB       R0, 802700D4
+% .DontLeaveExtraTab
+% J         8024EC08
+% NOP
+% }
 
-% To reset the Extra Menu Data everytime you open the pause menu
+% % To reset the Extra Menu Data everytime you open the pause menu
 @Hook FE94 % 80034A94
 {
 PUSH      RA
@@ -126,7 +131,7 @@ NOP
 }
 
 
-% To not overwrite the String ID to Zero, needed for the hook below
+% % To not overwrite the String ID to Zero, needed for the hook below
 @Function 141F70 % 8024EC30
 {
 NOP
@@ -135,12 +140,23 @@ NOP
 % Overwrite the description box String ID
 @Hook 13778C % 8024444C
 {
+
 % Check if the cursor is inside the Extra Tab
+
 LABU    T0, 802700D4 % Current Opened tab, 00=None, 06=Extra Tab
 ADDIU   T1, R0, 6
 BNE     T0, T1, .BypassOverwriting
 NOP
+% LIO t0, $goombarioTattleLog
+% SAW t0, 8026F7F8
+% SAW t0, 80270108 %also bottom text box?
+% SAW t0, 802700C8 %also also bottom text box?
+LAW t0, $subMenuInMapTab
+ORI t1, r0, .achievementsTabValue
+BNE t0, t1, .BypassOverwriting
+NOP
 PUSH    A0, A1, A2, V0, V1, RA, S0
+SAW r0, 802700C8
 ADDIU   T1, R0, 2F % Write String's Bank ID
 SAB     T1, 802700C9
 LIO     T0, $ExtraTab_CursorData
@@ -981,15 +997,20 @@ NOP
      NOP
 }
 
-% Remove the Hand Cursor when inside the Map Tab
+% % Remove the Hand Cursor when inside the Map Tab
 @Hook 136884 % 80243544
 {
 % Check if the cursor is inside the Extra Tab
-LABU    T0, 802700D4 % Current Opened tab, 00=None, 06=Extra Tab
-ADDIU   T1, R0, 6
-BEQ     T0, T1, .BypassCursor
+LAW t0, $subMenuInMapTab
+ORI t1, r0, .achievementsTabValue
+BEQ t0, t1, .BypassCursor
 NOP
+% LABU    T0, 802700D4 % Current Opened tab, 00=None, 06=Extra Tab
+% ADDIU   T1, R0, 6
+% BEQ     T0, T1, .BypassCursor
+% NOP
 % Reset Start Timer for the Extra Tab
+.forceDrawCursor
 LIO     T0 $ExtraTab_CursorData3
 SB      R0, 3 (T0)
 JAL	   801447E0 % Draw Hand Cursor
@@ -1012,7 +1033,7 @@ J       80243550
 NOP
 }
 
-#new:Function $Function_DisplayExtraTab
+#export:Function $Function_DisplayExtraTab
 {
 /%
 S0=Fade Timer
@@ -1161,6 +1182,17 @@ BEQ     R0, R0, .Menu1234
 NOP
 .Menu0
 % Load Strings for Menu0
+LAH a0, 80074036
+ORI a1, r0, 4000
+BNE a0, a1, .bNotPressed
+NOP
+SAW r0, $subMenuInMapTab
+ADDIU	A0, R0, 00C7 % Move Cursor
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	     ~Func:_play_sound
+COPY 	A3, A1
+.bNotPressed
 LIO     A0, $String_Menu0_Global
 LW      A1, 0 (GP) % load global x offset
 LW      A2, 4 (GP) % load global y offset

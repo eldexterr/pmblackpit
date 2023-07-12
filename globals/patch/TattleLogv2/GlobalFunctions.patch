@@ -1,0 +1,29 @@
+#export:Function $DrawMenuBox {
+    ADDIU        SP, SP, -58
+    SW        RA, 50 (SP)
+    % setup call to DrawBox
+    SW        R0, 10 (SP)    % posZ
+    SW        A2, 14 (SP)    % width
+    SW        A3, 18 (SP) % height
+    SW        T1, 1C (SP) % opacity
+    COPY      A2, A0 % posX
+    COPY      A3, A1 % posY
+    COPY      A1, T0 % flags
+    CLEAR     A0 % flags
+    SW        R0, 20 (SP) % fogRGB
+    SW        R0, 24 (SP) % scaleX (unused)
+    SW        R0, 28 (SP) % scaleY (unused)
+    SW        R0, 2C (SP) % rotX (unused)
+    SW        R0, 30 (SP) % rotY (unused)
+    SW        R0, 34 (SP) % rotZ (unused)
+    SW        R0, 38 (SP) % unk func
+    SW        R0, 3C (SP) % unk func arg0
+    SW        R0, 40 (SP) % txMtx (unused)
+    SW        R0, 44 (SP) % txShiftY (unused)
+    SW        R0, 48 (SP) % txShiftX (unused)
+    JAL       800F52E0 %draw_box
+    SW        R0, 4C (SP) % unk
+    LW        RA, 50 (SP)
+    JR        RA
+    ADDIU        SP, SP, 58
+}
