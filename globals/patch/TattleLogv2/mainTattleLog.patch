@@ -607,8 +607,11 @@ on foes he's tattled here.[END]
 
 
     .Bpressed
-    JAL ~Func:play_sound
-    ORI a0, r0, 00CA %leave menu sound
+    ADDIU	A0, R0, 00CA % Back out of menu sound
+    CLEAR 	A1
+    COPY 	A2, A1
+    JAL 	     ~Func:_play_sound
+    COPY 	A3, A1
     SAB r0, 802700D4 %gPauseMenuCurrentTab
     LAW t0, $subMenuInMapTab
     ORI t1, r0, .achievementsTabValue

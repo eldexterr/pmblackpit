@@ -1187,7 +1187,7 @@ ORI a1, r0, 4000
 BNE a0, a1, .bNotPressed
 NOP
 SAW r0, $subMenuInMapTab
-ADDIU	A0, R0, 00C7 % Move Cursor
+ADDIU	A0, R0, 00CA % Back out of menu sound
 CLEAR 	A1
 COPY 	A2, A1
 JAL 	     ~Func:_play_sound
@@ -4736,6 +4736,11 @@ SB        R0, 3 (T3) % Set the cursor pos back to 0
 BEQ       R0, R0, .End
 NOP
 .Navigation_CheckB_Conditions
+ADDIU	A0, R0, 00CA % Back out of menu sound
+CLEAR 	A1
+COPY 	A2, A1
+JAL 	     ~Func:_play_sound
+COPY 	A3, A1
 BEQ       S1, R0, .End % At Menu0 just exit from the Extra Tab
 NOP
  % Set cursor y pos according to the previous menu
