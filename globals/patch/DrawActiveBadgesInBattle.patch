@@ -1,0 +1,369 @@
+#define .ABILITY_DODGE_MASTER      00000000
+#define .ABILITY_UNUSED            00000001
+#define .ABILITY_SPIKE_SHIELD      00000002
+#define .ABILITY_FIRST_ATTACK      00000003
+#define .ABILITY_HP_PLUS           00000004
+#define .ABILITY_DOUBLE_DIP        00000005
+#define .ABILITY_MYSTERY_SCROLL    00000006
+#define .ABILITY_FIRE_SHIELD       00000007
+#define .ABILITY_PRETTY_LUCKY      00000008
+#define .ABILITY_HP_DRAIN          00000009
+#define .ABILITY_ALL_OR_NOTHING    0000000A
+#define .ABILITY_SLOW_GO           0000000B
+#define .ABILITY_FP_PLUS           0000000C
+#define .ABILITY_ICE_POWER         0000000D
+#define .ABILITY_FEELING_FINE      0000000E
+#define .ABILITY_ATTACK_FX         0000000F
+#define .ABILITY_MONEY_MONEY       00000010
+#define .ABILITY_CHILL_OUT         00000011
+#define .ABILITY_HAPPY_HEART       00000012
+#define .ABILITY_ZAP_TAP           00000013
+#define .ABILITY_MEGA_RUSH         00000014
+#define .ABILITY_BERSERKER         00000015
+#define .ABILITY_RIGHT_ON          00000016
+#define .ABILITY_RUNAWAY_PAY       00000017
+#define .ABILITY_FLOWER_SAVER      00000018
+#define .ABILITY_PAY_OFF           00000019
+#define .ABILITY_QUICK_CHANGE      0000001A
+#define .ABILITY_DEFEND_PLUS       0000001B
+#define .ABILITY_POWER_PLUS        0000001C
+#define .ABILITY_REFUND            0000001D
+#define .ABILITY_POWER_RUSH        0000001E
+#define .ABILITY_CRAZY_HEART       0000001F
+#define .ABILITY_LAST_STAND        00000020
+#define .ABILITY_CLOSE_CALL        00000021
+#define .ABILITY_P_UP_D_DOWN       00000022
+#define .ABILITY_LUCKY_DAY         00000023
+#define .ABILITY_MEGA_HP_DRAIN     00000024
+#define .ABILITY_P_DOWN_D_UP       00000025
+#define .ABILITY_FLOWER_FANATIC    00000026
+#define .ABILITY_SPEEDY_SPIN       00000027
+#define .ABILITY_SPIN_ATTACK       00000028
+#define .ABILITY_I_SPY             00000029
+#define .ABILITY_BUMP_ATTACK       0000002A
+#define .ABILITY_HEART_FINDER      0000002B
+#define .ABILITY_FLOWER_FINDER     0000002C
+#define .ABILITY_DIZZY_ATTACK      0000002D
+#define .ABILITY_FINAL_GOOMPA      0000002E
+#define .ABILITY_FINAL_BOBOMB      0000002F
+#define .ABILITY_DEEP_FOCUS        00000030
+#define .ABILITY_SUPER_FOCUS       00000031
+#define .ABILITY_KAIDEN            00000032
+#define .ABILITY_DAMAGE_DODGE      00000033
+#define .ABILITY_HAPPY_FLOWER      00000034
+#define .ABILITY_GROUP_FOCUS       00000035
+#define .ABILITY_PEEKABOO          00000036
+#define .ABILITY_HEALTHY_HEALTHY   00000037
+
+#new:Function $ConvertAsciiToPm64Text{
+    %a0 holds sprintf buffer (normal text)
+    %a1 holds pm64 text buffer
+    .loop
+    LB a2, 0000 (a0) %load ascii character
+    BEQ a2, r0, .exit
+    NOP
+    ORI t0, r0, 000E %pm64 decimal point ID
+    ADDIU a2, a2, FFE0 %add -0x20 to ascii to get pm64 text format
+    SB a2, 0000 (a1) %store new value
+    ADDIU a0, a0, 1
+    BEQ r0, r0, .loop
+    ADDIU a1, a1, 1
+    .exit
+    ORI t0, r0, 00FD
+    SB t0, 0000 (a1)
+    JR RA
+    NOP
+}
+
+% #new:Function $ConvertAsciiToPm64Text %grab 5 places after the decimal point
+% {
+% %takes args a0 and a1
+% %pointer to string in a0 ex: ( $XAxis )
+% %pointer to store in a1 ex: ( $XAxisPMText )
+% PUSH a0, a1, a2, a3, t0
+% .loop
+% LB a2, 0000 (a0) %load ascii character
+% ORI t0, r0, 000E %pm64 decimal point ID
+% ADDIU a2, a2, FFE0 %add -0x20 to ascii to get pm64 text format
+% BEQ t0, a2, .decimalpoint
+% NOP
+% SB a2, 0008 (a1)
+% ADDIU a0, a0, 0001
+% BEQ r0, r0, .loop
+% ADDIU a1, a1, 0001
+% .end
+% POP a0, a1, a2, a3, t0
+% JR RA
+% NOP
+% .decimalpoint
+% ORI a3, r0, 0005 %number of places after the decimal to put
+% SB a2, 0008 (a1) %store to pm64 text format
+% .loop2
+% ADDIU a0, a0, 0001 %add 1 to string pointing to ascii
+% ADDIU a1, a1, 0001 %add 1 to string pointer to pm64 text format
+% LB a2, 0000 (a0) %load ascii character into a2
+% ADDIU a2, a2, FFE0 %Add -0x20 to ascii to get pm64 text character
+% SB a2, 0008 (a1)
+% ADDIU a3, a3, FFFF
+% BEQ a3, r0, .terminator
+% NOP
+% BEQ r0, r0, .loop2
+% NOP
+% .terminator
+% ORI t0, r0, 00FD
+% ADDIU a1, a1, 0001
+% BEQ r0, r0, .end
+% SB t0, 0008 (a1)
+% }
+
+#export:Data $PowerPlusRaster { ~RasterFile:CI-4:badgeIcons/power_plus-export.png }
+#export:Data $PowerPlusPalette { ~PaletteFile:CI-4:badgeIcons/power_plus-export.png }
+#export:Data $PowerPlusIconData { $PowerPlusRaster $PowerPlusPalette 24` 24` }
+
+#export:Data $DodgeMasterRaster { ~RasterFile:CI-4:badgeIcons/dodge_master-export.png }
+#export:Data $DodgeMasterPalette { ~PaletteFile:CI-4:badgeIcons/dodge_master-export.png }
+#export:Data $DodgeMasterIconData { $DodgeMasterRaster $DodgeMasterPalette 24` 24` }
+
+#export:Data $SpikeShieldRaster { ~RasterFile:CI-4:badgeIcons/spike_shield-export.png }
+#export:Data $SpikeShieldPalette { ~PaletteFile:CI-4:badgeIcons/spike_shield-export.png }
+#export:Data $SpikeShieldIconData { $SpikeShieldRaster $SpikeShieldPalette 24` 24` }
+
+#export:Data $FireShieldRaster { ~RasterFile:CI-4:badgeIcons/fire_shield-export.png }
+#export:Data $FireShieldPalette { ~PaletteFile:CI-4:badgeIcons/fire_shield-export.png }
+#export:Data $FireShieldIconData { $FireShieldRaster $FireShieldPalette 24` 24` }
+
+#export:Data $PrettyLuckyRaster { ~RasterFile:CI-4:badgeIcons/pretty_lucky-export.png }
+#export:Data $PrettyLuckyPalette { ~PaletteFile:CI-4:badgeIcons/pretty_lucky-export.png }
+#export:Data $PrettyLuckyIconData { $PrettyLuckyRaster $PrettyLuckyPalette 24` 24` }
+
+#export:Data $FeelingFineRaster { ~RasterFile:CI-4:badgeIcons/feeling_fine-export.png }
+#export:Data $FeelingFinePalette { ~PaletteFile:CI-4:badgeIcons/feeling_fine-export.png }
+#export:Data $FeelingFineIconData { $FeelingFineRaster $FeelingFinePalette 24` 24` }
+
+#export:Data $AllOrNothingRaster { ~RasterFile:CI-4:badgeIcons/all_or_nothing-export.png }
+#export:Data $AllOrNothingPalette { ~PaletteFile:CI-4:badgeIcons/all_or_nothing-export.png }
+#export:Data $AllOrNothingIconData { $AllOrNothingRaster $AllOrNothingPalette 24` 24` }
+
+#export:Data $HpDrainRaster { ~RasterFile:CI-4:badgeIcons/hp_drain-export.png }
+#export:Data $HpDrainPalette { ~PaletteFile:CI-4:badgeIcons/hp_drain-export.png }
+#export:Data $HpDrainIconData { $HpDrainRaster $HpDrainPalette 24` 24` }
+
+#export:Data $MegaRushRaster { ~RasterFile:CI-4:badgeIcons/mega_rush-export.png }
+#export:Data $MegaRushPalette { ~PaletteFile:CI-4:badgeIcons/mega_rush-export.png }
+#export:Data $MegaRushIconData { $MegaRushRaster $MegaRushPalette 24` 24` }
+
+#export:Data $IcePowerRaster { ~RasterFile:CI-4:badgeIcons/ice_power-export.png }
+#export:Data $IcePowerPalette { ~PaletteFile:CI-4:badgeIcons/ice_power-export.png }
+#export:Data $IcePowerIconData { $IcePowerRaster $IcePowerPalette 24` 24` }
+
+#export:Data $DefendPlusRaster { ~RasterFile:CI-4:badgeIcons/defend_plus-export.png }
+#export:Data $DefendPlusPalette { ~PaletteFile:CI-4:badgeIcons/defend_plus-export.png }
+#export:Data $DefendPlusIconData { $DefendPlusRaster $DefendPlusPalette 24` 24` }
+
+#export:Data $HappyHeartRaster { ~RasterFile:CI-4:badgeIcons/happy_heart-export.png }
+#export:Data $HappyHeartPalette { ~PaletteFile:CI-4:badgeIcons/happy_heart-export.png }
+#export:Data $HappyHeartIconData { $HappyHeartRaster $HappyHeartPalette 24` 24` }
+
+#export:Data $PowerRushRaster { ~RasterFile:CI-4:badgeIcons/power_rush-export.png }
+#export:Data $PowerRushPalette { ~PaletteFile:CI-4:badgeIcons/power_rush-export.png }
+#export:Data $PowerRushIconData { $PowerRushRaster $PowerRushPalette 24` 24` }
+
+#export:Data $LastStandRaster { ~RasterFile:CI-4:badgeIcons/last_stand-export.png }
+#export:Data $LastStandPalette { ~PaletteFile:CI-4:badgeIcons/last_stand-export.png }
+#export:Data $LastStandIconData { $LastStandRaster $LastStandPalette 24` 24` }
+
+#export:Data $CloseCallRaster { ~RasterFile:CI-4:badgeIcons/close_call-export.png }
+#export:Data $CloseCallPalette { ~PaletteFile:CI-4:badgeIcons/close_call-export.png }
+#export:Data $CloseCallIconData { $CloseCallRaster $CloseCallPalette 24` 24` }
+
+#export:Data $PUpDDownRaster { ~RasterFile:CI-4:badgeIcons/p_up_d_down-export-export.png }
+#export:Data $PUpDDownPalette { ~PaletteFile:CI-4:badgeIcons/p_up_d_down-export-export.png }
+#export:Data $PUpDDownIconData { $PUpDDownRaster $PUpDDownPalette 24` 24` }
+
+#export:Data $PDownDUpRaster { ~RasterFile:CI-4:badgeIcons/p_down_d_up-export.png }
+#export:Data $PDownDUpPalette { ~PaletteFile:CI-4:badgeIcons/p_down_d_up-export.png }
+#export:Data $PDownDUpIconData { $PDownDUpRaster $PDownDUpPalette 24` 24` }
+
+#export:Data $LuckyDayRaster { ~RasterFile:CI-4:badgeIcons/lucky_day-export.png }
+#export:Data $LuckyDayPalette { ~PaletteFile:CI-4:badgeIcons/lucky_day-export.png }
+#export:Data $LuckyDayIconData { $LuckyDayRaster $LuckyDayPalette 24` 24` }
+
+#export:Data $DeepFocusRaster { ~RasterFile:CI-4:badgeIcons/deep_focus-export.png }
+#export:Data $DeepFocusPalette { ~PaletteFile:CI-4:badgeIcons/deep_focus-export.png }
+#export:Data $DeepFocusIconData { $DeepFocusRaster $DeepFocusPalette 24` 24` }
+
+#export:Data $DamageDodgeRaster { ~RasterFile:CI-4:badgeIcons/damage_dodge-export.png }
+#export:Data $DamageDodgePalette { ~PaletteFile:CI-4:badgeIcons/damage_dodge-export.png }
+#export:Data $DamageDodgeIconData { $DamageDodgeRaster $DamageDodgePalette 24` 24` }
+
+#export:Data $HappyFlowerRaster { ~RasterFile:CI-4:badgeIcons/happy_flower-export.png }
+#export:Data $HappyFlowerPalette { ~PaletteFile:CI-4:badgeIcons/happy_flower-export.png }
+#export:Data $HappyFlowerIconData { $HappyFlowerRaster $HappyFlowerPalette 24` 24` }
+
+#new:Data $AbilityAndIconDataList {
+    .ABILITY_POWER_PLUS         $PowerPlusIconData
+    .ABILITY_DODGE_MASTER       $DodgeMasterIconData
+    .ABILITY_SPIKE_SHIELD       $SpikeShieldIconData
+    .ABILITY_FIRE_SHIELD        $FireShieldIconData
+    .ABILITY_PRETTY_LUCKY       $PrettyLuckyIconData
+    .ABILITY_FEELING_FINE       $FeelingFineIconData
+    .ABILITY_ALL_OR_NOTHING     $AllOrNothingIconData
+    .ABILITY_HP_DRAIN           $HpDrainIconData
+    .ABILITY_MEGA_RUSH          $MegaRushIconData
+    .ABILITY_ICE_POWER          $IcePowerIconData
+    .ABILITY_DEFEND_PLUS        $DefendPlusIconData
+    .ABILITY_HAPPY_HEART        $HappyHeartIconData
+    .ABILITY_POWER_RUSH         $PowerRushIconData
+    .ABILITY_LAST_STAND         $LastStandIconData
+    .ABILITY_CLOSE_CALL         $CloseCallIconData
+    .ABILITY_P_UP_D_DOWN        $PUpDDownIconData
+    .ABILITY_LUCKY_DAY          $LuckyDayIconData
+    .ABILITY_P_DOWN_D_UP        $PDownDUpIconData
+    .ABILITY_DEEP_FOCUS         $DeepFocusIconData
+    .ABILITY_DAMAGE_DODGE       $DamageDodgeIconData
+    .ABILITY_HAPPY_FLOWER       $HappyFlowerIconData %21 badges total
+}
+
+#new:Data $BadgeDrawPositions { %draws up to 21 badges total
+    %X, %Y
+    0B0 27   0C0 27   0D0 27   0E0 27   0F0 27   100 27   110 27   120 27
+    0B0 37   0C0 37   0D0 37   0E0 37   0F0 37   100 37   110 37   120 37
+    0B0 47   0C0 47   0D0 47   0E0 47   0F0 47
+}
+
+#export:Data $SpeedySpinRaster { ~RasterFile:CI-4:badgeIcons/speedy_spin-export-export.png }
+#export:Data $SpeedySpinPalette { ~PaletteFile:CI-4:badgeIcons/speedy_spin-export-export.png }
+#export:Data $SpeedySpinImageData {$SpeedySpinRaster $SpeedySpinPalette 24` 24` }
+
+%8042E060 maze draw box
+
+#export:Data $drawBadgesBool {0}
+#export:Data $drawMazeTimerDuringBattle {0}
+
+@Hook:Battle 80147A18 {
+    ORI t1, r0, 1
+    SAW t1, $drawBadgesBool
+    JAL ~Func:draw_box
+    SWC1 f0, 0034 (sp)
+    J 80147A20
+    NOP
+}
+
+#new:Data $sprintfBuffer {
+    00000000 00000000 00000000 00000000 
+}
+
+#new:Data $sprintfBufferConvertedText {
+    %7th byte here starts converted string
+    FF0503FF 0D0B0B00 00000000 00000000 
+}
+
+#new:ASCII $sprintfFormatter {
+    "%d"
+}
+
+% #new:Data $sprintfFormatter {
+%     FF0D0B0B FF050125 64000000 00000000
+% }
+
+#export:Function $DrawActiveBadges {
+    ADDIU sp, sp, -50
+    SW ra, 004C (sp)
+    SW s0, 0048 (sp)
+    SW s1, 0044 (sp)
+    SW s2, 0040 (sp)
+    SW s3, 003C (sp)
+    SW s4, 0038 (sp)
+    SW s5, 0034 (sp)
+    SW s6, 0030 (sp)
+
+    LIO s0, 8008A680 %gItemHudScripts
+    LIO s1, 8010F498 %equipped badges (s16 equippedBadges[64])
+    LIO s2, FFFFFFFF %loop counter
+    LIO s3, $BadgeDrawPositions
+    LIO s4, $AbilityAndIconDataList
+    LIO s6, 0 %found badges loop
+    .drawActiveBadgesLoop
+    ADDIU s2, s2, 1
+    SLTI v0, s2, 21`
+    BEQ v0, r0, .exit
+    NOP
+    JAL 800E9D48 %is_ability_active
+    LW a0, 0000 (s4)
+    %return number of active ability
+    BEQL v0, r0, .drawActiveBadgesLoop
+    ADDIU s4, s4, 8
+    %otherwise, is at least 1
+    ADDU s5, v0, r0
+    LW a0, 0004 (s4)
+    SLL a1, s6, 3 %multiply by 8 (x pos and y pos size added)
+    ADDU a1, s3, a1
+    LW a2, 0004 (a1)
+    LW a1, 0000 (a1)
+    JAL $DrawImageUI_CI4
+    ORI a3, r0, 00FF
+    %check if multiple of ability is equipped
+    SLTI v1, s5, 2
+    ADDIU s4, s4, 8 %increment $AbilityAndIconDataList pointer
+    BNEL v1, r0, .drawActiveBadgesLoop
+    ADDIU s6, s6, 1 %increment found badges loop
+    %has 2 or more equipped
+    LIO a0, $sprintfBuffer
+    JAL ~Func:bzero
+    ORI a1, r0, 10
+
+    LIO a0, $sprintfBufferConvertedText
+    ADDIU a0, a0, 7
+    JAL ~Func:bzero
+    ORI a1, r0, 9 %kind of awkward but should work
+
+
+    LIO a0, $sprintfBuffer
+    LIO a1, $sprintfFormatter
+    JAL ~Func:sprintf
+    ADDU a2, s5, r0
+
+    LIO a0, $sprintfBuffer
+    LIO a1, $sprintfBufferConvertedText
+    ADDIU a1, a1, 7
+    JAL $ConvertAsciiToPm64Text
+    NOP
+
+    SLL a1, s6, 3 %multiply by 8 (x pos and y pos size added)
+    ADDU a1, s3, a1
+    LW a2, 0004 (a1)
+    LW a1, 0000 (a1)
+    ADDIU a1, a1, D
+    ADDIU a2, a2, 2
+    LIO a0, $sprintfBufferConvertedText
+    SW r0, 0010 (sp)
+    SW r0, 0014 (sp)
+    JAL ~Func:draw_string
+    ORI a3, r0, 00FF
+    BEQ r0, r0, .drawActiveBadgesLoop
+    ADDIU s6, s6, 1 %increment found badges loop
+
+    %draw one badge as test
+    % LIO a0, $SpeedySpinImageData
+    % SLL a1, s2, 3 %multiply by 8 (x pos and y pos size added)
+    % ADDU a1, s3, a1
+    % LW a2, 0004 (a1)
+    % LW a1, 0000 (a1)
+    % JAL $DrawImageUI_CI4
+    % ORI a3, r0, 00FF
+    % ADDIU s2, s2, 1
+    % SLTI t0, s2, 21`
+    % BNE t0, r0, .drawActiveBadgesLoop
+    % NOP
+    .exit
+    LW ra, 004C (sp)
+    LW s0, 0048 (sp)
+    LW s1, 0044 (sp)
+    LW s2, 0040 (sp)
+    LW s3, 003C (sp)
+    LW s4, 0038 (sp)
+    LW s5, 0034 (sp)
+    LW s6, 0030 (sp)
+    JR RA
+    ADDIU sp, sp, 50
+}

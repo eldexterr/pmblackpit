@@ -1,5 +1,5 @@
 %% This file handle all the hooks that needs to be running at all time (And a few other misc stuff)
-
+#export .FullMazeTimer B0
 @Hook 82758 % 800E92A8
 {
 JAL        $SetUpgrades % Developer Hook
@@ -2159,7 +2159,7 @@ JPOP	RA, V0, A1, A2
 #new:Function $Maze_Timer
 {
 /% Timer
-D0 = Highest
+B0 = Highest
 10 = Lowest
 %/
 PUSH	RA, A0, A1, A2, A3, T0, T1
@@ -2212,7 +2212,7 @@ SLTI	T2, T0, 1
 BEQ		T2, R0, .DecreseSpeedTimer % if wasn't
 NOP
 % Is equal or lower to 0
-ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+ADDI	T1, R0, 12E8 % set the speed timer to 12E8 once again
 SAH		T1, $DungeonTimer_Speed
 % Decrement HP
 LAB     T0, 8010F292 % Current HP
@@ -2231,7 +2231,7 @@ SLTI	T1, T0, 1
 BEQ		T1, R0, .CheckBadges % if wasn't
 NOP
 % Is equal or lower to 0
-ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+ADDI	T1, R0, 12E8 % set the speed timer to 12E8 once again
 SAH		T1, $DungeonTimer_Speed
 BEQ		R0, R0, .DecrementTimer % decrease rogue timer
 NOP
@@ -2258,36 +2258,79 @@ NOP
 ADDIU	A2, A2, -2`
 SAB		A2, $DungeonTimer
 % =========================
-% Timer Box
+
+
 .DrawTimerBox
-ADDIU	A0, R0, 3E  % posX
-ADDIU	A1, R0, DF  % posY
+LAW t0, $drawMazeTimerDuringBattle
+BEQ t0, r0, .skipMazeTimerDrawing
+NOP
+SAW r0, $drawMazeTimerDuringBattle
+% Timer Box
+%set location of box1 based on overworld or battle
+LIO t0, 80151700
+LW t1, 0008 (t0) %load step game mode function pointer
+LIO t2, 800338E4 %in battle function pointer
+BEQ t1, t2, .isInBattle
+NOP
+%not in battle, draw at bottom of screen
+ADDIU a0, r0, 8
+ADDIU a1, r0, CA
+BEQ r0, r0, .callDrawTimerBox1
+NOP
+.isInBattle
+ADDIU a0, r0, 8`
+ADDIU a1, r0, 3A
+.callDrawTimerBox1
+% ADDIU	A0, R0, 8`  % posX
+% ADDIU	A1, R0, 3A  % posY
 ADDIU	A3, R0, 10 % sizeY
 ADDIU	T0, R0, A  % style
 ADDIU	T1, R0, FF % opacity
 JAL		$DrawBox
 NOP
+
+.DrawTimerBox2
+%set location of box2 based on overworld or battle
+LIO t0, 80151700
+LW t1, 0008 (t0) %load step game mode function pointer
+LIO t2, 800338E4 %in battle function pointer
+BEQ t1, t2, .isInBattle2
+NOP
+%not in battle, draw at bottom of screen
+ADDIU a0, r0, 8
+ADDIU a1, r0, CA
+BEQ r0, r0, .callDrawTimerBox2
+NOP
+.isInBattle2
+ADDIU a0, r0, 8`
+ADDIU a1, r0, 3A
 % Timer's Frame
-ADDIU	A0, R0, 3E  % posX
-ADDIU	A1, R0, DF  % posY
-ADDIU	A2, R0, D0 % sizeX
+% ADDIU	A0, R0, 8`  % posX
+% ADDIU	A1, R0, 3A  % posY
+.callDrawTimerBox2
+ADDIU	A2, R0, .FullMazeTimer % sizeX
 ADDIU	A3, R0, 10 % sizeY
 ADDIU	T0, R0, 1  % style
 ADDIU	T1, R0, FF % opacity
 JAL		$DrawBox
 NOP
+.skipMazeTimerDrawing
 .End
 POP		RA, A0, A1, A2, A3, T0, T1
 JR		RA
 NOP
 }
 
+%80147764 sets opacity of partner menu/item menu
+%battle step game mode 800338E4
+%overworld step game mode 80033BC0
+
 % Maze - Decrement Oxygen Hook - Overworld
 % This hook only runs when the player can actually move mario in the overworld
 @Hook 83BF4 % 800EA744
 {
 /% Timer
-D0 = Highest
+B0 = Highest
 10 = Lowest
 %/
 PUSH	RA, V0, V1, A0, A1, A2, A3, T0, T1
@@ -2338,7 +2381,7 @@ SLTI	T1, T0, 1
 BEQ		T1, R0, .CheckBadges % if wasn't
 NOP
 % Is equal or lower to 0
-ADDI	T1, R0, 1000 % set the speed timer to 1000 once again
+ADDI	T1, R0, 12E8 % set the speed timer to 12E8 once again
 SAH		T1, $DungeonTimer_Speed
 BEQ		R0, R0, .DecrementTimer % decrease rogue timer
 NOP
@@ -2371,6 +2414,8 @@ SLL	    V0, V0, 2
 J       800EA74C
 ADDU	V0, V1, V0
 }
+
+%D0000
 
 #new:Function $Maze_SP
 {

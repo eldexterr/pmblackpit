@@ -1,0 +1,144 @@
+/%
+    This file provides a set of functions for drawing UI elements
+    to the screen with viewport clipping:
+    
+    $DrawImageUI_CI4
+    $DrawImageUI_CI8
+    $DrawImageUI_I4
+    $DrawImageUI_I8
+    $DrawImageUI_IA4
+    $DrawImageUI_IA8
+    $DrawImageUI_IA16
+    $DrawImageUI_RGBA16
+    $DrawImageUI_RGBA32
+    
+    All these functions are called with the same arguments:
+    
+    A0 = $ImageData
+    A1 = posX
+    A2 = posY
+    A3 = opacity
+    
+    ImageData is expected to have the following form:
+    
+    #new:Data $ImageData
+    {
+        $Test_IMG   % raster
+        $Test_PAL   % palette -- ignored if format is not CI
+        48`         % height
+        16`         % width
+    }
+    
+    The raster and palette pointers can refer to any loaded in RAM or you
+    can embed them in a patch in the typical standard way:
+    
+    #new:Data $Test_IMG
+    {
+        ~RasterFile:CI-4:IMAGE_NAME.png
+    }
+    
+    #new:Data $Test_PAL
+    {
+        ~PaletteFile:CI-4:IMAGE_NAME.png
+    }
+%/
+
+#export:Function $DrawImageUI_CI4
+{
+    ORI      V0, r0, 2 %~TileFormat:CI-4
+    J       $DrawImageUI
+    ORI      V1, r0, 0 %~TileDepth:CI-4
+}
+
+% #export:Function $DrawImageUI_CI8
+% {
+%     LI      V0, ~TileFormat:CI-8
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:CI-8
+% }
+
+% #export:Function $DrawImageUI_I4
+% {
+%     LI      V0, ~TileFormat:I-4
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:I-4
+% }
+
+% #export:Function $DrawImageUI_I8
+% {
+%     LI      V0, ~TileFormat:I-8
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:I-8
+% }
+
+% #export:Function $DrawImageUI_IA4
+% {
+%     LI      V0, ~TileFormat:IA-4
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:IA-4
+% }
+
+% #export:Function $DrawImageUI_IA8
+% {
+%     LI      V0, ~TileFormat:IA-8
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:IA-8
+% }
+
+% #export:Function $DrawImageUI_IA16
+% {
+%     LI      V0, ~TileFormat:IA-16
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:IA-16
+% }
+
+% #export:Function $DrawImageUI_RGBA16
+% {
+%     LI      V0, ~TileFormat:RGBA-16
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:RGBA-16
+% }
+
+% #export:Function $DrawImageUI_RGBA32
+% {
+%     LI      V0, ~TileFormat:RGBA-32
+%     J       $DrawImageUI
+%     LI      V1, ~TileDepth:RGBA-32
+% }
+
+% A0 = $ImageData
+% A1 = posX
+% A2 = posY
+% A3 = opacity
+#export:Function $DrawImageUI
+{
+    ADDIU   SP, SP, -38
+    SW      RA, 34 (SP)
+    
+    SW      A1, 18 (SP) % startX
+    SW      A2, 1C (SP) % startY
+    SW      A3, 30 (SP) % opacity
+    COPY    A3, V0      % tile fmt
+    SW      V1, 10 (SP) % tile depth
+    
+    LW      A2, C (A0)  % width
+    LW      A1, 8 (A0)  % height
+    LW      V1, 4 (A0)
+    SW      V1, 14 (SP) % palette
+    LW      A0, 0 (A0)  % raster
+    
+    SW      R0, 20 (SP) % clipStartX
+    SW      R0, 24 (SP) % clipStartY
+    ORI t0, r0, 320`
+    ORI t1, r0, 240`
+    SW t0, 0028 (sp)
+    SW t1, 002C (sp)
+    %SWI     320`, 28 (SP) % clipMaxX
+    %SWI     240`, 2C (SP) % clipMaxY
+    JAL     8012E9A0
+    NOP
+    
+    LW      RA, 34 (SP)
+    JR      RA
+    ADDIU   SP, SP, 38
+}
