@@ -200,6 +200,14 @@
 #export:Data $HappyFlowerPalette { ~PaletteFile:CI-4:badgeIcons/happy_flower-export.png }
 #export:Data $HappyFlowerIconData { $HappyFlowerRaster $HappyFlowerPalette 24` 24` }
 
+#export:Data $GroupFocusRaster { ~RasterFile:CI-4:badgeIcons/group_focus-export.png }
+#export:Data $GroupFocusPalette { ~PaletteFile:CI-4:badgeIcons/group_focus-export.png }
+#export:Data $GroupFocusIconData { $GroupFocusRaster $GroupFocusPalette 24` 24` }
+
+#export:Data $RefundRaster { ~RasterFile:CI-4:badgeIcons/refund-export.png }
+#export:Data $RefundPalette { ~PaletteFile:CI-4:badgeIcons/refund-export.png }
+#export:Data $RefundIconData { $RefundRaster $RefundPalette 24` 24` }
+
 #new:Data $AbilityAndIconDataList {
     .ABILITY_POWER_PLUS         $PowerPlusIconData
     .ABILITY_DODGE_MASTER       $DodgeMasterIconData
@@ -221,14 +229,16 @@
     .ABILITY_P_DOWN_D_UP        $PDownDUpIconData
     .ABILITY_DEEP_FOCUS         $DeepFocusIconData
     .ABILITY_DAMAGE_DODGE       $DamageDodgeIconData
-    .ABILITY_HAPPY_FLOWER       $HappyFlowerIconData %21 badges total
+    .ABILITY_HAPPY_FLOWER       $HappyFlowerIconData
+    .ABILITY_GROUP_FOCUS        $GroupFocusIconData
+    .ABILITY_REFUND             $RefundIconData %23 badges total
 }
 
-#new:Data $BadgeDrawPositions { %draws up to 21 badges total
+#new:Data $BadgeDrawPositions { %draws up to 23 badges total, 24 listed here
     %X, %Y
     0B0 27   0C0 27   0D0 27   0E0 27   0F0 27   100 27   110 27   120 27
-    0B0 37   0C0 37   0D0 37   0E0 37   0F0 37   100 37   110 37   120 37
-    0B0 47   0C0 47   0D0 47   0E0 47   0F0 47
+    0B0 39   0C0 39   0D0 39   0E0 39   0F0 39   100 39   110 39   120 39
+    0B0 4B   0C0 4B   0D0 4B   0E0 4B   0F0 4B   100 4B   110 4B   120 4B
 }
 
 #export:Data $SpeedySpinRaster { ~RasterFile:CI-4:badgeIcons/speedy_spin-export-export.png }
@@ -285,7 +295,7 @@
     LIO s6, 0 %found badges loop
     .drawActiveBadgesLoop
     ADDIU s2, s2, 1
-    SLTI v0, s2, 21`
+    SLTI v0, s2, 23` %23 total badges possible to draw
     BEQ v0, r0, .exit
     NOP
     JAL 800E9D48 %is_ability_active
