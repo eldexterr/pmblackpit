@@ -381,10 +381,6 @@ on foes he's tattled here.[END]
     ADDIU sp, sp, 50
 }
 
-% #new:Data $StylishFlags {
-%     000003E1 000003E2 000003E3 000003E4 000003E5 000003E6 000003E7 000003E8 000003E9 000003EA 000003EB 000003EC 000003ED 000003EE 000003EF 000003F0 000003F1 000003F2 000003F3 000003F4 000003F5 000003F6 000003F7 000003F8 000003F9 000003FA 000003FB 000003FC 000003FD 000003FE 000003FF 00000400 00000401 00000402 00000403 00000404 00000405 00000406 00000407 00000408 00000409 0000040A 0000040B 0000040C 0000040D 0000040E 0000040F 00000410 00000411 00000412 00000413 00000414 00000415
-% }
-
 #new:Function $displayStylishes {
     ADDIU sp, sp, -50
     SW ra, 0020 (sp)
@@ -581,10 +577,10 @@ on foes he's tattled here.[END]
 #export:Data $currentPageNumber { 0 }
 #export:Data $cursorPosition { 0s 0s } %X, Y
 #export:Data $cursorPositionsForMainOptions {
-    0s -18`s %common enemies cursor position
-    0s 3`s %rare enemies cursor position
-    0s 24`s %recipes cursor position
-    0s 45`s %achievements cursor position
+    0s -34`s %common enemies cursor position
+    0s -13`s %rare enemies cursor position
+    0s 8`s %recipes cursor position
+    0s 29`s %achievements cursor position
 }
 
 #new:Function $handleMainMenuCursorPosition {
@@ -608,6 +604,20 @@ on foes he's tattled here.[END]
     NOP
 }
 
+#new:Data $boxPositions {
+    48 20
+    48 35
+    48 4A
+    48 5F
+}
+
+#new:Data $textPositions {
+    66 26
+    66 3B
+    66 50
+    66 65
+}
+
 #new:Function $DrawMainMenu {
     ADDIU sp, sp, -20
     SW ra, 0018 (sp)
@@ -615,8 +625,11 @@ on foes he's tattled here.[END]
     %draw common enemies box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
-    ADDIU a0, a0, 0048
-    ADDIU a1, a1, 0030
+    LIO a2, $boxPositions
+    LW t0, 0000 (a2) %x pos
+    LW t1, 0004 (a2) %y pos
+    ADDU a0, a0, t0
+    ADDU a1, a1, t1
     ORI a2, r0, 0090
     ORI a3, r0, 1A
     ORI t0, r0, 000C %000A is blue, also good. 000C green
@@ -626,8 +639,11 @@ on foes he's tattled here.[END]
     %draw rare enemies box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
-    ADDIU a0, a0, 0048
-    ADDIU a1, a1, 0045
+    LIO a2, $boxPositions
+    LW t0, 0008 (a2) %x pos
+    LW t1, 000C (a2) %y pos
+    ADDU a0, a0, t0
+    ADDU a1, a1, t1
     ORI a2, r0, 0090
     ORI a3, r0, 1A
     ORI t0, r0, 000C %000A is blue, also good. 000C green
@@ -637,8 +653,11 @@ on foes he's tattled here.[END]
     %draw stylishes box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
-    ADDIU a0, a0, 0048
-    ADDIU a1, a1, 005A
+    LIO a2, $boxPositions
+    LW t0, 0010 (a2) %x pos
+    LW t1, 0014 (a2) %y pos
+    ADDU a0, a0, t0
+    ADDU a1, a1, t1
     ORI a2, r0, 0090
     ORI a3, r0, 1A
     ORI t0, r0, 000C %000A is blue, also good. 000C green
@@ -648,8 +667,11 @@ on foes he's tattled here.[END]
     %draw achievements box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
-    ADDIU a0, a0, 0048
-    ADDIU a1, a1, 006F
+    LIO a2, $boxPositions
+    LW t0, 0018 (a2) %x pos
+    LW t1, 001C (a2) %y pos
+    ADDU a0, a0, t0
+    ADDU a1, a1, t1
     ORI a2, r0, 0090
     ORI a3, r0, 1A
     ORI t0, r0, 000C %000A is blue, also good. 000C green
@@ -660,9 +682,12 @@ on foes he's tattled here.[END]
     LIO a0, $commonEnemiesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
-    ADDIU a1, a1, 66
-    ADDIU a2, a2, 36
-    ORI a3, r0, 00FF 
+    LIO a3, $textPositions
+    LW t0, 0000 (a3) %x pos
+    LW t1, 0004 (a3) %y pos
+    ADDU a1, a1, t0
+    ADDU a2, a2, t1
+    ORI a3, r0, 00FF
     SW r0, 0010 (sp)
     JAL ~Func:draw_string
     SW r0, 0014 (sp)
@@ -671,8 +696,11 @@ on foes he's tattled here.[END]
     LIO a0, $bossEnemiesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
-    ADDIU a1, a1, 66
-    ADDIU a2, a2, 4B
+    LIO a3, $textPositions
+    LW t0, 0008 (a3) %x pos
+    LW t1, 000C (a3) %y pos
+    ADDU a1, a1, t0
+    ADDU a2, a2, t1
     ORI a3, r0, 00FF 
     SW r0, 0010 (sp)
     JAL ~Func:draw_string
@@ -682,8 +710,11 @@ on foes he's tattled here.[END]
     LIO a0, $StylishesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
-    ADDIU a1, a1, 66
-    ADDIU a2, a2, 60
+    LIO a3, $textPositions
+    LW t0, 0010 (a3) %x pos
+    LW t1, 0014 (a3) %y pos
+    ADDU a1, a1, t0
+    ADDU a2, a2, t1
     ORI a3, r0, 00FF 
     SW r0, 0010 (sp)
     JAL ~Func:draw_string
@@ -693,8 +724,11 @@ on foes he's tattled here.[END]
     LIO a0, $AchievementsString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
-    ADDIU a1, a1, 66
-    ADDIU a2, a2, 75
+    LIO a3, $textPositions
+    LW t0, 0018 (a3) %x pos
+    LW t1, 001C (a3) %y pos
+    ADDU a1, a1, t0
+    ADDU a2, a2, t1
     ORI a3, r0, 00FF 
     SW r0, 0010 (sp)
     JAL ~Func:draw_string
