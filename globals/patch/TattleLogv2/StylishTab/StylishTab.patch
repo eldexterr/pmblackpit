@@ -1,0 +1,122 @@
+#export:Function $handleInputStylishes {
+    PUSH s0, s1, ra
+    LAH t0, 80074026
+    ANDI t0, t0, 4000 %B button
+    BNE t0, r0, .BPressed
+    NOP
+    LIO s0, 80074044 %button input that reset every 4 frames
+    LH s1, 0000 (s0) %load analog input
+    LIO s3, $cursorPosition
+    LIO s4, $currentPageNumber
+    ANDI t0, s1, .analog_Up
+    BNE t0, r0, .upPressed
+    NOP
+    ANDI t0, s1, .analog_Down
+    BNE t0, r0, .downPressed
+    NOP
+    ANDI t0, s1, .analog_Left
+    BNE t0, r0, .leftPressed
+    NOP
+    ANDI t0, s1, .analog_Right
+    BNE t0, r0, .rightPressed
+    NOP
+    LAH s1, 80074046 %check for R/Z input
+    ANDI t0, s1, 2000 %Z button
+    BNE t0, r0, .zPressed
+    NOP
+    ANDI t0, s1, 0010 %R button
+    BNE t0, r0, .rPressed
+    NOP
+    BEQ r0, r0, .exit
+    NOP
+    .buttonPressedExit
+    JAL ~Func:play_sound
+    ORI a0, r0, 00C7 %move cursor sound
+    SAW r0, 80270110 %reset description scrolling index
+    SAW r0, 80270114 %reset scrolling distance
+    .exit
+    .pageMax
+    .skipPageUp
+    JAL $cursorArrayPosToFloatPosition
+    NOP
+    JPOP s0, s1, ra
+
+
+
+    .upPressed
+    LH t0, 0002 (s3) %load y array pos
+    BEQ t0, r0, .upAPage
+    NOP
+    ADDI t0, t0, FFFF
+    SH t0, 0002 (s3) %store new y array pos
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+    .upAPage
+    LAW t1, $currentPageNumber
+    BEQ t1, r0, .skipPageUp
+    NOP
+    ADDIU t1, t1, FFFF
+    SAW t1, $currentPageNumber
+    ORI t1, r0, 7 %Y pos bottom text
+    SH t1, 0002 (s3) %store new Y pos
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .downPressed
+    LH t0, 0002 (s3) %load y array pos
+    SLTI t1, t0, 0007 %8 columns
+    BEQ t1, r0, .downAPage
+    NOP
+    ADDIU t0, t0, 1
+    SH t0, 0002 (s3)
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+    .downAPage
+    LAW t0, $currentPageNumber
+    SLTI t1, t0, .stylishPageTotal
+    BEQ t1, r0, .pageMax
+    NOP
+    ADDIU t0, t0, 1
+    SAW t0, $currentPageNumber
+    SH r0, 0002 (s3) %set Y to 0
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .leftPressed
+    LH t0, 0000 (s3) %load x array pos
+    XORI t0, t0, 0001 %swap x axis
+    SH t0, 0000 (s3) %set new x axis
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .rightPressed
+    LH t0, 0000 (s3) %load x array pos
+    XORI t0, t0, 0001 %swap x axis
+    SH t0, 0000 (s3) %set new x axis
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .BPressed
+    SAW r0, $subMenuInMapTab
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .zPressed
+    LAW t0, $currentPageNumber
+    BEQ t0, r0, .exit
+    NOP
+    ADDIU t0, t0, FFFF
+    SAW t0, $currentPageNumber
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .rPressed
+    LAW t0, $currentPageNumber
+    SLTI t1, t0, .stylishPageTotal %page limit
+    BEQ t1, r0, .exit
+    NOP
+    ADDIU t0, t0, 1
+    SAW t0, $currentPageNumber
+    BEQ r0, r0, .buttonPressedExit
+    NOP
+}

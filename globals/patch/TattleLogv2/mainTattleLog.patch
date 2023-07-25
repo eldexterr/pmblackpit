@@ -4,8 +4,9 @@
 #export .analog_Right   0008
 #export .R_Button 0020
 #export .commonPageTotal 2 %real total is .commonPageTotal + 1 (so 3 pages total, you put 2 here)
-#export .bossPageTotal 1 %real total is .commonPageTotal + 1
-#export .lastTabValue 2
+#export .bossPageTotal 1
+#export .stylishPageTotal 3
+#export .lastTabValue 3
 %if 0 it means not in sub tab
 #export .commonEnemyTabID 00000001
 #export .bossEnemyTabID 00000002
@@ -113,6 +114,9 @@ on foes he's tattled here.[END]
     ORI t0, r0, 0002
     BEQ t0, v0, .isBossMenu
     NOP
+    ORI t0, r0, 0003
+    BEQ t0, v0, .isStylishMenu
+    NOP
     BEQ r0, r0, .notInTattleMenu
     NOP
     .mainMenu
@@ -128,6 +132,12 @@ on foes he's tattled here.[END]
     NOP
 
     .isBossMenu
+    JAL ~Func:draw_box
+    NOP
+    BEQ r0, r0, .exit
+    NOP
+
+    .isStylishMenu
     JAL ~Func:draw_box
     NOP
     BEQ r0, r0, .exit
@@ -178,6 +188,24 @@ on foes he's tattled here.[END]
     ADDIU s1, s1, 071C
 }
 
+% #new:Function $displayStylishes {
+%     ADDIU sp, sp, -20
+%     SW ra, 001C (sp)
+%     LIO a0, $StylishCount
+%     LAW a1, $currentMenuXOffset
+%     LAW a2, $currentMenuYOffset
+%     ADDIU a1, a1, 0026
+%     ADDIU a2, a2, 0060
+%     ORI a3, r0, 00FF
+%     SW r0, 0010 (sp)
+%     JAL ~Func:draw_string
+%     SW r0, 0014 (sp)
+    
+%     LW ra, 001C (sp)
+%     JR RA
+%     ADDIU sp, sp, 20
+% }
+
 @Hook:Pause  8024E544 {
     LAW t0, $subMenuInMapTab
     BEQ t0, r0, .skip
@@ -187,6 +215,9 @@ on foes he's tattled here.[END]
     NOP
     ORI t1, r0, 0002
     BEQ t0, t1, .displayBoss
+    NOP
+    ORI t1, r0, 0003
+    BEQ t0, t1, .displayStylishes
     NOP
     BEQ r0, r0, .end
     NOP
@@ -202,6 +233,11 @@ on foes he's tattled here.[END]
     NOP
     BEQ r0, r0, .end
     NOP
+    .displayStylishes
+    JAL $displayStylishes
+    NOP
+    BEQ r0, r0, .end
+    NOP    
     .skip
     .end
     LW	RA, 0094 (SP)
@@ -345,9 +381,81 @@ on foes he's tattled here.[END]
     ADDIU sp, sp, 50
 }
 
+% #new:Data $StylishFlags {
+%     000003E1 000003E2 000003E3 000003E4 000003E5 000003E6 000003E7 000003E8 000003E9 000003EA 000003EB 000003EC 000003ED 000003EE 000003EF 000003F0 000003F1 000003F2 000003F3 000003F4 000003F5 000003F6 000003F7 000003F8 000003F9 000003FA 000003FB 000003FC 000003FD 000003FE 000003FF 00000400 00000401 00000402 00000403 00000404 00000405 00000406 00000407 00000408 00000409 0000040A 0000040B 0000040C 0000040D 0000040E 0000040F 00000410 00000411 00000412 00000413 00000414 00000415
+% }
+
+#new:Function $displayStylishes {
+    ADDIU sp, sp, -50
+    SW ra, 0020 (sp)
+    SW s0, 0024 (sp)
+    SW s1, 0028 (sp)
+    SW s2, 002C (sp)
+    SW s3, 0030 (sp)
+    SW s4, 0034 (sp)
+    LIO s0, $PageStructs
+    LAW t0, $currentPageNumber
+    SLL t0, t0, 2 %multiply by 4
+    ADDU s0, t0, s0
+    LW s0, 0000 (s0) %pointer to current page struct
+    LIO s1, $EnemyNamePositions
+    DADDU s2, r0, r0 %for loop counter
+    LAW s3, $currentMenuXOffset
+    LAW s4, $currentMenuYOffset
+    .printLoop
+    LW a0, 0000 (s0) %load enemy string name
+    BEQ a0, r0, .skipPrint
+    NOP
+
+    DADDU a0, r0, r0
+    JAL ~Func:get_variable
+    LW a1, 0008 (s0) %get flag assigned to stylish
+    
+    % JAL $load_tattle_flag_copy
+    % LW a0, 0008 (s0) %get actor type
+    % %temporary, always return true for tattle bool
+    % %ORI v0, r0, 0001
+    LIO a0, $unkString
+    BNEL v0, r0, .skipEnemyName
+    LW a0, 0000 (s0) %load enemy string name
+    .skipEnemyName
+    ADDU a1, s3, r0
+    LH a2, 0000 (s1) %load enemy name pos X offset
+    ADDU a1, a1, a2 %final x pos
+    ADDU a2, s4, r0
+    LH a3, 0002 (s1) %load enemy name pos Y offset
+    ADDU a2, a2, a3 %final y pos
+    ORI a3, r0, 00FF %opacity
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+    .skipPrint
+    ADDIU s2, s2, 1
+    ADDIU s1, s1, 4 %size of pagestruct rows
+    ADDIU s0, s0, 14 %size of entry in $Page0Struct
+    SLTI t0, s2, 16` %16 total names on screen at once
+    BEQ t0, r0, .exit
+    NOP
+    BEQ r0, r0, .printLoop
+    NOP
+    .exit
+    LW ra, 0020 (sp)
+    LW s0, 0024 (sp)
+    LW s1, 0028 (sp)
+    LW s2, 002C (sp)
+    LW s3, 0030 (sp)
+    LW s4, 0034 (sp)
+    JR RA
+    ADDIU sp, sp, 50
+}
+
 #new:String $TattleCount {
 [Size:0C:0C]Tattles
 124/124[END]
+}
+
+#new:String $StylishCount {
+[Size:0C:0C]Test Message[END]
 }
 
 #new:ASCII $pageformatter {
@@ -385,9 +493,7 @@ on foes he's tattled here.[END]
     .exit
     JR RA
     NOP
-}
-%80439068
-    
+}  
 
 #new:Function $PrintTattleCount {
     ADDIU sp, sp, -50
@@ -475,10 +581,12 @@ on foes he's tattled here.[END]
 #export:Data $currentPageNumber { 0 }
 #export:Data $cursorPosition { 0s 0s } %X, Y
 #export:Data $cursorPositionsForMainOptions {
-    0s -18`s
-    0s 3`s
-    0s 24`s
+    0s -18`s %common enemies cursor position
+    0s 3`s %rare enemies cursor position
+    0s 24`s %recipes cursor position
+    0s 45`s %achievements cursor position
 }
+
 #new:Function $handleMainMenuCursorPosition {
     LIO t0, 80270714 %x float pos of cursor
     LAW t7, 8027070C %X offset for cursor to not misalign?
@@ -504,6 +612,7 @@ on foes he's tattled here.[END]
     ADDIU sp, sp, -20
     SW ra, 0018 (sp)
     SW s0, 001C (sp)
+    %draw common enemies box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
     ADDIU a0, a0, 0048
@@ -514,6 +623,7 @@ on foes he's tattled here.[END]
     JAL $DrawMenuBox
     ORI t1, r0, 00FF
 
+    %draw rare enemies box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
     ADDIU a0, a0, 0048
@@ -524,6 +634,7 @@ on foes he's tattled here.[END]
     JAL $DrawMenuBox
     ORI t1, r0, 00FF
 
+    %draw stylishes box
     LAW a0, $currentMenuXOffset
     LAW a1, $currentMenuYOffset
     ADDIU a0, a0, 0048
@@ -534,6 +645,18 @@ on foes he's tattled here.[END]
     JAL $DrawMenuBox
     ORI t1, r0, 00FF
 
+    %draw achievements box
+    LAW a0, $currentMenuXOffset
+    LAW a1, $currentMenuYOffset
+    ADDIU a0, a0, 0048
+    ADDIU a1, a1, 006F
+    ORI a2, r0, 0090
+    ORI a3, r0, 1A
+    ORI t0, r0, 000C %000A is blue, also good. 000C green
+    JAL $DrawMenuBox
+    ORI t1, r0, 00FF
+
+    %draw common enemies string
     LIO a0, $commonEnemiesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
@@ -544,6 +667,7 @@ on foes he's tattled here.[END]
     JAL ~Func:draw_string
     SW r0, 0014 (sp)
 
+    %draw boss enemies string
     LIO a0, $bossEnemiesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
@@ -554,11 +678,23 @@ on foes he's tattled here.[END]
     JAL ~Func:draw_string
     SW r0, 0014 (sp)
 
-    LIO a0, $AchievementsString
+    %draw stylish string
+    LIO a0, $StylishesString
     LAW a1, $currentMenuXOffset
     LAW a2, $currentMenuYOffset
     ADDIU a1, a1, 66
     ADDIU a2, a2, 60
+    ORI a3, r0, 00FF 
+    SW r0, 0010 (sp)
+    JAL ~Func:draw_string
+    SW r0, 0014 (sp)
+
+    %draw achievements string
+    LIO a0, $AchievementsString
+    LAW a1, $currentMenuXOffset
+    LAW a2, $currentMenuYOffset
+    ADDIU a1, a1, 66
+    ADDIU a2, a2, 75
     ORI a3, r0, 00FF 
     SW r0, 0010 (sp)
     JAL ~Func:draw_string
@@ -576,6 +712,10 @@ on foes he's tattled here.[END]
 
 #new:String $bossEnemiesString {
 [Size:0C:0C]Rare Enemies[END]
+}
+
+#new:String $StylishesString {
+[Size:0C:0C]Stylishes[END]
 }
 
 #new:String $AchievementsString {
@@ -663,6 +803,10 @@ on foes he's tattled here.[END]
     ADDIU t1, t1, FFFF %-1 because comparing index to non index
     BEQ t0, t1, .bossEnemyTab
     NOP
+    ORI t1, r0, .recipesTabID
+    ADDIU t1, t1, FFFF %-1 because comparing index to non index
+    BEQ t0, t1, .recipesTab
+    NOP
     ORI t1, r0, .lastTabValue
     BEQ t0, t1, .achievementsTab
     NOP
@@ -694,6 +838,16 @@ on foes he's tattled here.[END]
     NOP
     BEQ r0, r0, .end
     ORI v0, r0, .commonEnemyTabID
+
+    .recipesTab
+    LIO a0, $stylishPageStructs
+    LIO a1, .stylishPageTotal
+    JAL $CopyPageStructs
+    NOP
+    ORI v0, r0, .recipesTabID
+    SAH r0, $cursorPosition %set x axis value to 1, it will stay 1 on boss tab
+    BEQ r0, r0, .end
+    NOP
 }
 
 #export:Function $cursorArrayPosToFloatPosition {
@@ -975,6 +1129,9 @@ on foes he's tattled here.[END]
     ORI t1, r0, .bossEnemyTabID
     BEQ t0, t1, .bossEnemyTab
     NOP
+    ORI t1, r0, .recipesTabID
+    BEQ t0, t1, .stylishesTab
+    NOP
     ORI t1, r0, .achievementsTabValue
     BEQ t0, t1, .achievementsTab
     NOP
@@ -1006,4 +1163,10 @@ on foes he's tattled here.[END]
     NOP
     BEQ r0, r0, .realexit
     NOP
+
+    .stylishesTab
+    JAL $handleInputStylishes
+    NOP
+    BEQ r0, r0, .realexit
+    NOP    
 }
