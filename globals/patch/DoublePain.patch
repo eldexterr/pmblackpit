@@ -1,0 +1,30 @@
+#export:Function $isBadgeEquipped{
+    .Init
+    LIO t2, 8010F498
+    ADDIU t3, t2, 78 %end of list
+    .loop
+    LH t1, 0 (t2)
+    BEQL a0, t1, .end
+    ADDIU v0, r0, 1 %return true
+    BNE t2, t3, .loop
+    ADDIU t2, t2, 2
+    ADDIU v0, r0, 0 %return false
+    .end
+    JR RA
+    NOP
+}
+
+
+#define .doublePainID 12C
+
+@Hook:Battle 80277B40 {
+    JAL $isBadgeEquipped
+    ORI a0, r0, .doublePainID
+    BEQ v0, r0, .end
+    LBU v0, 01B8 (s3)
+    SLL s0, s0, 1 %multiply by 2
+    .end
+    SUBU v0, v0, s0
+    J 80277B48
+    SB v0, 01B8 (s3)
+}
