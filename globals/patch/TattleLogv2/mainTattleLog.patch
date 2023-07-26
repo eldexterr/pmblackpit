@@ -10,7 +10,7 @@
 %if 0 it means not in sub tab
 #export .commonEnemyTabID 00000001
 #export .bossEnemyTabID 00000002
-#export .recipesTabID 00000003
+#export .stylishTabID 00000003
 #export .achievementsTabValue 00000004
 
 #export:Data $subMenuInMapTab { 00000000 }
@@ -182,9 +182,13 @@ on foes he's tattled here.[END]
     %if in tab greater than 0 (common enemy, rare enemy, recipes)
     JAL $drawRandLArrows
     NOP
-    JAL $displayEnemyIcon
+    LAW t0, $subMenuInMapTab
+    ORI t1, r0, .stylishTabID
+    BEQ t0, t1, .skip %if in stylish tab, skip
     NOP
     JAL $displayEnemyDescription
+    NOP
+    JAL $displayEnemyIcon
     NOP
     .skip
     LUI s1, 8027
@@ -785,15 +789,6 @@ settings.[END]
     ADDU t2, t2, t0
     LW t2, 0000 (t2)
     SAW t2, 80270108
-    LAW t0, $mainMenuTabIndex
-    ORI t1, r0, .recipesTabID
-    ADDIU t1, t1, FFFF %minus 1 because index
-    ORI t2, r0, 00B4
-    LIO t3, 802505BA
-    SH t2, 0000 (t3) %set purple box to normal length
-    BEQL t0, t1, .removePurpleBoxDrawing
-    SH r0, 0000 (t3) %remove purple box
-    .removePurpleBoxDrawing
     LAH t0, 80074036
     ANDI t1, t0, 4000 %B button
     BNE t1, r0, .BPressed
@@ -873,7 +868,7 @@ settings.[END]
     ADDIU t1, t1, FFFF %-1 because comparing index to non index
     BEQ t0, t1, .bossEnemyTab
     NOP
-    ORI t1, r0, .recipesTabID
+    ORI t1, r0, .stylishTabID
     ADDIU t1, t1, FFFF %-1 because comparing index to non index
     BEQ t0, t1, .recipesTab
     NOP
@@ -914,7 +909,7 @@ settings.[END]
     LIO a1, .stylishPageTotal
     JAL $CopyPageStructs
     NOP
-    ORI v0, r0, .recipesTabID
+    ORI v0, r0, .stylishTabID
     SAH r0, $cursorPosition %set x axis value to 1, it will stay 1 on boss tab
     BEQ r0, r0, .end
     NOP
@@ -1199,7 +1194,7 @@ settings.[END]
     ORI t1, r0, .bossEnemyTabID
     BEQ t0, t1, .bossEnemyTab
     NOP
-    ORI t1, r0, .recipesTabID
+    ORI t1, r0, .stylishTabID
     BEQ t0, t1, .stylishesTab
     NOP
     ORI t1, r0, .achievementsTabValue
