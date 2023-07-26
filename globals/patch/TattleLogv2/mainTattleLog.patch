@@ -762,8 +762,31 @@ on foes he's tattled here.[END]
 [Size:0C:0C]Achievements[END]
 }
 
+#new:String $stylishTabBottomTextbox {
+See stylishes completed by
+Mario and partners.[END]
+}
+
+#new:String $achievementsTabBottomTextbox {
+View achievements and
+settings.[END]
+}
+
+#new:Data $MainMenuBottomTextboxStrings {
+    $goombarioTattleLog
+    $goombarioTattleLog
+    $stylishTabBottomTextbox
+    $achievementsTabBottomTextbox
+}
+
 #new:Function $handleInputMainMenu {
     PUSH s0, ra
+    LIO t0, $MainMenuBottomTextboxStrings
+    LAW t1, $mainMenuTabIndex
+    SLL t2, t1, 2
+    ADDU t2, t2, t0
+    LW t2, 0000 (t2)
+    SAW t2, 80270108
     LAH t0, 80074036
     ANDI t1, t0, 4000 %B button
     BNE t1, r0, .BPressed
