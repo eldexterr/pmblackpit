@@ -106,8 +106,6 @@ on foes he's tattled here.[END]
     ORI v0, r0, 0001
 }
 
-
-
 %draw boxes depending on current tab
 @Hook:Pause 8024E510 { %hook if draw border
     SW	V0, 0020 (SP) %restore from hook
@@ -787,6 +785,15 @@ settings.[END]
     ADDU t2, t2, t0
     LW t2, 0000 (t2)
     SAW t2, 80270108
+    LAW t0, $mainMenuTabIndex
+    ORI t1, r0, .recipesTabID
+    ADDIU t1, t1, FFFF %minus 1 because index
+    ORI t2, r0, 00B4
+    LIO t3, 802505BA
+    SH t2, 0000 (t3) %set purple box to normal length
+    BEQL t0, t1, .removePurpleBoxDrawing
+    SH r0, 0000 (t3) %remove purple box
+    .removePurpleBoxDrawing
     LAH t0, 80074036
     ANDI t1, t0, 4000 %B button
     BNE t1, r0, .BPressed
