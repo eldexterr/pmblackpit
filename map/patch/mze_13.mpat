@@ -23,6 +23,25 @@ JPOP 	RA, A0, A1
 ~Vec4f:Entry0
 }
 
+#new:Function $Function_LoadStarPoints
+{
+PUSH    RA, V0, V1, A1, A2, A3
+LAHU    A2, 8035612E % Star Points
+LW      A1, C (A0)
+JAL     ~Func:set_variable
+LW      A1, 0 (A1)
+JPOP    RA, V0, V1, A1, A2, A3
+}
+
+#new:Script $Script_ToggleWhitePitEntranceCollider {
+     Call    $Function_LoadStarPoints ( *Var[0] )
+     If *Var[0] == 915`
+          Call      ModifyColliderFlags ( .False ~Collider:WhitePitEntrance 7FFFFE00 ) % Disable Exit
+     EndIf
+     Return
+     End
+}
+
 #new:Script_Main $Script_Main
 {
 Call    SetSpriteShading  	( FFFFFFFF )
@@ -31,6 +50,7 @@ Call    SetCamBGColor     	( .Cam:Default 0 0 0 )
 Call    SetCamEnabled       ( .Cam:Default .True )
 Call    SetCamLeadPlayer    ( .Cam:Default .False )
 Exec    $Script_EnableTexPanning
+Exec    $Script_ToggleWhitePitEntranceCollider
 Bind    $Script_LS_Vanilla    .Trigger:WallPressA ~Collider:Trigger_LS 00000001 00000000
 Bind    $Script_LS_FP         .Trigger:WallPressA ~Collider:Trigger_FP 00000001 00000000
 Bind    $Script_LS_Ultra      .Trigger:WallPressA ~Collider:Trigger_Ultra 00000001 00000000
@@ -1261,6 +1281,7 @@ ADDIU 	V0, R0, 2
 #new:Script $Script_MakeExits
 {
 Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0 1 0
+Bind     $Script_Exit1  .Trigger:FloorTouch ~Collider:WhitePitColliderEntry 1 0
 Return
 End
 }
@@ -1270,6 +1291,16 @@ End
 Call     UseExitHeading  	( 3C 0 )
 Exec     80285CF4 
 Call     GotoMap         	( "mze_12" 1 )
+Wait     100` 
+Return
+End
+}
+
+#new:Script $Script_Exit1
+{
+Call     UseExitHeading  	( 3C 0 )
+Exec     80285CF4 
+Call     GotoMap         	( "heh_00" 0 )
 Wait     100` 
 Return
 End
