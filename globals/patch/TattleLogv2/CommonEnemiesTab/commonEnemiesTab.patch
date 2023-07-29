@@ -37,6 +37,7 @@
     .exit
     .pageMax
     .skipPageUp
+    .preventCursorMovingDown
     JAL $cursorArrayPosToFloatPosition
     NOP
     JPOP s0, s1, ra
@@ -63,6 +64,11 @@
     NOP
 
     .downPressed
+    LAW t0, $currentPageNumber
+    ORI t1, r0, .commonPageTotal %last page
+    BEQ t0, t1, .preventCursorFromGoingToEmptyEntry
+    NOP
+    .afterCursorDownCheck
     LH t0, 0002 (s3) %load y array pos
     SLTI t1, t0, 0007 %8 columns
     BEQ t1, r0, .downAPage
@@ -72,6 +78,12 @@
     BEQ r0, r0, .buttonPressedExit
     NOP
     .downAPage
+    LAW t0, $currentPageNumber
+    ORI t1, r0, .commonPageTotal %last page
+    ADDIU t1, t1, FFFF
+    BEQ t0, t1, .setCursorTo00
+    NOP
+    .afterCursor00Check
     LAW t0, $currentPageNumber
     SLTI t1, t0, .commonPageTotal
     BEQ t1, r0, .pageMax
@@ -83,6 +95,10 @@
     NOP
 
     .leftPressed
+    LAW t0, $currentPageNumber
+    ORI t1, r0, .commonPageTotal %last page
+    BEQ t0, t1, .buttonPressedExit
+    NOP
     LH t0, 0000 (s3) %load x array pos
     XORI t0, t0, 0001 %swap x axis
     SH t0, 0000 (s3) %set new x axis
@@ -90,6 +106,10 @@
     NOP
 
     .rightPressed
+    LAW t0, $currentPageNumber
+    ORI t1, r0, .commonPageTotal %last page
+    BEQ t0, t1, .buttonPressedExit
+    NOP
     LH t0, 0000 (s3) %load x array pos
     XORI t0, t0, 0001 %swap x axis
     SH t0, 0000 (s3) %set new x axis
@@ -118,5 +138,30 @@
     ADDIU t0, t0, 1
     SAW t0, $currentPageNumber
     BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .setCursorTo00
+    SH r0, 0000 (s3)
+    BEQ r0, r0, .afterCursor00Check
+    SH r0, 0002 (s3)
+
+    .preventCursorFromGoingToEmptyEntry
+    LH t0, 0002 (s3) %load y array pos
+    SLTI t1, t0, 0007 %8 columns
+    BEQ t1, r0, .preventCursorMovingDown
+    NOP
+    LAW t0, $currentPageNumber
+    SLL t1, t0, 2 %multiply by 4
+    LIO t2, $PageStructs
+    ADDU t1, t1, t2 %now points to current page pointer
+    LW t3, 0000 (t1) %load current page pointer
+    LH t4, 0002 (s3) %load cursor Y pos
+    SLL t4, t4, 2 %multiply by sizeof s32
+    ADDU t5, t4, t3
+    LW t6, 0000 (t5) %load actor name
+    BEQ t6, r0, .preventCursorMovingDown
+    NOP
+    %isn't null actor pointer name
+    BEQ r0, r0, .afterCursorDownCheck
     NOP
 }

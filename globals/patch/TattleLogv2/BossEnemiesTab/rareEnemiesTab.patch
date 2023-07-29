@@ -38,6 +38,7 @@
     .exit
     .pageMax
     .skipPageUp
+    .preventCursorMovingDown
     JAL $cursorArrayPosToFloatPosition
     NOP
     .realexit
@@ -63,6 +64,11 @@
     NOP
 
     .downPressed
+    LAW t0, $currentPageNumber
+    ORI t1, r0, .bossPageTotal %last page
+    BEQ t0, t1, .preventCursorFromGoingToEmptyEntry
+    NOP
+    .afterCursorDownCheck
     LH t0, 0002 (s3) %load y array pos
     SLTI t1, t0, 0007 %8 columns
     BEQ t1, r0, .downAPage
@@ -112,5 +118,30 @@
     ADDIU t0, t0, 1
     SAW t0, $currentPageNumber
     BEQ r0, r0, .buttonPressedExit
+    NOP
+
+    .preventCursorFromGoingToEmptyEntry
+    LH t0, 0002 (s3) %load y array pos
+    SLTI t1, t0, 0007 %8 columns
+    BEQ t1, r0, .preventCursorMovingDown
+    NOP
+    LAW t0, $currentPageNumber
+    SLL t1, t0, 2 %multiply by 4
+    LIO t2, $PageStructs
+    ADDU t1, t1, t2 %now points to current page pointer
+    LW t3, 0000 (t1) %load current page pointer
+    LH t4, 0002 (s3) %load cursor Y pos
+    ADDIU t4, t4, 9 %add 8 because first column doesn't exist, then +1 for next entry
+    ORI t5, r0, 0014 %size of boss struct entry
+    MULT t4, t5
+    NOP
+    NOP
+    MFLO t4
+    ADDU t5, t4, t3
+    LW t6, 0000 (t5) %load actor name
+    BEQ t6, r0, .preventCursorMovingDown
+    NOP
+    %isn't null actor pointer name
+    BEQ r0, r0, .afterCursorDownCheck
     NOP
 }
