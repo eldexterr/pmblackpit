@@ -1,5 +1,6 @@
 %% This file handle all the hooks that needs to be running at all time (And a few other misc stuff)
-#export .FullMazeTimer B0
+#export .FullMazeTimer A4
+#export .MazeTimerUntilDecrement 13CE
 @Hook 82760 % 800E92B0
 {
 JAL        $SetUpgrades % Developer Hook
@@ -2148,6 +2149,10 @@ JPOP	RA, V0, A1, A2
 0000
 }
 
+@Function:Battle 802AAFD0 {
+    ADDIU v1, r0, 0046 %move enemy name box/text down slightly so we can fit maze air timer
+}
+
 /% 80074094 % Status ID
 00= Overworld
 01= Battle
@@ -2232,7 +2237,7 @@ SLTI	T1, T0, 1
 BEQ		T1, R0, .CheckBadges % if wasn't
 NOP
 % Is equal or lower to 0
-ADDI	T1, R0, 12E8 % set the speed timer to 12E8 once again
+ADDI	T1, R0, .MazeTimerUntilDecrement % set the speed timer to 12E8 once again
 SAH		T1, $DungeonTimer_Speed
 BEQ		R0, R0, .DecrementTimer % decrease rogue timer
 NOP
@@ -2274,13 +2279,13 @@ LIO t2, 800338E4 %in battle function pointer
 BEQ t1, t2, .isInBattle
 NOP
 %not in battle, draw at bottom of screen
-ADDIU a0, r0, 8
-ADDIU a1, r0, CA
+ADDIU a0, r0, 13`
+ADDIU a1, r0, CD
 BEQ r0, r0, .callDrawTimerBox1
 NOP
 .isInBattle
-ADDIU a0, r0, 8`
-ADDIU a1, r0, 3A
+ADDIU a0, r0, 15`
+ADDIU a1, r0, 38
 .callDrawTimerBox1
 % ADDIU	A0, R0, 8`  % posX
 % ADDIU	A1, R0, 3A  % posY
@@ -2313,7 +2318,7 @@ ADDIU	A2, R0, .FullMazeTimer % sizeX
 ADDIU	A3, R0, 10 % sizeY
 ADDIU	T0, R0, 1  % style
 ADDIU	T1, R0, FF % opacity
-JAL		$DrawBox
+%JAL		$DrawBox
 NOP
 .skipMazeTimerDrawing
 .End
