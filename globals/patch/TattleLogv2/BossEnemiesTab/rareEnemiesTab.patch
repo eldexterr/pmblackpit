@@ -112,6 +112,12 @@
 
     .rPressed
     LAW t0, $currentPageNumber
+    ORI t1, r0, .bossPageTotal %last page
+    ADDIU t1, t1, FFFF
+    BEQ t0, t1, .setCursorTo00_01
+    NOP
+    .afterCursor00_01Check
+    LAW t0, $currentPageNumber
     SLTI t1, t0, .bossPageTotal %page limit
     BEQ t1, r0, .exit
     NOP
@@ -144,4 +150,10 @@
     %isn't null actor pointer name
     BEQ r0, r0, .afterCursorDownCheck
     NOP
+
+    .setCursorTo00_01
+    ORI t0, r0, 1
+    SH t0, 0000 (s3)
+    BEQ r0, r0, .afterCursor00_01Check
+    SH r0, 0002 (s3)
 }
