@@ -8,26 +8,83 @@
     PUSH    RA, A0, A1, A2, A3, V0, V1
     LW	V0, 00FC (S2) %load PC
     LIO v1, E000C160
-    LIO     A2, $ASCII_SendThisToDex
+    LIO a2, $ASCII_SendThisToDex
     BNE v0, v1, .normalCrash
     NOP
     %pj64 crash
     LIO a2, $ASCII_PJ64Crash
     .normalCrash
-    ORI     A0, R0, 003A % x
-    JAL     ~Func:crash_printf_string
-    ORI     A1, R0, 000A % y
-    
-    ORI     A0, R0, 00C0 % x
-    ORI     A1, R0, 00E3 % y
-    LIO     A2, $ASCII_Version
+
+    %print header crash text
+    LIO a1, $HeaderTextPositions
+    LH a0, 0000 (a1) %load X
+    JAL ~Func:crash_printf_string
+    LH a1, 0002 (a1) %load Y
+
+    %print version number
+    LIO a1, $VersionTextPositions
+    LH a0, 0000 (a1) %load X
+    LH a1, 0002 (a1) %load Y
+    LIO     A2, $ASCII_Version %wMapHitName
     JAL     ~Func:crash_printf_string
     RESERVED
+
+    %check if we should print battle or overworld map
+    LIO t0, 80074024
+    LB t1, 0070 (t0) %isBattle bool
+    ORI t2, r0, 1 %value is 0 on overworld, 1 in battle, 2 on pause
+    BNE t1, t2, .isOverworldOrPause
+    NOP
+    %else, is battle
+    %print shape
+    LIO t0, 800DC070
+    LW t1, 0438 (t0) %get curStage
+    LIO a1, $wMapHitTextPositions
+    LH a0, 0000 (a1) %load X
+    LH a1, 0002 (a1) %load Y
+    JAL     ~Func:crash_printf_string
+    LW a2, 0004 (t1) %const char* shape;
+
+    %print hit
+    LIO t0, 800DC070
+    LW t1, 0438 (t0) %get curStage
+    LIO a1, $wMapShapeTextPositions
+    LH a0, 0000 (a1) %load X
+    LH a1, 0002 (a1) %load Y
+    JAL     ~Func:crash_printf_string
+    LW a2, 0008 (t1) %const char* hit;
+    BEQ r0, r0, .exit
+    NOP
+
+
+    .isOverworldOrPause
+    %print mapHitText
+    LIO a1, $wMapHitTextPositions
+    LH a0, 0000 (a1) %load X
+    LH a1, 0002 (a1) %load Y
+    LIO     A2, 800D91E0 %wMapHitName
+    JAL     ~Func:crash_printf_string
+    RESERVED
+
+    %print mapShapeText
+    LIO a1, $wMapShapeTextPositions
+    LH a0, 0000 (a1) %load X
+    LH a1, 0002 (a1) %load Y
+    LIO     A2, 800D9230 %wMapShapeName
+    JAL     ~Func:crash_printf_string
+    RESERVED
+
+    .exit
     POP     RA, A0, A1, A2, A3, V0, V1
     ADDIU	A0, R0, 001E
     J       8002C63C
     ADDIU	A1, R0, 00AA
 }
+
+#new:Data $HeaderTextPositions {003As 000As }
+#new:Data $VersionTextPositions {00CCs 00E6s }
+#new:Data $wMapHitTextPositions {001Es 00E6s }
+#new:Data $wMapShapeTextPositions {0078s 00E6s }
 
 #new:ASCII $ASCII_PJ64Crash {
 "PJ64 BUG! USE DIFFERENT EMULATOR!"
