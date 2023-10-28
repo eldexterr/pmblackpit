@@ -250,13 +250,26 @@
 #export:Data $drawBadgesBool {0}
 #export:Data $drawMazeTimerDuringBattle {0}
 
-@Hook:Battle 80147A18 {
-    ORI t1, r0, 1
-    SAW t1, $drawBadgesBool
-    JAL ~Func:draw_box
-    SWC1 f0, 0034 (sp)
-    J 80147A20
-    NOP
+%when in a sub menu with mario, dont draw badges
+@Hook:Battle 802A59DC {
+    LW v1, 0000 (s0)
+    ORI s1, r0, 1
+    ORI v0, r0, 0
+    BEQL v1, s1, .isOne
+    ORI v0, r0, 1
+    .isOne
+    SAW v0, $drawBadgesBool
+    J 802A59E4
+    LW s1, 00DC (s6)
+}
+
+%when in a sub menu with partner, always draw badges
+@Hook:Battle 802A8224 {
+    ORI v0, r0, 1
+    SAW v0, $drawBadgesBool
+    LW v0, 0000 (s1)
+    J 802A822C
+    LW s0, 00DC (s4)
 }
 
 #new:Data $sprintfBuffer {
