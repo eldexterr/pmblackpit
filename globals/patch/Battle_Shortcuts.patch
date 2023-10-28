@@ -449,6 +449,10 @@ bit4/10=R button
 { 00C100CD }
 % XXXXYYYY
 
+%1 is on main screen
+%2 is chosen option (strategies/items/boots/hammer/starpower)
+%3 is select foe to attack
+
 % Draw new icons
 @Hook 41723C % 802A24AC
 {
@@ -483,12 +487,11 @@ bit4/10=R button
     %==================
     % C
     LAW t0, $drawBadgesBool
-    BNE t0, r0, .skipDrawBadges
+    BEQ t0, r0, .skipDrawBadges
     NOP
     JAL $DrawActiveBadges
     NOP
     .skipDrawBadges
-    SAW r0, $drawBadgesBool
     LABU    A0, $Data_Shorcut_FirstIconIndex
     ADDIU   A0, A0, 1
     COPY    S0, A0 % save it in s0 too
